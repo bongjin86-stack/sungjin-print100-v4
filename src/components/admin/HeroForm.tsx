@@ -68,11 +68,9 @@ export default function HeroForm() {
 
       if (data) {
         setSettings(data);
-        // lines가 있으면 사용, 없으면 기존 title_line1, title_line2로 초기화
         if (data.lines && Array.isArray(data.lines) && data.lines.length > 0) {
           setLines(data.lines);
         } else {
-          // 기존 데이터를 lines 형식으로 변환
           const initialLines: HeroLine[] = [
             {
               id: '1',
@@ -94,7 +92,6 @@ export default function HeroForm() {
           setLines(initialLines);
         }
       } else {
-        // 새로 생성
         const { data: newData, error: insertError } = await supabase
           .from('hero_settings')
           .insert([{
@@ -318,30 +315,38 @@ export default function HeroForm() {
         label="Hero 이미지"
       />
 
+      {/* 실제 사이트와 동일한 비율의 미리보기 */}
       <div className="preview-section">
-        <h3>미리보기</h3>
-        <div className="hero-preview">
-          <div className="preview-text">
-            {lines.map((line) => (
-              <div
-                key={line.id}
-                style={{
-                  fontSize: `${line.fontSize}px`,
-                  letterSpacing: `${line.letterSpacing}px`,
-                  fontWeight: line.fontWeight,
-                  marginBottom: `${line.marginBottom}px`,
-                  lineHeight: 1.2
-                }}
-              >
-                {line.text}
-              </div>
-            ))}
-          </div>
-          {settings.image_url && (
-            <div className="preview-image">
-              <img src={settings.image_url} alt="Hero Preview" />
+        <div className="preview-header">
+          <h3>실제 사이트 미리보기</h3>
+          <span className="preview-note">데스크탑 기준 (2.3:1 비율)</span>
+        </div>
+        <div className="hero-preview-container">
+          <div className="hero-preview">
+            <div className="preview-text">
+              {lines.map((line) => (
+                <span
+                  key={line.id}
+                  className="preview-line"
+                  style={{
+                    fontSize: `${line.fontSize}px`,
+                    letterSpacing: `${line.letterSpacing}px`,
+                    fontWeight: line.fontWeight,
+                    marginBottom: `${line.marginBottom}px`,
+                    display: 'block',
+                    lineHeight: 1.2
+                  }}
+                >
+                  {line.text}
+                </span>
+              ))}
             </div>
-          )}
+            {settings.image_url && (
+              <div className="preview-image">
+                <img src={settings.image_url} alt="Hero Preview" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -355,7 +360,7 @@ export default function HeroForm() {
 
       <style>{`
         .hero-form {
-          max-width: 900px;
+          max-width: 1200px;
           margin: 0 auto;
           padding: 2rem;
         }
@@ -556,39 +561,68 @@ export default function HeroForm() {
           text-align: right;
         }
 
+        /* 실제 사이트와 동일한 미리보기 스타일 */
         .preview-section {
           margin-top: 2rem;
-          padding: 1.5rem;
-          background: #f8f9fa;
-          border-radius: 0.75rem;
+          background: #1a1a1a;
+          border-radius: 1rem;
+          overflow: hidden;
         }
 
-        .preview-section h3 {
+        .preview-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem 1.5rem;
+          background: #2d2d2d;
+          border-bottom: 1px solid #404040;
+        }
+
+        .preview-header h3 {
           font-size: 0.875rem;
-          color: #6b7280;
-          margin-bottom: 1rem;
+          color: #ffffff;
+          margin: 0;
+        }
+
+        .preview-note {
+          font-size: 0.75rem;
+          color: #9ca3af;
+        }
+
+        .hero-preview-container {
+          padding: 2rem;
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         }
 
         .hero-preview {
           background: white;
-          border-radius: 0.5rem;
-          padding: 2rem;
-          min-height: 200px;
+          border-radius: 1.5rem;
+          padding: 3rem 2.5rem;
+          max-width: 100%;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         .preview-text {
-          margin-bottom: 1.5rem;
+          margin-bottom: 2rem;
+          max-width: 800px;
+        }
+
+        .preview-line {
+          color: #1a1a1a;
         }
 
         .preview-image {
-          margin-top: 1rem;
+          width: 100%;
+          border-radius: 1.5rem;
+          overflow: hidden;
         }
 
         .preview-image img {
-          max-width: 100%;
-          max-height: 300px;
+          width: 100%;
+          height: auto;
           object-fit: cover;
-          border-radius: 0.5rem;
+          aspect-ratio: 2.3 / 1;
+          display: block;
         }
 
         .save-btn {
