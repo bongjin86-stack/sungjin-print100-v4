@@ -1,34 +1,34 @@
 {
   "work": [
     {
-      "title": "Webサイト・アプリケーション開発",
+      "title": "웹사이트·앱 개발",
       "id": "web-development"
     },
     {
-      "title": "モバイルアプリ開発",
+      "title": "모바일 앱 개발",
       "id": "mobile-apps"
     },
     {
-      "title": "UI/UXデザイン",
+      "title": "UI/UX 디자인",
       "id": "ui-ux-design"
     },
     {
-      "title": "デジタル戦略",
+      "title": "디지털 전략",
       "id": "digital-strategy"
     }
   ],
 
   "news": [
     {
-      "title": "お知らせ",
+      "title": "안내",
       "id": "information"
     },
     {
-      "title": "プレスリリース",
+      "title": "보도자료",
       "id": "press-release"
     },
     {
-      "title": "イベント",
+      "title": "이벤트",
       "id": "event"
     }
   ]

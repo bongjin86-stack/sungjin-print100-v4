@@ -1,49 +1,42 @@
-import { useEffect, useState, useMemo } from 'react';
-import { BlockNoteEditor, PartialBlock } from '@blocknote/core';
-import { useCreateBlockNote } from '@blocknote/react';
-import { BlockNoteView } from '@blocknote/mantine';
-import '@blocknote/mantine/style.css';
+import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
 
 interface BlockNoteEditorProps {
-  initialContent?: string; // JSON string of blocks
+  initialContent?: string;
   onChange?: (content: string) => void;
   height?: string;
   placeholder?: string;
 }
 
 // 마크다운을 BlockNote 블록으로 변환하는 함수
-function markdownToBlocks(markdown: string): PartialBlock[] {
+function markdownToBlocks(markdown: string): any[] {
   if (!markdown || markdown.trim() === '') {
     return [{ type: 'paragraph', content: [] }];
   }
 
-  const blocks: PartialBlock[] = [];
+  const blocks: any[] = [];
   const lines = markdown.split('\n');
   let i = 0;
 
   while (i < lines.length) {
     const line = lines[i];
     
-    // 빈 줄 처리
     if (line.trim() === '') {
       i++;
       continue;
     }
 
-    // 헤딩 처리 (# ~ ######)
     const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
     if (headingMatch) {
-      const level = headingMatch[1].length as 1 | 2 | 3;
+      const level = headingMatch[1].length;
       blocks.push({
         type: 'heading',
-        props: { level: Math.min(level, 3) as 1 | 2 | 3 },
+        props: { level: Math.min(level, 3) },
         content: [{ type: 'text', text: headingMatch[2] }],
       });
       i++;
       continue;
     }
 
-    // 불릿 리스트 처리
     const bulletMatch = line.match(/^[-*]\s+(.+)$/);
     if (bulletMatch) {
       blocks.push({
@@ -54,7 +47,6 @@ function markdownToBlocks(markdown: string): PartialBlock[] {
       continue;
     }
 
-    // 번호 리스트 처리
     const numberMatch = line.match(/^\d+\.\s+(.+)$/);
     if (numberMatch) {
       blocks.push({
@@ -65,7 +57,6 @@ function markdownToBlocks(markdown: string): PartialBlock[] {
       continue;
     }
 
-    // 인용문 처리
     const quoteMatch = line.match(/^>\s*(.*)$/);
     if (quoteMatch) {
       blocks.push({
@@ -76,17 +67,13 @@ function markdownToBlocks(markdown: string): PartialBlock[] {
       continue;
     }
 
-    // 수평선 처리
     if (line.match(/^---+$/) || line.match(/^\*\*\*+$/)) {
       i++;
       continue;
     }
 
-    // 일반 텍스트 (굵게, 기울임 처리)
     let text = line;
-    // **굵게** 처리
     text = text.replace(/\*\*(.+?)\*\*/g, '$1');
-    // *기울임* 처리
     text = text.replace(/\*(.+?)\*/g, '$1');
     
     blocks.push({
@@ -99,79 +86,79 @@ function markdownToBlocks(markdown: string): PartialBlock[] {
   return blocks.length > 0 ? blocks : [{ type: 'paragraph', content: [] }];
 }
 
-// BlockNote 블록을 마크다운으로 변환하는 함수
-function blocksToMarkdown(blocks: any[]): string {
-  if (!blocks || blocks.length === 0) return '';
-
-  return blocks.map(block => {
-    const content = block.content?.map((c: any) => c.text || '').join('') || '';
-    
-    switch (block.type) {
-      case 'heading':
-        const level = block.props?.level || 1;
-        return '#'.repeat(level) + ' ' + content;
-      case 'bulletListItem':
-        return '- ' + content;
-      case 'numberedListItem':
-        return '1. ' + content;
-      case 'paragraph':
-      default:
-        return content;
-    }
-  }).join('\n\n');
-}
-
-export default function BlockNoteEditorComponent({
+// 실제 BlockNote 에디터 컴포넌트 (클라이언트에서만 로드)
+function BlockNoteEditorInner({
   initialContent = '',
   onChange,
   height = '400px',
-  placeholder = '내용을 입력하세요...',
 }: BlockNoteEditorProps) {
-  const [isClient, setIsClient] = useState(false);
-
-  // 클라이언트 사이드 확인
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const [editor, setEditor] = useState<any>(null);
+  const [BlockNoteView, setBlockNoteView] = useState<any>(null);
 
   // 초기 블록 파싱
   const initialBlocks = useMemo(() => {
     if (!initialContent) return undefined;
     
-    // JSON 형식인지 확인
     try {
       const parsed = JSON.parse(initialContent);
       if (Array.isArray(parsed)) {
-        return parsed as PartialBlock[];
+        return parsed;
       }
     } catch {
-      // JSON이 아니면 마크다운으로 처리
       return markdownToBlocks(initialContent);
     }
     
     return undefined;
   }, [initialContent]);
 
-  // BlockNote 에디터 생성
-  const editor = useCreateBlockNote({
-    initialContent: initialBlocks,
-  });
+  // Dynamic import of BlockNote
+  useEffect(() => {
+    let mounted = true;
 
-  // 변경 감지 및 콜백
+    const loadBlockNote = async () => {
+      try {
+        const [coreModule, reactModule, mantineModule] = await Promise.all([
+          import('@blocknote/core'),
+          import('@blocknote/react'),
+          import('@blocknote/mantine'),
+        ]);
+
+        // Import CSS
+        await import('@blocknote/mantine/style.css');
+
+        if (!mounted) return;
+
+        const newEditor = coreModule.BlockNoteEditor.create({
+          initialContent: initialBlocks,
+        });
+
+        setEditor(newEditor);
+        setBlockNoteView(() => mantineModule.BlockNoteView);
+      } catch (error) {
+        console.error('Failed to load BlockNote:', error);
+      }
+    };
+
+    loadBlockNote();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // 변경 감지
   useEffect(() => {
     if (!editor || !onChange) return;
 
     const handleChange = () => {
       const blocks = editor.document;
-      // JSON 형식으로 저장
       onChange(JSON.stringify(blocks));
     };
 
-    // 에디터 변경 이벤트 구독
     editor.onEditorContentChange(handleChange);
   }, [editor, onChange]);
 
-  if (!isClient) {
+  if (!editor || !BlockNoteView) {
     return (
       <div style={{ 
         height, 
@@ -203,6 +190,34 @@ export default function BlockNoteEditorComponent({
   );
 }
 
+// 메인 컴포넌트 - SSR 체크
+export default function BlockNoteEditorComponent(props: BlockNoteEditorProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div style={{ 
+        height: props.height || '400px', 
+        border: '1px solid #e5e7eb', 
+        borderRadius: '0.375rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f9fafb',
+        color: '#6b7280',
+      }}>
+        에디터 로딩 중...
+      </div>
+    );
+  }
+
+  return <BlockNoteEditorInner {...props} />;
+}
+
 // JSON 블록을 HTML로 렌더링하는 유틸리티 함수 (프론트엔드용)
 export function renderBlocksToHTML(content: string): string {
   if (!content) return '';
@@ -212,18 +227,15 @@ export function renderBlocksToHTML(content: string): string {
   try {
     blocks = JSON.parse(content);
     if (!Array.isArray(blocks)) {
-      // 마크다운인 경우 간단한 HTML 변환
       return markdownToHTML(content);
     }
   } catch {
-    // JSON이 아니면 마크다운으로 처리
     return markdownToHTML(content);
   }
 
   return blocks.map(block => {
-    const content = block.content?.map((c: any) => {
+    const blockContent = block.content?.map((c: any) => {
       let text = c.text || '';
-      // 스타일 적용
       if (c.styles?.bold) text = `<strong>${text}</strong>`;
       if (c.styles?.italic) text = `<em>${text}</em>`;
       if (c.styles?.underline) text = `<u>${text}</u>`;
@@ -234,14 +246,14 @@ export function renderBlocksToHTML(content: string): string {
     switch (block.type) {
       case 'heading':
         const level = block.props?.level || 1;
-        return `<h${level}>${content}</h${level}>`;
+        return `<h${level}>${blockContent}</h${level}>`;
       case 'bulletListItem':
-        return `<li>${content}</li>`;
+        return `<li>${blockContent}</li>`;
       case 'numberedListItem':
-        return `<li>${content}</li>`;
+        return `<li>${blockContent}</li>`;
       case 'paragraph':
       default:
-        return content ? `<p>${content}</p>` : '';
+        return blockContent ? `<p>${blockContent}</p>` : '';
     }
   }).join('\n');
 }
@@ -252,21 +264,13 @@ function markdownToHTML(markdown: string): string {
   
   let html = markdown;
   
-  // 헤딩
   html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
   html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
   html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-  
-  // 굵게
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  
-  // 기울임
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-  
-  // 불릿 리스트
   html = html.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
   
-  // 줄바꿈을 <p> 태그로
   const paragraphs = html.split(/\n\n+/);
   html = paragraphs.map(p => {
     if (p.startsWith('<h') || p.startsWith('<li>')) return p;
@@ -277,5 +281,4 @@ function markdownToHTML(markdown: string): string {
   return html;
 }
 
-// Export 유틸리티 함수들
-export { markdownToBlocks, blocksToMarkdown };
+export { markdownToBlocks };
