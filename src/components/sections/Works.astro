@@ -1,59 +1,49 @@
 ---
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import LinkText from "@/components/ui/LinkText.astro";
 import SectionTitle from "@/components/ui/SectionTitle.astro";
-import { supabase } from "@/lib/supabase";
+import categoryData from "@/config/category.json";
 
-// DB에서 Works 데이터 가져오기 (최신 4개)
-const { data: works, error } = await supabase
-  .from('works')
-  .select('*')
-  .eq('is_published', true)
-  .order('created_at', { ascending: false })
-  .limit(4);
-
-if (error) {
-  console.error('Error fetching works:', error);
-}
-
-const worksList = works || [];
+const allWorks = await getCollection("works");
+const works = allWorks.sort((a, b) => b.data.year - a.data.year).slice(0, 4);
 ---
 
 <Section background="primary">
   <Container>
     <div class="works-inner">
       <div class="works-header">
-        <SectionTitle title="Guide" subtitle="인쇄가이드" />
-        <LinkText href="/works/" ariaLabel="인쇄가이드 전체보기">
+        <SectionTitle title="Works" subtitle="제작실적" />
+        <LinkText href="/works/" ariaLabel="제작실적 전체보기">
           전체보기
         </LinkText>
       </div>
 
       <div class="works-grid">
         {
-          worksList.map((work) => (
+          works.map((work) => (
             <article class="work-item fade" data-animate>
-              <a class="item-link" href={`/works/detail/${work.id}`}>
+              <a class="item-link" href={`/works/${work.id}`}>
                 <div class="item-image">
-                  {work.image ? (
-                    <img
-                      src={work.image}
-                      alt={work.title}
-                      width="1600"
-                      height="1068"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div class="image-placeholder">이미지 없음</div>
-                  )}
-                  {work.tag && (
-                    <span class="item-category">{work.tag}</span>
-                  )}
+                  <Image
+                    src={work.data.image}
+                    alt={work.data.title}
+                    width={1600}
+                    height={1068}
+                  />
+                  <span class="item-category">
+                    {categoryData.work.find(
+                      (cat) => cat.id === work.data.category
+                    )?.title || work.data.category}
+                  </span>
                 </div>
                 <div class="item-content">
-                  <h3 class="item-title">{work.title}</h3>
-                  <p class="item-description">{work.description}</p>
+                  <h3 class="item-title">{work.data.title}</h3>
+                  <p class="item-client">{work.data.client}</p>
+                  <p class="item-description">{work.data.description}</p>
                   <span class="item-view">자세히 보기</span>
                 </div>
               </a>
@@ -118,7 +108,6 @@ const worksList = works || [];
     width: 100%;
     overflow: hidden;
     border-radius: var(--radius-3xl);
-    background-color: var(--c-bg-secondary);
 
     img {
       width: 100%;
@@ -131,16 +120,6 @@ const worksList = works || [];
     .work-item:hover & img {
       transform: scale(1.05);
     }
-  }
-
-  .image-placeholder {
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--c-text-sub);
-    font-size: var(--fs-sm);
   }
 
   .item-category {

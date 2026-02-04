@@ -1,31 +1,40 @@
 ---
-import type { GetStaticPaths } from "astro";
-import { getCollection, render } from "astro:content";
-
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import CTA from "@/components/sections/CTA.astro";
 import CTA2 from "@/components/sections/CTA2.astro";
 import LinkButton from "@/components/ui/LinkButton.astro";
-import categoryData from "@/config/category.json";
 import Layout from "@/layouts/Layout.astro";
+import { supabase } from "@/lib/supabase";
 
-export const getStaticPaths = (async () => {
-  const newsCollection = await getCollection("news");
-  return newsCollection.map((news) => ({
-    params: { id: news.id },
-    props: { news },
-  }));
-}) satisfies GetStaticPaths;
+// SSR 모드로 전환
+export const prerender = false;
 
-const { news } = Astro.props;
+const { id } = Astro.params;
 
-const { title, category, pubDate } = news.data;
-const { Content } = await render(news);
+// DB에서 News 데이터 가져오기
+const { data: news, error: newsError } = await supabase
+  .from('news')
+  .select('*')
+  .eq('id', id)
+  .single();
 
-const categoryInfo = categoryData.news.find((cat) => cat.id === category);
-const categoryTitle = categoryInfo?.title || category;
+// 데이터가 없으면 404
+if (newsError || !news) {
+  return Astro.redirect('/404');
+}
 
+// News 카테고리 정의
+const categoryList = [
+  { id: "information", title: "안내" },
+  { id: "event", title: "이벤트" },
+  { id: "update", title: "업데이트" }
+];
+
+const categoryInfo = categoryList.find((cat) => cat.id === news.category);
+const categoryTitle = categoryInfo?.title || news.category;
+
+const pubDate = new Date(news.pub_date);
 const formattedDate = pubDate
   .toLocaleDateString("ko-KR", {
     year: "numeric",
@@ -33,14 +42,53 @@ const formattedDate = pubDate
     day: "numeric",
   })
   .replace(/\//g, ".");
+
+// Markdown을 HTML로 변환하는 간단한 함수
+function parseMarkdown(markdown: string): string {
+  if (!markdown) return '';
+  
+  let html = markdown
+    // 헤더
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    // 볼드
+    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+    // 이탤릭
+    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+    // 링크
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2">$1</a>')
+    // 리스트
+    .replace(/^\- (.*$)/gim, '<li>$1</li>')
+    // 테이블 (간단한 처리)
+    .replace(/\|:?-+:?\|/g, '')
+    .replace(/\|(.*?)\|/g, (match, content) => {
+      const cells = content.split('|').map((cell: string) => cell.trim());
+      return '<tr>' + cells.map((cell: string) => `<td>${cell}</td>`).join('') + '</tr>';
+    })
+    // 줄바꿈
+    .replace(/\r\n\r\n/gim, '</p><p>')
+    .replace(/\n\n/gim, '</p><p>')
+    .replace(/\r\n/gim, '<br>')
+    .replace(/\n/gim, '<br>');
+  
+  // 리스트 감싸기
+  html = html.replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>');
+  // 테이블 감싸기
+  if (html.includes('<tr>')) {
+    html = html.replace(/(<tr>.*<\/tr>)/gims, '<table>$1</table>');
+  }
+  
+  return `<p>${html}</p>`;
+}
 ---
 
-<Layout title={`${title} - News`} description={title} articleDate={pubDate}>
+<Layout title={`${news.title} - News`} description={news.title} articleDate={pubDate}>
   <Section>
     <Container size="medium">
       <article class="news-detail">
         <header class="news-header">
-          <h1 class="news-detail-title">{title}</h1>
+          <h1 class="news-detail-title">{news.title}</h1>
 
           <div class="news-meta">
             <time class="news-meta-date" datetime={pubDate.toISOString()}>
@@ -50,9 +98,7 @@ const formattedDate = pubDate
           </div>
         </header>
 
-        <div class="news-body">
-          <Content />
-        </div>
+        <div class="news-body" set:html={parseMarkdown(news.content)} />
 
         <div class="news-action">
           <LinkButton
@@ -181,42 +227,6 @@ const formattedDate = pubDate
       }
     }
 
-    :global(h4) {
-      margin: var(--sp-lg) 0 var(--sp-sm);
-      color: var(--c-text);
-      font-size: var(--fs-base);
-      font-weight: 600;
-      line-height: var(--lh-tight);
-
-      @media (min-width: 900px) {
-        font-size: var(--fs-md);
-      }
-    }
-
-    :global(h5) {
-      margin: var(--sp-md) 0 var(--sp-sm);
-      color: var(--c-text);
-      font-size: var(--fs-base);
-      font-weight: 600;
-      line-height: var(--lh-tight);
-
-      @media (min-width: 900px) {
-        font-size: var(--fs-md);
-      }
-    }
-
-    :global(h6) {
-      margin: var(--sp-md) 0 var(--sp-xs);
-      color: var(--c-text-sub);
-      font-size: var(--fs-base);
-      font-weight: 600;
-      line-height: var(--lh-tight);
-
-      @media (min-width: 900px) {
-        font-size: var(--fs-base);
-      }
-    }
-
     :global(p) {
       margin: var(--sp-md) 0;
 
@@ -246,24 +256,19 @@ const formattedDate = pubDate
       margin: var(--sp-sm) 0;
     }
 
-    :global(em) {
-      font-style: italic;
-    }
-
-    :global(hr) {
-      display: block;
-      margin: var(--sp-2xl) 0;
-      border: none;
-      border-top: 2px solid var(--c-border);
-      height: 0;
-    }
-
-    :global(img) {
-      display: block;
-      max-width: 100%;
-      height: auto;
+    :global(table) {
+      width: 100%;
       margin: var(--sp-lg) 0;
-      border-radius: var(--radius-md);
+      border-collapse: collapse;
+    }
+
+    :global(td), :global(th) {
+      padding: var(--sp-sm) var(--sp-md);
+      border: 1px solid var(--c-border);
+    }
+
+    :global(strong) {
+      font-weight: 600;
     }
 
     :global(a) {
@@ -274,61 +279,6 @@ const formattedDate = pubDate
       &:hover {
         opacity: 0.7;
       }
-
-      &[href^="http"]::after,
-      &[href^="https://"]::after
-      {
-        content: "";
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        margin: 0 var(--sp-xs);
-        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%20%3Cpath%20d%3D%22M15%203h6v6%22%20%2F%3E%20%3Cpath%20d%3D%22M10%2014%2021%203%22%20%2F%3E%20%3Cpath%20d%3D%22M18%2013v6a2%202%200%200%201-2%202H5a2%202%200%200%201-2-2V8a2%202%200%200%201%202-2h6%22%20%2F%3E%3C%2Fsvg%3E");
-        background-size: contain;
-        background-repeat: no-repeat;
-        vertical-align: middle;
-      }
-
-      &[href^="/"]::after,
-      &[href^="#"]::after {
-        content: none;
-      }
-    }
-
-    :global(strong) {
-      font-weight: 600;
-    }
-
-    :global(code) {
-      padding: 4px 8px;
-      background-color: rgba(100, 100, 100, 0.15);
-      border: 1px solid var(--c-border);
-      color: var(--c-text);
-      font-family: "Courier New", Consolas, Monaco, monospace;
-      font-size: 0.9em;
-      border-radius: var(--radius-base);
-    }
-
-    :global(pre) {
-      margin: var(--sp-lg) 0;
-      padding: var(--sp-md);
-      background-color: var(--c-bg-secondary);
-      border-radius: var(--radius-md);
-      overflow-x: auto;
-
-      :global(code) {
-        padding: 0;
-        background-color: transparent;
-        border: none;
-      }
-    }
-
-    :global(blockquote) {
-      margin: var(--sp-lg) 0;
-      padding-left: var(--sp-lg);
-      border-left: 4px solid var(--c-primary);
-      color: var(--c-text-sub);
-      font-style: italic;
     }
   }
 

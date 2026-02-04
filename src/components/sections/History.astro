@@ -2,7 +2,17 @@
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import SectionTitle from "@/components/ui/SectionTitle.astro";
-import historyItems from "@/config/history.json";
+import { supabase } from "@/lib/supabase";
+
+// DB에서 연혁 데이터 가져오기
+const { data: historyItems, error } = await supabase
+  .from('history')
+  .select('*')
+  .order('sort_order', { ascending: true });
+
+if (error) {
+  console.error('Error fetching history:', error);
+}
 ---
 
 <Section background="secondary">
@@ -11,7 +21,7 @@ import historyItems from "@/config/history.json";
 
     <div class="history-timeline">
       {
-        historyItems.map((item) => (
+        historyItems && historyItems.map((item) => (
           <article class="timeline-item">
             <div class="item-date">
               <span class="date-year">{item.year}</span>

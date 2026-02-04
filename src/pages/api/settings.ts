@@ -4,14 +4,34 @@ import { supabase } from '../../lib/supabase';
 export const prerender = false;
 
 // site_settings 테이블은 key/value 구조
-// key: 설정 키 (예: 'site_name', 'service_intro')
+// key: 설정 키 (예: 'site_name', 'about_strength_visible')
 // value: 설정 값
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const data = await request.json();
     
-    // 각 설정을 개별적으로 upsert
+    // 단일 key/value 저장 (AboutPageForm 등에서 사용)
+    if (data.key && data.value !== undefined) {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert(
+          { key: data.key, value: data.value, updated_at: new Date().toISOString() },
+          { onConflict: 'key' }
+        );
+      
+      if (error) {
+        console.error('Single setting save error:', error);
+        throw error;
+      }
+      
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // 기존 방식: 여러 설정을 한 번에 저장 (설정 페이지에서 사용)
     const settings = [
       { key: 'site_name', value: data.site_name || '' },
       { key: 'site_description', value: data.site_description || '' },
@@ -22,21 +42,17 @@ export const POST: APIRoute = async ({ request }) => {
     ];
 
     for (const setting of settings) {
-      const { data: existing } = await supabase
-        .from('site_settings')
-        .select('id')
-        .eq('key', setting.key)
-        .single();
-
-      if (existing) {
-        await supabase
+      if (setting.value !== undefined) {
+        const { error } = await supabase
           .from('site_settings')
-          .update({ value: setting.value, updated_at: new Date().toISOString() })
-          .eq('key', setting.key);
-      } else {
-        await supabase
-          .from('site_settings')
-          .insert({ key: setting.key, value: setting.value });
+          .upsert(
+            { key: setting.key, value: setting.value, updated_at: new Date().toISOString() },
+            { onConflict: 'key' }
+          );
+        
+        if (error) {
+          console.error(`Setting save error for ${setting.key}:`, error);
+        }
       }
     }
 

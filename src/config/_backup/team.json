@@ -1,0 +1,33 @@
+[
+  {
+    "name": "井上 俊介",
+    "position": "Creative Director",
+    "imagePath": "/src/assets/team/inoue.png"
+  },
+  {
+    "name": "高橋 里奈",
+    "position": "Lead Designer",
+    "imagePath": "/src/assets/team/takahashi.png"
+  },
+  {
+    "name": "松原 真希",
+    "position": "Frontend Developer",
+    "imagePath": "/src/assets/team/matsubara.png"
+  },
+  {
+    "name": "大森 悠斗",
+    "position": "UI/UX Designer",
+    "imagePath": "/src/assets/team/oomori.png"
+  },
+  {
+    "name": "岡田 実桜",
+    "position": "Backend Developer",
+    "imagePath": "/src/assets/team/okada.png"
+  },
+  {
+    "name": "Bob",
+    "position": "Chief of Security",
+    "imagePath": "/src/assets/team/dog.jpg",
+    "isPet": true
+  }
+]

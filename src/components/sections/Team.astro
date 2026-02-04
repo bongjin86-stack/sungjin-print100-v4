@@ -2,40 +2,51 @@
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import SectionTitle from "@/components/ui/SectionTitle.astro";
-import DynamicImage from "@/components/util/DynamicImage.astro";
-import teamData from "@/config/team.json";
+import { supabase } from "@/lib/supabase";
+import { marked } from "marked";
 
-interface TeamMember {
-  name: string;
-  position: string;
-  imagePath: string;
-  isPet?: boolean;
+interface Props {
+  settings?: Record<string, string>;
 }
 
-const teamMembers: TeamMember[] = teamData;
+const { settings = {} } = Astro.props;
+
+// DB에서 팀 데이터 가져오기
+const { data: teamMembers, error } = await supabase
+  .from('team')
+  .select('*')
+  .order('sort_order', { ascending: true });
+
+if (error) {
+  console.error('Error fetching team:', error);
+}
+
+// 섹션 제목/부제목/설명
+const sectionTitle = settings['team_title'] || 'Meet Our Team';
+const sectionSubtitle = settings['team_subtitle'] || '팀 소개';
+const teamDescriptionRaw = settings['team_description'] || '성진인쇄는 전문 인력과 최신 장비를 갖추고 고객 만족을 위해 최선을 다하고 있습니다. 다양한 배경을 가진 팀원들이 각자의 전문성을 살려 혁신적인 인쇄 경험을 만들어가고 있습니다. 고객의 비전을 실현하기 위해 항상 배우고 도전하는 팀입니다.';
+
+// 마크다운을 HTML로 변환
+const teamDescription = marked.parse(teamDescriptionRaw);
 ---
 
 <Section>
   <Container>
     <div class="team-header">
-      <SectionTitle title="Meet Our Team" subtitle="チームメンバー" />
-      <p class="team-description">
-        私たちは東京、大阪、福岡の3拠点を拠点に、デザインとテクノロジーの力で、クライアントのビジネス成長を支援しています。多様なバックグラウンドを持つメンバーが、それぞれの専門性を活かしながら、革新的なデジタル体験を創造することに情熱を注いでいます。お客様のビジョンを実現するために、常に学び、挑戦し続けるチームです。
-      </p>
+      <SectionTitle title={sectionTitle} subtitle={sectionSubtitle} />
+      <div class="team-description" set:html={teamDescription} />
     </div>
 
     <div class="team-grid">
       {
-        teamMembers.map((member) => (
-          <article class:list={["team-member", { "-pet": member.isPet }]}>
+        teamMembers && teamMembers.map((member) => (
+          <article class:list={["team-member", { "-pet": member.is_pet }]}>
             <div class="team-member-image">
-              <DynamicImage
-                imagePath={member.imagePath}
-                altText={member.name}
-                width={600}
-                height={600}
-                class="team-image"
-              />
+              {member.image_path ? (
+                <img src={member.image_path} alt={member.name} class="team-image" />
+              ) : (
+                <div class="team-image-placeholder"></div>
+              )}
             </div>
             <div class="team-member-info">
               <h3 class="team-member-name">{member.name}</h3>
@@ -70,6 +81,14 @@ const teamMembers: TeamMember[] = teamData;
 
     @media (min-width: 900px) {
       font-size: var(--fs-md);
+    }
+    
+    :global(p) {
+      margin: 0 0 1em;
+    }
+    
+    :global(p:last-child) {
+      margin-bottom: 0;
     }
   }
 
@@ -113,6 +132,12 @@ const teamMembers: TeamMember[] = teamData;
     height: auto;
     object-fit: cover;
     aspect-ratio: 1 / 1;
+  }
+
+  .team-image-placeholder {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-color: var(--c-bg-secondary);
   }
 
   .team-member-info {

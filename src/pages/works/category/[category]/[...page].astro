@@ -1,75 +1,126 @@
 ---
-import type { GetStaticPaths, Page } from "astro";
-import type { CollectionEntry } from "astro:content";
-import { getCollection } from "astro:content";
-
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import CTA from "@/components/sections/CTA.astro";
 import CategoryNavigation from "@/components/ui/CategoryNavigation.astro";
 import PageHero from "@/components/ui/PageHero.astro";
 import Pagination from "@/components/ui/Pagination.astro";
-import WorkCard from "@/components/ui/WorkCard.astro";
-import categoryData from "@/config/category.json";
-import siteConfig from "@/config/site.config.json";
 import Layout from "@/layouts/Layout.astro";
+import { supabase } from "@/lib/supabase";
+import siteConfig from "@/config/site.config.json";
 
-export const getStaticPaths = (async ({ paginate }) => {
-  const allWorks = await getCollection("works");
+// SSR 모드로 전환
+export const prerender = false;
 
-  return categoryData.work.flatMap((category) => {
-    const filteredWorks = allWorks.filter(
-      (work) => work.data.category === category.id
-    );
+// URL에서 카테고리와 페이지 번호 추출
+const { category: categoryId, page: pageParam } = Astro.params;
+const currentPage = pageParam ? parseInt(pageParam) : 1;
+const pageSize = siteConfig.settings.pagination || 9;
 
-    return paginate(filteredWorks, {
-      params: { category: category.id },
-      pageSize: siteConfig.settings.pagination,
-      props: { category },
-    });
-  });
-}) satisfies GetStaticPaths;
+// DB에서 모든 카테고리 데이터 가져오기
+const { data: categories, error: catError } = await supabase
+  .from('work_categories')
+  .select('*')
+  .order('sort_order', { ascending: true });
 
-type Props = {
-  page: Page<CollectionEntry<"works">>;
-  category: { id: string; title: string };
-};
+if (catError) {
+  console.error('Error fetching categories:', catError);
+}
 
-const { page, category } = Astro.props;
+// 카테고리 데이터를 CategoryNavigation 형식으로 변환
+const categoryList = categories?.map(cat => ({
+  id: cat.id,
+  title: cat.title
+})) || [];
+
+// 현재 카테고리 정보 찾기
+const currentCategory = categoryList.find(cat => cat.id === categoryId);
+
+if (!currentCategory) {
+  return Astro.redirect('/works');
+}
+
+// DB에서 해당 카테고리의 Works 전체 개수 가져오기
+const { count: totalCount } = await supabase
+  .from('works')
+  .select('*', { count: 'exact', head: true })
+  .eq('is_published', true)
+  .eq('category_id', categoryId);
+
+// DB에서 해당 카테고리의 Works 데이터 가져오기 (페이지네이션)
+const { data: works, error: worksError } = await supabase
+  .from('works')
+  .select('*')
+  .eq('is_published', true)
+  .eq('category_id', categoryId)
+  .order('sort_order', { ascending: true })
+  .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
+
+if (worksError) {
+  console.error('Error fetching works:', worksError);
+}
+
+const worksList = works || [];
+const totalPages = Math.ceil((totalCount || 0) / pageSize);
 
 const pageTitle =
-  page.currentPage === 1
-    ? `Works - ${category.title}`
-    : `Works - ${category.title} (${page.currentPage}ページ)`;
+  currentPage === 1
+    ? `Works - ${currentCategory.title}`
+    : `Works - ${currentCategory.title} (${currentPage}페이지)`;
+
+// 카테고리 ID로 카테고리 제목 찾기
+function getCategoryTitle(catId: string): string {
+  const cat = categoryList.find(c => c.id === catId);
+  return cat?.title || catId;
+}
 ---
 
 <Layout
   title={pageTitle}
-  description={`${category.title}カテゴリーの制作実績をご紹介します。`}
+  description={`${currentCategory.title} 카테고리의 Works를 소개합니다.`}
 >
-  <PageHero title="Works" subtitle={category.title} />
+  <PageHero title="Works" subtitle={currentCategory.title} />
 
   <Section class="works-section">
     <Container>
       <CategoryNavigation
-        categories={categoryData.work}
-        currentCategory={category.id}
+        categories={categoryList}
+        currentCategory={categoryId}
         basePath="/works"
       />
 
       <div class="works-grid">
-        {page.data.map((work) => <WorkCard work={work} />)}
+        {worksList.length > 0 ? (
+          worksList.map((work) => (
+            <article class="work-card">
+              <a href={`/works/${work.id}`} class="work-card-link">
+                <div class="work-card-image">
+                  {work.image ? (
+                    <img src={work.image} alt={work.title} width="600" height="400" loading="lazy" />
+                  ) : (
+                    <div class="work-card-placeholder">No Image</div>
+                  )}
+                </div>
+                <div class="work-card-content">
+                  <h3 class="work-card-title">{work.title}</h3>
+                  <p class="work-card-client">{work.client || work.subtitle}</p>
+                  <span class="work-card-category">{getCategoryTitle(work.category_id)}</span>
+                </div>
+              </a>
+            </article>
+          ))
+        ) : (
+          <p class="no-works">이 카테고리에 등록된 콘텐츠가 없습니다.</p>
+        )}
       </div>
 
-      {
-        page.lastPage > 1 && (
-          <Pagination
-            currentPage={page.currentPage}
-            totalPages={page.lastPage}
-            basePath={`/works/category/${category.id}`}
-          />
-        )
-      }
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          basePath={`/works/category/${categoryId}`}
+        />
+      )}
     </Container>
   </Section>
 
@@ -96,5 +147,85 @@ const pageTitle =
       grid-template-columns: repeat(3, 1fr);
       gap: var(--sp-2xl);
     }
+  }
+
+  .work-card-link {
+    display: block;
+  }
+
+  .work-card-image {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-4xl);
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      aspect-ratio: 3 / 2;
+      transition: transform var(--transition-slow);
+    }
+
+    .work-card:hover & img {
+      transform: scale(1.05);
+    }
+  }
+
+  .work-card-placeholder {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    background-color: var(--c-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--c-text-sub);
+  }
+
+  .work-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+    margin: var(--sp-md) 0 0;
+  }
+
+  .work-card-title {
+    color: var(--c-text);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    line-height: var(--lh-snug);
+
+    @media (min-width: 600px) {
+      font-size: var(--fs-lg);
+    }
+  }
+
+  .work-card-client {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+  }
+
+  .work-card-category {
+    display: inline-block;
+    align-self: self-start;
+    margin-top: var(--sp-xs);
+    padding: var(--sp-xs) var(--sp-md);
+    background-color: var(--c-bg-secondary);
+    color: var(--c-text-sub);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    line-height: var(--lh-tight);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius-full);
+  }
+
+  .no-works {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--c-text-sub);
+    font-size: var(--fs-md);
+    padding: var(--sp-3xl) 0;
   }
 </style>

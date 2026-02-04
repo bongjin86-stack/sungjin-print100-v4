@@ -1,0 +1,36 @@
+---
+export const prerender = false;
+
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import AboutPageForm from '@/components/admin/AboutPageForm';
+import { supabase } from '@/lib/supabase';
+
+// 모든 about 관련 설정 가져오기
+const { data: settings } = await supabase
+  .from('site_settings')
+  .select('*');
+
+// 설정값을 객체로 변환
+const settingsMap: Record<string, string> = {};
+settings?.forEach(s => {
+  settingsMap[s.key] = s.value;
+});
+---
+
+<AdminLayout title="About 페이지 관리">
+  <div class="admin-page">
+    <div class="page-header">
+      <h1>About 페이지 관리</h1>
+      <p class="page-description">회사소개 페이지의 각 섹션을 편집하고 표시 여부를 설정할 수 있습니다.</p>
+    </div>
+
+    <AboutPageForm initialSettings={settingsMap} client:load />
+  </div>
+
+  <style>
+    .admin-page { padding: 2rem; max-width: 1000px; }
+    .page-header { margin-bottom: 2rem; }
+    .page-header h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 8px; }
+    .page-description { color: #6b7280; font-size: 0.875rem; }
+  </style>
+</AdminLayout>

@@ -21,11 +21,11 @@ if (error || !work) {
 
 <AdminLayout title={`${work.title} 수정`}>
   <div class="admin-header">
-    <h1>인쇄가이드 수정</h1>
+    <h1>Works 수정</h1>
     <a href="/admin/works" class="btn-back">목록으로</a>
   </div>
 
-  <WorksForm client:load mode="edit" initialData={work} />
+  <WorksForm client:only="react" mode="edit" initialData={work} />
 </AdminLayout>
 
 <style>

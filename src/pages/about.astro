@@ -1,13 +1,46 @@
 ---
+export const prerender = false;
+
 import sampleImage1 from "@/assets/sample1.jpg";
 import sampleImage2 from "@/assets/sample2.jpg";
 import ContentImage from "@/components/sections/ContentImage.astro";
 import CTA from "@/components/sections/CTA.astro";
+import History from "@/components/sections/History.astro";
 import Team from "@/components/sections/Team.astro";
 import TopMessage from "@/components/sections/TopMessage.astro";
 import Values from "@/components/sections/Values.astro";
 import PageHero from "@/components/ui/PageHero.astro";
 import Layout from "@/layouts/Layout.astro";
+import { supabase } from "@/lib/supabase";
+
+// DB에서 설정 가져오기
+const { data: settings } = await supabase
+  .from('site_settings')
+  .select('*');
+
+const settingsMap: Record<string, string> = {};
+settings?.forEach(s => {
+  settingsMap[s.key] = s.value;
+});
+
+// 섹션 표시 여부
+const showStrength = settingsMap['about_strength_visible'] !== 'false';
+const showQuality = settingsMap['about_quality_visible'] !== 'false';
+const showValues = settingsMap['about_values_visible'] !== 'false';
+const showHistory = settingsMap['about_history_visible'] !== 'false';
+const showCeo = settingsMap['ceo_visible'] !== 'false';
+const showTeam = settingsMap['team_visible'] !== 'false';
+const showCta = settingsMap['about_cta_visible'] !== 'false';
+
+// 강점 섹션 데이터
+const strengthTitle = settingsMap['about_strength_title'] || 'Sungjinprint의 강점';
+const strengthContent = settingsMap['about_strength_content'] || '20년 경력의 인쇄 전문가가 운영하는 Sungjinprint입니다. 무선제본, 중철제본, 스프링제본 등 다양한 제본 서비스와 빠른 납기를 제공합니다. 고객의 요구에 맞춘 맞춤 상담으로 최적의 인쇄 솔루션을 제안합니다.';
+const strengthImage = settingsMap['about_strength_image'];
+
+// 품질 섹션 데이터
+const qualityTitle = settingsMap['about_quality_title'] || '품질에 대한 고집';
+const qualityContent = settingsMap['about_quality_content'] || '최신 인쇄 장비와 숙련된 기술진으로 깔끔한 인쇄 품질을 보장합니다. 인쇄 전 색상 교정, 인쇄 중 품질 체크, 제본 후 검수까지 철저한 품질 관리를 진행합니다. 고객 만족을 위해 최선을 다하겠습니다.';
+const qualityImage = settingsMap['about_quality_image'];
 ---
 
 <Layout
@@ -15,24 +48,32 @@ import Layout from "@/layouts/Layout.astro";
   description="Sungjinprint의 비전과 가치를 소개합니다. 고객의 성공을 위한 파트너로서 저희가 소중히 여기는 가치를 전달합니다."
 >
   <PageHero title="About Us" subtitle="회사소개" />
-  <ContentImage
-    title="Sungjinprint의 강점"
-    text="20년 경력의 인쇄 전문가가 운영하는 Sungjinprint입니다. 무선제본, 중철제본, 스프링제본 등 다양한 제본 서비스와 빠른 납기를 제공합니다. 고객의 요구에 맞춘 맞춤 상담으로 최적의 인쇄 솔루션을 제안합니다."
-    imageSrc={sampleImage1}
-    imageAlt="인쇄 작업 현장"
-  />
-  <ContentImage
-    title="품질에 대한 고집"
-    text="최신 인쇄 장비와 숙련된 기술진으로 깔끔한 인쇄 품질을 보장합니다. 인쇄 전 색상 교정, 인쇄 중 품질 체크, 제본 후 검수까지 철저한 품질 관리를 진행합니다. 고객 만족을 위해 최선을 다하겠습니다."
-    imageSrc={sampleImage2}
-    imageAlt="최신 인쇄 장비"
-    background="secondary"
-    reverse
-  />
-  <Values />
-  <TopMessage />
-  <Team />
-  <CTA />
+  
+  {showStrength && (
+    <ContentImage
+      title={strengthTitle}
+      text={strengthContent}
+      imageSrc={strengthImage || sampleImage1}
+      imageAlt="인쇄 작업 현장"
+    />
+  )}
+  
+  {showQuality && (
+    <ContentImage
+      title={qualityTitle}
+      text={qualityContent}
+      imageSrc={qualityImage || sampleImage2}
+      imageAlt="최신 인쇄 장비"
+      background="secondary"
+      reverse
+    />
+  )}
+  
+  {showValues && <Values settings={settingsMap} />}
+  {showHistory && <History />}
+  {showCeo && <TopMessage />}
+  {showTeam && <Team settings={settingsMap} />}
+  {showCta && <CTA />}
 </Layout>
 
 <style lang="scss">

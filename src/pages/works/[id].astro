@@ -1,117 +1,152 @@
 ---
-import type { GetStaticPaths } from "astro";
-import { Image } from "astro:assets";
-import { getCollection } from "astro:content";
-
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import CTA from "@/components/sections/CTA.astro";
 import LinkButton from "@/components/ui/LinkButton.astro";
 import PageHero from "@/components/ui/PageHero.astro";
-import categoryData from "@/config/category.json";
 import Layout from "@/layouts/Layout.astro";
+import { supabase } from "@/lib/supabase";
 
-export const getStaticPaths = (async () => {
-  const works = await getCollection("works");
-  return works.map((work) => ({
-    params: { id: work.id },
-    props: { work },
-  }));
-}) satisfies GetStaticPaths;
+// SSR 모드로 전환
+export const prerender = false;
 
-const { work } = Astro.props;
+// URL에서 ID 추출
+const { id } = Astro.params;
 
-const {
-  title,
-  subtitle,
-  client,
-  category,
-  year,
-  image,
-  description,
-  overview,
-  support,
-  achievements,
-  testimonial,
-} = work.data;
+// DB에서 Work 데이터 가져오기
+const { data: work, error: workError } = await supabase
+  .from('works')
+  .select('*')
+  .eq('id', id)
+  .single();
 
-const categoryInfo = categoryData.work.find((cat) => cat.id === category);
-const categoryTitle = categoryInfo?.title || category;
+if (workError || !work) {
+  return Astro.redirect('/404');
+}
 
-const ogImageUrl = new URL(image.src, Astro.site).href;
+// DB에서 카테고리 데이터 가져오기
+const { data: category } = await supabase
+  .from('work_categories')
+  .select('title')
+  .eq('id', work.category_id)
+  .single();
+
+const categoryTitle = category?.title || work.category_id || '';
+
+// support와 achievements JSON 파싱
+let supportList: string[] = [];
+let achievementsList: { title: string; description: string }[] = [];
+let testimonial: { text: string; author: string; position: string } | null = null;
+
+try {
+  if (work.support) {
+    supportList = typeof work.support === 'string' ? JSON.parse(work.support) : work.support;
+  }
+} catch (e) {
+  supportList = [];
+}
+
+try {
+  if (work.achievements) {
+    achievementsList = typeof work.achievements === 'string' ? JSON.parse(work.achievements) : work.achievements;
+  }
+} catch (e) {
+  achievementsList = [];
+}
+
+try {
+  if (work.testimonial) {
+    testimonial = typeof work.testimonial === 'string' ? JSON.parse(work.testimonial) : work.testimonial;
+  }
+} catch (e) {
+  testimonial = null;
+}
+
+const ogImageUrl = work.image || '';
 ---
 
 <Layout
-  title={`${title} - Works`}
-  description={description}
+  title={`${work.title} - Works`}
+  description={work.description || work.overview || ''}
   ogImage={ogImageUrl}
 >
-  <PageHero title={title} subtitle={subtitle} />
+  <PageHero title={work.title} subtitle={work.subtitle || ''} />
 
   <Section>
     <Container size="medium">
       <div class="work-detail-image">
-        <Image src={image} alt={title} width={1200} height={675} />
+        {work.image ? (
+          <img src={work.image} alt={work.title} width="1200" height="675" loading="eager" />
+        ) : (
+          <div class="work-image-placeholder">No Image</div>
+        )}
       </div>
 
       <div class="work-detail-meta">
         <div class="meta-item">
-          <dt class="meta-label">Client</dt>
-          <dd class="meta-value">{client}</dd>
+          <dt class="meta-label">분류</dt>
+          <dd class="meta-value">{work.client || ''}</dd>
         </div>
         <div class="meta-item">
-          <dt class="meta-label">Category</dt>
+          <dt class="meta-label">카테고리</dt>
           <dd class="meta-value">{categoryTitle}</dd>
         </div>
         <div class="meta-item">
-          <dt class="meta-label">Year</dt>
-          <dd class="meta-value">{year}</dd>
+          <dt class="meta-label">연도</dt>
+          <dd class="meta-value">{work.year || new Date().getFullYear()}</dd>
         </div>
       </div>
 
       <div class="work-content">
-        <div class="work-section">
-          <h2 class="work-section-title">개요</h2>
-          <p class="work-section-text">{overview}</p>
-        </div>
+        {work.overview && (
+          <div class="work-section">
+            <h2 class="work-section-title">개요</h2>
+            <p class="work-section-text">{work.overview}</p>
+          </div>
+        )}
 
-        <div class="work-section">
-          <h2 class="work-section-title">세부 내용</h2>
-          <ul class="work-support-list">
-            {support.map((item) => <li class="support-item">{item}</li>)}
-          </ul>
-        </div>
+        {supportList.length > 0 && (
+          <div class="work-section">
+            <h2 class="work-section-title">주요 내용</h2>
+            <ul class="work-support-list">
+              {supportList.map((item) => <li class="support-item">{item}</li>)}
+            </ul>
+          </div>
+        )}
 
-        <div class="work-section">
-          <h2 class="work-section-title">특징</h2>
-          <div class="work-achievements">
-            {
-              achievements.map((achievement) => (
+        {achievementsList.length > 0 && (
+          <div class="work-section">
+            <h2 class="work-section-title">상세 정보</h2>
+            <div class="work-achievements">
+              {achievementsList.map((achievement) => (
                 <div class="achievement-item">
                   <h3 class="achievement-title">{achievement.title}</h3>
-                  <p class="achievement-description">
-                    {achievement.description}
-                  </p>
+                  <p class="achievement-description">{achievement.description}</p>
                 </div>
-              ))
-            }
-          </div>
-        </div>
-
-        {
-          testimonial && (
-            <div class="work-section work-testimonial">
-              <h2 class="work-section-title">고객 후기</h2>
-              <blockquote class="testimonial-quote">
-                <p class="testimonial-text">{testimonial.text}</p>
-                <footer class="testimonial-author">
-                  <cite class="author-name">{testimonial.author}</cite>
-                  <span class="author-position">{testimonial.position}</span>
-                </footer>
-              </blockquote>
+              ))}
             </div>
-          )
-        }
+          </div>
+        )}
+
+        {testimonial && (
+          <div class="work-section work-testimonial">
+            <h2 class="work-section-title">고객 후기</h2>
+            <blockquote class="testimonial-quote">
+              <p class="testimonial-text">{testimonial.text}</p>
+              <footer class="testimonial-author">
+                <cite class="author-name">{testimonial.author}</cite>
+                <span class="author-position">{testimonial.position}</span>
+              </footer>
+            </blockquote>
+          </div>
+        )}
+
+        {work.content && (
+          <div class="work-section">
+            <h2 class="work-section-title">상세 내용</h2>
+            <div class="work-section-text" set:html={work.content} />
+          </div>
+        )}
       </div>
 
       <div class="work-action">
@@ -121,7 +156,7 @@ const ogImageUrl = new URL(image.src, Astro.site).href;
           size="large"
           class="work-action-button"
         >
-          목록으로
+          목록으로 돌아가기
         </LinkButton>
       </div>
     </Container>
@@ -143,6 +178,17 @@ const ogImageUrl = new URL(image.src, Astro.site).href;
       object-fit: cover;
       aspect-ratio: 16 / 9;
     }
+  }
+
+  .work-image-placeholder {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: var(--c-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--c-text-sub);
+    font-size: var(--fs-lg);
   }
 
   .work-detail-meta {

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ImageUploader from './ImageUploader';
 
 interface ServicesFormProps {
   mode: 'create' | 'edit';
@@ -37,6 +38,10 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
       ...prev,
       [name]: type === 'number' ? parseInt(value) || 0 : value
     }));
+  };
+
+  const handleImageUpload = (url: string) => {
+    setFormData(prev => ({ ...prev, image: url }));
   };
 
   const addTask = () => {
@@ -166,22 +171,13 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
           <span style={styles.hint}>상세 페이지에서 보여지는 긴 설명</span>
         </div>
 
-        <div style={styles.formGroup}>
-          <label style={styles.label}>이미지 URL</label>
-          <input
-            type="text"
-            name="image"
-            value={formData.image}
-            onChange={handleChange}
-            placeholder="/images/services/wireless-binding.jpg"
-            style={styles.input}
-          />
-          {formData.image && (
-            <div style={styles.imagePreview}>
-              <img src={formData.image} alt="미리보기" style={styles.previewImg} />
-            </div>
-          )}
-        </div>
+        {/* 이미지 업로더 */}
+        <ImageUploader
+          currentImage={formData.image}
+          folder="services"
+          onUpload={handleImageUpload}
+          label="서비스 이미지"
+        />
 
         <div style={styles.formGroup}>
           <label style={styles.label}>제공 서비스 목록</label>
@@ -311,19 +307,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   hint: {
     fontSize: '0.75rem',
     color: '#6b7280',
-  },
-  imagePreview: {
-    marginTop: '0.5rem',
-    width: '200px',
-    height: '150px',
-    borderRadius: '0.375rem',
-    overflow: 'hidden',
-    background: '#f3f4f6',
-  },
-  previewImg: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
   },
   tasksContainer: {
     display: 'flex',

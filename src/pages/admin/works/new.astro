@@ -5,13 +5,13 @@ import WorksForm from '../../../components/admin/WorksForm';
 export const prerender = false;
 ---
 
-<AdminLayout title="새 인쇄가이드 작성">
+<AdminLayout title="새 Works 작성">
   <div class="admin-header">
-    <h1>새 인쇄가이드 작성</h1>
+    <h1>새 Works 작성</h1>
     <a href="/admin/works" class="btn-back">목록으로</a>
   </div>
 
-  <WorksForm client:load mode="create" />
+  <WorksForm client:only="react" mode="create" />
 </AdminLayout>
 
 <style>

@@ -32,7 +32,7 @@ export default function ToastEditor({
             el: editorRef.current,
             height,
             initialEditType: 'markdown',
-            previewStyle: 'vertical',
+            previewStyle: 'tab',
             initialValue,
             usageStatistics: false,
             toolbarItems: [
