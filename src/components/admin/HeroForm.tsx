@@ -7,15 +7,31 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+interface TextStyle {
+  fontSize: number;
+  letterSpacing: number;
+  fontWeight: number;
+}
+
 interface HeroSettings {
   id: string;
   title_line1: string;
   title_line2: string;
   image_url: string | null;
+  style_line1?: TextStyle;
+  style_line2?: TextStyle;
 }
+
+const defaultStyle: TextStyle = {
+  fontSize: 48,
+  letterSpacing: 0,
+  fontWeight: 500,
+};
 
 export default function HeroForm() {
   const [settings, setSettings] = useState<HeroSettings | null>(null);
+  const [styleLine1, setStyleLine1] = useState<TextStyle>(defaultStyle);
+  const [styleLine2, setStyleLine2] = useState<TextStyle>({ ...defaultStyle, fontSize: 48 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -38,14 +54,17 @@ export default function HeroForm() {
 
       if (data) {
         setSettings(data);
+        if (data.style_line1) setStyleLine1(data.style_line1);
+        if (data.style_line2) setStyleLine2(data.style_line2);
       } else {
-        // 초기 데이터가 없으면 기본값으로 생성
         const { data: newData, error: insertError } = await supabase
           .from('hero_settings')
           .insert([{
             title_line1: '안녕하세요',
             title_line2: 'Sungjinprint 입니다.',
-            image_url: null
+            image_url: null,
+            style_line1: defaultStyle,
+            style_line2: defaultStyle
           }])
           .select()
           .single();
@@ -74,6 +93,8 @@ export default function HeroForm() {
           title_line1: settings.title_line1,
           title_line2: settings.title_line2,
           image_url: settings.image_url,
+          style_line1: styleLine1,
+          style_line2: styleLine2,
           updated_at: new Date().toISOString()
         })
         .eq('id', settings.id);
@@ -107,26 +128,122 @@ export default function HeroForm() {
         </div>
       )}
 
-      <div className="form-group">
-        <label htmlFor="title_line1">첫 번째 줄 텍스트</label>
-        <input
-          type="text"
-          id="title_line1"
-          value={settings.title_line1}
-          onChange={(e) => setSettings({ ...settings, title_line1: e.target.value })}
-          placeholder="예: 안녕하세요"
-        />
+      {/* 첫 번째 줄 텍스트 */}
+      <div className="text-section">
+        <div className="form-group">
+          <label htmlFor="title_line1">첫 번째 줄 텍스트</label>
+          <input
+            type="text"
+            id="title_line1"
+            value={settings.title_line1}
+            onChange={(e) => setSettings({ ...settings, title_line1: e.target.value })}
+            placeholder="예: 안녕하세요"
+          />
+        </div>
+        
+        <div className="style-controls">
+          <div className="style-control">
+            <label>글자 크기</label>
+            <div className="slider-group">
+              <input
+                type="range"
+                min="24"
+                max="96"
+                value={styleLine1.fontSize}
+                onChange={(e) => setStyleLine1({ ...styleLine1, fontSize: Number(e.target.value) })}
+              />
+              <span className="value">{styleLine1.fontSize}px</span>
+            </div>
+          </div>
+          
+          <div className="style-control">
+            <label>자간</label>
+            <div className="slider-group">
+              <input
+                type="range"
+                min="-5"
+                max="20"
+                value={styleLine1.letterSpacing}
+                onChange={(e) => setStyleLine1({ ...styleLine1, letterSpacing: Number(e.target.value) })}
+              />
+              <span className="value">{styleLine1.letterSpacing}px</span>
+            </div>
+          </div>
+          
+          <div className="style-control">
+            <label>굵기</label>
+            <div className="slider-group">
+              <input
+                type="range"
+                min="300"
+                max="900"
+                step="100"
+                value={styleLine1.fontWeight}
+                onChange={(e) => setStyleLine1({ ...styleLine1, fontWeight: Number(e.target.value) })}
+              />
+              <span className="value">{styleLine1.fontWeight}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="title_line2">두 번째 줄 텍스트</label>
-        <input
-          type="text"
-          id="title_line2"
-          value={settings.title_line2}
-          onChange={(e) => setSettings({ ...settings, title_line2: e.target.value })}
-          placeholder="예: Sungjinprint 입니다."
-        />
+      {/* 두 번째 줄 텍스트 */}
+      <div className="text-section">
+        <div className="form-group">
+          <label htmlFor="title_line2">두 번째 줄 텍스트</label>
+          <input
+            type="text"
+            id="title_line2"
+            value={settings.title_line2}
+            onChange={(e) => setSettings({ ...settings, title_line2: e.target.value })}
+            placeholder="예: Sungjinprint 입니다."
+          />
+        </div>
+        
+        <div className="style-controls">
+          <div className="style-control">
+            <label>글자 크기</label>
+            <div className="slider-group">
+              <input
+                type="range"
+                min="24"
+                max="96"
+                value={styleLine2.fontSize}
+                onChange={(e) => setStyleLine2({ ...styleLine2, fontSize: Number(e.target.value) })}
+              />
+              <span className="value">{styleLine2.fontSize}px</span>
+            </div>
+          </div>
+          
+          <div className="style-control">
+            <label>자간</label>
+            <div className="slider-group">
+              <input
+                type="range"
+                min="-5"
+                max="20"
+                value={styleLine2.letterSpacing}
+                onChange={(e) => setStyleLine2({ ...styleLine2, letterSpacing: Number(e.target.value) })}
+              />
+              <span className="value">{styleLine2.letterSpacing}px</span>
+            </div>
+          </div>
+          
+          <div className="style-control">
+            <label>굵기</label>
+            <div className="slider-group">
+              <input
+                type="range"
+                min="300"
+                max="900"
+                step="100"
+                value={styleLine2.fontWeight}
+                onChange={(e) => setStyleLine2({ ...styleLine2, fontWeight: Number(e.target.value) })}
+              />
+              <span className="value">{styleLine2.fontWeight}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <ImageUploader
@@ -139,10 +256,25 @@ export default function HeroForm() {
       <div className="preview-section">
         <h3>미리보기</h3>
         <div className="hero-preview">
-          <div className="preview-title">
-            <span>{settings.title_line1}</span>
-            <br />
-            <span>{settings.title_line2}</span>
+          <div 
+            className="preview-line1"
+            style={{
+              fontSize: `${styleLine1.fontSize}px`,
+              letterSpacing: `${styleLine1.letterSpacing}px`,
+              fontWeight: styleLine1.fontWeight,
+            }}
+          >
+            {settings.title_line1}
+          </div>
+          <div 
+            className="preview-line2"
+            style={{
+              fontSize: `${styleLine2.fontSize}px`,
+              letterSpacing: `${styleLine2.letterSpacing}px`,
+              fontWeight: styleLine2.fontWeight,
+            }}
+          >
+            {settings.title_line2}
           </div>
           {settings.image_url && (
             <div className="preview-image">
@@ -191,19 +323,26 @@ export default function HeroForm() {
           border: 1px solid #f5c6cb;
         }
 
-        .form-group {
+        .text-section {
+          background: #f8f9fa;
+          padding: 1.5rem;
+          border-radius: 0.75rem;
           margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+          margin-bottom: 1rem;
         }
 
         .form-group label {
           display: block;
           font-size: 0.875rem;
-          font-weight: 500;
+          font-weight: 600;
           color: #333;
           margin-bottom: 0.5rem;
         }
 
-        .form-group input {
+        .form-group input[type="text"] {
           width: 100%;
           padding: 0.75rem;
           border: 1px solid #ddd;
@@ -212,16 +351,67 @@ export default function HeroForm() {
           transition: border-color 0.2s;
         }
 
-        .form-group input:focus {
+        .form-group input[type="text"]:focus {
           outline: none;
           border-color: #007bff;
+        }
+
+        .style-controls {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1rem;
+          margin-top: 1rem;
+        }
+
+        .style-control {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .style-control label {
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: #666;
+        }
+
+        .slider-group {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .slider-group input[type="range"] {
+          flex: 1;
+          height: 6px;
+          border-radius: 3px;
+          background: #ddd;
+          cursor: pointer;
+          -webkit-appearance: none;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: #007bff;
+          cursor: pointer;
+        }
+
+        .slider-group .value {
+          min-width: 50px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #007bff;
+          text-align: right;
         }
 
         .preview-section {
           margin: 2rem 0;
           padding: 1.5rem;
           background: #f8f9fa;
-          border-radius: 0.5rem;
+          border-radius: 0.75rem;
         }
 
         .preview-section h3 {
@@ -234,18 +424,23 @@ export default function HeroForm() {
         .hero-preview {
           background: white;
           padding: 2rem;
-          border-radius: 0.5rem;
+          border-radius: 0.75rem;
           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .preview-title {
-          font-size: 1.5rem;
-          font-weight: 500;
-          line-height: 1.6;
-          margin-bottom: 1rem;
+        .preview-line1,
+        .preview-line2 {
+          line-height: 1.3;
+          color: #333;
+          transition: all 0.2s;
+        }
+
+        .preview-line1 {
+          margin-bottom: 0.25rem;
         }
 
         .preview-image {
+          margin-top: 1.5rem;
           border-radius: 1rem;
           overflow: hidden;
         }
@@ -282,6 +477,12 @@ export default function HeroForm() {
           text-align: center;
           padding: 2rem;
           color: #666;
+        }
+
+        @media (max-width: 640px) {
+          .style-controls {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </div>
