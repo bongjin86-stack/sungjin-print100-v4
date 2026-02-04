@@ -1,11 +1,12 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
+import react from "@astrojs/react";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://nagi-6tu.pages.dev",
-  integrations: [sitemap()],
+  integrations: [sitemap(), react()],
   vite: {
     server: {
       allowedHosts: [
@@ -14,5 +15,8 @@ export default defineConfig({
         ".manus.computer"
       ],
     },
+    ssr: {
+      noExternal: ['@toast-ui/editor', '@toast-ui/react-editor']
+    }
   },
 });

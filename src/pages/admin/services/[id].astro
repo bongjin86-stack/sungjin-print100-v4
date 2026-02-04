@@ -1,0 +1,75 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import ServicesForm from '../../../components/admin/ServicesForm';
+import { supabase } from '../../../lib/supabase';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+// Service 데이터 가져오기
+const { data: service, error } = await supabase
+  .from('services')
+  .select('*')
+  .eq('id', id)
+  .single();
+
+if (error || !service) {
+  return Astro.redirect('/admin/services');
+}
+
+// tasks가 이미 배열인지 문자열인지 확인
+function parseTasks(tasks: any): string[] {
+  if (!tasks) return [];
+  if (Array.isArray(tasks)) return tasks;
+  try {
+    return JSON.parse(tasks);
+  } catch {
+    return [];
+  }
+}
+
+// tasks를 배열로 파싱
+const serviceData = {
+  ...service,
+  tasks: parseTasks(service.tasks)
+};
+---
+
+<AdminLayout title={`${service.title} 수정`}>
+  <div class="admin-header">
+    <h1>서비스 수정</h1>
+    <a href="/admin/services" class="btn-back">목록으로</a>
+  </div>
+
+  <ServicesForm client:load mode="edit" initialData={serviceData} />
+</AdminLayout>
+
+<style>
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .admin-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+
+  .btn-back {
+    background: #e5e7eb;
+    color: #374151;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .btn-back:hover {
+    background: #d1d5db;
+  }
+</style>

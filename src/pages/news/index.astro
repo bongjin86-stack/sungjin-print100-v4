@@ -1,0 +1,82 @@
+---
+export const prerender = false;
+
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import CTA from "@/components/sections/CTA.astro";
+import CategoryNavigation from "@/components/ui/CategoryNavigation.astro";
+import NewsItemDB from "@/components/ui/NewsItemDB.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Pagination from "@/components/ui/Pagination.astro";
+import categoryData from "@/config/category.json";
+import siteConfig from "@/config/site.config.json";
+import Layout from "@/layouts/Layout.astro";
+import { supabase } from "@/lib/supabase";
+
+// URL에서 페이지 번호 가져오기
+const url = new URL(Astro.request.url);
+const currentPage = parseInt(url.searchParams.get('page') || '1');
+const pageSize = siteConfig.settings.pagination || 10;
+const offset = (currentPage - 1) * pageSize;
+
+// DB에서 News 데이터 가져오기
+const { data: allNews, count } = await supabase
+  .from('news')
+  .select('*', { count: 'exact' })
+  .order('pub_date', { ascending: false })
+  .range(offset, offset + pageSize - 1);
+
+const totalPages = Math.ceil((count || 0) / pageSize);
+
+const pageTitle =
+  currentPage === 1
+    ? "News - 공지사항"
+    : `News - 공지사항 (${currentPage}페이지)`;
+---
+
+<Layout
+  title={pageTitle}
+  description="Sungjinprint의 공지사항과 이벤트 정보를 안내합니다."
+>
+  <PageHero title="News" subtitle="공지사항" />
+
+  <Section class="news-section">
+    <Container>
+      <CategoryNavigation categories={categoryData.news} basePath="/news" />
+
+      <div class="news-list">
+        {allNews && allNews.map((news) => <NewsItemDB news={news} />)}
+      </div>
+
+      {
+        totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath="/news"
+          />
+        )
+      }
+    </Container>
+  </Section>
+
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  .news-section {
+    padding-top: var(--sp-md);
+  }
+
+  .news-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xl);
+    width: 100%;
+    margin-top: var(--sp-3xl);
+
+    @media (min-width: 600px) {
+      gap: var(--sp-md);
+    }
+  }
+</style>

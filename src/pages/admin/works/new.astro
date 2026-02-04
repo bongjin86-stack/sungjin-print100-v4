@@ -1,0 +1,44 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import WorksForm from '../../../components/admin/WorksForm';
+
+export const prerender = false;
+---
+
+<AdminLayout title="새 인쇄가이드 작성">
+  <div class="admin-header">
+    <h1>새 인쇄가이드 작성</h1>
+    <a href="/admin/works" class="btn-back">목록으로</a>
+  </div>
+
+  <WorksForm client:load mode="create" />
+</AdminLayout>
+
+<style>
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .admin-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+
+  .btn-back {
+    background: #e5e7eb;
+    color: #374151;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .btn-back:hover {
+    background: #d1d5db;
+  }
+</style>

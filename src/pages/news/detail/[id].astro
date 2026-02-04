@@ -1,0 +1,261 @@
+---
+export const prerender = false;
+
+import { marked } from 'marked';
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import CTA from "@/components/sections/CTA.astro";
+import CTA2 from "@/components/sections/CTA2.astro";
+import LinkButton from "@/components/ui/LinkButton.astro";
+import categoryData from "@/config/category.json";
+import Layout from "@/layouts/Layout.astro";
+import { supabase } from "@/lib/supabase";
+
+const { id } = Astro.params;
+
+// DB에서 News 데이터 가져오기
+const { data: news, error } = await supabase
+  .from('news')
+  .select('*')
+  .eq('id', id)
+  .single();
+
+if (error || !news) {
+  return Astro.redirect('/news');
+}
+
+const { title, category, pub_date, content } = news;
+
+const categoryInfo = categoryData.news.find((cat) => cat.id === category);
+const categoryTitle = categoryInfo?.title || category;
+
+const pubDate = new Date(pub_date);
+const formattedDate = pubDate
+  .toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  })
+  .replace(/\//g, ".");
+
+// marked로 마크다운을 HTML로 변환
+const htmlContent = await marked(content);
+---
+
+<Layout title={`${title} - News`} description={title} articleDate={pubDate}>
+  <Section>
+    <Container size="medium">
+      <article class="news-detail">
+        <header class="news-header">
+          <h1 class="news-detail-title">{title}</h1>
+
+          <div class="news-meta">
+            <time class="news-meta-date" datetime={pubDate.toISOString()}>
+              {formattedDate}
+            </time>
+            <span class="news-meta-category">{categoryTitle}</span>
+          </div>
+        </header>
+
+        <div class="news-body" set:html={htmlContent} />
+
+        <div class="news-action">
+          <LinkButton
+            href="/news"
+            variant="solid"
+            size="large"
+            class="news-action-button"
+          >
+            목록으로
+          </LinkButton>
+        </div>
+      </article>
+    </Container>
+  </Section>
+
+  <CTA2 />
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  .news-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2xl);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-3xl);
+    }
+  }
+
+  .news-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+    padding-bottom: var(--sp-xl);
+    border-bottom: 1px solid var(--c-border);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-xl);
+      padding-bottom: var(--sp-2xl);
+    }
+  }
+
+  .news-detail-title {
+    color: var(--c-text);
+    font-size: var(--fs-xl);
+    font-weight: 500;
+    line-height: var(--lh-tight);
+
+    @media (min-width: 600px) {
+      font-size: var(--fs-2xl);
+    }
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-3xl);
+    }
+  }
+
+  .news-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-md);
+  }
+
+  .news-meta-date {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-normal);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .news-meta-category {
+    display: inline-block;
+    padding: var(--sp-xs) var(--sp-sm);
+    background-color: var(--c-bg-secondary);
+    color: var(--c-text);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-none);
+    text-transform: uppercase;
+    border-radius: var(--radius-md);
+
+    @media (min-width: 900px) {
+      padding: var(--sp-xs) var(--sp-md);
+      font-size: var(--fs-sm);
+    }
+  }
+
+  .news-body {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+
+    :global(h2) {
+      margin: var(--sp-2xl) 0 var(--sp-lg);
+      color: var(--c-text);
+      font-size: var(--fs-lg);
+      font-weight: 600;
+      line-height: var(--lh-tight);
+
+      @media (min-width: 900px) {
+        font-size: var(--fs-xl);
+      }
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    :global(h3) {
+      margin: var(--sp-xl) 0 var(--sp-md);
+      color: var(--c-text);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      line-height: var(--lh-tight);
+
+      @media (min-width: 900px) {
+        font-size: var(--fs-lg);
+      }
+    }
+
+    :global(p) {
+      margin: var(--sp-md) 0;
+
+      &:first-child {
+        margin-top: 0;
+      }
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    :global(ul) {
+      margin: var(--sp-lg) 0;
+      padding-left: var(--sp-xl);
+      list-style-type: disc;
+    }
+
+    :global(ol) {
+      margin: var(--sp-lg) 0;
+      padding-left: var(--sp-xl);
+      list-style-type: decimal;
+    }
+
+    :global(li) {
+      display: list-item;
+      margin: var(--sp-sm) 0;
+    }
+
+    :global(strong) {
+      font-weight: 600;
+    }
+
+    :global(em) {
+      font-style: italic;
+    }
+
+    :global(table) {
+      width: 100%;
+      margin: var(--sp-lg) 0;
+      border-collapse: collapse;
+    }
+
+    :global(td), :global(th) {
+      padding: var(--sp-sm) var(--sp-md);
+      border: 1px solid var(--c-border);
+      text-align: left;
+    }
+
+    :global(th) {
+      background-color: var(--c-bg-secondary);
+      font-weight: 600;
+    }
+
+    :global(thead td) {
+      background-color: var(--c-bg-secondary);
+      font-weight: 600;
+    }
+  }
+
+  .news-action {
+    display: flex;
+    justify-content: center;
+    margin: var(--sp-xl) 0 0;
+    padding-top: var(--sp-xl);
+    border-top: 1px solid var(--c-border);
+
+    @media (min-width: 900px) {
+      margin: var(--sp-2xl) 0 0;
+      padding-top: var(--sp-2xl);
+    }
+  }
+</style>

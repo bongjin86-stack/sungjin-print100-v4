@@ -1,0 +1,70 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import NewsForm from '../../../components/admin/NewsForm';
+import { supabase } from '../../../lib/supabase';
+
+const { id } = Astro.params;
+
+// News 데이터 가져오기
+const { data: news, error } = await supabase
+  .from('news')
+  .select('*')
+  .eq('id', id)
+  .single();
+
+if (error || !news) {
+  return Astro.redirect('/admin/news');
+}
+
+// pub_date를 YYYY-MM-DD 형식으로 변환
+const formattedNews = {
+  ...news,
+  pub_date: new Date(news.pub_date).toISOString().split('T')[0],
+};
+---
+
+<AdminLayout title="공지사항 수정">
+  <div class="news-edit-page">
+    <div class="page-header">
+      <a href="/admin/news" class="back-link">← 목록으로</a>
+    </div>
+    
+    <div class="form-card">
+      <NewsForm 
+        mode="edit" 
+        initialData={formattedNews}
+        client:load 
+      />
+    </div>
+  </div>
+
+  <style>
+    .news-edit-page {
+      max-width: 900px;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+    }
+
+    .back-link {
+      color: var(--c-text-sub);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--c-text);
+    }
+
+    .form-card {
+      background: var(--c-bg);
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: var(--shadow-base);
+    }
+  </style>
+</AdminLayout>

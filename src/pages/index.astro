@@ -9,6 +9,8 @@ import Works from "@/components/sections/Works.astro";
 import siteConfig from "@/config/site.config.json";
 import Layout from "@/layouts/Layout.astro";
 
+export const prerender = false;
+
 const siteTitle = String(siteConfig.site.title);
 const siteDescription = String(siteConfig.site.description);
 ---

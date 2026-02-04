@@ -1,0 +1,259 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { supabase } from '../../../lib/supabase';
+
+// News 목록 가져오기
+const { data: newsList, error } = await supabase
+  .from('news')
+  .select('*')
+  .order('pub_date', { ascending: false });
+
+const categories = [
+  { id: 'notice', name: '공지' },
+  { id: 'event', name: '이벤트' },
+  { id: 'update', name: '업데이트' },
+];
+
+function getCategoryName(categoryId: string) {
+  const category = categories.find(c => c.id === categoryId);
+  return category ? category.name : categoryId;
+}
+---
+
+<AdminLayout title="공지사항 관리">
+  <div class="news-admin">
+    <!-- Header Actions -->
+    <div class="admin-actions">
+      <a href="/admin/news/new" class="btn-primary">
+        <span>+</span> 새 공지사항 작성
+      </a>
+    </div>
+
+    <!-- News List -->
+    <div class="news-table-wrapper">
+      {error ? (
+        <div class="error-state">
+          <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
+          <p class="error-detail">{error.message}</p>
+        </div>
+      ) : newsList && newsList.length > 0 ? (
+        <table class="news-table">
+          <thead>
+            <tr>
+              <th>제목</th>
+              <th>카테고리</th>
+              <th>발행일</th>
+              <th>작성일</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            {newsList.map((news) => (
+              <tr>
+                <td class="news-title-cell">
+                  <a href={`/admin/news/${news.id}`}>{news.title}</a>
+                </td>
+                <td>
+                  <span class={`category-badge category-${news.category}`}>
+                    {getCategoryName(news.category)}
+                  </span>
+                </td>
+                <td>{new Date(news.pub_date).toLocaleDateString('ko-KR')}</td>
+                <td>{new Date(news.created_at).toLocaleDateString('ko-KR')}</td>
+                <td class="actions-cell">
+                  <a href={`/admin/news/${news.id}`} class="btn-edit">수정</a>
+                  <button class="btn-delete" data-id={news.id}>삭제</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div class="empty-state">
+          <div class="empty-icon">📰</div>
+          <h3>등록된 공지사항이 없습니다</h3>
+          <p>새 공지사항을 작성해보세요.</p>
+          <a href="/admin/news/new" class="btn-primary">공지사항 작성하기</a>
+        </div>
+      )}
+    </div>
+  </div>
+
+  <style>
+    .news-admin {
+      max-width: 1200px;
+    }
+
+    .admin-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 24px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #4f46e5;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #4338ca;
+    }
+
+    .news-table-wrapper {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .news-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .news-table th,
+    .news-table td {
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .news-table th {
+      background: #f9f9f9;
+      font-weight: 600;
+      color: #666;
+      font-size: 0.875rem;
+    }
+
+    .news-table tbody tr:hover {
+      background: #fafafa;
+    }
+
+    .news-title-cell a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .news-title-cell a:hover {
+      color: #4f46e5;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .category-notice {
+      background: #e0e7ff;
+      color: #4338ca;
+    }
+
+    .category-event {
+      background: #fce7f3;
+      color: #be185d;
+    }
+
+    .category-update {
+      background: #d1fae5;
+      color: #059669;
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-edit {
+      padding: 6px 12px;
+      background: #f3f4f6;
+      color: #374151;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.875rem;
+    }
+
+    .btn-edit:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-delete {
+      padding: 6px 12px;
+      background: #fef2f2;
+      color: #dc2626;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .btn-delete:hover {
+      background: #fee2e2;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 64px 32px;
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+      margin: 0 0 8px 0;
+      color: #333;
+    }
+
+    .empty-state p {
+      color: #666;
+      margin: 0 0 24px 0;
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 64px 32px;
+      color: #dc2626;
+    }
+
+    .error-detail {
+      font-size: 0.875rem;
+      color: #666;
+    }
+  </style>
+
+  <script>
+    // 삭제 버튼 이벤트
+    document.querySelectorAll('.btn-delete').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const id = (e.target as HTMLElement).dataset.id;
+        if (confirm('정말 삭제하시겠습니까?')) {
+          try {
+            const response = await fetch(`/api/news/${id}`, {
+              method: 'DELETE',
+            });
+            if (response.ok) {
+              window.location.reload();
+            } else {
+              alert('삭제에 실패했습니다.');
+            }
+          } catch (error) {
+            alert('삭제 중 오류가 발생했습니다.');
+          }
+        }
+      });
+    });
+  </script>
+</AdminLayout>

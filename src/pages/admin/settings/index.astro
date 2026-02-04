@@ -1,0 +1,225 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { supabase } from '../../../lib/supabase';
+
+export const prerender = false;
+
+// site_settings 테이블에서 설정 가져오기 (key/value 구조)
+const { data: settingsData, error } = await supabase
+  .from('site_settings')
+  .select('key, value');
+
+// key/value 배열을 객체로 변환
+const siteSettings: Record<string, string> = {};
+if (settingsData) {
+  for (const item of settingsData) {
+    siteSettings[item.key] = item.value || '';
+  }
+}
+
+// 기본값 설정
+const settings = {
+  site_name: siteSettings.site_name || 'Sungjinprint',
+  site_description: siteSettings.site_description || '성진프린트 - 고품질 인쇄 서비스',
+  contact_email: siteSettings.contact_email || '',
+  contact_phone: siteSettings.contact_phone || '',
+  contact_address: siteSettings.contact_address || '',
+  service_intro: siteSettings.service_intro || ''
+};
+---
+
+<AdminLayout title="사이트 설정">
+  <div class="admin-header">
+    <h1>사이트 설정</h1>
+  </div>
+
+  <form id="settings-form" class="settings-form">
+    <div class="form-section">
+      <h2>기본 정보</h2>
+      
+      <div class="form-group">
+        <label for="site_name">사이트 이름</label>
+        <input type="text" id="site_name" name="site_name" value={settings.site_name} />
+      </div>
+
+      <div class="form-group">
+        <label for="site_description">사이트 설명</label>
+        <textarea id="site_description" name="site_description" rows="3">{settings.site_description}</textarea>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>연락처 정보</h2>
+      
+      <div class="form-group">
+        <label for="contact_email">이메일</label>
+        <input type="email" id="contact_email" name="contact_email" value={settings.contact_email} />
+      </div>
+
+      <div class="form-group">
+        <label for="contact_phone">전화번호</label>
+        <input type="tel" id="contact_phone" name="contact_phone" value={settings.contact_phone} />
+      </div>
+
+      <div class="form-group">
+        <label for="contact_address">주소</label>
+        <input type="text" id="contact_address" name="contact_address" value={settings.contact_address} />
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>서비스 페이지</h2>
+      
+      <div class="form-group">
+        <label for="service_intro">서비스 소개 (상단 텍스트)</label>
+        <textarea id="service_intro" name="service_intro" rows="4">{settings.service_intro}</textarea>
+        <p class="form-hint">서비스 페이지 상단에 표시되는 소개 문구입니다.</p>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">저장</button>
+    </div>
+  </form>
+</AdminLayout>
+
+<style>
+  .admin-header {
+    margin-bottom: 2rem;
+  }
+
+  .admin-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+
+  .settings-form {
+    max-width: 800px;
+  }
+
+  .form-section {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-section h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--c-text);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--c-text);
+    margin-bottom: 0.5rem;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--c-primary, #000);
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .form-hint {
+    font-size: 0.75rem;
+    color: var(--c-text-sub);
+    margin-top: 0.5rem;
+  }
+
+  .form-actions {
+    margin-top: 1.5rem;
+  }
+
+  .btn-primary {
+    background: var(--c-primary, #000);
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: #333;
+  }
+
+  .btn-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+</style>
+
+<script>
+  const form = document.getElementById('settings-form') as HTMLFormElement;
+  
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(form);
+    const data = {
+      site_name: formData.get('site_name'),
+      site_description: formData.get('site_description'),
+      contact_email: formData.get('contact_email'),
+      contact_phone: formData.get('contact_phone'),
+      contact_address: formData.get('contact_address'),
+      service_intro: formData.get('service_intro')
+    };
+
+    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '저장 중...';
+
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        alert('설정이 저장되었습니다.');
+      } else {
+        throw new Error('저장 실패');
+      }
+    } catch (err) {
+      alert('저장에 실패했습니다.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '저장';
+    }
+  });
+</script>

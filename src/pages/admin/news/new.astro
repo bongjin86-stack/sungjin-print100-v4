@@ -1,0 +1,44 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import NewsForm from '../../../components/admin/NewsForm';
+---
+
+<AdminLayout title="공지사항 작성">
+  <div class="news-new-page">
+    <div class="page-header">
+      <a href="/admin/news" class="back-link">← 목록으로</a>
+    </div>
+    
+    <div class="form-card">
+      <NewsForm mode="create" client:load />
+    </div>
+  </div>
+
+  <style>
+    .news-new-page {
+      max-width: 900px;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+    }
+
+    .back-link {
+      color: var(--c-text-sub);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--c-text);
+    }
+
+    .form-card {
+      background: var(--c-bg);
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: var(--shadow-base);
+    }
+  </style>
+</AdminLayout>

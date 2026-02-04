@@ -1,0 +1,58 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import FAQForm from '../../../components/admin/FAQForm';
+import { supabase } from '../../../lib/supabase';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+// FAQ 데이터 가져오기
+const { data: faq, error } = await supabase
+  .from('faq')
+  .select('*')
+  .eq('id', id)
+  .single();
+
+if (error || !faq) {
+  return Astro.redirect('/admin/faq');
+}
+---
+
+<AdminLayout title="FAQ 수정">
+  <div class="admin-header">
+    <h1>FAQ 수정</h1>
+    <a href="/admin/faq" class="btn-back">목록으로</a>
+  </div>
+
+  <FAQForm client:load mode="edit" initialData={faq} />
+</AdminLayout>
+
+<style>
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .admin-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+
+  .btn-back {
+    background: #e5e7eb;
+    color: #374151;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .btn-back:hover {
+    background: #d1d5db;
+  }
+</style>

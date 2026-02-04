@@ -1,96 +1,75 @@
 ---
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
-import LinkText from "@/components/ui/LinkText.astro";
 import SectionTitle from "@/components/ui/SectionTitle.astro";
-import { supabase } from "@/lib/supabase";
+import Layout from "@/layouts/Layout.astro";
+import { supabase } from "../../lib/supabase";
 
-// DB에서 Works 데이터 가져오기 (최신 4개)
+export const prerender = false;
+
+// DB에서 works 가져오기
 const { data: works, error } = await supabase
   .from('works')
   .select('*')
   .eq('is_published', true)
-  .order('created_at', { ascending: false })
-  .limit(4);
+  .order('created_at', { ascending: false });
 
 if (error) {
   console.error('Error fetching works:', error);
 }
-
-const worksList = works || [];
 ---
 
-<Section background="primary">
-  <Container>
-    <div class="works-inner">
+<Layout title="인쇄가이드 | Sungjinprint" description="인쇄에 필요한 다양한 가이드를 확인하세요.">
+  <Section background="primary">
+    <Container>
       <div class="works-header">
         <SectionTitle title="Guide" subtitle="인쇄가이드" />
-        <LinkText href="/works/" ariaLabel="인쇄가이드 전체보기">
-          전체보기
-        </LinkText>
+        <p class="works-description">인쇄에 필요한 다양한 정보를 확인하세요.</p>
       </div>
 
       <div class="works-grid">
-        {
-          worksList.map((work) => (
-            <article class="work-item fade" data-animate>
-              <a class="item-link" href={`/works/detail/${work.id}`}>
-                <div class="item-image">
-                  {work.image ? (
-                    <img
-                      src={work.image}
-                      alt={work.title}
-                      width="1600"
-                      height="1068"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div class="image-placeholder">이미지 없음</div>
-                  )}
-                  {work.tag && (
-                    <span class="item-category">{work.tag}</span>
-                  )}
-                </div>
-                <div class="item-content">
-                  <h3 class="item-title">{work.title}</h3>
-                  <p class="item-description">{work.description}</p>
-                  <span class="item-view">자세히 보기</span>
-                </div>
-              </a>
-            </article>
-          ))
-        }
+        {works && works.map((work) => (
+          <article class="work-item fade" data-animate>
+            <a class="item-link" href={`/works/detail/${work.id}`}>
+              <div class="item-image">
+                <img
+                  src={work.image || 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=800&h=600&fit=crop'}
+                  alt={work.title}
+                  width="800"
+                  height="500"
+                  loading="lazy"
+                />
+                <span class="item-category">{work.tag || '가이드'}</span>
+              </div>
+              <div class="item-content">
+                <h3 class="item-title">{work.title}</h3>
+                <p class="item-description">{work.description}</p>
+                <span class="item-view">자세히 보기</span>
+              </div>
+            </a>
+          </article>
+        ))}
       </div>
-    </div>
-  </Container>
-</Section>
+
+      {(!works || works.length === 0) && (
+        <div class="empty-state">
+          <p>등록된 인쇄가이드가 없습니다.</p>
+        </div>
+      )}
+    </Container>
+  </Section>
+</Layout>
 
 <style lang="scss">
   .works-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--sp-lg);
-    margin-bottom: var(--sp-3xl);
-
-    @media (min-width: 900px) {
-      position: sticky;
-      top: var(--sp-4xl);
-      flex-direction: column;
-      align-items: start;
-      align-self: flex-start;
-      flex-grow: 1;
-      margin: 0;
-      min-width: fit-content;
-    }
+    margin-bottom: var(--sp-4xl);
+    text-align: center;
   }
 
-  .works-inner {
-    @media (min-width: 900px) {
-      display: grid;
-      grid-template-columns: 20% 1fr;
-      gap: 0 var(--sp-4xl);
-    }
+  .works-description {
+    margin-top: var(--sp-lg);
+    color: var(--c-text-sub);
+    font-size: var(--fs-lg);
   }
 
   .works-grid {
@@ -98,7 +77,8 @@ const worksList = works || [];
     gap: var(--sp-3xl);
 
     @media (min-width: 600px) {
-      gap: var(--sp-5xl);
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sp-4xl);
     }
   }
 
@@ -106,6 +86,7 @@ const worksList = works || [];
   }
 
   .item-link {
+    display: block;
     transition: transform var(--transition-slow);
 
     &:hover {
@@ -118,7 +99,6 @@ const worksList = works || [];
     width: 100%;
     overflow: hidden;
     border-radius: var(--radius-3xl);
-    background-color: var(--c-bg-secondary);
 
     img {
       width: 100%;
@@ -131,16 +111,6 @@ const worksList = works || [];
     .work-item:hover & img {
       transform: scale(1.05);
     }
-  }
-
-  .image-placeholder {
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--c-text-sub);
-    font-size: var(--fs-sm);
   }
 
   .item-category {
@@ -163,10 +133,6 @@ const worksList = works || [];
     flex-direction: column;
     gap: var(--sp-sm);
     margin: var(--sp-lg) 0 0;
-
-    @media (min-width: 900px) {
-      margin: var(--sp-lg) 0 0;
-    }
   }
 
   .item-title {
@@ -180,26 +146,15 @@ const worksList = works || [];
     }
   }
 
-  .item-client {
-    color: var(--c-text-sub);
-    font-size: var(--fs-sm);
-    line-height: var(--lh-snug);
-  }
-
   .item-description {
     color: var(--c-text-sub);
     font-size: var(--fs-md);
     line-height: var(--lh-loose);
-
-    @media (min-width: 900px) {
-      font-size: var(--fs-base);
-    }
   }
 
   .item-view {
     align-self: flex-start;
     display: inline-block;
-    width: var(--buttonWidth);
     margin: var(--sp-md) 0 0;
     padding: var(--sp-sm) var(--sp-lg);
     border: 1px solid var(--c-border);
@@ -227,4 +182,43 @@ const worksList = works || [];
       border-color: var(--c-primary);
     }
   }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--sp-5xl);
+    color: var(--c-text-sub);
+  }
 </style>
+
+<script>
+  function initializeObserver() {
+    const animateElements = document.querySelectorAll("[data-animate]");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const element = entry.target as HTMLElement;
+            const delay = element.dataset.animateDelay || "0";
+
+            setTimeout(() => {
+              element.classList.add("is-animated");
+            }, parseInt(delay));
+
+            observer.unobserve(element);
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -10% 0px",
+      }
+    );
+
+    animateElements.forEach((element) => {
+      observer.observe(element);
+    });
+  }
+
+  document.addEventListener("astro:page-load", initializeObserver);
+</script>
