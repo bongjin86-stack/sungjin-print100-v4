@@ -561,7 +561,7 @@ export default function HeroForm() {
           text-align: right;
         }
 
-        /* 실제 사이트와 동일한 미리보기 스타일 */
+        /* 실제 사이트와 픽셀 단위로 동일한 미리보기 스타일 */
         .preview-section {
           margin-top: 2rem;
           background: #1a1a1a;
@@ -590,30 +590,33 @@ export default function HeroForm() {
         }
 
         .hero-preview-container {
-          padding: 2rem;
-          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          padding: 1.5rem;
+          background: #ffffff;
         }
 
+        /* 실제 사이트 Hero 섹션과 동일한 스타일 */
         .hero-preview {
           background: white;
-          border-radius: 1.5rem;
-          padding: 3rem 2.5rem;
+          padding: 0;
           max-width: 100%;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
+        /* 텍스트와 이미지 사이 간격: 실제 사이트는 gap: 64px (--sp-3xl) */
         .preview-text {
-          margin-bottom: 2rem;
-          max-width: 800px;
+          margin-bottom: 64px;
+          max-width: 900px;
         }
 
         .preview-line {
-          color: #1a1a1a;
+          color: #222828;
+          font-family: "Outfit", "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, sans-serif;
+          line-height: 1.625;
         }
 
+        /* 이미지 border-radius: 실제 사이트는 24px (--radius-4xl) */
         .preview-image {
           width: 100%;
-          border-radius: 1.5rem;
+          border-radius: 24px;
           overflow: hidden;
         }
 
