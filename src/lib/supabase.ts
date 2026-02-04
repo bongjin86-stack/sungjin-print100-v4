@@ -84,3 +84,34 @@ export async function deleteNews(id: string) {
   if (error) throw error;
   return true;
 }
+
+// ============================================================
+// Storage 헬퍼 함수
+// ============================================================
+
+/**
+ * 이미지 업로드
+ * @param path - 저장 경로 (예: 'papers/snow.jpg', 'products/flyer/main.jpg')
+ * @param file - 업로드할 파일
+ * @returns 공개 URL
+ */
+export async function uploadImage(path: string, file: File): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from('images')
+    .upload(path, file, { upsert: true });
+
+  if (error) throw error;
+
+  const { data: urlData } = supabase.storage.from('images').getPublicUrl(path);
+  // 캐시 우회를 위해 타임스탬프 추가
+  return `${urlData.publicUrl}?t=${Date.now()}`;
+}
+
+/**
+ * 이미지 삭제
+ * @param path - 삭제할 파일 경로
+ */
+export async function deleteImage(path: string): Promise<void> {
+  const { error } = await supabase.storage.from('images').remove([path]);
+  if (error) throw error;
+}

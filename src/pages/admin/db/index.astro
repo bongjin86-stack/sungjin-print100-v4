@@ -1,0 +1,244 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { supabase } from '@/lib/supabase';
+
+// 모든 테이블의 데이터 개수 조회
+const [
+  { count: papers },
+  { count: paperCosts },
+  { count: sizes },
+  { count: printCosts },
+  { count: finishingTypes },
+  { count: finishingCosts },
+  { count: bindingTypes },
+  { count: bindingCosts },
+] = await Promise.all([
+  supabase.from('papers').select('*', { count: 'exact', head: true }),
+  supabase.from('paper_costs').select('*', { count: 'exact', head: true }),
+  supabase.from('sizes').select('*', { count: 'exact', head: true }),
+  supabase.from('print_costs').select('*', { count: 'exact', head: true }),
+  supabase.from('finishing_types').select('*', { count: 'exact', head: true }),
+  supabase.from('finishing_costs').select('*', { count: 'exact', head: true }),
+  supabase.from('binding_types').select('*', { count: 'exact', head: true }),
+  supabase.from('binding_costs').select('*', { count: 'exact', head: true }),
+]);
+
+const stats = {
+  papers: papers || 0,
+  paperCosts: paperCosts || 0,
+  sizes: sizes || 0,
+  printCosts: printCosts || 0,
+  finishingTypes: finishingTypes || 0,
+  finishingCosts: finishingCosts || 0,
+  bindingTypes: bindingTypes || 0,
+  bindingCosts: bindingCosts || 0,
+};
+
+const tables = [
+  {
+    name: '용지',
+    path: '/admin/db/papers',
+    color: 'blue',
+    stats: [
+      { label: '용지 종류', value: stats.papers },
+      { label: '용지 단가', value: stats.paperCosts },
+    ],
+  },
+  {
+    name: '사이즈',
+    path: '/admin/db/sizes',
+    color: 'purple',
+    stats: [
+      { label: '사이즈', value: stats.sizes },
+    ],
+  },
+  {
+    name: '인쇄비',
+    path: '/admin/db/print',
+    color: 'green',
+    stats: [
+      { label: '인쇄비 구간', value: stats.printCosts },
+    ],
+  },
+  {
+    name: '후가공',
+    path: '/admin/db/finishing',
+    color: 'amber',
+    stats: [
+      { label: '후가공 종류', value: stats.finishingTypes },
+      { label: '후가공 비용', value: stats.finishingCosts },
+    ],
+  },
+  {
+    name: '제본',
+    path: '/admin/db/binding',
+    color: 'cyan',
+    stats: [
+      { label: '제본 종류', value: stats.bindingTypes },
+      { label: '제본 비용', value: stats.bindingCosts },
+    ],
+  },
+];
+---
+
+<AdminLayout title="DB 관리">
+  <div class="db-dashboard">
+    <p class="dashboard-description">가격 데이터베이스를 관리합니다.</p>
+
+    <!-- 테이블 카드 그리드 -->
+    <div class="table-grid">
+      {tables.map((table) => (
+        <a href={table.path} class={`table-card table-card-${table.color}`}>
+          <h2 class="table-name">{table.name}</h2>
+          <div class="table-stats">
+            {table.stats.map((stat) => (
+              <div class="stat-item">
+                <span class="stat-label">{stat.label}</span>
+                <span class="stat-value">{stat.value}개</span>
+              </div>
+            ))}
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <!-- 전체 통계 -->
+    <div class="overall-stats">
+      <h3 class="stats-title">전체 통계</h3>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <p class="stat-number">{stats.paperCosts}</p>
+          <p class="stat-description">용지 단가</p>
+        </div>
+        <div class="stat-box">
+          <p class="stat-number">{stats.sizes}</p>
+          <p class="stat-description">사이즈</p>
+        </div>
+        <div class="stat-box">
+          <p class="stat-number">{stats.finishingCosts}</p>
+          <p class="stat-description">후가공 비용</p>
+        </div>
+        <div class="stat-box">
+          <p class="stat-number">{stats.bindingCosts}</p>
+          <p class="stat-description">제본 비용</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<style lang="scss">
+  .db-dashboard {
+    max-width: 1200px;
+  }
+
+  .dashboard-description {
+    color: var(--c-text-secondary);
+    margin-bottom: 2rem;
+  }
+
+  /* 테이블 카드 그리드 */
+  .table-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .table-card {
+    display: block;
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+
+    &:hover {
+      border-color: var(--c-primary);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+  }
+
+  .table-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--c-text);
+    margin-bottom: 1rem;
+  }
+
+  .table-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+  }
+
+  .stat-label {
+    color: var(--c-text-secondary);
+  }
+
+  .stat-value {
+    font-weight: 500;
+    color: var(--c-text);
+  }
+
+  /* 전체 통계 */
+  .overall-stats {
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .stats-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--c-text);
+    margin-bottom: 1.5rem;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2rem;
+  }
+
+  .stat-box {
+    text-align: center;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--c-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-description {
+    font-size: 0.875rem;
+    color: var(--c-text-secondary);
+  }
+
+  /* 반응형 */
+  @media (max-width: 768px) {
+    .table-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+    }
+  }
+</style>

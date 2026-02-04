@@ -1,0 +1,8 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import PrintManager from '@/components/admin/PrintManager';
+---
+
+<AdminLayout title="인쇄비 관리">
+  <PrintManager client:only="react" />
+</AdminLayout>

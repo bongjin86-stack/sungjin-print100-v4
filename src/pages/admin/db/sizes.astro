@@ -1,0 +1,8 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import SizesManager from '@/components/admin/SizesManager';
+---
+
+<AdminLayout title="사이즈 관리">
+  <SizesManager client:only="react" />
+</AdminLayout>

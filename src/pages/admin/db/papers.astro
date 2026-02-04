@@ -1,0 +1,8 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import PapersManager from '@/components/admin/PapersManager';
+---
+
+<AdminLayout title="용지 관리">
+  <PapersManager client:only="react" />
+</AdminLayout>

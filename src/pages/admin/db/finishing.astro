@@ -1,0 +1,8 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import FinishingManager from '@/components/admin/FinishingManager';
+---
+
+<AdminLayout title="후가공 관리">
+  <FinishingManager client:only="react" />
+</AdminLayout>

@@ -1,0 +1,8 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import BindingManager from '@/components/admin/BindingManager';
+---
+
+<AdminLayout title="제본 관리">
+  <BindingManager client:only="react" />
+</AdminLayout>
