@@ -566,7 +566,7 @@ export default function HeroForm() {
           margin-top: 2rem;
           background: #1a1a1a;
           border-radius: 1rem;
-          overflow: hidden;
+          overflow: visible;
         }
 
         .preview-header {
@@ -591,7 +591,9 @@ export default function HeroForm() {
 
         .hero-preview-container {
           padding: 1.5rem;
+          padding-bottom: 2rem;
           background: #ffffff;
+          overflow: visible;
         }
 
         /* 실제 사이트 Hero 섹션과 동일한 스타일 */
@@ -617,15 +619,15 @@ export default function HeroForm() {
         .preview-image {
           width: 100%;
           border-radius: 24px;
-          overflow: hidden;
+          overflow: visible;
         }
 
         .preview-image img {
           width: 100%;
           height: auto;
-          object-fit: cover;
-          aspect-ratio: 2.3 / 1;
+          object-fit: contain;
           display: block;
+          border-radius: 24px;
         }
 
         .save-btn {
