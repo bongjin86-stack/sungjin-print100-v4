@@ -8,7 +8,14 @@ import vercel from "@astrojs/vercel";
 export default defineConfig({
   site: "https://nagi-6tu.pages.dev",
   output: "server",
-  adapter: vercel(),
+  adapter: vercel({
+    imageService: true,
+  }),
+  image: {
+    service: {
+      entrypoint: 'astro/assets/services/sharp',
+    },
+  },
   integrations: [sitemap(), react()],
   vite: {
     server: {
