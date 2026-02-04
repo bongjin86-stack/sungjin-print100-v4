@@ -34,15 +34,15 @@ const getVisiblePages = (): number[] => {
 const visiblePages: number[] = getVisiblePages();
 ---
 
-<nav class="pagination" aria-label="ページネーション">
+<nav class="pagination" aria-label="페이지네이션">
   <ul class="pagination-list">
     <li class="pagination-item">
       <a
         href={getPageUrl(1)}
         class:list={["pagination-link", { "is-disabled": currentPage === 1 }]}
-        aria-label="最初のページへ"
+        aria-label="첫 페이지로"
       >
-        最初
+        처음
       </a>
     </li>
 
@@ -50,7 +50,7 @@ const visiblePages: number[] = getVisiblePages();
       <a
         href={getPageUrl(currentPage - 1)}
         class:list={["pagination-link", { "is-disabled": currentPage === 1 }]}
-        aria-label="前のページへ"
+        aria-label="이전 페이지로"
       >
         <ChevronLeftIcon />
       </a>
@@ -65,7 +65,7 @@ const visiblePages: number[] = getVisiblePages();
               "pagination-link",
               { "is-active": currentPage === page },
             ]}
-            aria-label={`ページ${page}へ`}
+            aria-label={`${page}페이지로`}
             aria-current={currentPage === page ? "page" : undefined}
           >
             {page}
@@ -81,7 +81,7 @@ const visiblePages: number[] = getVisiblePages();
           "pagination-link",
           { "is-disabled": currentPage === totalPages },
         ]}
-        aria-label="次のページへ"
+        aria-label="다음 페이지로"
       >
         <ChevronRightIcon />
       </a>
@@ -94,9 +94,9 @@ const visiblePages: number[] = getVisiblePages();
           "pagination-link",
           { "is-disabled": currentPage === totalPages },
         ]}
-        aria-label="最後のページへ"
+        aria-label="마지막 페이지로"
       >
-        最後
+        마지막
       </a>
     </li>
   </ul>

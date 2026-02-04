@@ -13,9 +13,9 @@ const Tag: "label" | "legend" = htmlFor ? "label" : "legend";
   <slot />
   <span
     class={`form-required-label -${required ? "required" : "optional"}`}
-    aria-label={required ? "必須項目" : "任意項目"}
+    aria-label={required ? "필수 항목" : "선택 항목"}
   >
-    {required ? "必須" : "任意"}
+    {required ? "필수" : "선택"}
   </span>
 </Tag>
 

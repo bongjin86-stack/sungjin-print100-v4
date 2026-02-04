@@ -30,15 +30,15 @@ const { page } = Astro.props;
 
 const pageTitle =
   page.currentPage === 1
-    ? "News - お知らせ"
-    : `News - お知らせ (${page.currentPage}ページ)`;
+    ? "News - 공지사항"
+    : `News - 공지사항 (${page.currentPage}페이지)`;
 ---
 
 <Layout
   title={pageTitle}
-  description="企業からのお知らせやプレスリリース、イベント情報をご紹介します。"
+  description="Sungjinprint의 공지사항과 이벤트 정보를 안내합니다."
 >
-  <PageHero title="News" subtitle="お知らせ" />
+  <PageHero title="News" subtitle="공지사항" />
 
   <Section class="news-section">
     <Container>

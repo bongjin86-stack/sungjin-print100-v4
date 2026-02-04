@@ -5,10 +5,10 @@ import FormInput from "@/components/ui/FormInput.astro";
 import FormLabel from "@/components/ui/FormLabel.astro";
 
 const inquiryTypes = [
-  { value: "project", label: "案件のご依頼やご相談" },
-  { value: "quote", label: "お見積もりのご依頼" },
-  { value: "partnership", label: "協業のご提案やお問い合わせ" },
-  { value: "other", label: "その他のお問い合わせ" },
+  { value: "project", label: "인쇄 의뢰 및 상담" },
+  { value: "quote", label: "견적 요청" },
+  { value: "partnership", label: "제휴 문의" },
+  { value: "other", label: "기타 문의" },
 ];
 ---
 
@@ -16,13 +16,13 @@ const inquiryTypes = [
   <Container size="small">
     <div class="contact-intro">
       <p class="contact-description">
-        サービスに関するご相談やお見積もりのご依頼、ご質問などお気軽にお問い合わせください。
+        서비스에 관한 상담이나 견적 요청, 질문 등 편하게 문의해 주세요.
       </p>
     </div>
 
     <form class="contact-form" method="POST" id="contact-form">
       <fieldset>
-        <FormLabel required>お問い合わせの種類</FormLabel>
+        <FormLabel required>문의 유형</FormLabel>
         <div class="form-radio-group">
           {
             inquiryTypes.map((type) => (
@@ -42,54 +42,42 @@ const inquiryTypes = [
       </fieldset>
 
       <div class="form-group">
-        <FormLabel for="message" required>お問い合わせ内容</FormLabel>
+        <FormLabel for="message" required>문의 내용</FormLabel>
         <textarea
           id="message"
           name="message"
           class="form-textarea"
           rows="8"
           required
-          placeholder="案件の詳細、ご予算やご希望の納期など具体的にご記入いただきますと、よりスムーズなご提案が可能です。"
+          placeholder="인쇄물 종류, 수량, 희망 납기일 등을 구체적으로 적어주시면 빠른 상담이 가능합니다."
         ></textarea>
       </div>
 
       <div class="form-group">
-        <FormLabel for="name" required>お名前</FormLabel>
+        <FormLabel for="name" required>이름</FormLabel>
         <FormInput
           type="text"
           id="name"
           name="name"
           required
           autocomplete="name"
-          placeholder="山田 太郎"
+          placeholder="홍길동"
         />
       </div>
 
       <div class="form-group">
-        <FormLabel for="furigana" required>フリガナ</FormLabel>
-        <FormInput
-          type="text"
-          id="furigana"
-          name="furigana"
-          required
-          placeholder="ヤマダ タロウ"
-        />
-      </div>
-
-      <div class="form-group">
-        <FormLabel for="company" required>会社名</FormLabel>
+        <FormLabel for="company">회사명</FormLabel>
         <FormInput
           type="text"
           id="company"
           name="company"
-          required
           autocomplete="organization"
-          placeholder="株式会社サンプル"
+          placeholder="(주)샘플회사"
         />
       </div>
 
       <div class="form-group">
-        <FormLabel for="email" required>メールアドレス</FormLabel>
+        <FormLabel for="email" required>이메일</FormLabel>
         <FormInput
           type="email"
           id="email"
@@ -101,13 +89,13 @@ const inquiryTypes = [
       </div>
 
       <div class="form-group">
-        <FormLabel for="tel">電話番号</FormLabel>
+        <FormLabel for="tel">전화번호</FormLabel>
         <FormInput
           type="tel"
           id="tel"
           name="tel"
           autocomplete="tel"
-          placeholder="03-1234-5678"
+          placeholder="010-1234-5678"
         />
       </div>
 
@@ -121,14 +109,14 @@ const inquiryTypes = [
           />
           <span class="form-checkbox-text">
             <a href="/privacy" class="form-link" target="_blank"
-              >個人情報保護方針</a
-            >に同意する
+              >개인정보처리방침</a
+            >에 동의합니다
           </span>
         </label>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="form-button">送信する</button>
+        <button type="submit" class="form-button">문의하기</button>
       </div>
     </form>
   </Container>

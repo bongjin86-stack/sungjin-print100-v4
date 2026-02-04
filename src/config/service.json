@@ -6,7 +6,7 @@
     "title": "무선제본",
     "description": "50부 이상 대량 주문 시 단가가 낮아집니다. 책자, 카탈로그, 보고서에 적합합니다.",
     "detailDescription": "무선제본은 책등에 접착제를 사용하여 내지를 표지에 붙이는 방식입니다. 깔끔하고 전문적인 마감으로 책자, 카탈로그, 보고서, 논문집 등에 널리 사용됩니다. 50부 이상 대량 주문 시 단가가 크게 낮아지며, 최신 장비로 빠르고 정확한 제본을 제공합니다.",
-    "image": "/src/assets/services/wireless-binding.jpg",
+    "image": "/src/assets/services/web-development.jpg",
     "tasks": [
       "책자/단행본 제본",
       "카탈로그/브로슈어",
@@ -25,7 +25,7 @@
     "title": "중철제본",
     "description": "당일 출고부터 익일 배송까지. 얇은 책자나 팸플릿에 최적화된 제본 방식입니다.",
     "detailDescription": "중철제본은 접힌 종이를 가운데에서 철심으로 고정하는 방식입니다. 페이지 수가 적은 책자, 팸플릿, 리플렛 등에 적합하며, 빠른 제작이 가능합니다. 당일 출고 서비스도 제공하여 급한 일정에도 대응 가능합니다.",
-    "image": "/src/assets/services/saddle-stitch.jpg",
+    "image": "/src/assets/services/mobile-apps.jpg",
     "tasks": [
       "팸플릿/리플렛",
       "회사 소개 브로슈어",
@@ -44,7 +44,7 @@
     "title": "스프링제본",
     "description": "최신 장비와 숙련된 기술진. 180도 펼침이 가능한 실용적인 제본입니다.",
     "detailDescription": "스프링제본(와이어제본)은 금속 또는 플라스틱 스프링으로 제본하는 방식입니다. 180도 완전히 펼쳐지고 360도 접을 수도 있어 노트, 달력, 요리책 등 실용적인 용도에 적합합니다. 다양한 색상의 스프링을 선택할 수 있습니다.",
-    "image": "/src/assets/services/spring-binding.jpg",
+    "image": "/src/assets/services/uiux-design.jpg",
     "tasks": [
       "노트/다이어리",
       "달력/캘린더",
@@ -63,7 +63,7 @@
     "title": "후가공",
     "description": "전문 상담을 통한 최적의 솔루션. 코팅, 오시, 접지, 박 등 다양한 후가공을 제공합니다.",
     "detailDescription": "인쇄물의 완성도를 높이는 다양한 후가공 서비스를 제공합니다. 무광/유광 코팅, 오시(접는선), 접지, 금박/은박, 형압, 타공 등 용도와 디자인에 맞는 최적의 후가공을 추천해 드립니다. 전문 상담을 통해 예산과 목적에 맞는 솔루션을 제안합니다.",
-    "image": "/src/assets/services/finishing.jpg",
+    "image": "/src/assets/services/digital-strategy.jpg",
     "tasks": [
       "무광 코팅 (매트)",
       "유광 코팅 (글로시)",

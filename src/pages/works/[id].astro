@@ -71,19 +71,19 @@ const ogImageUrl = new URL(image.src, Astro.site).href;
 
       <div class="work-content">
         <div class="work-section">
-          <h2 class="work-section-title">プロジェクト概要</h2>
+          <h2 class="work-section-title">개요</h2>
           <p class="work-section-text">{overview}</p>
         </div>
 
         <div class="work-section">
-          <h2 class="work-section-title">サポート内容</h2>
+          <h2 class="work-section-title">세부 내용</h2>
           <ul class="work-support-list">
             {support.map((item) => <li class="support-item">{item}</li>)}
           </ul>
         </div>
 
         <div class="work-section">
-          <h2 class="work-section-title">成果と効果</h2>
+          <h2 class="work-section-title">특징</h2>
           <div class="work-achievements">
             {
               achievements.map((achievement) => (
@@ -101,7 +101,7 @@ const ogImageUrl = new URL(image.src, Astro.site).href;
         {
           testimonial && (
             <div class="work-section work-testimonial">
-              <h2 class="work-section-title">お客様の声</h2>
+              <h2 class="work-section-title">고객 후기</h2>
               <blockquote class="testimonial-quote">
                 <p class="testimonial-text">{testimonial.text}</p>
                 <footer class="testimonial-author">
@@ -121,7 +121,7 @@ const ogImageUrl = new URL(image.src, Astro.site).href;
           size="large"
           class="work-action-button"
         >
-          一覧へ戻る
+          목록으로
         </LinkButton>
       </div>
     </Container>

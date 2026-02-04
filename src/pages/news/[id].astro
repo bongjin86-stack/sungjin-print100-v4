@@ -27,7 +27,7 @@ const categoryInfo = categoryData.news.find((cat) => cat.id === category);
 const categoryTitle = categoryInfo?.title || category;
 
 const formattedDate = pubDate
-  .toLocaleDateString("ja-JP", {
+  .toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "numeric",
     day: "numeric",
@@ -61,7 +61,7 @@ const formattedDate = pubDate
             size="large"
             class="news-action-button"
           >
-            一覧へ戻る
+            목록으로
           </LinkButton>
         </div>
       </article>

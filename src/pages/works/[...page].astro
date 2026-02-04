@@ -27,15 +27,15 @@ const { page } = Astro.props;
 
 const pageTitle =
   page.currentPage === 1
-    ? "Works - 制作実績"
-    : `Works - 制作実績 (${page.currentPage}ページ)`;
+    ? "Works - 인쇄가이드"
+    : `Works - 인쇄가이드 (${page.currentPage}페이지)`;
 ---
 
 <Layout
   title={pageTitle}
-  description="これまでに手がけたプロジェクトをご紹介します。"
+  description="용지 선택부터 후가공까지, 인쇄에 필요한 다양한 정보를 안내합니다."
 >
-  <PageHero title="Works" subtitle="制作実績" />
+  <PageHero title="Works" subtitle="인쇄가이드" />
 
   <Section class="works-section">
     <Container>

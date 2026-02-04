@@ -19,63 +19,62 @@ const employees = String(siteConfig.company.employees);
   <Container size="medium">
     <SectionTitle
       title="Company Overview"
-      subtitle="会社概要"
+      subtitle="회사개요"
       class="company-title"
     />
 
     <dl class="company-info">
       <div class="info-item">
-        <dt class="info-label">社名</dt>
+        <dt class="info-label">상호</dt>
         <dd class="info-value">{companyName}</dd>
       </div>
 
       <div class="info-item">
-        <dt class="info-label">事業内容</dt>
+        <dt class="info-label">사업내용</dt>
         <dd class="info-value">
-          デジタルプロダクトのデザイン・開発<br />
-          ブランディング戦略の立案・実行<br />
-          UI/UXコンサルティング<br />
-          Webサイト・アプリケーションの企画・制作<br />
-          デジタルマーケティング支援
+          무선제본, 중철제본, 스프링제본<br />
+          책자, 카탈로그, 브로슈어 인쇄<br />
+          후가공 (코팅, 오시, 접지, 박 등)<br />
+          대량 인쇄 전문
         </dd>
       </div>
 
       <div class="info-item">
-        <dt class="info-label">所在地</dt>
+        <dt class="info-label">소재지</dt>
         <dd class="info-value">
-          〒{postalCode}<br />
+          {postalCode}<br />
           {address}
         </dd>
       </div>
 
       <div class="info-item">
-        <dt class="info-label">代表者</dt>
+        <dt class="info-label">대표자</dt>
         <dd class="info-value info-value-ceo">
           {ceoTitle}{" "}{ceoName}
           <LinkButton
             href="/about/#message"
-            ariaLabel="代表メッセージを読む"
+            ariaLabel="대표 인사말 보기"
             size="small"
             variant="outlined"
             class="ceo-link"
           >
-            代表メッセージ
+            대표 인사말
           </LinkButton>
         </dd>
       </div>
 
       <div class="info-item">
-        <dt class="info-label">設立</dt>
+        <dt class="info-label">설립</dt>
         <dd class="info-value">{established}</dd>
       </div>
 
       <div class="info-item">
-        <dt class="info-label">資本金</dt>
+        <dt class="info-label">자본금</dt>
         <dd class="info-value">{capital}</dd>
       </div>
 
       <div class="info-item">
-        <dt class="info-label">従業員数</dt>
+        <dt class="info-label">직원수</dt>
         <dd class="info-value">{employees}</dd>
       </div>
     </dl>
