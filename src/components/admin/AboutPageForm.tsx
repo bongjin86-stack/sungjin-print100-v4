@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import ToastEditor from './ToastEditor';
+import BlockNoteEditor from './BlockNoteEditor';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://zqtmzbcfzozgzspslccp.supabase.co';
@@ -439,8 +439,8 @@ export default function AboutPageForm({ initialSettings, initialTeamMembers = []
             </div>
             <div className="form-group">
               <label className="form-label">내용</label>
-              <ToastEditor
-                initialValue={settings['about_strength_content'] || ''}
+              <BlockNoteEditor
+                initialContent={settings['about_strength_content'] || ''}
                 onChange={(content) => updateSetting('about_strength_content', content)}
                 height="200px"
               />
@@ -483,8 +483,8 @@ export default function AboutPageForm({ initialSettings, initialTeamMembers = []
             </div>
             <div className="form-group">
               <label className="form-label">내용</label>
-              <ToastEditor
-                initialValue={settings['about_quality_content'] || ''}
+              <BlockNoteEditor
+                initialContent={settings['about_quality_content'] || ''}
                 onChange={(content) => updateSetting('about_quality_content', content)}
                 height="200px"
               />
@@ -657,8 +657,8 @@ export default function AboutPageForm({ initialSettings, initialTeamMembers = []
 
             <div className="form-group">
               <label className="form-label">메시지 내용</label>
-              <ToastEditor
-                initialValue={settings['ceo_message'] || ''}
+              <BlockNoteEditor
+                initialContent={settings['ceo_message'] || ''}
                 onChange={(content) => updateSetting('ceo_message', content)}
                 height="300px"
               />
@@ -741,8 +741,8 @@ export default function AboutPageForm({ initialSettings, initialTeamMembers = []
             </div>
             <div className="form-group">
               <label className="form-label">소개 내용</label>
-              <ToastEditor
-                initialValue={settings['team_description'] || ''}
+              <BlockNoteEditor
+                initialContent={settings['team_description'] || ''}
                 onChange={(content) => updateSetting('team_description', content)}
                 height="200px"
               />

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import ToastEditor from './ToastEditor';
+import BlockNoteEditor from './BlockNoteEditor';
 
 interface NewsData {
   id?: string;
@@ -42,7 +42,7 @@ export default function NewsForm({ initialData, mode }: NewsFormProps) {
       return;
     }
     
-    if (!formData.content.trim()) {
+    if (!formData.content.trim() || formData.content === '[]') {
       setMessage({ type: 'error', text: '내용을 입력해주세요.' });
       return;
     }
@@ -149,10 +149,12 @@ export default function NewsForm({ initialData, mode }: NewsFormProps) {
         <label className="form-label">
           내용 <span className="required">필수</span>
         </label>
-        <ToastEditor
-          initialValue={formData.content}
+        <p className="form-hint">슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.</p>
+        <BlockNoteEditor
+          initialContent={formData.content}
           onChange={handleContentChange}
           height="400px"
+          placeholder="내용을 입력하세요..."
         />
       </div>
 
@@ -217,6 +219,12 @@ export default function NewsForm({ initialData, mode }: NewsFormProps) {
           font-size: 14px;
           font-weight: 500;
           color: var(--c-text, #222828);
+        }
+
+        .form-hint {
+          font-size: 12px;
+          color: var(--c-text-light, #8a9292);
+          margin-bottom: 8px;
         }
 
         .required {

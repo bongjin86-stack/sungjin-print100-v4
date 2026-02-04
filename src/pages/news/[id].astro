@@ -6,6 +6,7 @@ import CTA2 from "@/components/sections/CTA2.astro";
 import LinkButton from "@/components/ui/LinkButton.astro";
 import Layout from "@/layouts/Layout.astro";
 import { supabase } from "@/lib/supabase";
+import { renderBlocksToHTML } from "@/lib/blockRenderer";
 
 // SSR 모드로 전환
 export const prerender = false;
@@ -43,44 +44,8 @@ const formattedDate = pubDate
   })
   .replace(/\//g, ".");
 
-// Markdown을 HTML로 변환하는 간단한 함수
-function parseMarkdown(markdown: string): string {
-  if (!markdown) return '';
-  
-  let html = markdown
-    // 헤더
-    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-    // 볼드
-    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-    // 이탤릭
-    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-    // 링크
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2">$1</a>')
-    // 리스트
-    .replace(/^\- (.*$)/gim, '<li>$1</li>')
-    // 테이블 (간단한 처리)
-    .replace(/\|:?-+:?\|/g, '')
-    .replace(/\|(.*?)\|/g, (match, content) => {
-      const cells = content.split('|').map((cell: string) => cell.trim());
-      return '<tr>' + cells.map((cell: string) => `<td>${cell}</td>`).join('') + '</tr>';
-    })
-    // 줄바꿈
-    .replace(/\r\n\r\n/gim, '</p><p>')
-    .replace(/\n\n/gim, '</p><p>')
-    .replace(/\r\n/gim, '<br>')
-    .replace(/\n/gim, '<br>');
-  
-  // 리스트 감싸기
-  html = html.replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>');
-  // 테이블 감싸기
-  if (html.includes('<tr>')) {
-    html = html.replace(/(<tr>.*<\/tr>)/gims, '<table>$1</table>');
-  }
-  
-  return `<p>${html}</p>`;
-}
+// BlockNote JSON 또는 마크다운을 HTML로 변환
+const contentHtml = renderBlocksToHTML(news.content);
 ---
 
 <Layout title={`${news.title} - News`} description={news.title} articleDate={pubDate}>
@@ -98,7 +63,7 @@ function parseMarkdown(markdown: string): string {
           </div>
         </header>
 
-        <div class="news-body" set:html={parseMarkdown(news.content)} />
+        <div class="news-body" set:html={contentHtml} />
 
         <div class="news-action">
           <LinkButton

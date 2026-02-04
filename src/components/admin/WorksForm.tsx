@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Editor } from '@toast-ui/react-editor';
-import '@toast-ui/editor/dist/toastui-editor.css';
+import BlockNoteEditor from './BlockNoteEditor';
 import ImageUploader from './ImageUploader';
 
 interface WorksFormProps {
@@ -24,7 +23,6 @@ interface WorksFormProps {
 }
 
 export default function WorksForm({ mode, initialData }: WorksFormProps) {
-  const editorRef = useRef<Editor>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
@@ -38,6 +36,7 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
     overview: initialData?.overview || '',
     support: initialData?.support || '',
     achievements: initialData?.achievements || '',
+    content: initialData?.content || '',
     is_published: initialData?.is_published ?? true,
   });
 
@@ -53,15 +52,16 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
     setFormData(prev => ({ ...prev, image: url }));
   };
 
+  const handleContentChange = (content: string) => {
+    setFormData(prev => ({ ...prev, content }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const content = editorRef.current?.getInstance().getMarkdown() || '';
-    
     const payload = {
       ...formData,
-      content,
     };
 
     try {
@@ -229,23 +229,13 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
 
       <div style={styles.editorSection}>
         <label style={styles.label}>상세 내용</label>
-        <div style={styles.editorWrapper}>
-          <Editor
-            ref={editorRef}
-            initialValue={initialData?.content || '# 프로젝트 상세\n\n내용을 입력하세요.'}
-            previewStyle="vertical"
-            height="400px"
-            initialEditType="markdown"
-            useCommandShortcut={true}
-            toolbarItems={[
-              ['heading', 'bold', 'italic', 'strike'],
-              ['hr', 'quote'],
-              ['ul', 'ol', 'task', 'indent', 'outdent'],
-              ['table', 'image', 'link'],
-              ['code', 'codeblock'],
-            ]}
-          />
-        </div>
+        <p style={styles.hint}>슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.</p>
+        <BlockNoteEditor
+          initialContent={formData.content}
+          onChange={handleContentChange}
+          height="400px"
+          placeholder="상세 내용을 입력하세요..."
+        />
       </div>
 
       <div style={styles.formActions}>
@@ -295,6 +285,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.875rem',
     color: '#374151',
   },
+  hint: {
+    fontSize: '0.75rem',
+    color: '#6b7280',
+    marginBottom: '0.5rem',
+  },
   input: {
     padding: '0.75rem 1rem',
     border: '1px solid #e5e7eb',
@@ -320,18 +315,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     outline: 'none',
     background: 'white',
   },
-  hint: {
-    fontSize: '0.75rem',
-    color: '#6b7280',
-  },
   editorSection: {
     marginBottom: '2rem',
-  },
-  editorWrapper: {
-    marginTop: '0.5rem',
-    border: '1px solid #e5e7eb',
-    borderRadius: '0.375rem',
-    overflow: 'hidden',
   },
   formActions: {
     display: 'flex',

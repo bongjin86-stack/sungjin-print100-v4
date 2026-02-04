@@ -6,6 +6,7 @@ import LinkButton from "@/components/ui/LinkButton.astro";
 import PageHero from "@/components/ui/PageHero.astro";
 import Layout from "@/layouts/Layout.astro";
 import { supabase } from "@/lib/supabase";
+import { renderBlocksToHTML } from "@/lib/blockRenderer";
 
 // SSR 모드로 전환
 export const prerender = false;
@@ -63,6 +64,9 @@ try {
 }
 
 const ogImageUrl = work.image || '';
+
+// BlockNote JSON 또는 마크다운을 HTML로 변환
+const contentHtml = work.content ? renderBlocksToHTML(work.content) : '';
 ---
 
 <Layout
@@ -144,7 +148,7 @@ const ogImageUrl = work.image || '';
         {work.content && (
           <div class="work-section">
             <h2 class="work-section-title">상세 내용</h2>
-            <div class="work-section-text" set:html={work.content} />
+            <div class="work-section-text" set:html={contentHtml} />
           </div>
         )}
       </div>

@@ -3,7 +3,7 @@ import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import SectionTitle from "@/components/ui/SectionTitle.astro";
 import { supabase } from "@/lib/supabase";
-import { marked } from "marked";
+import { renderBlocksToHTML } from "@/lib/blockRenderer";
 
 interface Props {
   settings?: Record<string, string>;
@@ -26,8 +26,8 @@ const sectionTitle = settings['team_title'] || 'Meet Our Team';
 const sectionSubtitle = settings['team_subtitle'] || '팀 소개';
 const teamDescriptionRaw = settings['team_description'] || '성진인쇄는 전문 인력과 최신 장비를 갖추고 고객 만족을 위해 최선을 다하고 있습니다. 다양한 배경을 가진 팀원들이 각자의 전문성을 살려 혁신적인 인쇄 경험을 만들어가고 있습니다. 고객의 비전을 실현하기 위해 항상 배우고 도전하는 팀입니다.';
 
-// 마크다운을 HTML로 변환
-const teamDescription = marked.parse(teamDescriptionRaw);
+// BlockNote JSON 또는 마크다운을 HTML로 변환
+const teamDescription = renderBlocksToHTML(teamDescriptionRaw);
 ---
 
 <Section>

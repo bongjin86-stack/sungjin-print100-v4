@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import ToastEditor from './ToastEditor';
+import BlockNoteEditor from './BlockNoteEditor';
 
 interface TeamSectionData {
   title: string;
@@ -85,12 +85,13 @@ export default function TeamSectionForm({ initialData }: TeamSectionFormProps) {
 
       <div className="form-group">
         <label className="form-label">소개 내용</label>
-        <ToastEditor
-          initialValue={formData.description}
+        <span className="hint">슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.</span>
+        <BlockNoteEditor
+          initialContent={formData.description}
           onChange={handleContentChange}
           height="300px"
+          placeholder="팀 소개 내용을 입력하세요..."
         />
-        <span className="hint">마크다운 형식으로 작성하세요. 엔터로 줄바꿈, **굵게**, *기울임* 등 사용 가능</span>
       </div>
 
       <div className="form-actions">
@@ -115,7 +116,7 @@ export default function TeamSectionForm({ initialData }: TeamSectionFormProps) {
           font-size: 1rem;
           box-sizing: border-box;
         }
-        .hint { font-size: 0.75rem; color: #6b7280; margin-top: 4px; display: block; }
+        .hint { font-size: 0.75rem; color: #6b7280; margin-top: 4px; display: block; margin-bottom: 8px; }
         
         .btn { padding: 8px 16px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; }
         .btn-primary { background: #333; color: white; border-color: #333; padding: 12px 32px; }
