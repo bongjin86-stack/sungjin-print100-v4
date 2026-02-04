@@ -15,16 +15,25 @@ interface TeamMember {
   is_pet: boolean;
 }
 
+interface HistoryItem {
+  id: number;
+  year: string;
+  month: string;
+  event: string;
+  sort_order: number;
+}
+
 interface AboutPageFormProps {
   initialSettings: Record<string, string>;
   initialTeamMembers?: TeamMember[];
+  initialHistoryItems?: HistoryItem[];
 }
 
 interface SectionState {
   expanded: boolean;
 }
 
-export default function AboutPageForm({ initialSettings, initialTeamMembers = [] }: AboutPageFormProps) {
+export default function AboutPageForm({ initialSettings, initialTeamMembers = [], initialHistoryItems = [] }: AboutPageFormProps) {
   const [settings, setSettings] = useState<Record<string, string>>(initialSettings);
   const [sections, setSections] = useState<Record<string, SectionState>>({
     strength: { expanded: false },
@@ -46,6 +55,14 @@ export default function AboutPageForm({ initialSettings, initialTeamMembers = []
   
   // CEO image upload status
   const [ceoUploadStatus, setCeoUploadStatus] = useState('');
+  
+  // History state
+  const [historyItems, setHistoryItems] = useState<HistoryItem[]>(initialHistoryItems);
+  const [editingHistory, setEditingHistory] = useState<HistoryItem | null>(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  
+  // Global save state
+  const [savingAll, setSavingAll] = useState(false);
 
   const toggleSection = (section: string) => {
     setSections(prev => ({
@@ -76,6 +93,34 @@ export default function AboutPageForm({ initialSettings, initialTeamMembers = []
     } catch (error) {
       console.error('Save error:', error);
       return false;
+    }
+  };
+
+  const handleSaveAllVisibility = async () => {
+    setSavingAll(true);
+    setMessage(null);
+    
+    try {
+      const visibilityKeys = [
+        'about_strength_visible',
+        'about_quality_visible',
+        'about_values_visible',
+        'about_history_visible',
+        'ceo_visible',
+        'team_visible',
+        'about_cta_visible',
+      ];
+      
+      for (const key of visibilityKeys) {
+        if (settings[key] !== undefined) {
+          await saveSetting(key, settings[key]);
+        }
+      }
+      setMessage({ type: 'success', text: '전체 설정이 저장되었습니다.' });
+    } catch (error) {
+      setMessage({ type: 'error', text: '저장 중 오류가 발생했습니다.' });
+    } finally {
+      setSavingAll(false);
     }
   };
 
@@ -250,6 +295,74 @@ export default function AboutPageForm({ initialSettings, initialTeamMembers = []
     } catch (err: any) {
       console.error('Upload error:', err);
       setTeamUploadStatus('업로드 실패');
+    }
+  };
+
+  // History functions
+  const fetchHistoryItems = async () => {
+    const { data, error } = await supabase
+      .from('history')
+      .select('*')
+      .order('year', { ascending: false })
+      .order('month', { ascending: false });
+    
+    if (!error && data) {
+      setHistoryItems(data);
+    }
+  };
+
+  const handleAddHistory = () => {
+    setEditingHistory({ id: 0, year: '', month: '', event: '', sort_order: 0 });
+    setShowHistoryModal(true);
+  };
+
+  const handleEditHistory = (item: HistoryItem) => {
+    setEditingHistory({ ...item });
+    setShowHistoryModal(true);
+  };
+
+  const handleDeleteHistory = async (id: number) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+    
+    try {
+      await fetch(`/api/history/${id}`, { method: 'DELETE' });
+      await fetchHistoryItems();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleSaveHistory = async () => {
+    if (!editingHistory) return;
+    
+    try {
+      const data = {
+        year: editingHistory.year,
+        month: editingHistory.month,
+        event: editingHistory.event,
+        sort_order: editingHistory.sort_order,
+      };
+      
+      if (editingHistory.id) {
+        await fetch(`/api/history/${editingHistory.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      } else {
+        await fetch('/api/history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      }
+      
+      setShowHistoryModal(false);
+      await fetchHistoryItems();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('저장 중 오류가 발생했습니다.');
     }
   };
 
@@ -480,8 +593,27 @@ export default function AboutPageForm({ initialSettings, initialTeamMembers = []
         </div>
         {sections.history.expanded && (
           <div className="section-content">
-            <p className="hint">연혁 항목은 별도의 "연혁 관리" 메뉴에서 편집할 수 있습니다.</p>
-            <a href="/admin/history" className="btn">연혁 관리로 이동</a>
+            <div className="history-management">
+              <div className="history-header">
+                <h4>연혁 관리</h4>
+                <button className="btn btn-primary btn-sm" onClick={handleAddHistory}>새 연혁 추가</button>
+              </div>
+              <div className="history-list">
+                {historyItems.map((item) => (
+                  <div key={item.id} className="history-item">
+                    <div className="history-year">{item.year}{item.month && `.${item.month}`}</div>
+                    <div className="history-event">{item.event}</div>
+                    <div className="history-actions">
+                      <button className="btn btn-sm" onClick={() => handleEditHistory(item)}>수정</button>
+                      <button className="btn btn-sm btn-danger" onClick={() => handleDeleteHistory(item.id)}>삭제</button>
+                    </div>
+                  </div>
+                ))}
+                {historyItems.length === 0 && (
+                  <p className="hint">등록된 연혁이 없습니다.</p>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -680,7 +812,71 @@ export default function AboutPageForm({ initialSettings, initialTeamMembers = []
         )}
       </div>
 
-      {/* Team Member Modal */}
+      {/* 전체 설정 저장 버튼 */}
+      <div className="global-save-section">
+        <button
+          className="btn btn-primary btn-lg"
+          onClick={handleSaveAllVisibility}
+          disabled={savingAll}
+        >
+          {savingAll ? '저장 중...' : '전체 설정 저장'}
+        </button>
+        <p className="hint">각 섹션의 표시/숨김 설정을 저장합니다.</p>
+      </div>
+
+           {/* History Modal */}
+      {showHistoryModal && editingHistory && (
+        <div className="modal-overlay" onClick={() => setShowHistoryModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>{editingHistory.id ? '연혁 수정' : '연혁 추가'}</h3>
+            <div className="form-group">
+              <label className="form-label">연도</label>
+              <input
+                type="text"
+                value={editingHistory.year}
+                onChange={(e) => setEditingHistory({ ...editingHistory, year: e.target.value })}
+                className="form-input"
+                placeholder="2024"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">월 (선택사항)</label>
+              <input
+                type="text"
+                value={editingHistory.month}
+                onChange={(e) => setEditingHistory({ ...editingHistory, month: e.target.value })}
+                className="form-input"
+                placeholder="01"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">내용</label>
+              <textarea
+                value={editingHistory.event}
+                onChange={(e) => setEditingHistory({ ...editingHistory, event: e.target.value })}
+                className="form-textarea"
+                rows={3}
+                placeholder="연혁 내용을 입력하세요"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">정렬 순서</label>
+              <input
+                type="number"
+                value={editingHistory.sort_order}
+                onChange={(e) => setEditingHistory({ ...editingHistory, sort_order: parseInt(e.target.value) || 0 })}
+                className="form-input"
+              />
+            </div>
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setShowHistoryModal(false)}>취소</button>
+              <button className="btn btn-primary" onClick={handleSaveHistory}>저장</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Team Modal */}
       {showTeamModal && editingMember && (
         <div className="modal-overlay" onClick={() => setShowTeamModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -876,6 +1072,16 @@ export default function AboutPageForm({ initialSettings, initialTeamMembers = []
         .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-danger { background: #dc3545; color: white; border-color: #dc3545; }
         .btn-sm { padding: 4px 12px; font-size: 0.875rem; }
+        .btn-lg { padding: 12px 32px; font-size: 1.1rem; }
+        
+        .global-save-section {
+          margin-top: 32px;
+          padding: 24px;
+          background: #f9fafb;
+          border-radius: 12px;
+          text-align: center;
+        }
+        .global-save-section .hint { margin-top: 12px; }
         
         .section-actions { margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
         
@@ -906,6 +1112,16 @@ export default function AboutPageForm({ initialSettings, initialTeamMembers = []
           color: #6b7280;
         }
         
+        /* History Management Styles */
+        .history-management { margin-top: 0; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .history-header h4 { margin: 0; font-size: 1rem; font-weight: 600; }
+        .history-list { display: flex; flex-direction: column; gap: 8px; }
+        .history-item { display: flex; align-items: center; gap: 16px; padding: 12px 16px; background: #f9fafb; border-radius: 8px; }
+        .history-year { font-weight: 600; min-width: 80px; color: #333; }
+        .history-event { flex: 1; color: #666; }
+        .history-actions { display: flex; gap: 8px; }
+
         /* Team Management Styles */
         .team-management { margin-top: 16px; }
         .team-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }

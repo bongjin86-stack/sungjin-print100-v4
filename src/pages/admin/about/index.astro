@@ -16,6 +16,13 @@ const { data: teamMembers } = await supabase
   .select('*')
   .order('sort_order', { ascending: true });
 
+// 연혁 데이터 가져오기
+const { data: historyItems } = await supabase
+  .from('history')
+  .select('*')
+  .order('year', { ascending: false })
+  .order('month', { ascending: false });
+
 // 설정값을 객체로 변환
 const settingsMap: Record<string, string> = {};
 settings?.forEach(s => {
@@ -33,6 +40,7 @@ settings?.forEach(s => {
     <AboutPageForm 
       initialSettings={settingsMap} 
       initialTeamMembers={teamMembers || []}
+      initialHistoryItems={historyItems || []}
       client:load 
     />
   </div>
