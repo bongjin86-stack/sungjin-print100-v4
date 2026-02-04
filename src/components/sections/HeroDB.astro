@@ -14,62 +14,40 @@ const { data: heroSettings } = await supabase
 const titleLine1 = heroSettings?.title_line1 || '안녕하세요';
 const titleLine2 = heroSettings?.title_line2 || 'Sungjinprint 입니다.';
 const imageUrl = heroSettings?.image_url;
-const heroContent = heroSettings?.hero_content;
+
+// lines 데이터 (줄 단위 관리)
+interface HeroLine {
+  id: string;
+  text: string;
+  fontSize: number;
+  letterSpacing: number;
+  fontWeight: number;
+  marginBottom: number;
+}
+
+const lines: HeroLine[] = heroSettings?.lines || [];
+const hasLines = lines && Array.isArray(lines) && lines.length > 0;
 
 // Import default hero image as fallback
 import heroImage from "@/assets/hero.jpg";
-
-// BlockNote JSON을 HTML로 변환하는 함수
-function renderBlocksToHTML(content: string): string {
-  if (!content) return '';
-
-  let blocks: any[];
-  
-  try {
-    blocks = JSON.parse(content);
-    if (!Array.isArray(blocks)) {
-      return '';
-    }
-  } catch {
-    return '';
-  }
-
-  return blocks.map(block => {
-    const blockContent = block.content?.map((c: any) => {
-      let text = c.text || '';
-      if (c.styles?.bold) text = `<strong>${text}</strong>`;
-      if (c.styles?.italic) text = `<em>${text}</em>`;
-      if (c.styles?.underline) text = `<u>${text}</u>`;
-      return text;
-    }).join('') || '';
-
-    if (!blockContent) return '';
-
-    const textAlign = block.props?.textAlignment || 'left';
-    const alignStyle = textAlign !== 'left' ? ` style="text-align: ${textAlign}"` : '';
-
-    switch (block.type) {
-      case 'heading':
-        const level = block.props?.level || 1;
-        return `<span class="hero-title-line fade" data-animate${alignStyle}>${blockContent}</span><br/>`;
-      case 'paragraph':
-        return `<span class="hero-title-line hero-paragraph fade" data-animate${alignStyle}>${blockContent}</span><br/>`;
-      default:
-        return `<span class="hero-title-line fade" data-animate${alignStyle}>${blockContent}</span><br/>`;
-    }
-  }).filter(Boolean).join('\n');
-}
-
-// hero_content가 있으면 BlockNote 렌더링, 없으면 기존 방식
-const hasBlockNoteContent = heroContent && heroContent.trim() !== '';
-const renderedContent = hasBlockNoteContent ? renderBlocksToHTML(heroContent) : null;
 ---
 
 <section class="hero">
   <Container>
     <div class="hero-content">
-      {hasBlockNoteContent && renderedContent ? (
-        <h1 class="hero-title" set:html={renderedContent} />
+      {hasLines ? (
+        <h1 class="hero-title hero-title-lines">
+          {lines.map((line: HeroLine, index: number) => (
+            <span 
+              class="hero-title-line fade" 
+              data-animate 
+              data-animate-delay={String(index * 100)}
+              style={`font-size: ${line.fontSize}px; letter-spacing: ${line.letterSpacing}px; font-weight: ${line.fontWeight}; margin-bottom: ${line.marginBottom}px; display: block;`}
+            >
+              {line.text}
+            </span>
+          ))}
+        </h1>
       ) : (
         <h1 class="hero-title">
           <span class="hero-title-line fade" data-animate data-animate-delay="0"
@@ -133,13 +111,16 @@ const renderedContent = hasBlockNoteContent ? renderBlocksToHTML(heroContent) : 
     letter-spacing: 0.02em;
   }
 
-  .hero-title-line {
-    display: inline-block;
+  .hero-title-lines {
+    // lines 방식일 때는 기본 스타일 초기화
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    line-height: 1.2;
   }
 
-  .hero-paragraph {
-    font-size: clamp(var(--fs-base), 3vw, var(--fs-xl));
-    font-weight: 400;
+  .hero-title-line {
+    display: inline-block;
   }
 
   .hero-image {

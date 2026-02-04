@@ -1,24 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import ImageUploader from './ImageUploader';
-import BlockNoteEditor from './BlockNoteEditor';
 
 const supabaseUrl = 'https://zqtmzbcfzozgzspslccp.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdG16YmNmem96Z3pzcHNsY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NzM2NjAsImV4cCI6MjA4NTI0OTY2MH0.H7w5s_8sSm-_-oU8Ft9fZah6i4NjC6GqQ-GoR3_8MVo';
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+interface HeroLine {
+  id: string;
+  text: string;
+  fontSize: number;
+  letterSpacing: number;
+  fontWeight: number;
+  marginBottom: number;
+}
+
 interface HeroSettings {
   id: string;
   title_line1: string;
   title_line2: string;
-  hero_content: string | null;
   image_url: string | null;
+  lines: HeroLine[];
 }
+
+const defaultLines: HeroLine[] = [
+  {
+    id: '1',
+    text: '안녕하세요',
+    fontSize: 48,
+    letterSpacing: 0,
+    fontWeight: 500,
+    marginBottom: 8
+  },
+  {
+    id: '2',
+    text: 'Sungjinprint 입니다.',
+    fontSize: 48,
+    letterSpacing: 0,
+    fontWeight: 700,
+    marginBottom: 0
+  }
+];
 
 export default function HeroForm() {
   const [settings, setSettings] = useState<HeroSettings | null>(null);
-  const [heroContent, setHeroContent] = useState<string>('');
+  const [lines, setLines] = useState<HeroLine[]>(defaultLines);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -41,46 +68,39 @@ export default function HeroForm() {
 
       if (data) {
         setSettings(data);
-        // hero_content가 있으면 사용, 없으면 기존 title_line1, title_line2로 초기화
-        if (data.hero_content) {
-          setHeroContent(data.hero_content);
+        // lines가 있으면 사용, 없으면 기존 title_line1, title_line2로 초기화
+        if (data.lines && Array.isArray(data.lines) && data.lines.length > 0) {
+          setLines(data.lines);
         } else {
-          // 기존 데이터를 BlockNote 형식으로 변환
-          const initialContent = [
+          // 기존 데이터를 lines 형식으로 변환
+          const initialLines: HeroLine[] = [
             {
-              type: 'heading',
-              props: { level: 1 },
-              content: [{ type: 'text', text: data.title_line1 || '안녕하세요' }]
+              id: '1',
+              text: data.title_line1 || '안녕하세요',
+              fontSize: 48,
+              letterSpacing: 0,
+              fontWeight: 500,
+              marginBottom: 8
             },
             {
-              type: 'heading',
-              props: { level: 1 },
-              content: [{ type: 'text', text: data.title_line2 || 'Sungjinprint 입니다.' }]
+              id: '2',
+              text: data.title_line2 || 'Sungjinprint 입니다.',
+              fontSize: 48,
+              letterSpacing: 0,
+              fontWeight: 700,
+              marginBottom: 0
             }
           ];
-          setHeroContent(JSON.stringify(initialContent));
+          setLines(initialLines);
         }
       } else {
         // 새로 생성
-        const initialContent = [
-          {
-            type: 'heading',
-            props: { level: 1 },
-            content: [{ type: 'text', text: '안녕하세요' }]
-          },
-          {
-            type: 'heading',
-            props: { level: 1 },
-            content: [{ type: 'text', text: 'Sungjinprint 입니다.' }]
-          }
-        ];
-        
         const { data: newData, error: insertError } = await supabase
           .from('hero_settings')
           .insert([{
             title_line1: '안녕하세요',
             title_line2: 'Sungjinprint 입니다.',
-            hero_content: JSON.stringify(initialContent),
+            lines: defaultLines,
             image_url: null
           }])
           .select()
@@ -88,7 +108,7 @@ export default function HeroForm() {
 
         if (insertError) throw insertError;
         setSettings(newData);
-        setHeroContent(JSON.stringify(initialContent));
+        setLines(defaultLines);
       }
     } catch (err: any) {
       console.error('Error fetching hero settings:', err);
@@ -108,7 +128,7 @@ export default function HeroForm() {
       const { error } = await supabase
         .from('hero_settings')
         .update({
-          hero_content: heroContent,
+          lines: lines,
           image_url: settings.image_url,
           updated_at: new Date().toISOString()
         })
@@ -125,41 +145,42 @@ export default function HeroForm() {
     }
   };
 
-  // BlockNote JSON을 미리보기용 HTML로 변환
-  const renderPreview = () => {
-    if (!heroContent) return null;
-    
-    try {
-      const blocks = JSON.parse(heroContent);
-      if (!Array.isArray(blocks)) return null;
+  const updateLine = (id: string, field: keyof HeroLine, value: string | number) => {
+    setLines(prev => prev.map(line => 
+      line.id === id ? { ...line, [field]: value } : line
+    ));
+  };
 
-      return blocks.map((block: any, index: number) => {
-        const content = block.content?.map((c: any) => {
-          let text = c.text || '';
-          if (c.styles?.bold) text = <strong key={Math.random()}>{text}</strong>;
-          if (c.styles?.italic) text = <em key={Math.random()}>{text}</em>;
-          return text;
-        }) || [];
+  const addLine = () => {
+    const newLine: HeroLine = {
+      id: Date.now().toString(),
+      text: '새 텍스트',
+      fontSize: 36,
+      letterSpacing: 0,
+      fontWeight: 500,
+      marginBottom: 8
+    };
+    setLines(prev => [...prev, newLine]);
+  };
 
-        const textAlign = block.props?.textAlignment || 'left';
-        const style = { textAlign: textAlign as 'left' | 'center' | 'right' };
+  const removeLine = (id: string) => {
+    if (lines.length <= 1) {
+      setMessage({ type: 'error', text: '최소 1개의 줄이 필요합니다.' });
+      return;
+    }
+    setLines(prev => prev.filter(line => line.id !== id));
+  };
 
-        switch (block.type) {
-          case 'heading':
-            const level = block.props?.level || 1;
-            const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
-            return <HeadingTag key={index} style={style}>{content}</HeadingTag>;
-          case 'paragraph':
-            if (content.length === 0 || (content.length === 1 && content[0] === '')) {
-              return <br key={index} />;
-            }
-            return <p key={index} style={style}>{content}</p>;
-          default:
-            return <p key={index} style={style}>{content}</p>;
-        }
-      });
-    } catch {
-      return <p>미리보기를 불러올 수 없습니다.</p>;
+  const moveLine = (id: string, direction: 'up' | 'down') => {
+    const index = lines.findIndex(line => line.id === id);
+    if (direction === 'up' && index > 0) {
+      const newLines = [...lines];
+      [newLines[index - 1], newLines[index]] = [newLines[index], newLines[index - 1]];
+      setLines(newLines);
+    } else if (direction === 'down' && index < lines.length - 1) {
+      const newLines = [...lines];
+      [newLines[index], newLines[index + 1]] = [newLines[index + 1], newLines[index]];
+      setLines(newLines);
     }
   };
 
@@ -181,17 +202,113 @@ export default function HeroForm() {
         </div>
       )}
 
-      <div className="editor-section">
-        <label>Hero 텍스트</label>
+      <div className="lines-section">
+        <div className="section-header">
+          <label>텍스트 줄 관리</label>
+          <button className="add-line-btn" onClick={addLine}>+ 줄 추가</button>
+        </div>
         <p className="help-text">
-          자유롭게 텍스트를 입력하고 스타일을 조절하세요. 
-          제목(H1, H2, H3), 굵기, 기울임, 정렬 등을 설정할 수 있습니다.
+          각 줄의 텍스트와 스타일을 개별적으로 조절할 수 있습니다.
         </p>
-        <BlockNoteEditor
-          initialContent={heroContent}
-          onChange={setHeroContent}
-          height="250px"
-        />
+
+        {lines.map((line, index) => (
+          <div key={line.id} className="line-card">
+            <div className="line-header">
+              <span className="line-number">줄 {index + 1}</span>
+              <div className="line-actions">
+                <button 
+                  className="move-btn" 
+                  onClick={() => moveLine(line.id, 'up')}
+                  disabled={index === 0}
+                >
+                  ↑
+                </button>
+                <button 
+                  className="move-btn" 
+                  onClick={() => moveLine(line.id, 'down')}
+                  disabled={index === lines.length - 1}
+                >
+                  ↓
+                </button>
+                <button 
+                  className="delete-btn" 
+                  onClick={() => removeLine(line.id)}
+                >
+                  삭제
+                </button>
+              </div>
+            </div>
+
+            <div className="line-content">
+              <input
+                type="text"
+                className="text-input"
+                value={line.text}
+                onChange={(e) => updateLine(line.id, 'text', e.target.value)}
+                placeholder="텍스트 입력"
+              />
+
+              <div className="sliders-grid">
+                <div className="slider-group">
+                  <label>글자 크기</label>
+                  <div className="slider-row">
+                    <input
+                      type="range"
+                      min="16"
+                      max="120"
+                      value={line.fontSize}
+                      onChange={(e) => updateLine(line.id, 'fontSize', parseInt(e.target.value))}
+                    />
+                    <span className="slider-value">{line.fontSize}px</span>
+                  </div>
+                </div>
+
+                <div className="slider-group">
+                  <label>자간</label>
+                  <div className="slider-row">
+                    <input
+                      type="range"
+                      min="-10"
+                      max="30"
+                      value={line.letterSpacing}
+                      onChange={(e) => updateLine(line.id, 'letterSpacing', parseInt(e.target.value))}
+                    />
+                    <span className="slider-value">{line.letterSpacing}px</span>
+                  </div>
+                </div>
+
+                <div className="slider-group">
+                  <label>굵기</label>
+                  <div className="slider-row">
+                    <input
+                      type="range"
+                      min="100"
+                      max="900"
+                      step="100"
+                      value={line.fontWeight}
+                      onChange={(e) => updateLine(line.id, 'fontWeight', parseInt(e.target.value))}
+                    />
+                    <span className="slider-value">{line.fontWeight}</span>
+                  </div>
+                </div>
+
+                <div className="slider-group">
+                  <label>아래 여백</label>
+                  <div className="slider-row">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={line.marginBottom}
+                      onChange={(e) => updateLine(line.id, 'marginBottom', parseInt(e.target.value))}
+                    />
+                    <span className="slider-value">{line.marginBottom}px</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <ImageUploader
@@ -205,7 +322,20 @@ export default function HeroForm() {
         <h3>미리보기</h3>
         <div className="hero-preview">
           <div className="preview-text">
-            {renderPreview()}
+            {lines.map((line) => (
+              <div
+                key={line.id}
+                style={{
+                  fontSize: `${line.fontSize}px`,
+                  letterSpacing: `${line.letterSpacing}px`,
+                  fontWeight: line.fontWeight,
+                  marginBottom: `${line.marginBottom}px`,
+                  lineHeight: 1.2
+                }}
+              >
+                {line.text}
+              </div>
+            ))}
           </div>
           {settings.image_url && (
             <div className="preview-image">
@@ -225,7 +355,7 @@ export default function HeroForm() {
 
       <style>{`
         .hero-form {
-          max-width: 800px;
+          max-width: 900px;
           margin: 0 auto;
           padding: 2rem;
         }
@@ -254,22 +384,176 @@ export default function HeroForm() {
           border: 1px solid #f5c6cb;
         }
 
-        .editor-section {
-          margin-bottom: 1.5rem;
+        .lines-section {
+          margin-bottom: 2rem;
         }
 
-        .editor-section label {
-          display: block;
+        .section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.5rem;
+        }
+
+        .section-header label {
           font-size: 0.875rem;
           font-weight: 600;
-          margin-bottom: 0.5rem;
           color: #374151;
+        }
+
+        .add-line-btn {
+          padding: 0.5rem 1rem;
+          background: #10b981;
+          color: white;
+          border: none;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .add-line-btn:hover {
+          background: #059669;
         }
 
         .help-text {
           font-size: 0.8rem;
           color: #6b7280;
-          margin-bottom: 0.75rem;
+          margin-bottom: 1rem;
+        }
+
+        .line-card {
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+          border-radius: 0.75rem;
+          padding: 1rem;
+          margin-bottom: 1rem;
+        }
+
+        .line-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+          padding-bottom: 0.75rem;
+          border-bottom: 1px solid #e5e7eb;
+        }
+
+        .line-number {
+          font-weight: 600;
+          color: #374151;
+        }
+
+        .line-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .move-btn {
+          padding: 0.25rem 0.75rem;
+          background: #e5e7eb;
+          border: none;
+          border-radius: 0.25rem;
+          cursor: pointer;
+          font-size: 0.875rem;
+        }
+
+        .move-btn:hover:not(:disabled) {
+          background: #d1d5db;
+        }
+
+        .move-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .delete-btn {
+          padding: 0.25rem 0.75rem;
+          background: #fee2e2;
+          color: #dc2626;
+          border: none;
+          border-radius: 0.25rem;
+          cursor: pointer;
+          font-size: 0.875rem;
+        }
+
+        .delete-btn:hover {
+          background: #fecaca;
+        }
+
+        .line-content {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .text-input {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.5rem;
+          font-size: 1rem;
+        }
+
+        .text-input:focus {
+          outline: none;
+          border-color: #2563eb;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .sliders-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
+        }
+
+        @media (max-width: 640px) {
+          .sliders-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .slider-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .slider-group label {
+          font-size: 0.75rem;
+          color: #6b7280;
+        }
+
+        .slider-row {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .slider-row input[type="range"] {
+          flex: 1;
+          height: 6px;
+          -webkit-appearance: none;
+          background: #e5e7eb;
+          border-radius: 3px;
+          cursor: pointer;
+        }
+
+        .slider-row input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 16px;
+          height: 16px;
+          background: #2563eb;
+          border-radius: 50%;
+          cursor: pointer;
+        }
+
+        .slider-value {
+          min-width: 50px;
+          font-size: 0.875rem;
+          color: #2563eb;
+          font-weight: 500;
+          text-align: right;
         }
 
         .preview-section {
@@ -296,40 +580,14 @@ export default function HeroForm() {
           margin-bottom: 1.5rem;
         }
 
-        .preview-text h1 {
-          font-size: 2.5rem;
-          font-weight: 600;
-          margin: 0;
-          line-height: 1.2;
-        }
-
-        .preview-text h2 {
-          font-size: 2rem;
-          font-weight: 600;
-          margin: 0;
-          line-height: 1.2;
-        }
-
-        .preview-text h3 {
-          font-size: 1.5rem;
-          font-weight: 600;
-          margin: 0;
-          line-height: 1.2;
-        }
-
-        .preview-text p {
-          font-size: 1rem;
-          margin: 0.5rem 0;
-          line-height: 1.5;
-        }
-
         .preview-image {
           margin-top: 1rem;
         }
 
         .preview-image img {
           max-width: 100%;
-          height: auto;
+          max-height: 300px;
+          object-fit: cover;
           border-radius: 0.5rem;
         }
 
