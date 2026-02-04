@@ -463,10 +463,11 @@ export default function PapersPage() {
                     <div
                       onClick={() => startQuickUpload(paper.id)}
                       className={`w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-[#3455DB] transition-all relative group ${uploading && quickUploadPaperId === paper.id ? 'opacity-50' : ''}`}
+                      style={{maxWidth: '48px', maxHeight: '48px'}}
                     >
                       {paper.image_url ? (
                         <>
-                          <img src={paper.image_url} alt={paper.name} className="w-full h-full object-cover" />
+                          <img src={paper.image_url} alt={paper.name} className="w-full h-full object-cover" style={{maxWidth: '48px', maxHeight: '48px'}} />
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <span className="text-white text-lg">+</span>
                           </div>
