@@ -11,60 +11,109 @@ const { count: partnersCount } = await supabase
   .from('partner_logos')
   .select('*', { count: 'exact', head: true });
 
+const { count: worksCount } = await supabase
+  .from('works')
+  .select('*', { count: 'exact', head: true });
+
+const { count: servicesCount } = await supabase
+  .from('services')
+  .select('*', { count: 'exact', head: true });
+
+const { count: faqCount } = await supabase
+  .from('faq')
+  .select('*', { count: 'exact', head: true });
+
+const { data: heroData } = await supabase
+  .from('hero_settings')
+  .select('*')
+  .single();
+
 const { data: recentNews } = await supabase
   .from('news')
   .select('*')
   .order('created_at', { ascending: false })
-  .limit(5);
+  .limit(4);
+
+// 관리 섹션 정의
+const sections = [
+  { 
+    name: 'Hero 섹션', 
+    href: '/admin/hero', 
+    count: heroData ? 1 : 0,
+    description: '메인 배너 관리',
+    status: heroData?.image_url ? 'active' : 'needs-setup'
+  },
+  { 
+    name: '파트너 로고', 
+    href: '/admin/partners', 
+    count: partnersCount || 0,
+    description: '고객사 로고 슬라이더',
+    status: (partnersCount || 0) > 0 ? 'active' : 'needs-setup'
+  },
+  { 
+    name: '공지사항', 
+    href: '/admin/news', 
+    count: newsCount || 0,
+    description: '뉴스 및 공지',
+    status: (newsCount || 0) > 0 ? 'active' : 'empty'
+  },
+  { 
+    name: 'Works', 
+    href: '/admin/works', 
+    count: worksCount || 0,
+    description: '포트폴리오 관리',
+    status: (worksCount || 0) > 0 ? 'active' : 'empty'
+  },
+  { 
+    name: '서비스', 
+    href: '/admin/services', 
+    count: servicesCount || 0,
+    description: '서비스 소개',
+    status: (servicesCount || 0) > 0 ? 'active' : 'empty'
+  },
+  { 
+    name: 'FAQ', 
+    href: '/admin/faq', 
+    count: faqCount || 0,
+    description: '자주 묻는 질문',
+    status: (faqCount || 0) > 0 ? 'active' : 'empty'
+  },
+];
+
+// 스마트 빠른 작업 - 상태에 따라 우선순위 결정
+const quickActions = [
+  ...sections
+    .filter(s => s.status === 'needs-setup')
+    .map(s => ({ name: `${s.name} 설정`, href: s.href, priority: 'high' })),
+  { name: '공지사항 작성', href: '/admin/news/new', priority: 'normal' },
+  { name: 'Works 추가', href: '/admin/works/new', priority: 'normal' },
+  { name: '사이트 보기', href: '/', priority: 'normal', external: true },
+].slice(0, 5);
 ---
 
 <AdminLayout title="대시보드">
   <div class="dashboard">
     <!-- Stats Cards -->
     <div class="stats-grid">
-      <a href="/admin/hero" class="stat-card highlight">
-        <div class="stat-info">
-          <span class="stat-label">Hero 섹션</span>
-          <span class="stat-value">🖼️</span>
-        </div>
-      </a>
-      <a href="/admin/partners" class="stat-card highlight">
-        <div class="stat-info">
-          <span class="stat-label">파트너 로고</span>
-          <span class="stat-value">{partnersCount || 0}</span>
-        </div>
-      </a>
-      <a href="/admin/news" class="stat-card">
-        <div class="stat-info">
-          <span class="stat-label">공지사항</span>
-          <span class="stat-value">{newsCount || 0}</span>
-        </div>
-      </a>
-      <a href="/admin/works" class="stat-card">
-        <div class="stat-info">
-          <span class="stat-label">Works</span>
-          <span class="stat-value">-</span>
-        </div>
-      </a>
-      <a href="/admin/services" class="stat-card">
-        <div class="stat-info">
-          <span class="stat-label">서비스</span>
-          <span class="stat-value">4</span>
-        </div>
-      </a>
-      <a href="/admin/faq" class="stat-card">
-        <div class="stat-info">
-          <span class="stat-label">FAQ</span>
-          <span class="stat-value">-</span>
-        </div>
-      </a>
+      {sections.map((section) => (
+        <a href={section.href} class={`stat-card ${section.status}`}>
+          <div class="stat-header">
+            <span class="stat-label">{section.name}</span>
+            <span class={`status-dot ${section.status}`}></span>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{section.count}</span>
+            <span class="stat-desc">{section.description}</span>
+          </div>
+        </a>
+      ))}
     </div>
 
     <!-- Recent News -->
     <div class="dashboard-section">
       <div class="section-header">
         <h2>최근 공지사항</h2>
-        <a href="/admin/news" class="view-all">전체보기 →</a>
+        <a href="/admin/news" class="view-all">전체보기</a>
       </div>
       <div class="recent-list">
         {recentNews && recentNews.length > 0 ? (
@@ -85,23 +134,20 @@ const { data: recentNews } = await supabase
 
     <!-- Quick Actions -->
     <div class="dashboard-section">
-      <h2>빠른 작업</h2>
+      <div class="section-header">
+        <h2>빠른 작업</h2>
+      </div>
       <div class="quick-actions">
-        <a href="/admin/hero" class="action-card">
-          <span class="action-text">Hero 섹션 관리</span>
-        </a>
-        <a href="/admin/partners" class="action-card">
-          <span class="action-text">파트너 로고 관리</span>
-        </a>
-        <a href="/admin/news/new" class="action-card">
-          <span class="action-text">공지사항 작성</span>
-        </a>
-        <a href="/admin/works" class="action-card">
-          <span class="action-text">Works 관리</span>
-        </a>
-        <a href="/" target="_blank" class="action-card">
-          <span class="action-text">사이트 보기</span>
-        </a>
+        {quickActions.map((action) => (
+          <a 
+            href={action.href} 
+            class={`action-card ${action.priority}`}
+            target={action.external ? '_blank' : undefined}
+          >
+            <span class="action-text">{action.name}</span>
+            {action.priority === 'high' && <span class="action-badge">설정 필요</span>}
+          </a>
+        ))}
       </div>
     </div>
   </div>
@@ -114,22 +160,18 @@ const { data: recentNews } = await supabase
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 20px;
-      margin-bottom: 32px;
+      gap: 16px;
+      margin-bottom: 24px;
     }
 
     .stat-card {
       background: var(--c-bg);
       border-radius: 12px;
-      padding: 24px;
+      padding: 20px;
       text-decoration: none;
       box-shadow: var(--shadow-base);
       transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .stat-card.highlight {
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      border: 2px solid #0ea5e9;
+      border: 1px solid var(--c-border-light);
     }
 
     .stat-card:hover {
@@ -137,15 +179,54 @@ const { data: recentNews } = await supabase
       box-shadow: var(--shadow-md);
     }
 
-    .stat-info {
+    .stat-card.active {
+      border-color: #10b981;
+    }
+
+    .stat-card.needs-setup {
+      border-color: #f59e0b;
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    }
+
+    .stat-card.empty {
+      border-color: var(--c-border-light);
+    }
+
+    .stat-header {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
     }
 
     .stat-label {
       font-size: var(--fs-sm);
-      color: var(--c-text-sub);
+      font-weight: 600;
+      color: var(--c-text);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-dot.active {
+      background: #10b981;
+    }
+
+    .status-dot.needs-setup {
+      background: #f59e0b;
+    }
+
+    .status-dot.empty {
+      background: #d1d5db;
+    }
+
+    .stat-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .stat-value {
@@ -154,11 +235,16 @@ const { data: recentNews } = await supabase
       color: var(--c-text);
     }
 
+    .stat-desc {
+      font-size: var(--fs-xs);
+      color: var(--c-text-sub);
+    }
+
     .dashboard-section {
       background: var(--c-bg);
       border-radius: 12px;
       padding: 24px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       box-shadow: var(--shadow-base);
     }
 
@@ -180,6 +266,7 @@ const { data: recentNews } = await supabase
       color: var(--c-primary);
       text-decoration: none;
       font-size: var(--fs-sm);
+      font-weight: 500;
     }
 
     .view-all:hover {
@@ -194,6 +281,7 @@ const { data: recentNews } = await supabase
     .recent-item {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       padding: 12px 0;
       border-bottom: 1px solid var(--c-border-light);
       text-decoration: none;
@@ -213,17 +301,23 @@ const { data: recentNews } = await supabase
 
     .recent-title {
       color: var(--c-text);
+      font-size: var(--fs-sm);
     }
 
     .recent-date {
       color: var(--c-text-light);
-      font-size: var(--fs-sm);
+      font-size: var(--fs-xs);
     }
 
     .empty-state {
       text-align: center;
-      padding: 32px;
+      padding: 24px;
       color: var(--c-text-sub);
+    }
+
+    .empty-state p {
+      margin: 0 0 12px 0;
+      font-size: var(--fs-sm);
     }
 
     .btn-primary {
@@ -233,7 +327,7 @@ const { data: recentNews } = await supabase
       padding: 10px 20px;
       border-radius: 8px;
       text-decoration: none;
-      margin-top: 12px;
+      font-size: var(--fs-sm);
       transition: background 0.2s;
     }
 
@@ -243,20 +337,23 @@ const { data: recentNews } = await supabase
 
     .quick-actions {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
     }
 
     .action-card {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px 24px;
+      gap: 6px;
+      padding: 16px;
       background: var(--c-bg-secondary);
-      border-radius: 12px;
+      border-radius: 10px;
       text-decoration: none;
       color: var(--c-text);
       transition: all 0.2s;
+      border: 1px solid transparent;
     }
 
     .action-card:hover {
@@ -264,16 +361,28 @@ const { data: recentNews } = await supabase
       transform: translateY(-2px);
     }
 
+    .action-card.high {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-color: #f59e0b;
+    }
+
+    .action-card.high:hover {
+      background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
+    }
+
     .action-text {
       font-size: var(--fs-sm);
       font-weight: 500;
+      text-align: center;
     }
 
-    h2 {
-      margin: 0 0 16px 0;
-      font-size: var(--fs-md);
-      font-weight: 600;
-      color: var(--c-text);
+    .action-badge {
+      font-size: 10px;
+      background: #f59e0b;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 500;
     }
   </style>
 </AdminLayout>
