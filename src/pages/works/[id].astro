@@ -1,0 +1,353 @@
+---
+import type { GetStaticPaths } from "astro";
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import CTA from "@/components/sections/CTA.astro";
+import LinkButton from "@/components/ui/LinkButton.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import categoryData from "@/config/category.json";
+import Layout from "@/layouts/Layout.astro";
+
+export const getStaticPaths = (async () => {
+  const works = await getCollection("works");
+  return works.map((work) => ({
+    params: { id: work.id },
+    props: { work },
+  }));
+}) satisfies GetStaticPaths;
+
+const { work } = Astro.props;
+
+const {
+  title,
+  subtitle,
+  client,
+  category,
+  year,
+  image,
+  description,
+  overview,
+  support,
+  achievements,
+  testimonial,
+} = work.data;
+
+const categoryInfo = categoryData.work.find((cat) => cat.id === category);
+const categoryTitle = categoryInfo?.title || category;
+
+const ogImageUrl = new URL(image.src, Astro.site).href;
+---
+
+<Layout
+  title={`${title} - Works`}
+  description={description}
+  ogImage={ogImageUrl}
+>
+  <PageHero title={title} subtitle={subtitle} />
+
+  <Section>
+    <Container size="medium">
+      <div class="work-detail-image">
+        <Image src={image} alt={title} width={1200} height={675} />
+      </div>
+
+      <div class="work-detail-meta">
+        <div class="meta-item">
+          <dt class="meta-label">Client</dt>
+          <dd class="meta-value">{client}</dd>
+        </div>
+        <div class="meta-item">
+          <dt class="meta-label">Category</dt>
+          <dd class="meta-value">{categoryTitle}</dd>
+        </div>
+        <div class="meta-item">
+          <dt class="meta-label">Year</dt>
+          <dd class="meta-value">{year}</dd>
+        </div>
+      </div>
+
+      <div class="work-content">
+        <div class="work-section">
+          <h2 class="work-section-title">プロジェクト概要</h2>
+          <p class="work-section-text">{overview}</p>
+        </div>
+
+        <div class="work-section">
+          <h2 class="work-section-title">サポート内容</h2>
+          <ul class="work-support-list">
+            {support.map((item) => <li class="support-item">{item}</li>)}
+          </ul>
+        </div>
+
+        <div class="work-section">
+          <h2 class="work-section-title">成果と効果</h2>
+          <div class="work-achievements">
+            {
+              achievements.map((achievement) => (
+                <div class="achievement-item">
+                  <h3 class="achievement-title">{achievement.title}</h3>
+                  <p class="achievement-description">
+                    {achievement.description}
+                  </p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
+        {
+          testimonial && (
+            <div class="work-section work-testimonial">
+              <h2 class="work-section-title">お客様の声</h2>
+              <blockquote class="testimonial-quote">
+                <p class="testimonial-text">{testimonial.text}</p>
+                <footer class="testimonial-author">
+                  <cite class="author-name">{testimonial.author}</cite>
+                  <span class="author-position">{testimonial.position}</span>
+                </footer>
+              </blockquote>
+            </div>
+          )
+        }
+      </div>
+
+      <div class="work-action">
+        <LinkButton
+          href="/works"
+          variant="solid"
+          size="large"
+          class="work-action-button"
+        >
+          一覧へ戻る
+        </LinkButton>
+      </div>
+    </Container>
+  </Section>
+
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  .work-detail-image {
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-6xl);
+    margin: 0 0 var(--sp-xl);
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  .work-detail-meta {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-lg);
+    margin: var(--sp-xl) 0 var(--sp-3xl);
+    padding: var(--sp-xl);
+    background-color: var(--c-bg-secondary);
+    border-radius: var(--radius-4xl);
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-2xl);
+      margin: var(--sp-xl) 0 var(--sp-4xl);
+    }
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+  }
+
+  .meta-label {
+    color: var(--c-text-sub);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    line-height: var(--lh-tight);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .meta-value {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    font-weight: 400;
+    line-height: var(--lh-normal);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+
+  .work-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3xl);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-4xl);
+    }
+  }
+
+  .work-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-xl);
+    }
+  }
+
+  .work-section-title {
+    color: var(--c-text);
+    font-size: var(--fs-xl);
+    font-weight: 500;
+    line-height: var(--lh-tight);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-2xl);
+    }
+  }
+
+  .work-section-text {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+
+  .work-support-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-sm);
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .support-item {
+    position: relative;
+    padding-left: var(--sp-lg);
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    line-height: var(--lh-relaxed);
+
+    &::before {
+      content: "・";
+      position: absolute;
+      left: 0;
+      color: var(--c-primary);
+      font-weight: 600;
+    }
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+
+  .work-achievements {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-xl);
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sp-xl);
+    }
+  }
+
+  .achievement-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+    padding: var(--sp-lg);
+    background-color: var(--c-bg-secondary);
+    border-radius: var(--radius-3xl);
+  }
+
+  .achievement-title {
+    color: var(--c-text);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    line-height: var(--lh-snug);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-lg);
+    }
+  }
+
+  .achievement-description {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-relaxed);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .work-testimonial {
+    padding: var(--sp-xl);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-4xl);
+
+    @media (min-width: 900px) {
+      padding: var(--sp-2xl);
+    }
+  }
+
+  .testimonial-quote {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+  }
+
+  .testimonial-text {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    line-height: var(--lh-relaxed);
+    font-style: italic;
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+
+  .testimonial-author {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2xs);
+  }
+
+  .author-name {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    font-weight: 500;
+    font-style: normal;
+  }
+
+  .author-position {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-normal);
+  }
+
+  .work-action {
+    display: flex;
+    justify-content: center;
+    margin: var(--sp-2xl) 0 0;
+  }
+</style>

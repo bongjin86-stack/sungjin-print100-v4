@@ -1,0 +1,49 @@
+---
+interface Props {
+  for?: string;
+  required?: boolean;
+}
+
+const { for: htmlFor, required = false } = Astro.props;
+
+const Tag: "label" | "legend" = htmlFor ? "label" : "legend";
+---
+
+<Tag for={htmlFor} class="form-label">
+  <slot />
+  <span
+    class={`form-required-label -${required ? "required" : "optional"}`}
+    aria-label={required ? "必須項目" : "任意項目"}
+  >
+    {required ? "必須" : "任意"}
+  </span>
+</Tag>
+
+<style lang="scss">
+  .form-label {
+    display: flex;
+    gap: var(--sp-sm);
+    align-items: center;
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    font-weight: 500;
+    line-height: var(--lh-normal);
+  }
+
+  .form-required-label {
+    display: inline-block;
+    padding: 2px var(--sp-sm);
+    color: var(--c-text-inverse);
+    border-radius: var(--radius-lg);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+
+    &.-required {
+      background-color: var(--c-primary);
+    }
+
+    &.-optional {
+      background-color: var(--c-text-light);
+    }
+  }
+</style>

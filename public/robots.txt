@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nagi-6tu.pages.dev/sitemap-index.xml

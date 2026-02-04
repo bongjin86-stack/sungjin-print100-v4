@@ -1,0 +1,100 @@
+---
+import type { GetStaticPaths, Page } from "astro";
+import type { CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
+
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import CTA from "@/components/sections/CTA.astro";
+import CategoryNavigation from "@/components/ui/CategoryNavigation.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Pagination from "@/components/ui/Pagination.astro";
+import WorkCard from "@/components/ui/WorkCard.astro";
+import categoryData from "@/config/category.json";
+import siteConfig from "@/config/site.config.json";
+import Layout from "@/layouts/Layout.astro";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const allWorks = await getCollection("works");
+
+  return categoryData.work.flatMap((category) => {
+    const filteredWorks = allWorks.filter(
+      (work) => work.data.category === category.id
+    );
+
+    return paginate(filteredWorks, {
+      params: { category: category.id },
+      pageSize: siteConfig.settings.pagination,
+      props: { category },
+    });
+  });
+}) satisfies GetStaticPaths;
+
+type Props = {
+  page: Page<CollectionEntry<"works">>;
+  category: { id: string; title: string };
+};
+
+const { page, category } = Astro.props;
+
+const pageTitle =
+  page.currentPage === 1
+    ? `Works - ${category.title}`
+    : `Works - ${category.title} (${page.currentPage}ページ)`;
+---
+
+<Layout
+  title={pageTitle}
+  description={`${category.title}カテゴリーの制作実績をご紹介します。`}
+>
+  <PageHero title="Works" subtitle={category.title} />
+
+  <Section class="works-section">
+    <Container>
+      <CategoryNavigation
+        categories={categoryData.work}
+        currentCategory={category.id}
+        basePath="/works"
+      />
+
+      <div class="works-grid">
+        {page.data.map((work) => <WorkCard work={work} />)}
+      </div>
+
+      {
+        page.lastPage > 1 && (
+          <Pagination
+            currentPage={page.currentPage}
+            totalPages={page.lastPage}
+            basePath={`/works/category/${category.id}`}
+          />
+        )
+      }
+    </Container>
+  </Section>
+
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  .works-section {
+    padding-top: var(--sp-md);
+  }
+
+  .works-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-2xl);
+    margin-top: var(--sp-3xl);
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sp-xl);
+    }
+
+    @media (min-width: 900px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-2xl);
+    }
+  }
+</style>

@@ -1,0 +1,35 @@
+---
+interface Props {
+  size?: "small" | "medium" | "large";
+}
+
+const { size = "large" } = Astro.props;
+---
+
+<div class:list={["container", `-${size}`]}>
+  <slot />
+</div>
+
+<style lang="scss">
+  .container {
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 var(--sp-lg);
+
+    @media (min-width: 600px) {
+      padding: 0 var(--sp-2xl);
+
+      &.-small {
+        max-width: calc(var(--container-sm) + calc(var(--sp-2xl) * 2));
+      }
+
+      &.-medium {
+        max-width: calc(var(--container-md) + calc(var(--sp-2xl) * 2));
+      }
+
+      &.-large {
+        max-width: calc(var(--container-lg) + calc(var(--sp-2xl) * 2));
+      }
+    }
+  }
+</style>

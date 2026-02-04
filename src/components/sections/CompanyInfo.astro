@@ -1,0 +1,152 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import LinkButton from "@/components/ui/LinkButton.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import siteConfig from "@/config/site.config.json";
+
+const companyName = String(siteConfig.site.company_name);
+const postalCode = String(siteConfig.company.postal_code);
+const address = String(siteConfig.company.address);
+const ceoTitle = String(siteConfig.company.ceo_title);
+const ceoName = String(siteConfig.company.ceo_name);
+const established = String(siteConfig.company.established);
+const capital = String(siteConfig.company.capital);
+const employees = String(siteConfig.company.employees);
+---
+
+<Section>
+  <Container size="medium">
+    <SectionTitle
+      title="Company Overview"
+      subtitle="会社概要"
+      class="company-title"
+    />
+
+    <dl class="company-info">
+      <div class="info-item">
+        <dt class="info-label">社名</dt>
+        <dd class="info-value">{companyName}</dd>
+      </div>
+
+      <div class="info-item">
+        <dt class="info-label">事業内容</dt>
+        <dd class="info-value">
+          デジタルプロダクトのデザイン・開発<br />
+          ブランディング戦略の立案・実行<br />
+          UI/UXコンサルティング<br />
+          Webサイト・アプリケーションの企画・制作<br />
+          デジタルマーケティング支援
+        </dd>
+      </div>
+
+      <div class="info-item">
+        <dt class="info-label">所在地</dt>
+        <dd class="info-value">
+          〒{postalCode}<br />
+          {address}
+        </dd>
+      </div>
+
+      <div class="info-item">
+        <dt class="info-label">代表者</dt>
+        <dd class="info-value info-value-ceo">
+          {ceoTitle}{" "}{ceoName}
+          <LinkButton
+            href="/about/#message"
+            ariaLabel="代表メッセージを読む"
+            size="small"
+            variant="outlined"
+            class="ceo-link"
+          >
+            代表メッセージ
+          </LinkButton>
+        </dd>
+      </div>
+
+      <div class="info-item">
+        <dt class="info-label">設立</dt>
+        <dd class="info-value">{established}</dd>
+      </div>
+
+      <div class="info-item">
+        <dt class="info-label">資本金</dt>
+        <dd class="info-value">{capital}</dd>
+      </div>
+
+      <div class="info-item">
+        <dt class="info-label">従業員数</dt>
+        <dd class="info-value">{employees}</dd>
+      </div>
+    </dl>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .company-title {
+    margin-bottom: var(--sp-2xl);
+
+    @media (min-width: 900px) {
+      margin-bottom: var(--sp-3xl);
+    }
+  }
+
+  .company-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-xl);
+    }
+  }
+
+  .info-item {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-sm);
+    padding-bottom: var(--sp-lg);
+    border-bottom: 1px solid var(--c-border);
+
+    @media (min-width: 600px) {
+      grid-template-columns: 180px 1fr;
+      gap: var(--sp-lg);
+    }
+
+    @media (min-width: 900px) {
+      grid-template-columns: 220px 1fr;
+      gap: var(--sp-xl);
+      padding-bottom: var(--sp-xl);
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .info-label {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    line-height: var(--lh-relaxed);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .info-value {
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .info-value-ceo {
+    display: grid;
+    gap: var(--sp-sm);
+  }
+</style>

@@ -1,0 +1,105 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+import categoryData from "@/config/category.json";
+import type { CategoryData } from "@/types/index.d.ts";
+
+interface Props {
+  news: CollectionEntry<"news">;
+}
+
+const { news } = Astro.props;
+const { title, category, pubDate } = news.data;
+
+const typedCategoryData = categoryData as CategoryData;
+const categoryInfo = typedCategoryData.news.find((cat) => cat.id === category);
+const categoryTitle: string = categoryInfo?.title || category;
+
+const formattedDate: string = pubDate
+  .toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  })
+  .replace(/\//g, ".");
+---
+
+<article class="news-item">
+  <a href={`/news/${news.id}`} class="news-link">
+    <time class="news-date" datetime={pubDate.toISOString()}>
+      {formattedDate}
+    </time>
+    <span class="news-category">{categoryTitle}</span>
+    <h3 class="news-item-title">{title}</h3>
+  </a>
+</article>
+
+<style lang="scss">
+  .news-link {
+    display: grid;
+    grid-template-columns: 88px 1fr;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: var(--sp-sm) var(--sp-xs);
+    color: var(--c-text);
+    text-decoration: none;
+
+    @media (min-width: 600px) {
+      grid-template-columns: 88px 120px 1fr;
+      grid-template-rows: auto;
+      gap: 0 var(--sp-sm);
+    }
+  }
+
+  .news-date {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    align-self: center;
+
+    @media (min-width: 600px) {
+      grid-column: 1 / 2;
+      font-size: var(--fs-base);
+    }
+  }
+
+  .news-category {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    width: fit-content;
+    padding: var(--sp-xs) var(--sp-sm);
+    background-color: var(--c-bg-secondary);
+    color: var(--c-text);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-none);
+    text-transform: uppercase;
+    border-radius: var(--radius-md);
+
+    @media (min-width: 600px) {
+      grid-column: 2 / 3;
+    }
+  }
+
+  .news-item-title {
+    grid-column: 1 / 3;
+    grid-row: 2 / 3;
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-relaxed);
+
+    @media (min-width: 600px) {
+      grid-column: 3 / -1;
+      grid-row: 1 / 2;
+    }
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+
+    .news-link:hover & {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+  }
+</style>

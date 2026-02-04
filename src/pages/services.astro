@@ -1,0 +1,25 @@
+---
+import CTA from "@/components/sections/CTA.astro";
+import FAQ from "@/components/sections/FAQ.astro";
+import ServiceDetail from "@/components/sections/ServiceDetail.astro";
+import ServiceIntro from "@/components/sections/ServiceIntro.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout
+  title="Services - サービス紹介"
+  description="Webサイト制作、アプリ開発、マーケティング支援など、幅広いサービスをご提供しています。お客様のビジネス課題に最適なソリューションをご提案します。"
+>
+  <PageHero title="Services" subtitle="サービス紹介" />
+  <ServiceIntro />
+  <ServiceDetail />
+  <FAQ />
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  html {
+    scroll-behavior: auto;
+  }
+</style>

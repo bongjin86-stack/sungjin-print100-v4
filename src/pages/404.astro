@@ -1,0 +1,53 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import LinkButton from "@/components/ui/LinkButton.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout
+  title="404 Not Found - ページが見つかりません"
+  description="お探しのページは見つかりませんでした。"
+  noindex={true}
+>
+  <PageHero title="Not Found" subtitle="ページが見つかりません" />
+  <Section>
+    <Container size="medium">
+      <div class="not-found-message">
+        <p class="not-found-text">ご指定されたページは見つかりませんでした。</p>
+        <p class="not-found-text">
+          ページが移動または削除されたか、URLが間違っている可能性がございます。
+        </p>
+      </div>
+
+      <div class="not-found-actions">
+        <LinkButton href="/" variant="solid" size="large">
+          ホームへ戻る
+        </LinkButton>
+      </div>
+    </Container>
+  </Section>
+</Layout>
+
+<style lang="scss">
+  .not-found-message {
+    margin-bottom: var(--sp-2xl);
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      margin-bottom: var(--sp-3xl);
+      font-size: var(--fs-md);
+    }
+  }
+
+  .not-found-text {
+    margin-bottom: var(--sp-md);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+</style>

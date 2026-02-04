@@ -1,0 +1,233 @@
+---
+import ChevronDownIcon from "@/assets/icons/chevron-down.svg";
+import Container from "@/components/layout/Container.astro";
+import LinkButton from "@/components/ui/LinkButton.astro";
+import MobileMenu from "@/components/ui/MobileMenu.astro";
+import SiteLogo from "@/components/ui/SiteLogo.astro";
+import menuData from "@/config/menu.json";
+import siteConfig from "@/config/site.config.json";
+import type { MenuData } from "@/types/index.d.ts";
+
+const typedMenuData = menuData as MenuData;
+const mainMenu = typedMenuData.main;
+const contactMenu = typedMenuData.contact;
+
+const headerHeight = siteConfig.settings.header_height;
+const headerHeightMobile = siteConfig.settings.header_height_mobile;
+const isHome = Astro.url.pathname === "/";
+---
+
+<header class="header" id="header">
+  <Container>
+    <div class="header-inner">
+      <SiteLogo h1={isHome} class="header-logo" />
+
+      <nav class="header-nav">
+        <ul class="nav-list">
+          {
+            mainMenu.map((item) => (
+              <li class="nav-item">
+                <a href={item.path} class="nav-link">
+                  {item.title}
+                  {item.children && <ChevronDownIcon width={16} height={16} />}
+                </a>
+                {item.children && (
+                  <div class="nav-dropdown">
+                    <ul class="dropdown-menu">
+                      {item.children.map((child) => (
+                        <li class="dropdown-item">
+                          <a href={child.path} class="dropdown-link">
+                            {child.title}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </li>
+            ))
+          }
+          <li>
+            <LinkButton
+              href={contactMenu.path}
+              ariaLabel={contactMenu.title}
+              size="small"
+              class="menu-contact"
+            >
+              {contactMenu.title}
+            </LinkButton>
+          </li>
+        </ul>
+      </nav>
+      <MobileMenu />
+    </div>
+  </Container>
+</header>
+
+<style lang="scss" define:vars={{ headerHeight, headerHeightMobile }}>
+  .header {
+    position: sticky;
+    top: 0;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    z-index: var(--z-sticky);
+    height: var(--headerHeightMobile);
+    background-color: var(--c-bg);
+    transition: transform var(--transition-slower) var(--ease-out-quart);
+
+    &.is-hidden {
+      transform: translateY(-100%);
+    }
+
+    @media (min-width: 1000px) {
+      height: var(--headerHeight);
+    }
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .header-logo {
+    flex-shrink: 0;
+    z-index: var(--z-fixed);
+  }
+
+  .header-nav {
+    display: none;
+
+    @media (min-width: 1000px) {
+      display: block;
+    }
+  }
+
+  .nav-list {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xl);
+  }
+
+  .nav-item {
+    position: relative;
+  }
+
+  .nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    padding: var(--sp-sm) 0;
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+
+    &::before {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background-color: var(--c-link);
+      transform: translateX(-50%) scaleX(0);
+      transform-origin: center;
+      transition: transform var(--transition-slow);
+    }
+
+    &:hover {
+      color: var(--c-link);
+
+      &::before {
+        transform: translateX(-50%) scaleX(1);
+      }
+    }
+  }
+
+  .nav-dropdown {
+    position: relative;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 200px;
+    margin-top: var(--sp-sm);
+    padding: var(--sp-sm);
+    background-color: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition:
+      opacity var(--transition-slow),
+      visibility var(--transition-slow),
+      transform var(--transition-slow);
+    overflow-y: hidden;
+
+    .nav-item:has(.dropdown-menu):is(:hover, :focus-within) & {
+      pointer-events: auto;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+  }
+
+  .dropdown-link {
+    display: block;
+    padding: var(--sp-sm) var(--sp-md);
+    color: var(--c-text);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+    transition: background-color var(--transition-slow) ease;
+
+    &:hover {
+      background-color: var(--c-bg-secondary);
+      color: var(--c-link);
+    }
+  }
+</style>
+
+<script>
+  const header = document.getElementById("header");
+  let lastScroll = 0;
+  let ticking = false;
+
+  const updateHeader = () => {
+    const currentScroll = window.scrollY;
+
+    if (currentScroll <= 0) {
+      header?.classList.remove("is-hidden");
+      lastScroll = currentScroll;
+      ticking = false;
+      return;
+    }
+
+    if (currentScroll > lastScroll && currentScroll > 100) {
+      header?.classList.add("is-hidden");
+    } else if (currentScroll < lastScroll) {
+      header?.classList.remove("is-hidden");
+    }
+
+    lastScroll = currentScroll;
+    ticking = false;
+  };
+
+  const onScroll = () => {
+    if (!ticking) {
+      requestAnimationFrame(updateHeader);
+      ticking = true;
+    }
+  };
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+</script>

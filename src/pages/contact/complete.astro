@@ -1,0 +1,75 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import LinkButton from "@/components/ui/LinkButton.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout
+  title="お問い合わせ完了 - Contact Complete"
+  description="お問い合わせいただきありがとうございます。担当者より折り返しご連絡いたします。"
+>
+  <PageHero title="Complete" subtitle="お問い合わせ完了" />
+
+  <Section>
+    <Container>
+      <div class="completed-content">
+        <div class="completed-message">
+          <p class="message-thanks">
+            お問い合わせいただき、誠にありがとうございます。
+          </p>
+          <p class="message-info">
+            担当者より2営業日以内にご連絡いたします。<br />
+            今しばらくお待ちくださいませ。
+          </p>
+        </div>
+        <LinkButton href="/" variant="solid" size="large">
+          ホームへ戻る
+        </LinkButton>
+      </div>
+    </Container>
+  </Section>
+</Layout>
+
+<style lang="scss">
+  .completed-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-3xl);
+    margin: 0 auto;
+    text-align: center;
+
+    @media (min-width: 900px) {
+      gap: var(--sp-4xl);
+    }
+  }
+
+  .completed-message {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xl);
+  }
+
+  .message-thanks {
+    color: var(--c-text);
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    line-height: var(--lh-normal);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-xl);
+    }
+  }
+
+  .message-info {
+    color: var(--c-text-sub);
+    font-size: var(--fs-base);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+</style>

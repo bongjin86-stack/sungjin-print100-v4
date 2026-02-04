@@ -1,0 +1,19 @@
+---
+import CompanyInfo from "@/components/sections/CompanyInfo.astro";
+import CTA from "@/components/sections/CTA.astro";
+import History from "@/components/sections/History.astro";
+import Vision from "@/components/sections/Vision.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout
+  title="Company - 会社概要"
+  description="会社概要、沿革、アクセス情報をご紹介します。創業以来培ってきた経験と実績で、お客様のビジネスをサポートいたします。"
+>
+  <PageHero title="Company" subtitle="会社概要" />
+  <Vision />
+  <CompanyInfo />
+  <History />
+  <CTA />
+</Layout>

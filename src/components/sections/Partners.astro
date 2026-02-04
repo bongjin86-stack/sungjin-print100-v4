@@ -1,0 +1,120 @@
+---
+import Container from "@/components/layout/Container.astro";
+import DynamicImage from "@/components/util/DynamicImage.astro";
+import partners from "@/config/partners.json";
+---
+
+<section class="partners">
+  <Container>
+    <h2 class="partners-title">
+      다양한 업종의 고객사와 함께하고 있습니다
+    </h2>
+  </Container>
+  <div class="partners-slider">
+    <div class="slider-track">
+      {
+        [...partners, ...partners].map((partner) => (
+          <div class="slider-item">
+            <a
+              class="slider-link"
+              href={partner.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <DynamicImage
+                imagePath={partner.logo}
+                altText={partner.name}
+                width={120}
+                height={60}
+              />
+            </a>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  .partners {
+    padding: var(--sp-lg) 0 var(--sp-2xl);
+  }
+
+  .partners-title {
+    margin-bottom: var(--sp-xl);
+    font-size: clamp(var(--fs-md), 4vw, var(--fs-xl));
+    font-weight: 500;
+    line-height: var(--lh-normal);
+    text-align: center;
+
+    @media (min-width: 900px) {
+      margin-bottom: var(--sp-2xl);
+    }
+  }
+
+  .partners-slider {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 10%,
+      black 90%,
+      transparent
+    );
+  }
+
+  .slider-track {
+    display: flex;
+    gap: var(--sp-2xl);
+    animation: scroll 50s linear infinite;
+    width: fit-content;
+
+    &:hover {
+      animation-play-state: paused;
+    }
+
+    @media (min-width: 900px) {
+      gap: var(--sp-3xl);
+    }
+  }
+
+  .slider-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 100px;
+    height: auto;
+    filter: grayscale(100%);
+    opacity: 0.5;
+    transition:
+      filter var(--transition-slow),
+      opacity var(--transition-slow);
+
+    @media (min-width: 900px) {
+      width: 120px;
+    }
+
+    &:hover {
+      filter: grayscale(0%);
+      opacity: 1;
+    }
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+  }
+
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+</style>

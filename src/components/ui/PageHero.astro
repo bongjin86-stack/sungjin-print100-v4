@@ -1,0 +1,53 @@
+---
+import Container from "@/components/layout/Container.astro";
+
+interface Props {
+  title: string;
+  subtitle?: string;
+}
+
+const { title, subtitle } = Astro.props;
+---
+
+<section class="page-hero">
+  <Container>
+    <div class="page-hero-content">
+      <h1 class="page-hero-title">{title}</h1>
+      {subtitle && <span class="page-hero-subtitle">{subtitle}</span>}
+    </div>
+  </Container>
+</section>
+
+<style lang="scss">
+  .page-hero {
+    padding: var(--sp-4xl) 0 var(--sp-2xl);
+  }
+
+  .page-hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-md);
+    }
+  }
+
+  .page-hero-title {
+    color: var(--c-text);
+    font-size: clamp(var(--fs-3xl), 6vw, var(--fs-5xl));
+    line-height: var(--lh-none);
+    letter-spacing: 0.02em;
+  }
+
+  .page-hero-subtitle {
+    color: var(--c-text-sub);
+    font-size: var(--fs-base);
+    line-height: var(--lh-normal);
+    letter-spacing: 0.1em;
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+</style>

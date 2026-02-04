@@ -1,0 +1,143 @@
+---
+import { ClientRouter } from "astro:transitions";
+import { fade } from "astro:transitions";
+
+import Footer from "@/components/layout/Footer.astro";
+import Header from "@/components/layout/Header.astro";
+import GoogleAnalytics from "@/components/util/GoogleAnalytics.astro";
+import siteConfig from "@/config/site.config.json";
+
+import "@/styles/fonts.css";
+import "@/styles/tokens.css";
+import "@/styles/global.scss";
+
+interface Props {
+  title: string;
+  noindex?: boolean;
+  description: string;
+  ogImage?: string;
+  articleDate?: Date;
+}
+
+const { title, noindex, description, ogImage, articleDate } = Astro.props;
+
+const headerHeight = siteConfig.settings.header_height;
+const headerHeightMobile = siteConfig.settings.header_height_mobile;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const siteLang = String(siteConfig.site.lang);
+const twitterCreator = String(siteConfig.social.twitter_creator);
+const defaultOgImage = String(siteConfig.site.og_image);
+const finalOgImage = ogImage || defaultOgImage;
+const gaId = String(siteConfig.google.analytics);
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: siteConfig.site.title,
+  url: Astro.site?.href,
+  logo: new URL(siteConfig.site.favicon, Astro.site).href,
+  description: siteConfig.site.description,
+  sameAs: [siteConfig.social.twitter_creator],
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: siteConfig.site.title,
+  url: Astro.site?.href,
+  description: siteConfig.site.description,
+};
+---
+
+<!doctype html>
+<html
+  lang={siteLang}
+  transition:animate={fade({ duration: "var(--transition-slow)" })}
+>
+  <head>
+    <ClientRouter />
+    <!-- Google Analytics -->
+    {gaId && <GoogleAnalytics />}
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title || siteConfig.site.title}</title>
+    <meta
+      name="description"
+      content={description || siteConfig.site.description}
+    />
+    <link rel="canonical" href={canonicalURL.href} />
+
+    <!-- Favicon -->
+    <link rel="icon" href={`/${siteConfig.site.favicon}`} />
+    <link rel="apple-touch-icon" href={`/${siteConfig.site.favicon}`} />
+    <meta name="theme-color" content={siteConfig.site.themeColor} />
+
+    <!-- OGP -->
+    <meta name="title" content={title} />
+    <meta property="og:type" content={articleDate ? "article" : "website"} />
+    <meta property="og:title" content={title} />
+    <meta
+      property="og:description"
+      content={description || siteConfig.site.description}
+    />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:site_name" content={siteConfig.site.title} />
+    <meta property="og:image" content={`${canonicalURL}${finalOgImage}`} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:creator" content={twitterCreator} />
+    <meta property="twitter:url" content={canonicalURL} />
+    <meta property="twitter:title" content={title} />
+    <meta
+      property="twitter:description"
+      content={description || siteConfig.site.description}
+    />
+    <meta property="twitter:image" content={`${canonicalURL}${finalOgImage}`} />
+
+    <!-- noIndex -->
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    <!-- Structured Data -->
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(organizationSchema)}
+    />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(websiteSchema)}
+    />
+
+    <slot name="head" />
+
+    <meta name="generator" content={Astro.generator} />
+    <noscript>
+      <style>
+        [data-animate] {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      </style>
+    </noscript>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+
+
+  </body>
+</html>
+
+<style lang="scss" define:vars={{ headerHeight, headerHeightMobile }}>
+  html {
+    scroll-padding-top: var(--headerHeightMobile);
+
+    @media (min-width: 900px) {
+      scroll-padding-top: var(--headerHeight);
+    }
+  }
+</style>

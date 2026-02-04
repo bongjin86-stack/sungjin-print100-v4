@@ -1,0 +1,31 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+---
+
+<Section background="secondary">
+  <Container size="medium">
+    <p class="service-intro-text">
+      私たちは、Webサイト・アプリケーション開発からUI/UXデザイン、デジタル戦略まで、
+      デジタルプロダクトの企画・設計・開発・運用を一貫してサポートします。
+      最新のテクノロジーとデザイン思考を組み合わせ、ユーザーにとって価値のある体験を創出し、
+      ビジネスの成長を加速させます。スタートアップから大企業まで、
+      規模や業種を問わず、クライアントのニーズに合わせた最適なソリューションを提供いたします。
+      技術選定から運用保守まで、長期的なパートナーとして伴走し、
+      プロジェクトの成功をお約束します。
+    </p>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .service-intro-text {
+    color: var(--c-text-sub);
+    font-size: var(--fs-base);
+    line-height: var(--lh-loose);
+    text-align: left;
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-lg);
+    }
+  }
+</style>

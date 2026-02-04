@@ -1,0 +1,51 @@
+---
+import ArrowUpRightIcon from "@/assets/icons/arrow-up-right.svg";
+
+interface Props {
+  href: string;
+  ariaLabel?: string;
+  class?: string;
+}
+
+const { href, ariaLabel, class: className } = Astro.props;
+---
+
+<a href={href} aria-label={ariaLabel} class:list={["link-text", className]}>
+  <slot />
+  <ArrowUpRightIcon width={20} height={20} stroke="currentColor" />
+</a>
+
+<style lang="scss">
+  .link-text {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    font-weight: 400;
+    line-height: var(--lh-normal);
+    border-radius: var(--radius-xl);
+    text-decoration: none;
+    transition: color var(--transition-slow);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+
+    &:hover {
+      color: var(--c-primary);
+
+      svg {
+        stroke: var(--c-primary);
+        transform: rotate(45deg);
+      }
+    }
+
+    svg {
+      stroke: var(--c-text);
+      transition:
+        stroke var(--transition-slow),
+        transform var(--transition-slow);
+    }
+  }
+</style>

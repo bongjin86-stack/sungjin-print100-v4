@@ -1,0 +1,347 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection, render } from "astro:content";
+
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import CTA from "@/components/sections/CTA.astro";
+import CTA2 from "@/components/sections/CTA2.astro";
+import LinkButton from "@/components/ui/LinkButton.astro";
+import categoryData from "@/config/category.json";
+import Layout from "@/layouts/Layout.astro";
+
+export const getStaticPaths = (async () => {
+  const newsCollection = await getCollection("news");
+  return newsCollection.map((news) => ({
+    params: { id: news.id },
+    props: { news },
+  }));
+}) satisfies GetStaticPaths;
+
+const { news } = Astro.props;
+
+const { title, category, pubDate } = news.data;
+const { Content } = await render(news);
+
+const categoryInfo = categoryData.news.find((cat) => cat.id === category);
+const categoryTitle = categoryInfo?.title || category;
+
+const formattedDate = pubDate
+  .toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  })
+  .replace(/\//g, ".");
+---
+
+<Layout title={`${title} - News`} description={title} articleDate={pubDate}>
+  <Section>
+    <Container size="medium">
+      <article class="news-detail">
+        <header class="news-header">
+          <h1 class="news-detail-title">{title}</h1>
+
+          <div class="news-meta">
+            <time class="news-meta-date" datetime={pubDate.toISOString()}>
+              {formattedDate}
+            </time>
+            <span class="news-meta-category">{categoryTitle}</span>
+          </div>
+        </header>
+
+        <div class="news-body">
+          <Content />
+        </div>
+
+        <div class="news-action">
+          <LinkButton
+            href="/news"
+            variant="solid"
+            size="large"
+            class="news-action-button"
+          >
+            一覧へ戻る
+          </LinkButton>
+        </div>
+      </article>
+    </Container>
+  </Section>
+
+  <CTA2 />
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  .news-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2xl);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-3xl);
+    }
+  }
+
+  .news-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+    padding-bottom: var(--sp-xl);
+    border-bottom: 1px solid var(--c-border);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-xl);
+      padding-bottom: var(--sp-2xl);
+    }
+  }
+
+  .news-detail-title {
+    color: var(--c-text);
+    font-size: var(--fs-xl);
+    font-weight: 500;
+    line-height: var(--lh-tight);
+
+    @media (min-width: 600px) {
+      font-size: var(--fs-2xl);
+    }
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-3xl);
+    }
+  }
+
+  .news-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-md);
+  }
+
+  .news-meta-date {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-normal);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .news-meta-category {
+    display: inline-block;
+    padding: var(--sp-xs) var(--sp-sm);
+    background-color: var(--c-bg-secondary);
+    color: var(--c-text);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-none);
+    text-transform: uppercase;
+    border-radius: var(--radius-md);
+
+    @media (min-width: 900px) {
+      padding: var(--sp-xs) var(--sp-md);
+      font-size: var(--fs-sm);
+    }
+  }
+
+  .news-body {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+
+    :global(h2) {
+      margin: var(--sp-2xl) 0 var(--sp-lg);
+      color: var(--c-text);
+      font-size: var(--fs-lg);
+      font-weight: 600;
+      line-height: var(--lh-tight);
+
+      @media (min-width: 900px) {
+        font-size: var(--fs-xl);
+      }
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    :global(h3) {
+      margin: var(--sp-xl) 0 var(--sp-md);
+      color: var(--c-text);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      line-height: var(--lh-tight);
+
+      @media (min-width: 900px) {
+        font-size: var(--fs-lg);
+      }
+    }
+
+    :global(h4) {
+      margin: var(--sp-lg) 0 var(--sp-sm);
+      color: var(--c-text);
+      font-size: var(--fs-base);
+      font-weight: 600;
+      line-height: var(--lh-tight);
+
+      @media (min-width: 900px) {
+        font-size: var(--fs-md);
+      }
+    }
+
+    :global(h5) {
+      margin: var(--sp-md) 0 var(--sp-sm);
+      color: var(--c-text);
+      font-size: var(--fs-base);
+      font-weight: 600;
+      line-height: var(--lh-tight);
+
+      @media (min-width: 900px) {
+        font-size: var(--fs-md);
+      }
+    }
+
+    :global(h6) {
+      margin: var(--sp-md) 0 var(--sp-xs);
+      color: var(--c-text-sub);
+      font-size: var(--fs-base);
+      font-weight: 600;
+      line-height: var(--lh-tight);
+
+      @media (min-width: 900px) {
+        font-size: var(--fs-base);
+      }
+    }
+
+    :global(p) {
+      margin: var(--sp-md) 0;
+
+      &:first-child {
+        margin-top: 0;
+      }
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    :global(ul) {
+      margin: var(--sp-lg) 0;
+      padding-left: var(--sp-xl);
+      list-style-type: disc;
+    }
+
+    :global(ol) {
+      margin: var(--sp-lg) 0;
+      padding-left: var(--sp-xl);
+      list-style-type: decimal;
+    }
+
+    :global(li) {
+      display: list-item;
+      margin: var(--sp-sm) 0;
+    }
+
+    :global(em) {
+      font-style: italic;
+    }
+
+    :global(hr) {
+      display: block;
+      margin: var(--sp-2xl) 0;
+      border: none;
+      border-top: 2px solid var(--c-border);
+      height: 0;
+    }
+
+    :global(img) {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: var(--sp-lg) 0;
+      border-radius: var(--radius-md);
+    }
+
+    :global(a) {
+      color: var(--c-primary);
+      text-decoration: underline;
+      transition: opacity var(--transition-fast);
+
+      &:hover {
+        opacity: 0.7;
+      }
+
+      &[href^="http"]::after,
+      &[href^="https://"]::after
+      {
+        content: "";
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin: 0 var(--sp-xs);
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%20%3Cpath%20d%3D%22M15%203h6v6%22%20%2F%3E%20%3Cpath%20d%3D%22M10%2014%2021%203%22%20%2F%3E%20%3Cpath%20d%3D%22M18%2013v6a2%202%200%200%201-2%202H5a2%202%200%200%201-2-2V8a2%202%200%200%201%202-2h6%22%20%2F%3E%3C%2Fsvg%3E");
+        background-size: contain;
+        background-repeat: no-repeat;
+        vertical-align: middle;
+      }
+
+      &[href^="/"]::after,
+      &[href^="#"]::after {
+        content: none;
+      }
+    }
+
+    :global(strong) {
+      font-weight: 600;
+    }
+
+    :global(code) {
+      padding: 4px 8px;
+      background-color: rgba(100, 100, 100, 0.15);
+      border: 1px solid var(--c-border);
+      color: var(--c-text);
+      font-family: "Courier New", Consolas, Monaco, monospace;
+      font-size: 0.9em;
+      border-radius: var(--radius-base);
+    }
+
+    :global(pre) {
+      margin: var(--sp-lg) 0;
+      padding: var(--sp-md);
+      background-color: var(--c-bg-secondary);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+
+      :global(code) {
+        padding: 0;
+        background-color: transparent;
+        border: none;
+      }
+    }
+
+    :global(blockquote) {
+      margin: var(--sp-lg) 0;
+      padding-left: var(--sp-lg);
+      border-left: 4px solid var(--c-primary);
+      color: var(--c-text-sub);
+      font-style: italic;
+    }
+  }
+
+  .news-action {
+    display: flex;
+    justify-content: center;
+    margin: var(--sp-xl) 0 0;
+    padding-top: var(--sp-xl);
+    border-top: 1px solid var(--c-border);
+
+    @media (min-width: 900px) {
+      margin: var(--sp-2xl) 0 0;
+      padding-top: var(--sp-2xl);
+    }
+  }
+</style>

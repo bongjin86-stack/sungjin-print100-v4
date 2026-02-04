@@ -1,0 +1,48 @@
+---
+interface Props {
+  title: string;
+  subtitle: string;
+  class?: string;
+}
+
+const { title, subtitle, class: className, ...rest } = Astro.props;
+---
+
+<div class:list={["section-title", className]} {...rest}>
+  <h2 class="section-title-main">{title}</h2>
+  <span class="section-title-sub">{subtitle}</span>
+</div>
+
+<style lang="scss">
+  .section-title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-sm);
+    }
+  }
+
+  .section-title-main {
+    color: var(--c-text);
+    font-size: var(--fs-2xl);
+    font-weight: 500;
+    line-height: var(--lh-none);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-3xl);
+    }
+  }
+
+  .section-title-sub {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    font-weight: 400;
+    line-height: var(--lh-normal);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+</style>

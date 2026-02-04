@@ -1,0 +1,110 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import LinkButton from "@/components/ui/LinkButton.astro";
+---
+
+<Section background="inverse">
+  <Container>
+    <div class="cta-header">
+      <h2 class="cta-title">Contact</h2>
+      <span class="cta-subtitle">문의하기</span>
+    </div>
+    <p class="cta-text">
+      견적 문의, 상담, 샘플 요청 등 무엇이든 편하게 문의해 주세요.
+    </p>
+    <ul class="cta-list">
+      <li class="cta-list-item">
+        책자, 카탈로그, 브로슈어 인쇄를 의뢰하고 싶다
+      </li>
+      <li class="cta-list-item">대량 인쇄 견적을 받고 싶다</li>
+      <li class="cta-list-item">용지 선택이나 후가공에 대해 상담하고 싶다</li>
+      <li class="cta-list-item">납기 일정을 확인하고 싶다</li>
+      <li class="cta-list-item">용지 샘플을 받아보고 싶다 등</li>
+    </ul>
+    <div class="cta-actions">
+      <LinkButton href="/contact" variant="solid-sub" size="large">
+        문의하기
+      </LinkButton>
+    </div>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .cta-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-sm);
+    }
+  }
+
+  .cta-title {
+    color: var(--c-text-inverse);
+    font-size: clamp(var(--fs-2xl), 5vw, var(--fs-3xl));
+    font-weight: 400;
+    line-height: var(--lh-none);
+    letter-spacing: 0.05em;
+  }
+
+  .cta-subtitle {
+    color: var(--c-text-inverse-sub);
+    font-size: var(--fs-sm);
+    font-weight: 400;
+    line-height: var(--lh-normal);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .cta-text {
+    margin: var(--sp-xl) 0;
+    color: var(--c-text-inverse-lightest);
+    font-size: var(--fs-base);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+
+  .cta-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-sm);
+    color: var(--c-text-inverse-lighter);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-relaxed);
+
+    @media (min-width: 600px) {
+      font-size: var(--fs-base);
+    }
+
+    @media (min-width: 900px) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .cta-list-item {
+    position: relative;
+    padding-left: var(--sp-lg);
+    text-align: left;
+
+    &::before {
+      content: "・";
+      position: absolute;
+      left: 0;
+    }
+
+    &:first-child {
+      margin: 0;
+    }
+  }
+
+  .cta-actions {
+    margin-top: var(--sp-2xl);
+  }
+</style>

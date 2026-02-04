@@ -1,0 +1,103 @@
+---
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
+
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+
+interface Props {
+  title: string;
+  text: string;
+  imageSrc: ImageMetadata;
+  imageAlt: string;
+  reverse?: boolean;
+  background?: "primary" | "secondary" | "inverse";
+}
+
+const {
+  title,
+  text,
+  imageSrc,
+  imageAlt,
+  reverse = false,
+  background = "primary",
+} = Astro.props;
+---
+
+<Section background={background}>
+  <Container>
+    <div class:list={["content-image", { "-reverse": reverse }]}>
+      <div class="content-image-text">
+        <h2 class="content-image-title">{title}</h2>
+        <p class="content-image-description">{text}</p>
+      </div>
+      <div class="content-image-visual">
+        <Image
+          src={imageSrc}
+          alt={imageAlt}
+          width={600}
+          height={400}
+          loading="lazy"
+        />
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .content-image {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-2xl);
+    align-items: center;
+
+    @media (min-width: 900px) {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-3xl);
+    }
+  }
+
+  .content-image-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+  }
+
+  .content-image-title {
+    color: var(--c-text);
+    font-size: clamp(var(--fs-xl), 4vw, var(--fs-3xl));
+    font-weight: 500;
+    line-height: var(--lh-tight);
+    letter-spacing: 0.02em;
+  }
+
+  .content-image-description {
+    color: var(--c-text-sub);
+    font-size: var(--fs-base);
+    line-height: var(--lh-loose);
+    letter-spacing: 0.01em;
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+
+  .content-image-visual {
+    width: 100%;
+    border-radius: var(--radius-3xl);
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      aspect-ratio: 3 / 2;
+    }
+
+    .content-image.-reverse & {
+      @media (min-width: 900px) {
+        order: -1;
+      }
+    }
+  }
+</style>

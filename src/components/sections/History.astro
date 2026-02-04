@@ -1,0 +1,112 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import historyItems from "@/config/history.json";
+---
+
+<Section background="secondary">
+  <Container size="medium">
+    <SectionTitle title="History" subtitle="会社沿革" class="history-title" />
+
+    <div class="history-timeline">
+      {
+        historyItems.map((item) => (
+          <article class="timeline-item">
+            <div class="item-date">
+              <span class="date-year">{item.year}</span>
+              <span class="date-month">{item.month}</span>
+            </div>
+            <p class="item-event">{item.event}</p>
+          </article>
+        ))
+      }
+    </div>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .history-title {
+    margin-bottom: var(--sp-2xl);
+
+    @media (min-width: 900px) {
+      margin-bottom: var(--sp-3xl);
+    }
+  }
+
+  .history-timeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-xl);
+      max-width: var(--container-sm);
+      margin: 0 auto;
+    }
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50px;
+      width: 2px;
+      height: 100%;
+      background-color: var(--c-border);
+
+      @media (min-width: 600px) {
+        left: 80px;
+      }
+
+      @media (min-width: 900px) {
+        left: 100px;
+      }
+    }
+  }
+
+  .timeline-item {
+    position: relative;
+    display: grid;
+    gap: var(--sp-sm);
+    padding: var(--sp-lg);
+    background-color: var(--c-bg);
+    border-radius: var(--radius-4xl);
+  }
+
+  .item-date {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--sp-sm);
+  }
+
+  .date-year {
+    color: var(--c-text);
+    font-size: var(--fs-md);
+    line-height: var(--lh-tight);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-xl);
+    }
+  }
+
+  .date-month {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .item-event {
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+</style>

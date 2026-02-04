@@ -1,0 +1,89 @@
+{
+  "main": [
+    {
+      "title": "회사소개",
+      "path": "/about/"
+    },
+    {
+      "title": "서비스",
+      "path": "/services/",
+      "children": [
+        {
+          "title": "무선제본",
+          "path": "/services/#wireless-binding"
+        },
+        {
+          "title": "중철제본",
+          "path": "/services/#saddle-stitch"
+        },
+        {
+          "title": "스프링제본",
+          "path": "/services/#spring-binding"
+        },
+        {
+          "title": "후가공",
+          "path": "/services/#finishing"
+        }
+      ]
+    },
+    {
+      "title": "인쇄가이드",
+      "path": "/works/"
+    },
+    {
+      "title": "공지사항",
+      "path": "/news/"
+    }
+  ],
+
+  "contact": {
+    "title": "문의하기",
+    "path": "/contact/"
+  },
+
+  "footer": [
+    {
+      "name": "서비스",
+      "menus": [
+        {
+          "title": "서비스 안내",
+          "path": "/services/"
+        },
+        {
+          "title": "인쇄가이드",
+          "path": "/works/"
+        }
+      ]
+    },
+    {
+      "name": "고객지원",
+      "menus": [
+        {
+          "title": "공지사항",
+          "path": "/news/"
+        },
+        {
+          "title": "자주 묻는 질문",
+          "path": "/services/#faq"
+        }
+      ]
+    },
+    {
+      "name": "회사정보",
+      "menus": [
+        {
+          "title": "회사소개",
+          "path": "/about/"
+        },
+        {
+          "title": "문의하기",
+          "path": "/contact/"
+        },
+        {
+          "title": "개인정보처리방침",
+          "path": "/privacy/"
+        }
+      ]
+    }
+  ]
+}

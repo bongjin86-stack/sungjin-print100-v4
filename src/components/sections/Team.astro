@@ -1,0 +1,145 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import DynamicImage from "@/components/util/DynamicImage.astro";
+import teamData from "@/config/team.json";
+
+interface TeamMember {
+  name: string;
+  position: string;
+  imagePath: string;
+  isPet?: boolean;
+}
+
+const teamMembers: TeamMember[] = teamData;
+---
+
+<Section>
+  <Container>
+    <div class="team-header">
+      <SectionTitle title="Meet Our Team" subtitle="チームメンバー" />
+      <p class="team-description">
+        私たちは東京、大阪、福岡の3拠点を拠点に、デザインとテクノロジーの力で、クライアントのビジネス成長を支援しています。多様なバックグラウンドを持つメンバーが、それぞれの専門性を活かしながら、革新的なデジタル体験を創造することに情熱を注いでいます。お客様のビジョンを実現するために、常に学び、挑戦し続けるチームです。
+      </p>
+    </div>
+
+    <div class="team-grid">
+      {
+        teamMembers.map((member) => (
+          <article class:list={["team-member", { "-pet": member.isPet }]}>
+            <div class="team-member-image">
+              <DynamicImage
+                imagePath={member.imagePath}
+                altText={member.name}
+                width={600}
+                height={600}
+                class="team-image"
+              />
+            </div>
+            <div class="team-member-info">
+              <h3 class="team-member-name">{member.name}</h3>
+              <p class="team-member-position">{member.position}</p>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .team-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+    max-width: var(--container-sm);
+    margin: 0 0 var(--sp-3xl);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-xl);
+      margin-bottom: var(--sp-4xl);
+    }
+  }
+
+  .team-description {
+    color: var(--c-text-sub);
+    font-size: var(--fs-base);
+    line-height: var(--lh-loose);
+    letter-spacing: 0.01em;
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-xl);
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-2xl);
+    }
+
+    @media (min-width: 900px) {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--sp-2xl);
+    }
+  }
+
+  .team-member {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+  }
+
+  .team-member-image {
+    position: relative;
+    width: 100%;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background-color: var(--c-bg-secondary);
+
+    .team-member.-pet & {
+      border-radius: var(--radius-full);
+    }
+  }
+
+  .team-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    aspect-ratio: 1 / 1;
+  }
+
+  .team-member-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+    text-align: center;
+  }
+
+  .team-member-name {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+
+  .team-member-position {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.01em;
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+</style>

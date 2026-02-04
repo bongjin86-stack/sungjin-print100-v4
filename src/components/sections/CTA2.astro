@@ -1,0 +1,82 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import LinkButton from "@/components/ui/LinkButton.astro";
+---
+
+<Section background="secondary">
+  <Container>
+    <div class="cta2-grid">
+      <div class="cta2-card">
+        <h2 class="cta2-card-title">制作実績</h2>
+        <p class="cta2-card-description">
+          私たちが手がけたプロジェクトをご覧ください。デザインから開発まで、幅広い実績をご紹介しています。
+        </p>
+        <LinkButton href="/works" variant="solid" size="medium">
+          制作実績を見る
+        </LinkButton>
+      </div>
+
+      <div class="cta2-card">
+        <h2 class="cta2-card-title">提供サービス</h2>
+        <p class="cta2-card-description">
+          UI/UXデザイン、Web開発、アプリ開発など、お客様のニーズに合わせたサービスを提供しています。
+        </p>
+        <LinkButton href="/services" variant="solid" size="medium">
+          サービスを見る
+        </LinkButton>
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .cta2-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-xl);
+
+    @media (min-width: 900px) {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-2xl);
+    }
+  }
+
+  .cta2-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+    padding: var(--sp-2xl);
+    border-radius: var(--radius-3xl);
+    background-color: var(--c-bg);
+    border: 1px solid var(--c-border-light);
+
+    @media (min-width: 900px) {
+      padding: var(--sp-3xl);
+      gap: var(--sp-xl);
+    }
+  }
+
+  .cta2-card-title {
+    color: var(--c-text);
+    font-size: var(--fs-xl);
+    font-weight: 500;
+    line-height: var(--lh-tight);
+    letter-spacing: 0.02em;
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-2xl);
+    }
+  }
+
+  .cta2-card-description {
+    flex: 1;
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+</style>

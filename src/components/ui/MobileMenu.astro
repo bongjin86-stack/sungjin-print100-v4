@@ -1,0 +1,206 @@
+---
+import EllipsisIcon from "@/assets/icons/ellipsis-vertical.svg";
+import CloseIcon from "@/assets/icons/x.svg";
+import LinkButton from "@/components/ui/LinkButton.astro";
+import menuData from "@/config/menu.json";
+import siteConfig from "@/config/site.config.json";
+
+const mainMenu = menuData.main;
+const contactMenu = menuData.contact;
+
+const headerHeight = siteConfig.settings.header_height_mobile;
+---
+
+<button
+  class="menu-button"
+  type="button"
+  aria-label="Toggle Menu"
+  aria-expanded="false"
+>
+  <EllipsisIcon class="menu-icon -open" />
+  <CloseIcon class="menu-icon -close" />
+</button>
+<div class="menu">
+  <nav class="nav">
+    <ul class="nav-list">
+      {
+        mainMenu.map((menu) => (
+          <li class="nav-list-item">
+            <a href={menu.path} class="nav-list-link">
+              {menu.title}
+            </a>
+            {menu.children && (
+              <ul class="sub-menu">
+                {menu.children.map((child) => (
+                  <li class="sub-menu-item">
+                    <a href={child.path} class="sub-menu-link">
+                      {child.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+    <LinkButton
+      href={contactMenu.path}
+      ariaLabel={contactMenu.title}
+      fullWidth
+      class="menu-contact"
+    >
+      {contactMenu.title}
+    </LinkButton>
+  </nav>
+</div>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const menuButton: HTMLElement | null =
+      document.querySelector(".menu-button");
+    const mobileMenu: HTMLElement | null = document.querySelector(".menu");
+    const menuLinks: NodeListOf<Element> | null =
+      document.querySelectorAll(".menu a");
+    let menuIsOpen: boolean = false;
+
+    // ページ遷移時にメニューが開いたままの状態をリセット
+    mobileMenu?.classList.remove("is-open");
+    menuButton?.classList.remove("is-open");
+    document.body.style.overflow = "";
+
+    const toggleMenu = (e: Event) => {
+      e.stopPropagation();
+
+      mobileMenu?.classList.toggle("is-open");
+      menuButton?.classList.toggle("is-open");
+
+      document.body.style.overflow = menuIsOpen ? "" : "hidden";
+      menuIsOpen = !menuIsOpen;
+    };
+
+    menuButton?.addEventListener("click", (e) => toggleMenu(e));
+    menuLinks?.forEach((link) => {
+      link.addEventListener("click", (e) => toggleMenu(e));
+    });
+  });
+</script>
+
+<style lang="scss" define:vars={{ headerHeight }}>
+  .menu-button {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-right: calc(var(--sp-sm) * -1);
+    background: none;
+    z-index: var(--z-fixed);
+
+    @media (min-width: 1000px) {
+      display: none;
+    }
+  }
+
+  .menu-icon {
+    &.-close {
+      display: none;
+
+      .menu-button.is-open & {
+        display: revert;
+      }
+    }
+    &.-open {
+      display: revert;
+
+      .menu-button.is-open & {
+        display: none;
+      }
+    }
+  }
+
+  .menu {
+    position: fixed;
+    top: var(--headerHeight);
+    left: 0;
+    z-index: 1000;
+    width: 100%;
+    height: calc(100dvh - var(--headerHeight));
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+    padding: var(--sp-xl) var(--sp-xl);
+    background-color: var(--c-bg-alt);
+    opacity: 0;
+    overflow-y: hidden;
+    visibility: hidden;
+    transition-property: transform, opacity, background-color, visibility;
+    transition-duration: var(--transition-slow);
+    transition-timing-function: ease;
+    will-change: transform, opacity, background-color, visibility;
+
+    &.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    @media (min-width: 1000px) {
+      display: none;
+    }
+  }
+
+  .nav {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition:
+      opacity var(--transition-slower) var(--ease-out-quart),
+      transform var(--transition-slower) var(--ease-out-quart),
+      visibility var(--transition-slower);
+
+    .menu.is-open & {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+  }
+
+  .nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+  }
+
+  .nav-list-link {
+    display: block;
+    padding: var(--sp-sm) 0;
+    color: var(--c-text);
+    font-size: var(--fs-lg);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: 0.025em;
+  }
+
+  .sub-menu {
+    margin: var(--sp-sm) 0;
+    display: grid;
+    gap: var(--sp-xs);
+  }
+
+  .sub-menu-link {
+    display: inline-block;
+    width: 100%;
+    padding: var(--sp-xs) var(--sp-sm);
+    color: var(--c-text);
+    background-color: var(--c-bg-secondary);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-sm);
+  }
+
+  .menu-contact {
+    margin: auto 0 0;
+  }
+</style>

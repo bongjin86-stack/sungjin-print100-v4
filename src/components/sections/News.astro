@@ -1,0 +1,66 @@
+---
+import { getCollection } from "astro:content";
+
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import LinkText from "@/components/ui/LinkText.astro";
+import NewsItem from "@/components/ui/NewsItem.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+
+const allNews = await getCollection("news");
+const latestNews = allNews
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+  .slice(0, 4);
+---
+
+<Section background="primary">
+  <Container>
+    <div class="news-inner">
+      <div class="news-header">
+        <SectionTitle title="News" subtitle="공지사항" />
+        <LinkText href="/news/" ariaLabel="공지사항 전체보기"> 전체보기 </LinkText>
+      </div>
+
+      <div class="news-list">
+        {latestNews.map((news) => <NewsItem news={news} />)}
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .news-inner {
+    @media (min-width: 900px) {
+      display: grid;
+      grid-template-columns: 20% 1fr;
+      gap: 0 var(--sp-4xl);
+    }
+  }
+
+  .news-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-lg);
+    margin-bottom: var(--sp-3xl);
+
+    @media (min-width: 900px) {
+      flex-direction: column;
+      align-items: start;
+      align-self: start;
+      margin-bottom: 0;
+    }
+  }
+
+  .news-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xl);
+    width: 100%;
+    margin: 0 auto;
+
+    @media (min-width: 600px) {
+      gap: var(--sp-md);
+    }
+  }
+</style>

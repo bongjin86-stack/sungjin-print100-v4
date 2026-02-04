@@ -1,0 +1,172 @@
+---
+import { Image } from "astro:assets";
+
+import ceoImage from "@/assets/ceo.png";
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import siteConfig from "@/config/site.config.json";
+
+const ceoTitle = String(siteConfig.company.ceo_title);
+const ceoName = String(siteConfig.company.ceo_name);
+---
+
+<Section background="secondary" id="message">
+  <Container>
+    <SectionTitle
+      title="Message from CEO"
+      subtitle="代表メッセージ"
+      class="top-message-title"
+    />
+
+    <div class="top-message-content">
+      <div class="message-image">
+        <Image
+          src={ceoImage}
+          alt={`${ceoTitle} ${ceoName}`}
+          width={400}
+          height={400}
+        />
+      </div>
+
+      <div class="message-text-container">
+        <p class="message-catchphrase">未来の当たり前を、静かに大胆に。</p>
+        <p class="message-text">
+          私たちの使命は、企業とユーザーの間にある“体験の壁”を取り払い、
+          もっと直感的で、もっと心地よいコミュニケーションを形にすることです。
+        </p>
+        <p class="message-text">
+          テクノロジーが急速に進化する中で、求められるのは派手さではなく、使う人の視点に立った“確かな美しさ”と“誠実な機能”。
+          <br />
+          その両方を実現できるデザインこそ、未来に長く残っていくと信じています。
+        </p>
+        <p class="message-text">
+          クライアントと同じ目線で課題に向き合い、小さな改善から大きな変革まで、共に歩むパートナーでありたい。
+          <br />
+          そんな想いを胸に、これからも価値ある体験づくりに取り組んでいきます。
+        </p>
+
+        <div class="message-signature">
+          <p class="signature-position">{ceoTitle}</p>
+          <p class="signature-name">{ceoName}</p>
+        </div>
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .top-message-title {
+    margin-bottom: var(--sp-xl);
+
+    @media (min-width: 900px) {
+      margin-bottom: var(--sp-2xl);
+    }
+  }
+
+  .top-message-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xl);
+
+    @media (min-width: 900px) {
+      flex-direction: row;
+      gap: var(--sp-3xl);
+    }
+  }
+
+  .message-image {
+    flex-shrink: 0;
+    width: 200px;
+    overflow: hidden;
+
+    @media (min-width: 900px) {
+      width: 280px;
+      margin: 0;
+    }
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      aspect-ratio: 1 / 1;
+      border-radius: var(--radius-3xl);
+    }
+  }
+
+  .message-text-container {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--sp-lg);
+    max-width: var(--container-sm);
+  }
+
+  .message-catchphrase {
+    font-size: var(--fs-lg);
+    font-weight: 500;
+  }
+
+  .message-text {
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .message-signature {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+    margin-top: var(--sp-lg);
+
+    @media (min-width: 900px) {
+      margin-top: var(--sp-xl);
+    }
+  }
+
+  .signature-position {
+    color: var(--c-text-sub);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-normal);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-sm);
+    }
+  }
+
+  .signature-name {
+    color: var(--c-text);
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    line-height: var(--lh-tight);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-xl);
+    }
+  }
+
+  .signature-image {
+    margin-top: var(--sp-sm);
+
+    img {
+      width: auto;
+      max-width: 200px;
+      height: auto;
+    }
+  }
+
+  .signature-text {
+    color: var(--c-text-light);
+    font-size: var(--fs-lg);
+    font-style: italic;
+    line-height: var(--lh-normal);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-xl);
+    }
+  }
+</style>

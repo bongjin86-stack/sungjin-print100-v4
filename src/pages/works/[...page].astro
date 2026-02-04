@@ -1,0 +1,84 @@
+---
+import type { GetStaticPaths, Page } from "astro";
+import type { CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
+
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import CTA from "@/components/sections/CTA.astro";
+import CategoryNavigation from "@/components/ui/CategoryNavigation.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Pagination from "@/components/ui/Pagination.astro";
+import WorkCard from "@/components/ui/WorkCard.astro";
+import categoryData from "@/config/category.json";
+import siteConfig from "@/config/site.config.json";
+import Layout from "@/layouts/Layout.astro";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const allWorks = await getCollection("works");
+  return paginate(allWorks, { pageSize: siteConfig.settings.pagination });
+}) satisfies GetStaticPaths;
+
+type Props = {
+  page: Page<CollectionEntry<"works">>;
+};
+
+const { page } = Astro.props;
+
+const pageTitle =
+  page.currentPage === 1
+    ? "Works - 制作実績"
+    : `Works - 制作実績 (${page.currentPage}ページ)`;
+---
+
+<Layout
+  title={pageTitle}
+  description="これまでに手がけたプロジェクトをご紹介します。"
+>
+  <PageHero title="Works" subtitle="制作実績" />
+
+  <Section class="works-section">
+    <Container>
+      <CategoryNavigation categories={categoryData.work} basePath="/works" />
+
+      <div class="works-grid">
+        {page.data.map((work) => <WorkCard work={work} />)}
+      </div>
+
+      {
+        page.lastPage > 1 && (
+          <Pagination
+            currentPage={page.currentPage}
+            totalPages={page.lastPage}
+            basePath="/works"
+          />
+        )
+      }
+    </Container>
+  </Section>
+
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  .works-section {
+    padding-top: var(--sp-md);
+  }
+
+  .works-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-2xl);
+    margin-top: var(--sp-3xl);
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sp-xl);
+    }
+
+    @media (min-width: 900px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-2xl);
+    }
+  }
+</style>

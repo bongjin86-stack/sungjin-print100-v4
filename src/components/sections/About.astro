@@ -1,0 +1,80 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import LinkButton from "@/components/ui/LinkButton.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+---
+
+<Section background="secondary">
+  <Container>
+    <div class="about-inner">
+      <SectionTitle
+        title="About"
+        subtitle="회사소개"
+        class="about-header"
+      />
+
+      <div class="about-content">
+        <p class="about-text">
+          20년 경력의 인쇄 전문가가 운영하는<br />
+          Sungjinprint입니다.<br />
+          <br />
+          무선제본, 중철제본, 스프링제본 등<br />
+          다양한 제본 서비스와 빠른 납기를 제공합니다.<br />
+          <br />
+          50부 이상 대량 주문 시 단가가 낮아지며,<br />
+          최신 장비로 깔끔한 인쇄 품질을 보장합니다.<br />
+          언제든 편하게 문의해 주세요.
+        </p>
+        <LinkButton
+          href="/about/"
+          ariaLabel="회사소개"
+          size="medium"
+          variant="outlined"
+          class="about-link"
+        >
+          회사소개
+        </LinkButton>
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .about-inner {
+    @media (min-width: 900px) {
+      display: grid;
+      grid-template-columns: 20% 1fr;
+      gap: 0 var(--sp-4xl);
+    }
+  }
+
+  .about-header {
+    margin-bottom: var(--sp-xl);
+
+    @media (min-width: 900px) {
+      position: sticky;
+      top: var(--sp-4xl);
+      flex-direction: column;
+      align-items: start;
+      align-self: flex-start;
+      flex-grow: 1;
+      margin: 0;
+      min-width: fit-content;
+    }
+  }
+
+  .about-text {
+    color: var(--c-text);
+    font-size: var(--fs-xl);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 600px) {
+      font-size: var(--fs-2xl);
+    }
+  }
+
+  .about-link {
+    margin: var(--sp-lg) 0 0;
+  }
+</style>

@@ -1,0 +1,163 @@
+---
+import ChevronLeftIcon from "@/assets/icons/chevron-left.svg";
+import ChevronRightIcon from "@/assets/icons/chevron-right.svg";
+
+interface Props {
+  currentPage: number;
+  totalPages: number;
+  basePath: string;
+}
+
+const { currentPage, totalPages, basePath } = Astro.props;
+
+const getPageUrl = (page: number): string => {
+  if (page === 1) return basePath;
+  return `${basePath}/${page}`;
+};
+
+const pages: number[] = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+const getVisiblePages = (): number[] => {
+  if (totalPages <= 7) return pages;
+
+  if (currentPage <= 4) {
+    return [...pages.slice(0, 5), -1, totalPages];
+  }
+
+  if (currentPage >= totalPages - 3) {
+    return [1, -1, ...pages.slice(totalPages - 5)];
+  }
+
+  return [1, -1, currentPage - 1, currentPage, currentPage + 1, -1, totalPages];
+};
+
+const visiblePages: number[] = getVisiblePages();
+---
+
+<nav class="pagination" aria-label="ページネーション">
+  <ul class="pagination-list">
+    <li class="pagination-item">
+      <a
+        href={getPageUrl(1)}
+        class:list={["pagination-link", { "is-disabled": currentPage === 1 }]}
+        aria-label="最初のページへ"
+      >
+        最初
+      </a>
+    </li>
+
+    <li class="pagination-item">
+      <a
+        href={getPageUrl(currentPage - 1)}
+        class:list={["pagination-link", { "is-disabled": currentPage === 1 }]}
+        aria-label="前のページへ"
+      >
+        <ChevronLeftIcon />
+      </a>
+    </li>
+
+    {
+      visiblePages.map((page) => (
+        <li class="pagination-item">
+          <a
+            href={getPageUrl(page)}
+            class:list={[
+              "pagination-link",
+              { "is-active": currentPage === page },
+            ]}
+            aria-label={`ページ${page}へ`}
+            aria-current={currentPage === page ? "page" : undefined}
+          >
+            {page}
+          </a>
+        </li>
+      ))
+    }
+
+    <li class="pagination-item">
+      <a
+        href={getPageUrl(currentPage + 1)}
+        class:list={[
+          "pagination-link",
+          { "is-disabled": currentPage === totalPages },
+        ]}
+        aria-label="次のページへ"
+      >
+        <ChevronRightIcon />
+      </a>
+    </li>
+
+    <li class="pagination-item">
+      <a
+        href={getPageUrl(totalPages)}
+        class:list={[
+          "pagination-link",
+          { "is-disabled": currentPage === totalPages },
+        ]}
+        aria-label="最後のページへ"
+      >
+        最後
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<style lang="scss">
+  .pagination {
+    margin: var(--sp-3xl) 0;
+
+    @media (min-width: 900px) {
+      margin: var(--sp-4xl) 0;
+    }
+  }
+
+  .pagination-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--sp-xs);
+
+    @media (min-width: 600px) {
+      gap: var(--sp-sm);
+    }
+  }
+
+  .pagination-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 44px;
+    padding: var(--sp-xs) var(--sp-sm);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--c-border);
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    line-height: 1;
+    transition:
+      border-color var(--transition-base),
+      background-color var(--transition-base);
+
+    @media (min-width: 600px) {
+      font-size: var(--fs-base);
+    }
+
+    &:hover:not(.is-disabled):not(.is-active) {
+      border-color: var(--c-primary);
+      background-color: var(--c-bg-secondary);
+    }
+
+    &.is-active {
+      background-color: var(--c-primary);
+      border-color: var(--c-primary);
+      color: var(--c-text-inverse);
+      pointer-events: none;
+    }
+
+    &.is-disabled {
+      opacity: 0.4;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+  }
+</style>

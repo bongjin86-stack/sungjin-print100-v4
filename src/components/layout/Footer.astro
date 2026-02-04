@@ -1,0 +1,220 @@
+---
+import GithubIcon from "@/assets/icons/github.svg";
+import InstagramIcon from "@/assets/icons/instagram.svg";
+import LinkedinIcon from "@/assets/icons/linkedin.svg";
+import TwitterIcon from "@/assets/icons/twitter.svg";
+import YoutubeIcon from "@/assets/icons/youtube.svg";
+import Container from "@/components/layout/Container.astro";
+import SiteLogo from "@/components/ui/SiteLogo.astro";
+import menuData from "@/config/menu.json";
+import siteConfig from "@/config/site.config.json";
+import socialData from "@/config/social.json";
+import type { MenuData, SiteConfig, SocialMedia } from "@/types/index.d.ts";
+
+const typedMenuData = menuData as MenuData;
+const typedSiteConfig = siteConfig as SiteConfig;
+const typedSocialData = socialData as SocialMedia[];
+
+const footerMenus = typedMenuData.footer;
+const businessHours = String(typedSiteConfig.company.business_hours);
+const businessHoursNote = String(typedSiteConfig.company.business_hours_note);
+type IconComponent = typeof GithubIcon;
+
+const iconMap: Record<string, IconComponent> = {
+  github: GithubIcon,
+  twitter: TwitterIcon,
+  linkedin: LinkedinIcon,
+  youtube: YoutubeIcon,
+  instagram: InstagramIcon,
+};
+---
+
+<footer class="footer">
+  <Container>
+    <div class="footer-inner">
+      <div class="footer-info">
+        <SiteLogo class="footer-logo" inverse />
+        <p class="footer-business-hours">
+          영업시간: {businessHours}
+          <span class="business-hours-note">{businessHoursNote}</span>
+        </p>
+        <ul class="footer-social">
+          {
+            typedSocialData.map((social) => {
+              const Icon = iconMap[social.icon];
+              return (
+                <li class="social-item">
+                  <a
+                    href={social.url}
+                    class="social-link"
+                    aria-label={social.label}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Icon width={20} height={20} />
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </div>
+
+      <nav class="footer-nav">
+        {
+          footerMenus.map((group) => (
+            <div class="nav-group">
+              <h3 class="nav-group-title">{group.name}</h3>
+              <ul class="nav-group-list">
+                {group.menus.map((menu) => (
+                  <li class="nav-group-item">
+                    <a href={menu.path} class="nav-group-link">
+                      {menu.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </nav>
+    </div>
+
+    <div class="footer-copyright">
+      <p class="copyright-text">
+        {typedSiteConfig.site.copyright} Designed & Developed by <a
+          href="https://yohaku.dev"
+          target="_blank"
+          rel="nofollow"
+        >
+          yohaku
+        </a>
+      </p>
+    </div>
+  </Container>
+</footer>
+
+<style lang="scss">
+  .footer {
+    padding: var(--sp-3xl) 0 var(--sp-lg);
+    background-color: var(--c-primary-dark);
+  }
+
+  .footer-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-2xl);
+    margin-bottom: var(--sp-xl);
+
+    @media (min-width: 900px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sp-3xl);
+      margin-bottom: var(--sp-2xl);
+    }
+  }
+
+  .footer-logo {
+    z-index: var(--z-base);
+  }
+
+  .footer-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+  }
+
+  .footer-business-hours {
+    color: var(--c-text-inverse-lightest);
+    font-size: var(--fs-sm);
+  }
+
+  .business-hours-note {
+    color: var(--c-text-inverse-sub);
+    font-size: var(--fs-sm);
+  }
+
+  .footer-social {
+    display: flex;
+    gap: var(--sp-sm);
+  }
+
+  .social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: var(--c-text-light);
+    transition: transform var(--transition-base);
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  .footer-nav {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-xl) var(--sp-lg);
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-xl);
+    }
+  }
+
+  .nav-group-title {
+    margin-bottom: var(--sp-md);
+    color: var(--c-text-inverse-lightest);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    line-height: var(--lh-tight);
+    letter-spacing: 0.05em;
+
+    @media (min-width: 900px) {
+      margin-bottom: var(--sp-lg);
+      font-size: var(--fs-base);
+    }
+  }
+
+  .nav-group-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+  }
+
+  .nav-group-link {
+    display: inline-block;
+    color: var(--c-text-inverse-light);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-relaxed);
+    transition: color var(--transition-fast);
+
+    &:hover {
+      color: var(--c-text-inverse);
+      text-decoration: underline;
+    }
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .footer-copyright {
+    padding-top: var(--sp-lg);
+    border-top: 1px solid var(--c-border-inverse);
+
+    @media (min-width: 900px) {
+      padding-top: var(--sp-xl);
+    }
+  }
+
+  .copyright-text {
+    color: var(--c-text-inverse-sub);
+    font-size: var(--fs-xs);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-sm);
+    }
+  }
+</style>

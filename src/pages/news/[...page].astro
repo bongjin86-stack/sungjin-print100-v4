@@ -1,0 +1,82 @@
+---
+import type { GetStaticPaths, Page } from "astro";
+import type { CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
+
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import CTA from "@/components/sections/CTA.astro";
+import CategoryNavigation from "@/components/ui/CategoryNavigation.astro";
+import NewsItem from "@/components/ui/NewsItem.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Pagination from "@/components/ui/Pagination.astro";
+import categoryData from "@/config/category.json";
+import siteConfig from "@/config/site.config.json";
+import Layout from "@/layouts/Layout.astro";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const allNews = await getCollection("news");
+  const sortedNews = allNews.sort(
+    (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+  );
+  return paginate(sortedNews, { pageSize: siteConfig.settings.pagination });
+}) satisfies GetStaticPaths;
+
+type Props = {
+  page: Page<CollectionEntry<"news">>;
+};
+
+const { page } = Astro.props;
+
+const pageTitle =
+  page.currentPage === 1
+    ? "News - お知らせ"
+    : `News - お知らせ (${page.currentPage}ページ)`;
+---
+
+<Layout
+  title={pageTitle}
+  description="企業からのお知らせやプレスリリース、イベント情報をご紹介します。"
+>
+  <PageHero title="News" subtitle="お知らせ" />
+
+  <Section class="news-section">
+    <Container>
+      <CategoryNavigation categories={categoryData.news} basePath="/news" />
+
+      <div class="news-list">
+        {page.data.map((news) => <NewsItem news={news} />)}
+      </div>
+
+      {
+        page.lastPage > 1 && (
+          <Pagination
+            currentPage={page.currentPage}
+            totalPages={page.lastPage}
+            basePath="/news"
+          />
+        )
+      }
+    </Container>
+  </Section>
+
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  .news-section {
+    padding-top: var(--sp-md);
+  }
+
+  .news-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xl);
+    width: 100%;
+    margin-top: var(--sp-3xl);
+
+    @media (min-width: 600px) {
+      gap: var(--sp-md);
+    }
+  }
+</style>

@@ -1,0 +1,42 @@
+{
+  "site": {
+    "title": "Sungjinprint",
+    "title_long": "Sungjinprint - 50부 이상 대량 인쇄 전문",
+    "description": "20년 경력의 인쇄 전문가가 운영하는 Sungjinprint입니다. 무선제본, 중철제본, 스프링제본 등 다양한 제본 서비스와 빠른 납기를 제공합니다.",
+    "author": "Sungjinprint",
+    "company_name": "Sungjinprint",
+    "copyright": "© 2025 Sungjinprint",
+    "og_image": "images/ogp.png",
+    "favicon": "images/favicon.svg",
+    "themeColor": "#1c1917",
+    "lang": "ko"
+  },
+
+  "settings": {
+    "pagination": 10,
+    "header_height": "74px",
+    "header_height_mobile": "60px"
+  },
+
+  "google": {
+    "analytics": "G-XXXXXXXXX"
+  },
+
+  "social": {
+    "twitter_creator": ""
+  },
+
+  "company": {
+    "postal_code": "",
+    "address": "서울특별시 (주소 추가 예정)",
+    "tel": "02-XXX-XXXX",
+    "email": "info@sungjinprint.com",
+    "ceo_name": "대표자명",
+    "ceo_title": "대표",
+    "established": "2005년",
+    "capital": "",
+    "employees": "",
+    "business_hours": "평일 9:00 - 18:00",
+    "business_hours_note": "(토요일 9:00 - 13:00, 일요일 휴무)"
+  }
+}

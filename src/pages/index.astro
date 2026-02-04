@@ -1,0 +1,108 @@
+---
+import About from "@/components/sections/About.astro";
+import CTA from "@/components/sections/CTA.astro";
+import Hero from "@/components/sections/Hero.astro";
+import News from "@/components/sections/News.astro";
+import Partners from "@/components/sections/Partners.astro";
+import Service from "@/components/sections/Service.astro";
+import Works from "@/components/sections/Works.astro";
+import siteConfig from "@/config/site.config.json";
+import Layout from "@/layouts/Layout.astro";
+
+const siteTitle = String(siteConfig.site.title);
+const siteDescription = String(siteConfig.site.description);
+---
+
+<Layout title={siteTitle} description={siteDescription}>
+  <Hero />
+  <Partners />
+  <Service />
+  <Works />
+  <About />
+  <News />
+  <CTA />
+</Layout>
+
+<script>
+  import Lenis from "lenis";
+
+  let lenis: Lenis | null = null;
+  let rafId: number | null = null;
+
+  function initLenis() {
+    if (lenis) return;
+
+    lenis = new Lenis({
+      duration: 1.0,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: "vertical",
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+    });
+
+    function raf(time: number) {
+      lenis?.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+
+    rafId = requestAnimationFrame(raf);
+  }
+
+  function destroyLenis() {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    if (lenis) {
+      lenis.destroy();
+      lenis = null;
+    }
+  }
+
+  function initializeObserver() {
+    const animateElements = document.querySelectorAll("[data-animate]");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const element = entry.target as HTMLElement;
+            const delay = element.dataset.animateDelay || "0";
+
+            setTimeout(() => {
+              element.classList.add("is-animated");
+            }, parseInt(delay));
+
+            observer.unobserve(element);
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -10% 0px",
+      }
+    );
+
+    animateElements.forEach((element) => {
+      observer.observe(element);
+    });
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    if (window.location.pathname === "/") {
+      initLenis();
+    }
+    initializeObserver();
+  });
+
+  document.addEventListener("astro:after-swap", () => {
+    if (window.location.pathname === "/") {
+      initLenis();
+    }
+    initializeObserver();
+  });
+
+  document.addEventListener("astro:before-swap", () => {
+    destroyLenis();
+  });
+</script>

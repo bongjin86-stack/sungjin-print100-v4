@@ -1,0 +1,82 @@
+---
+import { Image } from "astro:assets";
+
+import heroImage from "@/assets/hero.jpg";
+import Container from "@/components/layout/Container.astro";
+---
+
+<section class="hero">
+  <Container>
+    <div class="hero-content">
+      <h1 class="hero-title">
+        <span class="hero-title-line fade" data-animate data-animate-delay="0"
+          >안녕하세요</span
+        >
+        <br />
+        <span class="hero-title-line fade" data-animate data-animate-delay="200"
+          >Sungjinprint 입니다.</span
+        >
+      </h1>
+      <div class="hero-image fade" data-animate data-animate-delay="400">
+        <Image
+          src={heroImage}
+          alt="성진인쇄 작업 현장"
+          width={1200}
+          height={675}
+          fetchpriority="high"
+          loading="lazy"
+        />
+      </div>
+    </div>
+  </Container>
+</section>
+
+<style lang="scss">
+  .hero {
+    padding: var(--sp-4xl) 0 var(--sp-3xl);
+
+    @media (min-width: 900px) {
+      padding: var(--sp-5xl) 0 var(--sp-4xl);
+    }
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xl);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-3xl);
+    }
+  }
+
+  .hero-title {
+    max-width: var(--container-md);
+    color: var(--c-text);
+    font-size: clamp(var(--fs-2xl), 5vw, var(--fs-5xl));
+    font-weight: 500;
+    line-height: var(--lh-relaxed);
+    letter-spacing: 0.02em;
+  }
+
+  .hero-title-line {
+    display: inline-block;
+  }
+
+  .hero-image {
+    width: 100%;
+    border-radius: var(--radius-4xl);
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      aspect-ratio: 5 / 6;
+
+      @media (min-width: 600px) {
+        aspect-ratio: 2.3 / 1;
+      }
+    }
+  }
+</style>

@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Partner 1",
+    "url": "https://google.com/",
+    "logo": "/src/assets/partners/logoipsum-215.svg"
+  },
+  {
+    "name": "Partner 2",
+    "url": "https://google.com/",
+    "logo": "/src/assets/partners/logoipsum-261.svg"
+  },
+  {
+    "name": "Partner 3",
+    "url": "https://google.com/",
+    "logo": "/src/assets/partners/logoipsum-264.svg"
+  },
+  {
+    "name": "Partner 4",
+    "url": "https://google.com/",
+    "logo": "/src/assets/partners/logoipsum-286.svg"
+  },
+  {
+    "name": "Partner 5",
+    "url": "https://google.com/",
+    "logo": "/src/assets/partners/logoipsum-297.svg"
+  },
+  {
+    "name": "Partner 6",
+    "url": "https://google.com/",
+    "logo": "/src/assets/partners/logoipsum-321.svg"
+  },
+  {
+    "name": "Partner 7",
+    "url": "https://google.com/",
+    "logo": "/src/assets/partners/logoipsum-325.svg"
+  },
+  {
+    "name": "Partner 8",
+    "url": "https://google.com/",
+    "logo": "/src/assets/partners/logoipsum-330.svg"
+  }
+]

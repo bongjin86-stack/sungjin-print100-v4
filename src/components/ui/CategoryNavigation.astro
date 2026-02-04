@@ -1,0 +1,84 @@
+---
+import type { Category } from "@/types/index.d.ts";
+
+interface Props {
+  categories: Category[];
+  currentCategory?: string;
+  basePath: string;
+  allLabel?: string;
+}
+
+const { categories, currentCategory, basePath, allLabel = "All" } = Astro.props;
+---
+
+<nav class="category-navigation">
+  <ul class="category-navigation-list">
+    <li class="category-navigation-item">
+      <a
+        href={basePath}
+        class:list={[
+          "category-navigation-link",
+          { "is-active": !currentCategory },
+        ]}
+      >
+        {allLabel}
+      </a>
+    </li>
+    {
+      categories.map((category) => (
+        <li class="category-navigation-item">
+          <a
+            href={`${basePath}/category/${category.id}`}
+            class:list={[
+              "category-navigation-link",
+              { "is-active": currentCategory === category.id },
+            ]}
+          >
+            {category.title}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style lang="scss">
+  .category-navigation-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-sm);
+
+    @media (min-width: 600px) {
+      gap: var(--sp-md);
+    }
+  }
+
+  .category-navigation-link {
+    display: inline-block;
+    padding: var(--sp-xs) var(--sp-md);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--c-border);
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-tight);
+    text-transform: uppercase;
+    transition:
+      border-color var(--transition-base),
+      color var(--transition-base);
+
+    @media (min-width: 600px) {
+      font-size: var(--fs-base);
+    }
+
+    &:hover {
+      border-color: var(--c-primary);
+      color: var(--c-text);
+    }
+
+    &.is-active {
+      background-color: var(--c-primary);
+      border-color: var(--c-primary);
+      color: var(--c-text-inverse);
+    }
+  }
+</style>

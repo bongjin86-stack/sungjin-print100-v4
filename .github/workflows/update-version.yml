@@ -1,0 +1,28 @@
+name: Update Version on Sales Site
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  trigger-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Trigger sales site update
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            https://api.github.com/repos/yohaku-theme/yohaku.dev/dispatches \
+            -d '{
+              "event_type": "template_version_updated",
+              "client_payload": {
+                "template_repo": "${{ github.event.repository.name }}",
+                "version": "${{ steps.version.outputs.version }}"
+              }
+            }'

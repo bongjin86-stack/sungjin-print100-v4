@@ -1,0 +1,99 @@
+---
+import type { GetStaticPaths, Page } from "astro";
+import type { CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
+
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import CTA from "@/components/sections/CTA.astro";
+import CategoryNavigation from "@/components/ui/CategoryNavigation.astro";
+import NewsItem from "@/components/ui/NewsItem.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Pagination from "@/components/ui/Pagination.astro";
+import categoryData from "@/config/category.json";
+import siteConfig from "@/config/site.config.json";
+import Layout from "@/layouts/Layout.astro";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const allNews = await getCollection("news");
+
+  return categoryData.news.flatMap((category) => {
+    const filteredNews = allNews.filter(
+      (news) => news.data.category === category.id
+    );
+
+    const sortedNews = filteredNews.sort(
+      (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+    );
+
+    return paginate(sortedNews, {
+      params: { category: category.id },
+      pageSize: siteConfig.settings.pagination,
+      props: { category },
+    });
+  });
+}) satisfies GetStaticPaths;
+
+type Props = {
+  page: Page<CollectionEntry<"news">>;
+  category: { id: string; title: string };
+};
+
+const { page, category } = Astro.props;
+
+const pageTitle =
+  page.currentPage === 1
+    ? `News - ${category.title}`
+    : `News - ${category.title} (${page.currentPage}ページ)`;
+---
+
+<Layout
+  title={pageTitle}
+  description={`${category.title}カテゴリーのお知らせをご紹介します。`}
+>
+  <PageHero title="News" subtitle={category.title} />
+
+  <Section class="news-section">
+    <Container>
+      <CategoryNavigation
+        categories={categoryData.news}
+        currentCategory={category.id}
+        basePath="/news"
+      />
+
+      <div class="news-list">
+        {page.data.map((news) => <NewsItem news={news} />)}
+      </div>
+
+      {
+        page.lastPage > 1 && (
+          <Pagination
+            currentPage={page.currentPage}
+            totalPages={page.lastPage}
+            basePath={`/news/category/${category.id}`}
+          />
+        )
+      }
+    </Container>
+  </Section>
+
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  .news-section {
+    padding-top: var(--sp-md);
+  }
+
+  .news-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xl);
+    width: 100%;
+    margin-top: var(--sp-3xl);
+
+    @media (min-width: 600px) {
+      gap: var(--sp-md);
+    }
+  }
+</style>

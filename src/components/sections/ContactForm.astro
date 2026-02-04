@@ -1,0 +1,296 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import FormInput from "@/components/ui/FormInput.astro";
+import FormLabel from "@/components/ui/FormLabel.astro";
+
+const inquiryTypes = [
+  { value: "project", label: "案件のご依頼やご相談" },
+  { value: "quote", label: "お見積もりのご依頼" },
+  { value: "partnership", label: "協業のご提案やお問い合わせ" },
+  { value: "other", label: "その他のお問い合わせ" },
+];
+---
+
+<Section background="secondary">
+  <Container size="small">
+    <div class="contact-intro">
+      <p class="contact-description">
+        サービスに関するご相談やお見積もりのご依頼、ご質問などお気軽にお問い合わせください。
+      </p>
+    </div>
+
+    <form class="contact-form" method="POST" id="contact-form">
+      <fieldset>
+        <FormLabel required>お問い合わせの種類</FormLabel>
+        <div class="form-radio-group">
+          {
+            inquiryTypes.map((type) => (
+              <label class="form-radio-label">
+                <input
+                  type="radio"
+                  name="inquiryType"
+                  value={type.value}
+                  class="form-radio"
+                  required
+                />
+                <span class="form-radio-text">{type.label}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <div class="form-group">
+        <FormLabel for="message" required>お問い合わせ内容</FormLabel>
+        <textarea
+          id="message"
+          name="message"
+          class="form-textarea"
+          rows="8"
+          required
+          placeholder="案件の詳細、ご予算やご希望の納期など具体的にご記入いただきますと、よりスムーズなご提案が可能です。"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <FormLabel for="name" required>お名前</FormLabel>
+        <FormInput
+          type="text"
+          id="name"
+          name="name"
+          required
+          autocomplete="name"
+          placeholder="山田 太郎"
+        />
+      </div>
+
+      <div class="form-group">
+        <FormLabel for="furigana" required>フリガナ</FormLabel>
+        <FormInput
+          type="text"
+          id="furigana"
+          name="furigana"
+          required
+          placeholder="ヤマダ タロウ"
+        />
+      </div>
+
+      <div class="form-group">
+        <FormLabel for="company" required>会社名</FormLabel>
+        <FormInput
+          type="text"
+          id="company"
+          name="company"
+          required
+          autocomplete="organization"
+          placeholder="株式会社サンプル"
+        />
+      </div>
+
+      <div class="form-group">
+        <FormLabel for="email" required>メールアドレス</FormLabel>
+        <FormInput
+          type="email"
+          id="email"
+          name="email"
+          required
+          autocomplete="email"
+          placeholder="example@company.com"
+        />
+      </div>
+
+      <div class="form-group">
+        <FormLabel for="tel">電話番号</FormLabel>
+        <FormInput
+          type="tel"
+          id="tel"
+          name="tel"
+          autocomplete="tel"
+          placeholder="03-1234-5678"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-checkbox-label">
+          <input
+            type="checkbox"
+            name="privacy"
+            class="form-checkbox"
+            required
+          />
+          <span class="form-checkbox-text">
+            <a href="/privacy" class="form-link" target="_blank"
+              >個人情報保護方針</a
+            >に同意する
+          </span>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="form-button">送信する</button>
+      </div>
+    </form>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .contact-intro {
+    margin-bottom: var(--sp-2xl);
+  }
+
+  .contact-description {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    line-height: var(--lh-relaxed);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xl);
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+  }
+
+  .form-textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: var(--sp-md);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-xl);
+    background-color: var(--c-bg);
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    line-height: var(--lh-relaxed);
+    resize: vertical;
+    transition: border-color var(--transition-base);
+
+    &::placeholder {
+      color: var(--c-text-light);
+    }
+
+    &:focus {
+      border-color: var(--c-primary);
+    }
+  }
+
+  .form-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+    margin-top: var(--sp-md);
+  }
+
+  .form-radio-label {
+    display: flex;
+    gap: var(--sp-md);
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .form-radio {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border: 1px solid var(--c-border);
+    cursor: pointer;
+
+    &:checked {
+      border-color: var(--c-primary);
+      background-color: var(--c-primary);
+    }
+  }
+
+  .form-radio-text {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    line-height: var(--lh-normal);
+  }
+
+  .form-checkbox-label {
+    display: flex;
+    gap: var(--sp-md);
+    align-items: flex-start;
+    cursor: pointer;
+  }
+
+  .form-checkbox {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    border: 1px solid var(--c-border);
+    cursor: pointer;
+
+    &:checked {
+      border-color: var(--c-primary);
+      background-color: var(--c-primary);
+    }
+  }
+
+  .form-checkbox-text {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    line-height: var(--lh-relaxed);
+  }
+
+  .form-link {
+    color: var(--c-link);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .form-actions {
+    margin-top: var(--sp-lg);
+  }
+
+  .form-button {
+    display: block;
+    width: 100%;
+    max-width: 240px;
+    margin: 0 auto;
+    padding: var(--sp-md) var(--sp-2xl);
+    border: 2px solid var(--c-primary);
+    border-radius: var(--radius-full);
+    background-image: linear-gradient(
+      to right,
+      var(--c-bg) 50%,
+      var(--c-primary) 50%
+    );
+    background-size: 200% 100%;
+    background-position: right;
+    color: var(--c-text-inverse);
+    font-size: var(--fs-base);
+    letter-spacing: 0.05em;
+    text-align: center;
+    cursor: pointer;
+    transition:
+      background-position var(--transition-slow),
+      color var(--transition-slow),
+      border-color var(--transition-slow);
+
+    &:hover:not(:disabled) {
+      background-position: left;
+      color: var(--c-text);
+      border-color: var(--c-primary);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+</style>

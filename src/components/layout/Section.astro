@@ -1,0 +1,39 @@
+---
+interface Props {
+  background?: "primary" | "secondary" | "inverse";
+  class?: string;
+  id?: string;
+}
+
+const { background = "primary", class: className, id, ...rest } = Astro.props;
+---
+
+<section
+  id={id}
+  class:list={["section", `-${background}`, className]}
+  {...rest}
+>
+  <slot />
+</section>
+
+<style lang="scss">
+  .section {
+    padding: var(--sp-3xl) 0;
+
+    @media (min-width: 900px) {
+      padding: var(--sp-4xl) 0;
+    }
+
+    &.-primary {
+      background-color: var(--c-bg);
+    }
+
+    &.-secondary {
+      background-color: var(--c-bg-secondary);
+    }
+
+    &.-inverse {
+      background-color: var(--c-primary);
+    }
+  }
+</style>

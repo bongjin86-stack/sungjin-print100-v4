@@ -1,0 +1,164 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import faqData from "@/config/faq.json";
+import type { FAQItem } from "@/types/index.d.ts";
+
+const faqItems = faqData as FAQItem[];
+---
+
+<Section background="secondary" id="faq">
+  <Container>
+    <div class="faq-header">
+      <SectionTitle title="FAQ" subtitle="よくあるご質問" />
+    </div>
+
+    <div class="faq-list">
+      {
+        faqItems.map((item) => (
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="faq-question-text">{item.question}</span>
+              <span class="faq-question-icon" aria-hidden="true" />
+            </summary>
+            <div class="faq-answer">
+              <p>{item.answer}</p>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .faq-header {
+    margin: 0 auto var(--sp-3xl);
+
+    @media (min-width: 900px) {
+      margin-bottom: var(--sp-4xl);
+    }
+  }
+
+  .faq-list {
+    max-width: var(--container-md);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+  }
+
+  .faq-item {
+    border-radius: var(--radius-4xl);
+    border: 1px solid var(--c-border-light);
+    background-color: var(--c-bg);
+    overflow: hidden;
+    transition: border-color var(--transition-slow);
+    interpolate-size: allow-keywords;
+
+    &::details-content {
+      block-size: 0;
+      transition: content-visibility, block-size;
+      transition-duration: var(--transition-slower);
+      transition-behavior: allow-discrete;
+      overflow: hidden;
+    }
+
+    &[open] {
+      border-color: var(--c-border);
+
+      &::details-content {
+        block-size: auto;
+      }
+
+      .faq-question-icon {
+        transform: rotate(180deg);
+
+        &::after {
+          background-color: transparent;
+        }
+      }
+
+      .faq-answer {
+        grid-template-rows: 1fr;
+      }
+    }
+  }
+
+  .faq-question {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-lg);
+    padding: var(--sp-lg) var(--sp-xl);
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    font-weight: 500;
+    line-height: var(--lh-relaxed);
+    cursor: pointer;
+    list-style: none;
+
+    @media (min-width: 900px) {
+      padding: var(--sp-xl) var(--sp-2xl);
+      font-size: var(--fs-md);
+    }
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  .faq-question-text {
+    flex: 1;
+  }
+
+  .faq-question-icon {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    transition: transform var(--transition-base) var(--ease-out-sine);
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      background-color: var(--c-text);
+      transform: translate(-50%, -50%);
+      transition: background-color var(--transition-base);
+    }
+
+    &::before {
+      width: 16px;
+      height: 2px;
+    }
+
+    &::after {
+      width: 2px;
+      height: 16px;
+    }
+  }
+
+  .faq-answer {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--transition-slow) var(--ease-out-sine);
+
+    p {
+      overflow: hidden;
+      padding: 0 var(--sp-xl) var(--sp-xl) var(--sp-xl);
+      color: var(--c-text-sub);
+      font-size: var(--fs-sm);
+      line-height: var(--lh-loose);
+
+      @media (min-width: 900px) {
+        padding: 0 var(--sp-2xl) var(--sp-2xl) var(--sp-2xl);
+        font-size: var(--fs-base);
+      }
+    }
+  }
+</style>

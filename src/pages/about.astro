@@ -1,0 +1,42 @@
+---
+import sampleImage1 from "@/assets/sample1.jpg";
+import sampleImage2 from "@/assets/sample2.jpg";
+import ContentImage from "@/components/sections/ContentImage.astro";
+import CTA from "@/components/sections/CTA.astro";
+import Team from "@/components/sections/Team.astro";
+import TopMessage from "@/components/sections/TopMessage.astro";
+import Values from "@/components/sections/Values.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout
+  title="About Us - 私たちについて"
+  description="当社のビジョン、ミッション、バリューをご紹介します。お客様のビジネスを成功に導くパートナーとして、私たちが大切にしている価値観をお伝えします。"
+>
+  <PageHero title="About Us" subtitle="私たちについて" />
+  <ContentImage
+    title="私たちの強み"
+    text="デザインとテクノロジーの融合により、ユーザー体験を最大化するデジタルプロダクトを創造します。戦略立案から設計、開発、運用まで、一貫したサポートを提供し、お客様のビジネス成長に貢献します。"
+    imageSrc={sampleImage1}
+    imageAlt="チームでの作業風景"
+  />
+  <ContentImage
+    title="技術へのこだわり"
+    text="最新のWeb技術とベストプラクティスを活用し、パフォーマンス、アクセシビリティ、SEOに優れたプロダクトを開発します。常に学び続け、技術の進化に対応することで、長期的に価値を提供し続けます。"
+    imageSrc={sampleImage2}
+    imageAlt="モダンな開発環境"
+    background="secondary"
+    reverse
+  />
+  <Values />
+  <TopMessage />
+  <Team />
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  html {
+    scroll-behavior: auto;
+  }
+</style>

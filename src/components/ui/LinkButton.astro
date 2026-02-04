@@ -1,0 +1,120 @@
+---
+interface Props {
+  href: string;
+  variant?: "solid" | "solid-sub" | "outlined" | "ghost";
+  size?: "small" | "medium" | "large";
+  ariaLabel?: string;
+  class?: string;
+  target?: "_blank" | "_self";
+  fullWidth?: boolean;
+}
+
+const {
+  href,
+  target,
+  ariaLabel,
+  variant = "solid",
+  size = "medium",
+  fullWidth,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const buttonWidth: string = fullWidth ? "100%" : "fit-content";
+---
+
+<a
+  {href}
+  class:list={[className, "button", `-${variant}`, `-${size}`]}
+  aria-label={ariaLabel}
+  target={target}
+  rel={target === "_blank" ? "noopener noreferrer" : ""}
+  {...rest}
+>
+  <slot />
+</a>
+
+<style lang="scss" define:vars={{ buttonWidth }}>
+  .button {
+    position: relative;
+    display: inline-block;
+    width: var(--buttonWidth);
+    padding: var(--sp-md) var(--sp-xl);
+    border-radius: var(--radius-full);
+    border-width: 2px;
+    border-style: solid;
+    background-size: 200% 100%;
+    background-position: right;
+    font-size: var(--fs-base);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-align: center;
+    text-decoration: none;
+    transition:
+      background-position var(--transition-slow),
+      color var(--transition-slow),
+      border-color var(--transition-slow);
+
+    &:is(:hover, :focus-within) {
+      background-position: left;
+    }
+
+    &.-small {
+      font-size: var(--fs-base);
+      padding: var(--sp-xs) var(--sp-lg);
+    }
+
+    &.-medium {
+      padding: var(--sp-sm) var(--sp-xl);
+    }
+
+    &.-large {
+      padding: calc(var(--sp-xs) * 3) var(--sp-2xl);
+    }
+
+    &.-solid {
+      color: var(--c-text-inverse);
+      background-image: linear-gradient(
+        to right,
+        var(--c-bg) 50%,
+        var(--c-primary) 50%
+      );
+      border-color: var(--c-primary);
+
+      &:is(:hover, :focus-within) {
+        color: var(--c-text);
+        border-color: var(--c-primary);
+      }
+    }
+
+    &.-solid-sub {
+      color: var(--c-text);
+      background-image: linear-gradient(
+        to right,
+        var(--c-primary) 50%,
+        var(--c-bg) 50%
+      );
+      border-color: var(--c-bg);
+
+      &:is(:hover, :focus-within) {
+        color: var(--c-text-inverse);
+        border-color: var(--c-bg);
+      }
+    }
+
+    &.-outlined {
+      color: var(--c-text);
+      background-image: linear-gradient(
+        to right,
+        var(--c-primary) 50%,
+        transparent 50%
+      );
+      border-color: var(--c-border);
+
+      &:is(:hover, :focus-within) {
+        color: var(--c-text-inverse);
+        border-color: var(--c-primary);
+      }
+    }
+  }
+</style>

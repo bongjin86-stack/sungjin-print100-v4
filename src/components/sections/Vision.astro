@@ -1,0 +1,38 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+---
+
+<Section background="secondary">
+  <Container size="medium">
+    <SectionTitle
+      title="Vision"
+      subtitle="私たちのビジョン"
+      class="vision-title"
+    />
+    <p class="vision-text">
+      デザインとテクノロジーの融合で、<br />人々の生活に価値を生み出し、<br />
+      ビジネスの成長を加速させる。<br />
+      <br />
+      私たちは、クライアントと共に未来を描き、<br />
+      ユーザーの心に響く体験を創造し続けます。
+    </p>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .vision-title {
+    margin-bottom: var(--sp-xl);
+
+    @media (min-width: 900px) {
+      margin-bottom: var(--sp-2xl);
+    }
+  }
+
+  .vision-text {
+    color: var(--c-text);
+    font-size: clamp(var(--fs-md), 5vw, var(--fs-2xl));
+    line-height: var(--lh-loose);
+  }
+</style>

@@ -1,0 +1,95 @@
+---
+import { Image } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
+
+import categoryData from "@/config/category.json";
+import type { CategoryData } from "@/types/index.d.ts";
+
+interface Props {
+  work: CollectionEntry<"works">;
+}
+
+const { work } = Astro.props;
+const { title, client, category, image } = work.data;
+
+const typedCategoryData = categoryData as CategoryData;
+const categoryInfo = typedCategoryData.work.find((cat) => cat.id === category);
+const categoryTitle: string = categoryInfo?.title || category;
+---
+
+<article class="work-card">
+  <a href={`/works/${work.id}`} class="work-card-link">
+    <div class="work-card-image">
+      <Image src={image} alt={title} width={600} height={400} />
+    </div>
+    <div class="work-card-content">
+      <h3 class="work-card-title">{title}</h3>
+      <p class="work-card-client">{client}</p>
+      <span class="work-card-category">{categoryTitle}</span>
+    </div>
+  </a>
+</article>
+
+<style lang="scss">
+  .work-card-link {
+    display: block;
+  }
+
+  .work-card-image {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-4xl);
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      aspect-ratio: 3 / 2;
+      transition: transform var(--transition-slow);
+    }
+
+    .work-card:hover & img {
+      transform: scale(1.05);
+    }
+  }
+
+  .work-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+    margin: var(--sp-md) 0 0;
+  }
+
+  .work-card-title {
+    color: var(--c-text);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    line-height: var(--lh-snug);
+
+    @media (min-width: 600px) {
+      font-size: var(--fs-lg);
+    }
+  }
+
+  .work-card-client {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+  }
+
+  .work-card-category {
+    display: inline-block;
+    align-self: self-start;
+    margin-top: var(--sp-xs);
+    padding: var(--sp-xs) var(--sp-md);
+    background-color: var(--c-bg-secondary);
+    color: var(--c-text-sub);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    line-height: var(--lh-tight);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius-full);
+  }
+</style>

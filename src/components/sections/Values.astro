@@ -1,0 +1,107 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import values from "@/config/values.json";
+---
+
+<Section>
+  <Container>
+    <div class="values-inner">
+      <div class="values-header">
+        <SectionTitle title="Our Values" subtitle="私たちが選ばれる理由" />
+      </div>
+
+      <div class="values-list">
+        {
+          values.map((value) => (
+            <article class="value-item">
+              <h3 class="item-title">{value.title}</h3>
+              <p class="item-description">{value.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .values-inner {
+    @media (min-width: 900px) {
+      display: grid;
+      grid-template-columns: 20% 1fr;
+      gap: 0 var(--sp-4xl);
+    }
+  }
+
+  .values-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+    margin-bottom: var(--sp-2xl);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-lg);
+      position: sticky;
+      top: var(--sp-4xl);
+      flex-direction: column;
+      align-items: start;
+      align-self: flex-start;
+      flex-grow: 1;
+      margin: 0;
+      min-width: fit-content;
+    }
+  }
+
+  .values-catchphrase {
+    font-size: var(--fs-sm);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .values-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2xl);
+
+    @media (min-width: 600px) {
+      gap: var(--sp-3xl);
+      max-width: var(--container-sm);
+    }
+  }
+
+  .value-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-lg);
+    }
+  }
+
+  .item-title {
+    color: var(--c-text);
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    line-height: var(--lh-snug);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-xl);
+    }
+  }
+
+  .item-description {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+</style>

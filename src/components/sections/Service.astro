@@ -1,0 +1,147 @@
+---
+import ArrowUpRightIcon from "@/assets/icons/arrow-up-right.svg";
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import services from "@/config/service.json";
+---
+
+<Section background="secondary">
+  <Container>
+    <SectionTitle title="Services" subtitle="서비스" class="service-header" />
+
+    <div class="service-list">
+      {
+        services.map((service, index) => (
+          <>
+            <article
+              class="service-item fade"
+              data-animate
+              data-animate-delay={index * 200}
+            >
+              <a href={`/services/#${service.id}`} class="item-content">
+                <div class="item-header">
+                  <span class="item-number">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span class="item-arrow">
+                    <ArrowUpRightIcon
+                      width={20}
+                      height={20}
+                      stroke="currentColor"
+                    />
+                  </span>
+                </div>
+                <h3 class="item-title">{service.title}</h3>
+                <p class="item-description">{service.description}</p>
+              </a>
+              <hr class="service-divier" />
+            </article>
+          </>
+        ))
+      }
+    </div>
+  </Container>
+</Section>
+
+<style lang="scss">
+  .service-header {
+    margin-bottom: var(--sp-xl);
+
+    @media (min-width: 900px) {
+      margin-bottom: var(--sp-2xl);
+    }
+  }
+
+  .service-list {
+    @media (min-width: 600px) {
+      display: grid;
+      justify-items: stretch;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sp-xl) var(--sp-2xl);
+    }
+  }
+
+  .service-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .service-divier {
+    margin: auto 0 0;
+    border-bottom: 1px solid var(--c-border-sub);
+
+    @media (min-width: 600px) {
+      display: none;
+    }
+  }
+
+  .item-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+    transition-property: transform, background-color;
+    transition-duration: var(--transition-slow);
+    padding: var(--sp-xl) 0;
+    border-radius: var(--radius-4xl);
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      cursor: pointer;
+      transform: translateY(-2px);
+    }
+
+    @media (min-width: 900px) {
+      padding: var(--sp-lg);
+
+      &:hover {
+        background-color: var(--c-bg);
+      }
+    }
+  }
+
+  .item-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .item-number {
+    color: var(--c-primary-light);
+    font-size: var(--fs-md);
+  }
+
+  .item-arrow {
+    margin: var(--sp-xs) 0 0 auto;
+
+    svg {
+      stroke: var(--c-text-light);
+      transition: stroke var(--transition-slow);
+
+      .item-content:hover & {
+        stroke: var(--c-primary);
+      }
+    }
+  }
+
+  .item-title {
+    color: var(--c-text);
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    line-height: var(--lh-snug);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-xl);
+    }
+  }
+
+  .item-description {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+</style>

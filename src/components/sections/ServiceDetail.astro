@@ -1,0 +1,185 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import LinkButton from "@/components/ui/LinkButton.astro";
+import DynamicImage from "@/components/util/DynamicImage.astro";
+import services from "@/config/service.json";
+---
+
+<Section>
+  <Container>
+    {
+      services.map((service, index) => (
+        <article class="service-detail-item" id={service.id}>
+          <div class="item-sticky">
+            <span class="item-number">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <h2 class="item-title">{service.title}</h2>
+
+            <div class="item-image">
+              <DynamicImage
+                imagePath={service.image}
+                altText={service.title}
+                width={800}
+                height={500}
+              />
+            </div>
+          </div>
+
+          <div class="item-content">
+            <p class="item-description">{service.detailDescription}</p>
+            <div class="item-tasks">
+              <h3 class="tasks-title">提供サービス</h3>
+              <ul class="tasks-list">
+                {service.tasks.map((task) => (
+                  <li class="tasks-item">{task}</li>
+                ))}
+              </ul>
+            </div>
+            <div class="item-actions">
+              <LinkButton href="/contact" variant="solid" size="large">
+                相談する
+              </LinkButton>
+            </div>
+          </div>
+        </article>
+      ))
+    }
+  </Container>
+</Section>
+
+<style lang="scss">
+  .service-detail-item {
+    display: grid;
+    gap: var(--sp-2xl);
+    padding: var(--sp-xl) 0 var(--sp-4xl);
+
+    @media (min-width: 900px) {
+      grid-template-columns: 280px 1fr;
+      gap: var(--sp-3xl);
+      padding: var(--sp-2xl) 0 var(--sp-5xl);
+    }
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+    }
+  }
+
+  .item-sticky {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+
+    @media (min-width: 900px) {
+      position: sticky;
+      top: var(--sp-4xl);
+      height: fit-content;
+    }
+  }
+
+  .item-number {
+    color: var(--c-primary-light);
+    font-size: var(--fs-xl);
+    line-height: var(--lh-none);
+  }
+
+  .item-title {
+    color: var(--c-text);
+    font-size: var(--fs-xl);
+    font-weight: 500;
+    line-height: var(--lh-snug);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-2xl);
+    }
+  }
+
+  .item-content {
+    display: grid;
+    gap: var(--sp-2xl);
+
+    @media (min-width: 900px) {
+    }
+  }
+
+  .item-description {
+    color: var(--c-text-sub);
+    font-size: var(--fs-base);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+  }
+
+  .item-image {
+    width: 100%;
+    max-width: 400px;
+    border-radius: var(--radius-4xl);
+    background-color: var(--c-bg-secondary);
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+    }
+  }
+
+  .item-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+  }
+
+  .tasks-title {
+    color: var(--c-text);
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    line-height: var(--lh-tight);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-xl);
+    }
+  }
+
+  .tasks-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-md);
+
+    @media (min-width: 900px) {
+      display: block;
+      column-count: 2;
+      column-gap: var(--sp-lg);
+    }
+  }
+
+  .tasks-item {
+    position: relative;
+    width: 100%;
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+
+    @media (min-width: 900px) {
+      margin-bottom: var(--sp-md);
+      font-size: var(--fs-base);
+    }
+  }
+
+  .item-actions {
+    margin-top: var(--sp-lg);
+
+    @media (min-width: 900px) {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
