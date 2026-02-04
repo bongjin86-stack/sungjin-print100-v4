@@ -1,0 +1,106 @@
+---
+import { Image } from "astro:assets";
+import Container from "@/components/layout/Container.astro";
+import { supabase } from "@/lib/supabase";
+
+// Fetch hero settings from database
+const { data: heroSettings } = await supabase
+  .from('hero_settings')
+  .select('*')
+  .limit(1)
+  .single();
+
+// Fallback values
+const titleLine1 = heroSettings?.title_line1 || '안녕하세요';
+const titleLine2 = heroSettings?.title_line2 || 'Sungjinprint 입니다.';
+const imageUrl = heroSettings?.image_url;
+
+// Import default hero image as fallback
+import heroImage from "@/assets/hero.jpg";
+---
+
+<section class="hero">
+  <Container>
+    <div class="hero-content">
+      <h1 class="hero-title">
+        <span class="hero-title-line fade" data-animate data-animate-delay="0"
+          >{titleLine1}</span
+        >
+        <br />
+        <span class="hero-title-line fade" data-animate data-animate-delay="200"
+          >{titleLine2}</span
+        >
+      </h1>
+      <div class="hero-image fade" data-animate data-animate-delay="400">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt="성진인쇄 작업 현장"
+            width="1200"
+            height="675"
+            loading="eager"
+          />
+        ) : (
+          <Image
+            src={heroImage}
+            alt="성진인쇄 작업 현장"
+            width={1200}
+            height={675}
+            fetchpriority="high"
+            loading="lazy"
+          />
+        )}
+      </div>
+    </div>
+  </Container>
+</section>
+
+<style lang="scss">
+  .hero {
+    padding: var(--sp-4xl) 0 var(--sp-3xl);
+
+    @media (min-width: 900px) {
+      padding: var(--sp-5xl) 0 var(--sp-4xl);
+    }
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xl);
+
+    @media (min-width: 900px) {
+      gap: var(--sp-3xl);
+    }
+  }
+
+  .hero-title {
+    max-width: var(--container-md);
+    color: var(--c-text);
+    font-size: clamp(var(--fs-2xl), 5vw, var(--fs-5xl));
+    font-weight: 500;
+    line-height: var(--lh-relaxed);
+    letter-spacing: 0.02em;
+  }
+
+  .hero-title-line {
+    display: inline-block;
+  }
+
+  .hero-image {
+    width: 100%;
+    border-radius: var(--radius-4xl);
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      aspect-ratio: 5 / 6;
+
+      @media (min-width: 600px) {
+        aspect-ratio: 2.3 / 1;
+      }
+    }
+  }
+</style>
