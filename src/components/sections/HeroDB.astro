@@ -14,23 +14,73 @@ const { data: heroSettings } = await supabase
 const titleLine1 = heroSettings?.title_line1 || '안녕하세요';
 const titleLine2 = heroSettings?.title_line2 || 'Sungjinprint 입니다.';
 const imageUrl = heroSettings?.image_url;
+const heroContent = heroSettings?.hero_content;
 
 // Import default hero image as fallback
 import heroImage from "@/assets/hero.jpg";
+
+// BlockNote JSON을 HTML로 변환하는 함수
+function renderBlocksToHTML(content: string): string {
+  if (!content) return '';
+
+  let blocks: any[];
+  
+  try {
+    blocks = JSON.parse(content);
+    if (!Array.isArray(blocks)) {
+      return '';
+    }
+  } catch {
+    return '';
+  }
+
+  return blocks.map(block => {
+    const blockContent = block.content?.map((c: any) => {
+      let text = c.text || '';
+      if (c.styles?.bold) text = `<strong>${text}</strong>`;
+      if (c.styles?.italic) text = `<em>${text}</em>`;
+      if (c.styles?.underline) text = `<u>${text}</u>`;
+      return text;
+    }).join('') || '';
+
+    if (!blockContent) return '';
+
+    const textAlign = block.props?.textAlignment || 'left';
+    const alignStyle = textAlign !== 'left' ? ` style="text-align: ${textAlign}"` : '';
+
+    switch (block.type) {
+      case 'heading':
+        const level = block.props?.level || 1;
+        return `<span class="hero-title-line fade" data-animate${alignStyle}>${blockContent}</span><br/>`;
+      case 'paragraph':
+        return `<span class="hero-title-line hero-paragraph fade" data-animate${alignStyle}>${blockContent}</span><br/>`;
+      default:
+        return `<span class="hero-title-line fade" data-animate${alignStyle}>${blockContent}</span><br/>`;
+    }
+  }).filter(Boolean).join('\n');
+}
+
+// hero_content가 있으면 BlockNote 렌더링, 없으면 기존 방식
+const hasBlockNoteContent = heroContent && heroContent.trim() !== '';
+const renderedContent = hasBlockNoteContent ? renderBlocksToHTML(heroContent) : null;
 ---
 
 <section class="hero">
   <Container>
     <div class="hero-content">
-      <h1 class="hero-title">
-        <span class="hero-title-line fade" data-animate data-animate-delay="0"
-          >{titleLine1}</span
-        >
-        <br />
-        <span class="hero-title-line fade" data-animate data-animate-delay="200"
-          >{titleLine2}</span
-        >
-      </h1>
+      {hasBlockNoteContent && renderedContent ? (
+        <h1 class="hero-title" set:html={renderedContent} />
+      ) : (
+        <h1 class="hero-title">
+          <span class="hero-title-line fade" data-animate data-animate-delay="0"
+            >{titleLine1}</span
+          >
+          <br />
+          <span class="hero-title-line fade" data-animate data-animate-delay="200"
+            >{titleLine2}</span
+          >
+        </h1>
+      )}
       <div class="hero-image fade" data-animate data-animate-delay="400">
         {imageUrl ? (
           <img
@@ -85,6 +135,11 @@ import heroImage from "@/assets/hero.jpg";
 
   .hero-title-line {
     display: inline-block;
+  }
+
+  .hero-paragraph {
+    font-size: clamp(var(--fs-base), 3vw, var(--fs-xl));
+    font-weight: 400;
   }
 
   .hero-image {
