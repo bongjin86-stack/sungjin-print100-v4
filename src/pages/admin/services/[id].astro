@@ -32,7 +32,9 @@ function parseTasks(tasks: any): string[] {
 // tasks를 배열로 파싱
 const serviceData = {
   ...service,
-  tasks: parseTasks(service.tasks)
+  tasks: parseTasks(service.tasks),
+  linked_product_id: service.linked_product_id || null,
+  order_button_text: service.order_button_text || '주문하기',
 };
 ---
 

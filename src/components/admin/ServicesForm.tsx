@@ -1,5 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ImageUploader from './ImageUploader';
+
+interface Product {
+  id: string;
+  name: string;
+  icon: string;
+}
 
 interface ServicesFormProps {
   mode: 'create' | 'edit';
@@ -14,6 +20,8 @@ interface ServicesFormProps {
     tasks: string[];
     sort_order: number;
     is_active: boolean;
+    linked_product_id: string | null;
+    order_button_text: string | null;
   };
 }
 
@@ -28,9 +36,19 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
     image: initialData?.image || '',
     sort_order: initialData?.sort_order || 1,
     is_active: initialData?.is_active ?? true,
+    linked_product_id: initialData?.linked_product_id || '',
+    order_button_text: initialData?.order_button_text || '주문하기',
   });
   const [tasks, setTasks] = useState<string[]>(initialData?.tasks || []);
   const [newTask, setNewTask] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(res => res.json())
+      .then((data: Product[]) => setProducts(data.filter(p => p.is_published !== false)))
+      .catch(() => setProducts([]));
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -61,6 +79,8 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
 
     const payload = {
       ...formData,
+      linked_product_id: formData.linked_product_id || null,
+      order_button_text: formData.order_button_text || '주문하기',
       tasks: JSON.stringify(tasks),
     };
 
@@ -216,6 +236,35 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
           </div>
         </div>
 
+        {/* 연결 상품 */}
+        <div style={styles.linkedProductSection}>
+          <label style={styles.label}>연결 상품</label>
+          <div style={styles.linkedProductRow}>
+            <select
+              name="linked_product_id"
+              value={formData.linked_product_id}
+              onChange={handleChange}
+              style={styles.select}
+            >
+              <option value="">선택 안 함</option>
+              {products.map(p => (
+                <option key={p.id} value={p.id}>{p.icon} {p.name}</option>
+              ))}
+            </select>
+            <div style={styles.formGroup}>
+              <input
+                type="text"
+                name="order_button_text"
+                value={formData.order_button_text}
+                onChange={handleChange}
+                placeholder="주문하기"
+                style={styles.input}
+              />
+            </div>
+          </div>
+          <span style={styles.hint}>고객이 이 서비스 페이지에서 버튼을 누르면 연결된 상품 페이지로 이동합니다</span>
+        </div>
+
         <div style={styles.formGroup}>
           <label style={styles.label}>공개 여부</label>
           <select
@@ -349,6 +398,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 500,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
+  },
+  linkedProductSection: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.5rem',
+  },
+  linkedProductRow: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '1rem',
   },
   formActions: {
     display: 'flex',

@@ -90,7 +90,7 @@ function markdownToBlocks(markdown: string): any[] {
 function BlockNoteEditorInner({
   initialContent = '',
   onChange,
-  height = '400px',
+  height = '120px',
 }: BlockNoteEditorProps) {
   const [editor, setEditor] = useState<any>(null);
   const [BlockNoteView, setBlockNoteView] = useState<any>(null);
@@ -160,9 +160,9 @@ function BlockNoteEditorInner({
 
   if (!editor || !BlockNoteView) {
     return (
-      <div style={{ 
-        height, 
-        border: '1px solid #e5e7eb', 
+      <div style={{
+        minHeight: height,
+        border: '1px solid #e5e7eb',
         borderRadius: '0.375rem',
         display: 'flex',
         alignItems: 'center',
@@ -176,14 +176,14 @@ function BlockNoteEditorInner({
   }
 
   return (
-    <div style={{ 
-      height, 
-      border: '1px solid #e5e7eb', 
+    <div style={{
+      minHeight: height,
+      border: '1px solid #e5e7eb',
       borderRadius: '0.375rem',
       overflow: 'hidden',
     }}>
-      <BlockNoteView 
-        editor={editor} 
+      <BlockNoteView
+        editor={editor}
         theme="light"
       />
     </div>
@@ -200,9 +200,9 @@ export default function BlockNoteEditorComponent(props: BlockNoteEditorProps) {
 
   if (!isClient) {
     return (
-      <div style={{ 
-        height: props.height || '400px', 
-        border: '1px solid #e5e7eb', 
+      <div style={{
+        minHeight: props.height || '120px',
+        border: '1px solid #e5e7eb',
         borderRadius: '0.375rem',
         display: 'flex',
         alignItems: 'center',

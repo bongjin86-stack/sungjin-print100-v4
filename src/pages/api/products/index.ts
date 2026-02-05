@@ -6,7 +6,7 @@ export const prerender = false;
 // GET - 목록 조회
 export const GET: APIRoute = async () => {
   const { data, error } = await supabase
-    .from('services')
+    .from('products')
     .select('*')
     .order('sort_order', { ascending: true });
 
@@ -23,33 +23,34 @@ export const GET: APIRoute = async () => {
   });
 };
 
-// POST - 새 서비스 생성
+// POST - 새 상품 생성
 export const POST: APIRoute = async ({ request }) => {
   const body = await request.json();
-  
-  const { slug, title, title_en, description, detail_description, image, tasks, sort_order, is_active, linked_product_id, order_button_text } = body;
 
-  if (!slug || !title) {
-    return new Response(JSON.stringify({ message: '슬러그와 제목은 필수입니다.' }), {
+  const { id, name, slug, description, main_image, icon, sort_order, content, blocks, product_type, is_published } = body;
+
+  if (!id || !name) {
+    return new Response(JSON.stringify({ message: 'id와 name은 필수입니다.' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
   const { data, error } = await supabase
-    .from('services')
-    .insert([{
-      slug,
-      title,
-      title_en: title_en || '',
+    .from('products')
+    .upsert([{
+      id,
+      name,
+      slug: slug || null,
       description: description || '',
-      detail_description: detail_description || '',
-      image: image || '',
-      tasks: tasks || '[]',
-      sort_order: sort_order || 1,
-      is_active: is_active ?? true,
-      linked_product_id: linked_product_id || null,
-      order_button_text: order_button_text || '주문하기',
+      main_image: main_image || null,
+      icon: icon || '📄',
+      sort_order: sort_order ?? 0,
+      content: content || {},
+      blocks: blocks || [],
+      product_type: product_type || null,
+      is_published: is_published ?? true,
+      updated_at: new Date().toISOString(),
     }])
     .select()
     .single();

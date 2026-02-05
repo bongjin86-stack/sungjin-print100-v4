@@ -1,0 +1,954 @@
+/* ============================================ */
+/* 성진프린트 빌더 디자인 시스템               */
+/* v1 index.css 기반 - Apple Store 스타일      */
+/*                                              */
+/* 주의: 이 파일은 빌더 페이지 전용.           */
+/* AdminLayout 안에서 로드되므로:               */
+/* - 변수는 .admin-content 스코프              */
+/*   (tokens.css --radius-* 충돌 방지)         */
+/* - font/line-height 오버라이드 필수           */
+/*   (global.scss body 기본값과 다름)          */
+/* ============================================ */
+
+.admin-content {
+  /* 배경 */
+  --bg-page: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-button: #FFFFFF;
+  --bg-button-hover: #F5F5F7;
+  --bg-summary: #F5F5F7;
+  --bg-input: #F5F5F7;
+
+  /* 테두리 */
+  --border-default: #D2D2D7;
+  --border-hover: #86868B;
+  --border-selected: #0071E3;
+
+  /* 텍스트 */
+  --text-primary: #1D1D1F;
+  --text-secondary: #86868B;
+  --text-tertiary: #AEAEB2;
+  --text-link: #0071E3;
+
+  /* 타이포그래피 */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* 여백 */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+
+  /* 테두리 반경 (tokens.css --radius-* 와 이름 동일, 스코프로 분리) */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-full: 980px;
+
+  /* 빌더 전용 기본값 (v1 기준) */
+  line-height: 1.5;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ============================================ */
+/* 섹션 라벨                                    */
+/* ============================================ */
+
+.section-label {
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-md);
+}
+
+/* 옵션 섹션 간격 */
+.option-section {
+  margin-bottom: var(--space-xl);
+}
+
+.option-section + .option-section {
+  margin-top: var(--space-xl);
+}
+
+/* ============================================ */
+/* 옵션 버튼 (사이즈, 인쇄면 등)                */
+/* Apple 스타일: 선택 시 파란 테두리            */
+/* ============================================ */
+
+.opt-btn {
+  background-color: var(--bg-button);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 10px 20px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.opt-btn:hover {
+  background-color: var(--bg-button-hover);
+  border-color: var(--border-hover);
+}
+
+.opt-btn.selected {
+  background-color: var(--bg-button);
+  border-color: var(--border-selected);
+  border-width: 2px;
+  box-shadow: 0 0 0 1px var(--border-selected);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ============================================ */
+/* 용지 카드                                    */
+/* ============================================ */
+
+.paper-card {
+  background-color: var(--bg-card);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: var(--space-sm);
+}
+
+.paper-card:hover {
+  border-color: var(--border-hover);
+}
+
+.paper-card.selected {
+  border-color: var(--border-selected);
+  border-width: 2px;
+  box-shadow: 0 0 0 1px var(--border-selected);
+}
+
+.paper-card .paper-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.paper-card .paper-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: var(--bg-summary);
+}
+
+.paper-card .paper-text .name {
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.paper-card .paper-text .desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.paper-card .weights {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+/* ============================================ */
+/* 평량 버튼                                    */
+/* ============================================ */
+
+.weight-btn {
+  background-color: var(--bg-button);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: var(--font-weight-regular);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.weight-btn:hover {
+  background-color: var(--bg-button-hover);
+  border-color: var(--border-hover);
+}
+
+.weight-btn.selected {
+  background-color: var(--bg-button);
+  border-color: var(--border-selected);
+  border-width: 2px;
+  box-shadow: 0 0 0 1px var(--border-selected);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ============================================ */
+/* 수량 선택 리스트                             */
+/* ============================================ */
+
+.qty-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md) var(--space-lg);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qty-row:hover {
+  background-color: var(--bg-button-hover);
+}
+
+.qty-row.selected {
+  background-color: var(--bg-button);
+  border-color: var(--border-selected);
+  box-shadow: 0 0 0 1px var(--border-selected);
+}
+
+/* ============================================ */
+/* 출고일 탭 (카드형)                           */
+/* ============================================ */
+
+.delivery-tab {
+  flex: 1;
+  background-color: var(--bg-button);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.delivery-tab:hover {
+  border-color: var(--border-hover);
+}
+
+.delivery-tab.selected {
+  background-color: var(--bg-button);
+  border-color: var(--border-selected);
+  border-width: 2px;
+  box-shadow: 0 0 0 1px var(--border-selected);
+}
+
+.delivery-tab .date-text {
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.delivery-tab .discount-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: var(--space-xs);
+}
+
+/* ============================================ */
+/* 페이지 컨트롤                                */
+/* ============================================ */
+
+.page-control {
+  display: inline-flex;
+  align-items: center;
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-button);
+}
+
+.page-control button {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: var(--bg-summary);
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--text-secondary);
+}
+
+.page-control button:hover {
+  background: var(--border-default);
+  color: var(--text-primary);
+}
+
+.page-control input {
+  width: 60px;
+  height: 44px;
+  border: none;
+  text-align: center;
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  border-left: 1px solid var(--border-default);
+  border-right: 1px solid var(--border-default);
+  color: var(--text-primary);
+  background: var(--bg-button);
+}
+
+/* ============================================ */
+/* 후가공 체크                                  */
+/* ============================================ */
+
+.finishing-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background-color: var(--bg-button);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  transition: all 0.15s ease;
+}
+
+.finishing-item:hover {
+  border-color: var(--border-hover);
+}
+
+.finishing-item.checked {
+  border-color: var(--border-selected);
+  border-width: 2px;
+  box-shadow: 0 0 0 1px var(--border-selected);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ============================================ */
+/* 레이어 섹션                                  */
+/* ============================================ */
+
+.layer-section {
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+}
+
+.layer-cover {
+  background: var(--bg-summary);
+  border: 1.5px solid var(--border-default);
+}
+
+.layer-inner {
+  background: #F7FAF7;
+  border: 1.5px solid var(--border-default);
+}
+
+/* ============================================ */
+/* 빌더 블록 카드 (드래그앤드롭 지원)           */
+/* ============================================ */
+
+.block-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-card);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-sm);
+  transition: all 0.15s ease;
+}
+
+.block-card:hover {
+  border-color: var(--border-hover);
+}
+
+.block-card.off {
+  opacity: 0.4;
+}
+
+.block-card .block-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex: 1;
+}
+
+.block-card .block-handle {
+  cursor: grab;
+  color: var(--text-tertiary);
+  font-size: 14px;
+  user-select: none;
+  padding: var(--space-xs);
+}
+
+.block-card .block-handle:active {
+  cursor: grabbing;
+}
+
+.block-card .block-toggle {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.block-card .block-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: var(--bg-summary);
+}
+
+.block-card .block-info .name {
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.block-card .block-info .desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.block-card .block-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+/* 드래그 중 스타일 */
+.block-item.sortable-ghost {
+  opacity: 0.4;
+}
+
+.block-item.sortable-chosen {
+  opacity: 0.8;
+}
+
+.block-item.sortable-drag {
+  background: var(--bg-card);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius-md);
+}
+
+/* ============================================ */
+/* 액션 버튼                                    */
+/* ============================================ */
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-button);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s ease;
+  color: var(--text-secondary);
+}
+
+.action-btn:hover {
+  background: var(--bg-button-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.action-btn.delete:hover {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-color: #FECACA;
+}
+
+/* ============================================ */
+/* 블록 추가 버튼                               */
+/* ============================================ */
+
+.add-block-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  border: 1.5px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  background: transparent;
+}
+
+.add-block-btn:hover {
+  border-color: var(--border-selected);
+  color: var(--text-link);
+  background: rgba(0, 113, 227, 0.04);
+}
+
+/* ============================================ */
+/* 블록 라이브러리 아이템                       */
+/* ============================================ */
+
+.library-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  background-color: var(--bg-button);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  transition: all 0.15s ease;
+}
+
+.library-item:hover {
+  border-color: var(--border-selected);
+  background: rgba(0, 113, 227, 0.04);
+}
+
+.library-item .lib-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: var(--bg-summary);
+}
+
+/* ============================================ */
+/* 타입 탭                                      */
+/* ============================================ */
+
+.type-tab {
+  background-color: var(--bg-button);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.type-tab:hover {
+  background-color: var(--bg-button-hover);
+  border-color: var(--border-hover);
+}
+
+.type-tab.active {
+  background-color: var(--bg-button);
+  border-color: var(--border-selected);
+  border-width: 2px;
+  box-shadow: 0 0 0 1px var(--border-selected);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ============================================ */
+/* 사이즈 탭                                    */
+/* ============================================ */
+
+.size-tab {
+  background-color: var(--bg-button);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: var(--font-weight-regular);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.size-tab:hover {
+  background-color: var(--bg-button-hover);
+  border-color: var(--border-hover);
+}
+
+.size-tab.selected {
+  background-color: var(--bg-button);
+  border-color: var(--border-selected);
+  border-width: 2px;
+  box-shadow: 0 0 0 1px var(--border-selected);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ============================================ */
+/* 가격 요약 박스                               */
+/* ============================================ */
+
+.summary-box {
+  background-color: var(--bg-summary);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+}
+
+.summary-box .product-name {
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.summary-box .product-detail {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.summary-box .summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.summary-box .summary-row.total {
+  border-top: 1px solid var(--border-default);
+  margin-top: var(--space-sm);
+  padding-top: var(--space-md);
+}
+
+.summary-box .total-price {
+  font-size: 28px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.summary-box .vat-notice {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* ============================================ */
+/* CTA 버튼 (주문하기)                          */
+/* ============================================ */
+
+.cta-button {
+  background-color: var(--border-selected);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-lg) var(--space-xl);
+  width: 100%;
+  font-size: 16px;
+  font-weight: var(--font-weight-medium);
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cta-button:hover {
+  background-color: #0077ED;
+}
+
+.cta-button:active {
+  background-color: #006ADB;
+}
+
+/* ============================================ */
+/* 유틸리티 클래스                              */
+/* ============================================ */
+
+.option-button-group {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.card-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* ============================================ */
+/* 수량 테이블 (MOO 스타일)                     */
+/* ============================================ */
+
+.qty-table-wrapper {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.qty-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.qty-table thead th {
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  text-align: left;
+  padding: 10px 14px;
+  background-color: var(--bg-summary);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.qty-table thead th:last-child {
+  text-align: right;
+}
+
+.qty-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  position: relative;
+}
+
+.qty-table tbody tr:hover {
+  background-color: var(--bg-summary);
+}
+
+.qty-table tbody tr.selected {
+  outline: 2px solid var(--border-selected);
+  outline-offset: -2px;
+  background-color: var(--bg-button);
+}
+
+.qty-table tbody td {
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 14px;
+  border-bottom: 1px solid #E5E5E5;
+}
+
+.qty-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.qty-table tbody td:last-child {
+  text-align: right;
+  font-weight: var(--font-weight-semibold);
+}
+
+.qty-table .unit-price {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* ============================================ */
+/* DaisyUI Polyfill - 빌더에서 사용하는 것만    */
+/* ============================================ */
+
+/* --- checkbox --- */
+.checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  vertical-align: middle;
+  background-color: #fff;
+  transition: all 0.15s ease;
+}
+
+.checkbox:checked {
+  background-color: #1f2937;
+  border-color: #1f2937;
+}
+
+.checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.checkbox-sm:checked::after {
+  left: 3px;
+  top: 0px;
+  width: 5px;
+  height: 9px;
+}
+
+.checkbox-xs {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.checkbox-xs:checked::after {
+  left: 2px;
+  top: -1px;
+  width: 4px;
+  height: 7px;
+  border-width: 0 1.5px 1.5px 0;
+}
+
+.checkbox-neutral:checked {
+  background-color: #1f2937;
+  border-color: #1f2937;
+}
+
+/* --- input --- */
+.input {
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  transition: all 0.15s ease;
+}
+
+.input-bordered {
+  border: 1px solid #d1d5db;
+}
+
+.input-bordered:focus {
+  outline: 2px solid var(--border-selected, #0071E3);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.input-sm {
+  height: 2rem;
+  padding: 0 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.input-xs {
+  height: 1.5rem;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* --- btn --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  text-decoration: none;
+  line-height: 1.25;
+}
+
+.btn-sm {
+  height: 2rem;
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.btn-primary {
+  background-color: #0071E3;
+  color: #fff;
+  border-color: #0071E3;
+}
+
+.btn-primary:hover {
+  background-color: #005BB5;
+}
+
+.btn-success {
+  background-color: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+}
+
+.btn-success:hover {
+  background-color: #15803d;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--text-primary, #1D1D1F);
+  border-color: transparent;
+}
+
+.btn-ghost:hover {
+  background-color: var(--bg-button-hover, #F5F5F7);
+}
+
+.btn-circle {
+  border-radius: 9999px;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+}
+
+/* --- modal --- */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal.modal-open {
+  display: flex;
+}
+
+.modal-box {
+  background-color: #fff;
+  border-radius: var(--radius-md, 12px);
+  padding: var(--space-xl, 24px);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* --- alert --- */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.alert-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.alert-warning {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}

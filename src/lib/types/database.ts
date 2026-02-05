@@ -120,6 +120,37 @@ export interface BindingCost {
   };
 }
 
+// 선계산된 가격 (Size × Paper 조합)
+export interface SizePaperPrice {
+  id: number;
+  size_id: number;
+  paper_cost_id: number;
+  up_count: number;
+  cost_per_sheet: number;
+  margin_rate: number;
+  sell_price_per_sheet: number;
+  sell_price_per_copy: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  // Join data
+  size?: {
+    id: number;
+    code: string;
+    name: string;
+  };
+  paper_cost?: {
+    id: number;
+    paper_id: number;
+    weight: number;
+    paper?: {
+      id: number;
+      code: string;
+      name: string;
+    };
+  };
+}
+
 // 전체 가격 데이터 (캐시용)
 export interface PricingData {
   papers: Paper[];
@@ -130,6 +161,7 @@ export interface PricingData {
   finishingCosts: FinishingCost[];
   bindingTypes: BindingType[];
   bindingCosts: BindingCost[];
+  sizePaperPrice: SizePaperPrice[];
 }
 
 // 빌더용 데이터 구조

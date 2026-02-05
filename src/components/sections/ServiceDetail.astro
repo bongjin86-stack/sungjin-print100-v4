@@ -69,8 +69,8 @@ const normalizedServices = serviceList.map(service => {
               </ul>
             </div>
             <div class="item-actions">
-              <LinkButton href="/contact" variant="solid" size="large">
-                문의하기
+              <LinkButton href={service.linked_product_id ? `/product/${service.linked_product_id}` : '/contact'} variant="solid" size="large">
+                {service.linked_product_id ? (service.order_button_text || '주문하기') : '문의하기'}
               </LinkButton>
             </div>
           </div>

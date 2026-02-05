@@ -6,14 +6,16 @@ import "@/styles/global.css"; // Tailwind CSS
 
 interface Props {
   title: string;
+  fullBleed?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, fullBleed = false } = Astro.props;
 
 const currentPath = Astro.url.pathname;
 
 const navItems = [
   { href: '/admin', label: '대시보드' },
+  { href: '/admin/products', label: '상품 관리' },
   { href: '/admin/about', label: 'About 페이지' },
   { href: '/admin/news', label: '공지사항' },
   { href: '/admin/works', label: 'Works' },
@@ -70,10 +72,12 @@ function isActive(href: string) {
 
       <!-- Main Content -->
       <main class="admin-main">
-        <header class="admin-header">
-          <h1 class="admin-title">{title}</h1>
-        </header>
-        <div class="admin-content">
+        {!fullBleed && (
+          <header class="admin-header">
+            <h1 class="admin-title">{title}</h1>
+          </header>
+        )}
+        <div class:list={['admin-content', { 'admin-content--full-bleed': fullBleed }]}>
           <slot />
         </div>
       </main>
@@ -192,6 +196,11 @@ function isActive(href: string) {
 
       .admin-content {
         padding: var(--sp-xl);
+      }
+
+      .admin-content--full-bleed {
+        padding: 0;
+        background-color: var(--c-bg);
       }
 
       /* Responsive */

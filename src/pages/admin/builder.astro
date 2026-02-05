@@ -1,0 +1,9 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ProductBuilder from '@/components/admin/ProductBuilder';
+import '@/styles/builder.css';
+---
+
+<AdminLayout title="상품 빌더" fullBleed>
+  <ProductBuilder client:only="react" />
+</AdminLayout>

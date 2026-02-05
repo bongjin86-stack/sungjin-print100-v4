@@ -8,7 +8,7 @@ export const GET: APIRoute = async ({ params }) => {
   const { id } = params;
 
   const { data, error } = await supabase
-    .from('services')
+    .from('products')
     .select('*')
     .eq('id', id)
     .single();
@@ -31,29 +31,28 @@ export const PUT: APIRoute = async ({ params, request }) => {
   const { id } = params;
   const body = await request.json();
 
-  const { slug, title, title_en, description, detail_description, image, tasks, sort_order, is_active, linked_product_id, order_button_text } = body;
+  const { name, slug, description, main_image, icon, sort_order, content, blocks, product_type, is_published } = body;
 
-  if (!slug || !title) {
-    return new Response(JSON.stringify({ message: '슬러그와 제목은 필수입니다.' }), {
+  if (!name) {
+    return new Response(JSON.stringify({ message: '상품명은 필수입니다.' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
   const { data, error } = await supabase
-    .from('services')
+    .from('products')
     .update({
-      slug,
-      title,
-      title_en: title_en || '',
+      name,
+      slug: slug || null,
       description: description || '',
-      detail_description: detail_description || '',
-      image: image || '',
-      tasks: tasks || '[]',
-      sort_order: sort_order || 1,
-      is_active: is_active ?? true,
-      linked_product_id: linked_product_id || null,
-      order_button_text: order_button_text || '주문하기',
+      main_image: main_image || null,
+      icon: icon || '📄',
+      sort_order: sort_order ?? 0,
+      content: content || {},
+      blocks: blocks || [],
+      product_type: product_type || null,
+      is_published: is_published ?? true,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
@@ -78,7 +77,7 @@ export const DELETE: APIRoute = async ({ params }) => {
   const { id } = params;
 
   const { error } = await supabase
-    .from('services')
+    .from('products')
     .delete()
     .eq('id', id);
 
