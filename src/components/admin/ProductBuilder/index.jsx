@@ -1131,7 +1131,7 @@ export default function AdminBuilder() {
                               className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${h.icon === id ? 'bg-[#222828] text-white' : 'hover:bg-gray-100 text-[#222828]'}`}
                               onClick={(e) => {
                                 updateHighlight('icon', id);
-                                e.currentTarget.closest('.grid').parentElement.classList.add('hidden');
+                                e.currentTarget.parentElement.classList.add('hidden');
                               }}
                             >
                               <Component size={16} strokeWidth={1.5} />
