@@ -3,7 +3,7 @@
  * 현재는 콘솔 로그만 출력 (서버 측 구현 필요)
  */
 
-import { getConfig, getBankInfo } from './siteConfigService';
+import { getBankInfo,getConfig } from './siteConfigService';
 
 function getFromEmail() {
   return getConfig('from_email') || 'onboarding@resend.dev';

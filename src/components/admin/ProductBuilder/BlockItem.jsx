@@ -9,7 +9,7 @@
  * - 새 블록 타입 추가 시 getBlockSummary도 수정 필요
  */
 
-import { BLOCK_TYPES, DB } from '@/lib/builderData'
+import { BLOCK_TYPES, DB } from '@/lib/builderData';
 
 // ============================================================
 // 블록 아이템 컴포넌트
@@ -239,4 +239,4 @@ export function getBlockSummary(block, dbPapersList = []) {
   }
 }
 
-export default BlockItem
+export default BlockItem;

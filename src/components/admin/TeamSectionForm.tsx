@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import BlockNoteEditor from './BlockNoteEditor';
 
 interface TeamSectionData {

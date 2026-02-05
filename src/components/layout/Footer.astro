@@ -9,8 +9,8 @@ import SiteLogo from "@/components/ui/SiteLogo.astro";
 import menuData from "@/config/menu.json";
 import siteConfig from "@/config/site.config.json";
 import socialData from "@/config/social.json";
-import type { MenuData, SiteConfig, SocialMedia } from "@/types/index.d.ts";
 import { supabase } from "@/lib/supabase";
+import type { MenuData, SiteConfig, SocialMedia } from "@/types/index.d.ts";
 
 const typedMenuData = menuData as MenuData;
 const typedSiteConfig = siteConfig as SiteConfig;

@@ -4,13 +4,15 @@
 // PreviewBlock을 inline으로 포함 (빌더 import 안 함)
 // ============================================================
 
-import { useState, useEffect } from 'react';
-import { calculatePrice, validateCoatingWeight } from '@/lib/priceEngine';
-import { DB, getDefaultCustomer } from '@/lib/builderData';
-import { loadPricingData } from '@/lib/dbService';
+import { useEffect,useState } from 'react';
 
-import { getBusinessDate, formatBusinessDate } from '@/lib/businessDays';
+import DOMPurify from 'isomorphic-dompurify';
+
+import { DB, getDefaultCustomer } from '@/lib/builderData';
+import { formatBusinessDate,getBusinessDate } from '@/lib/businessDays';
+import { loadPricingData } from '@/lib/dbService';
 import { getIconComponent } from '@/lib/highlightIcons';
+import { calculatePrice, validateCoatingWeight } from '@/lib/priceEngine';
 
 export default function ProductView({ product: initialProduct }) {
   const [product] = useState(initialProduct);
@@ -355,7 +357,7 @@ function renderFeatures(content) {
       return (
         <div className="pv-features">
           <h3>주요 특징</h3>
-          <div dangerouslySetInnerHTML={{ __html: content.featuresHtml }} />
+          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content.featuresHtml) }} />
         </div>
       );
     }

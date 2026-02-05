@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { getOrderByUuid, STATUS_LABELS, STATUS_COLORS, getTrackingUrl, TRACKING_COMPANIES } from '@/lib/orderService';
+import { useEffect,useState } from 'react';
+
+import { getOrderByUuid, getTrackingUrl, STATUS_COLORS, STATUS_LABELS, TRACKING_COMPANIES } from '@/lib/orderService';
 
 export default function CustomerOrderStatus({ uuid }) {
   const [order, setOrder] = useState(null);

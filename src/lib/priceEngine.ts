@@ -3,18 +3,17 @@
 // MASTER_DOCUMENT v3.6 + DB 스키마 완전 반영
 // 단위: per_copy, per_face, per_hole, per_batch
 
+import type { CustomerSelection } from '@/lib/builderData';
 import {
-  getPaperCost,
-  getPrintCostPerFace,
+  getBindingCost,
+  getCoatingCost,
   getFinishingCost,
   getFinishingCostByLines,
-  getCoatingCost,
-  getBindingCost,
+  getPaperCost,
+  getPrintCostPerFace,
   getSizeInfo,
   getSizePaperPrice
 } from '@/lib/dbService';
-
-import type { CustomerSelection } from '@/lib/builderData';
 
 // ============================================================
 // 선계산된 가격 테이블 사용 플래그

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
+import { lazy, Suspense,useEffect, useMemo, useState } from 'react';
 
 interface BlockNoteEditorProps {
   initialContent?: string;

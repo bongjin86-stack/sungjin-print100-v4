@@ -7,7 +7,7 @@
  * 클릭 시 해당 블록을 추가합니다.
  */
 
-import { BLOCK_TYPES } from '@/lib/builderData'
+import { BLOCK_TYPES } from '@/lib/builderData';
 
 function BlockLibraryModal({ isOpen, onClose, onAddBlock }) {
   if (!isOpen) return null;
@@ -44,4 +44,4 @@ function BlockLibraryModal({ isOpen, onClose, onAddBlock }) {
   );
 }
 
-export default BlockLibraryModal
+export default BlockLibraryModal;

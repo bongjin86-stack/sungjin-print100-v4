@@ -126,7 +126,8 @@ export async function getOrders(options = {}) {
   }
 
   if (search) {
-    query = query.or(`order_number.ilike.%${search}%,recipient.ilike.%${search}%,customer_phone.ilike.%${search}%`);
+    const sanitized = search.replace(/[,.()"'\\]/g, '');
+    query = query.or(`order_number.ilike.%${sanitized}%,recipient.ilike.%${sanitized}%,customer_phone.ilike.%${sanitized}%`);
   }
 
   query = query.order(sortBy, { ascending: order === 'asc' });
@@ -155,14 +156,20 @@ async function getOrderStatusCounts() {
   const statuses = ['pending', 'confirmed', 'in_production', 'shipped', 'completed', 'canceled'];
   const counts = { all: 0 };
 
-  for (const status of statuses) {
-    const { count } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', status);
-    counts[status] = count || 0;
-    counts.all += count || 0;
-  }
+  const results = await Promise.all(
+    statuses.map(status =>
+      supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', status)
+    )
+  );
+
+  statuses.forEach((status, i) => {
+    const c = results[i].count || 0;
+    counts[status] = c;
+    counts.all += c;
+  });
 
   return counts;
 }

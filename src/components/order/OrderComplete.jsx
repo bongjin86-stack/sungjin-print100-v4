@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { getPhone, getBankInfo, getEmail } from '@/lib/siteConfigService';
+
+import { getBankInfo, getEmail,getPhone } from '@/lib/siteConfigService';
 
 export default function OrderComplete() {
   const [orderData, setOrderData] = useState(null);

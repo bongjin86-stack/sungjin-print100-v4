@@ -13,9 +13,9 @@
  * - BlockSettings.jsx도 함께 수정 필요
  */
 
-import { DB } from '@/lib/builderData'
-import { validateCoatingWeight } from '@/lib/priceEngine'
-import { getBusinessDate, formatBusinessDate } from '@/lib/businessDays'
+import { DB } from '@/lib/builderData';
+import { formatBusinessDate,getBusinessDate } from '@/lib/businessDays';
+import { validateCoatingWeight } from '@/lib/priceEngine';
 
 export function PreviewBlock({ block, customer, setCustomer, calculatePrice, linkStatus, handleFoldSelect, productType, dbPapers = {}, dbPapersList = [], allBlocks = [] }) {
   const cfg = block.config;
@@ -945,4 +945,4 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
   }
 }
 
-export default PreviewBlock
+export default PreviewBlock;

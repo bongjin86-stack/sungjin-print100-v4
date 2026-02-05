@@ -1,10 +1,14 @@
-import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
+import type { APIRoute } from 'astro';
 
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || 'https://zqtmzbcfzozgzspslccp.supabase.co';
-const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdG16YmNmem96Z3pzcHNsY2NwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTY3MzY2MCwiZXhwIjoyMDg1MjQ5NjYwfQ.1sTr0mJHQwLjgqPvvLXJqJjGpKJxqFqJqJqJqJqJqJq';
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_KEY;
 
-// Service role client for storage operations
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Missing SUPABASE_SERVICE_KEY or PUBLIC_SUPABASE_URL environment variable.');
+}
+
+// Service role client for storage operations (server-side only)
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 export const POST: APIRoute = async ({ request }) => {

@@ -5,17 +5,17 @@
 
 import { supabase } from './supabase';
 import type {
-  PricingData,
+  BindingCost,
+  BindingType,
+  BuilderData,
+  FinishingCost,
+  FinishingType,
   Paper,
   PaperCost,
-  Size,
+  PricingData,
   PrintCost,
-  FinishingType,
-  FinishingCost,
-  BindingType,
-  BindingCost,
+  Size,
   SizePaperPrice,
-  BuilderData,
 } from './types/database';
 
 // 전역 캐시

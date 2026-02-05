@@ -11,11 +11,6 @@ export default defineConfig({
   site: "https://nagi-6tu.pages.dev",
   output: "server",
   adapter: vercel(),
-  image: {
-    service: {
-      entrypoint: 'astro/assets/services/noop',
-    },
-  },
   integrations: [sitemap(), react()],
   vite: {
     server: {

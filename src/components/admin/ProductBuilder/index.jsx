@@ -5,15 +5,17 @@
 // - 블록 설정: 선택/필수, 고정, 숨김, 기본값
 // ============================================================
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef,useState } from 'react';
+
 import Sortable from 'sortablejs';
-import { BLOCK_TYPES, TEMPLATES as DEFAULT_TEMPLATES, DB, getDefaultCustomer, LINK_RULES } from '@/lib/builderData';
-import { calculatePrice, validateCoatingWeight } from '@/lib/priceEngine';
-import { loadPricingData } from '@/lib/dbService';
-import { uploadImage } from '@/lib/supabase';
-import { getBusinessDate, formatBusinessDate } from '@/lib/businessDays';
+
 import BlockNoteEditor from '@/components/admin/BlockNoteEditor';
-import { ICON_LIST, getIconComponent } from '@/lib/highlightIcons';
+import { BLOCK_TYPES, DB, getDefaultCustomer, LINK_RULES,TEMPLATES as DEFAULT_TEMPLATES } from '@/lib/builderData';
+import { formatBusinessDate,getBusinessDate } from '@/lib/businessDays';
+import { loadPricingData } from '@/lib/dbService';
+import { getIconComponent,ICON_LIST } from '@/lib/highlightIcons';
+import { calculatePrice, validateCoatingWeight } from '@/lib/priceEngine';
+import { uploadImage } from '@/lib/supabase';
 
 
 // 기본 콘텐츠 생성 함수

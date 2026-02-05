@@ -2,37 +2,24 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { supabase } from '../../lib/supabase';
 
-// 통계 데이터 가져오기
-const { count: newsCount } = await supabase
-  .from('news')
-  .select('*', { count: 'exact', head: true });
-
-const { count: partnersCount } = await supabase
-  .from('partner_logos')
-  .select('*', { count: 'exact', head: true });
-
-const { count: worksCount } = await supabase
-  .from('works')
-  .select('*', { count: 'exact', head: true });
-
-const { count: servicesCount } = await supabase
-  .from('services')
-  .select('*', { count: 'exact', head: true });
-
-const { count: faqCount } = await supabase
-  .from('faq')
-  .select('*', { count: 'exact', head: true });
-
-const { data: heroData } = await supabase
-  .from('hero_settings')
-  .select('*')
-  .single();
-
-const { data: recentNews } = await supabase
-  .from('news')
-  .select('*')
-  .order('created_at', { ascending: false })
-  .limit(4);
+// 통계 데이터 병렬 로딩
+const [
+  { count: newsCount },
+  { count: partnersCount },
+  { count: worksCount },
+  { count: servicesCount },
+  { count: faqCount },
+  { data: heroData },
+  { data: recentNews },
+] = await Promise.all([
+  supabase.from('news').select('*', { count: 'exact', head: true }),
+  supabase.from('partner_logos').select('*', { count: 'exact', head: true }),
+  supabase.from('works').select('*', { count: 'exact', head: true }),
+  supabase.from('services').select('*', { count: 'exact', head: true }),
+  supabase.from('faq').select('*', { count: 'exact', head: true }),
+  supabase.from('hero_settings').select('*').single(),
+  supabase.from('news').select('*').order('created_at', { ascending: false }).limit(4),
+]);
 
 // 관리 섹션 정의
 const sections = [

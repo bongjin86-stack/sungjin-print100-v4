@@ -133,11 +133,7 @@ if (error) {
   </style>
 
   <script>
-    import { createClient } from '@supabase/supabase-js';
-    
-    const supabaseUrl = 'https://zqtmzbcfzozgzspslccp.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdG16YmNmem96Z3pzcHNsY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NzM2NjAsImV4cCI6MjA4NTI0OTY2MH0.H7w5s_8sSm-_-oU8Ft9fZah6i4NjC6GqQ-GoR3_8MVo';
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    import { supabase } from '@/lib/supabase';
 
     const modal = document.getElementById('modal');
     const modalTitle = document.getElementById('modalTitle');
@@ -202,7 +198,11 @@ if (error) {
         const publicUrl = urlData.publicUrl;
         
         // 미리보기 업데이트
-        imagePreview!.innerHTML = `<img src="${publicUrl}" alt="Preview" />`;
+        imagePreview!.textContent = '';
+        const img = document.createElement('img');
+        img.src = publicUrl;
+        img.alt = 'Preview';
+        imagePreview!.appendChild(img);
         imagePathInput.value = publicUrl;
         
         uploadStatus!.textContent = '업로드 완료!';
@@ -216,10 +216,17 @@ if (error) {
 
     // 미리보기 업데이트 함수
     function updatePreview(imageUrl: string) {
+      imagePreview!.textContent = '';
       if (imageUrl) {
-        imagePreview!.innerHTML = `<img src="${imageUrl}" alt="Preview" />`;
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = 'Preview';
+        imagePreview!.appendChild(img);
       } else {
-        imagePreview!.innerHTML = '<span class="preview-placeholder">이미지를 선택하세요</span>';
+        const span = document.createElement('span');
+        span.className = 'preview-placeholder';
+        span.textContent = '이미지를 선택하세요';
+        imagePreview!.appendChild(span);
       }
     }
 

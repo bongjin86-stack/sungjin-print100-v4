@@ -2,8 +2,8 @@
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import SectionTitle from "@/components/ui/SectionTitle.astro";
-import { supabase } from "@/lib/supabase";
 import { renderBlocksToHTML } from "@/lib/blockRenderer";
+import { supabase } from "@/lib/supabase";
 
 interface Props {
   settings?: Record<string, string>;

@@ -5,9 +5,9 @@ import CTA from "@/components/sections/CTA.astro";
 import CategoryNavigation from "@/components/ui/CategoryNavigation.astro";
 import PageHero from "@/components/ui/PageHero.astro";
 import Pagination from "@/components/ui/Pagination.astro";
+import siteConfig from "@/config/site.config.json";
 import Layout from "@/layouts/Layout.astro";
 import { supabase } from "@/lib/supabase";
-import siteConfig from "@/config/site.config.json";
 
 // SSR 모드로 전환
 export const prerender = false;

@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+
 import { supabase } from '../../lib/supabase';
 
 export const prerender = false;
@@ -54,19 +55,17 @@ export const POST: APIRoute = async ({ request }) => {
       { key: 'bank_account_holder', value: data.bank_account_holder || '' }
     ];
 
-    for (const setting of settings) {
-      if (setting.value !== undefined) {
-        const { error } = await supabase
-          .from('site_settings')
-          .upsert(
-            { key: setting.key, value: setting.value, updated_at: new Date().toISOString() },
-            { onConflict: 'key' }
-          );
-        
-        if (error) {
-          console.error(`Setting save error for ${setting.key}:`, error);
-        }
-      }
+    const now = new Date().toISOString();
+    const upsertData = settings
+      .filter(s => s.value !== undefined)
+      .map(s => ({ key: s.key, value: s.value, updated_at: now }));
+
+    const { error: batchError } = await supabase
+      .from('site_settings')
+      .upsert(upsertData, { onConflict: 'key' });
+
+    if (batchError) {
+      console.error('Batch settings save error:', batchError);
     }
 
     return new Response(JSON.stringify({ success: true }), {

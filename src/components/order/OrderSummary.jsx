@@ -1,4 +1,4 @@
-import { getPhone, getBankInfo } from '@/lib/siteConfigService';
+import { getBankInfo,getPhone } from '@/lib/siteConfigService';
 
 export default function OrderSummary({
   product, shippingCost, quickCost, totalAmount,

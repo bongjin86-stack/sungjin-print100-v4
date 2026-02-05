@@ -11,8 +11,9 @@
  * - 주요 특징 에디터 (NotionEditor)
  */
 
-import { useRef } from 'react'
-import BlockNoteEditor from '@/components/admin/BlockNoteEditor'
+import { useRef } from 'react';
+
+import BlockNoteEditor from '@/components/admin/BlockNoteEditor';
 
 function ProductEditor({
   content,
@@ -142,4 +143,4 @@ function ProductEditor({
   );
 }
 
-export default ProductEditor
+export default ProductEditor;

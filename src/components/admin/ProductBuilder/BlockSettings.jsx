@@ -14,7 +14,7 @@
  * - PreviewBlock.jsx도 함께 수정 필요
  */
 
-import { DB } from '@/lib/builderData'
+import { DB } from '@/lib/builderData';
 
 function BlockSettings({
   block, updateCfg, updateBlockProp, toggleSizeOption, togglePaper, toggleWeight,
@@ -1204,4 +1204,4 @@ function BlockSettings({
   }
 }
 
-export default BlockSettings
+export default BlockSettings;

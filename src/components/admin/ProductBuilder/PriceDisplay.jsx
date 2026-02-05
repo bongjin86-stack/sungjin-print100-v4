@@ -66,4 +66,4 @@ function PriceDisplay({ price, customer, productName }) {
   );
 }
 
-export default PriceDisplay
+export default PriceDisplay;

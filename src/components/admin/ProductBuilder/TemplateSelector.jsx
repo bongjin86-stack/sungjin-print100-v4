@@ -11,7 +11,7 @@
  * - 아이콘 변경
  */
 
-import { forwardRef } from 'react'
+import { forwardRef } from 'react';
 
 const TemplateSelector = forwardRef(function TemplateSelector({
   templates,
@@ -93,4 +93,4 @@ const TemplateSelector = forwardRef(function TemplateSelector({
   );
 });
 
-export default TemplateSelector
+export default TemplateSelector;

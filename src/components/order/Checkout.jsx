@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
-import { ContactSection, DeliverySection, TaxDocumentSection, PaymentSection } from './CheckoutSections';
-import OrderSummary from './OrderSummary';
-import { createOrder } from '@/lib/orderService';
-import { calculatePackaging, calculateBindingPackaging, estimateThickness } from '@/lib/packagingCalculator';
-import { calculateShippingCost } from '@/lib/shippingCalculator';
+import { useEffect, useMemo,useState } from 'react';
+
 import { calculateReleaseDate } from '@/lib/dateUtils';
+import { createOrder } from '@/lib/orderService';
+import { calculateBindingPackaging, calculatePackaging, estimateThickness } from '@/lib/packagingCalculator';
+import { calculateShippingCost } from '@/lib/shippingCalculator';
+
+import { ContactSection, DeliverySection, PaymentSection,TaxDocumentSection } from './CheckoutSections';
+import OrderSummary from './OrderSummary';
 
 export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);

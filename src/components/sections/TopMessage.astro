@@ -1,12 +1,12 @@
 ---
 import { Image } from "astro:assets";
-import { renderBlocksToHTML } from "@/lib/blockRenderer";
 
 import ceoImage from "@/assets/ceo.png";
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import SectionTitle from "@/components/ui/SectionTitle.astro";
 import siteConfig from "@/config/site.config.json";
+import { renderBlocksToHTML } from "@/lib/blockRenderer";
 import { supabase } from "@/lib/supabase";
 
 const ceoTitle = String(siteConfig.company.ceo_title);

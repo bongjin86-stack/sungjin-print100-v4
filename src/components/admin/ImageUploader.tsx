@@ -1,10 +1,6 @@
-import React, { useState, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import React, { useRef,useState } from 'react';
 
-const supabaseUrl = 'https://zqtmzbcfzozgzspslccp.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdG16YmNmem96Z3pzcHNsY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NzM2NjAsImV4cCI6MjA4NTI0OTY2MH0.H7w5s_8sSm-_-oU8Ft9fZah6i4NjC6GqQ-GoR3_8MVo';
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from '@/lib/supabase';
 
 interface ImageUploaderProps {
   currentImage?: string;
