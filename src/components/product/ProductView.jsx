@@ -8,7 +8,9 @@ import { useState, useEffect } from 'react';
 import { calculatePrice, validateCoatingWeight } from '@/lib/priceEngine';
 import { DB, getDefaultCustomer } from '@/lib/builderData';
 import { loadPricingData } from '@/lib/dbService';
+
 import { getBusinessDate, formatBusinessDate } from '@/lib/businessDays';
+import { getIconComponent } from '@/lib/highlightIcons';
 
 export default function ProductView({ product: initialProduct }) {
   const [product] = useState(initialProduct);
@@ -175,20 +177,26 @@ export default function ProductView({ product: initialProduct }) {
             </div>
           )}
 
-          {/* 특징 카드 */}
+          {/* 하이라이트 카드 */}
           {content.highlights && content.highlights.length > 0 && (
             <div className="pv-highlights">
-              {content.highlights.map((h, idx) => (
-                <div key={idx} className="pv-highlight-card">
-                  <div className="pv-highlight-header">
-                    <span className="pv-highlight-icon">{h.icon}</span>
-                    <span className="pv-highlight-title">{h.title}</span>
+              {content.highlights.map((h, idx) => {
+                const IconComp = getIconComponent(h.icon);
+                return (
+                  <div key={idx} className="pv-highlight-card">
+                    <div className="pv-highlight-icon">
+                      <IconComp size={32} strokeWidth={1.3} />
+                    </div>
+                    <div className="pv-highlight-text">
+                      <span className="pv-highlight-title">{h.title}</span>
+                      <p className="pv-highlight-desc">{h.desc}</p>
+                    </div>
                   </div>
-                  <p className="pv-highlight-desc">{h.desc}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
+
         </div>
 
         {/* 오른쪽: 옵션 영역 */}
@@ -321,6 +329,7 @@ function renderBlockContent(blocks) {
     return <span key={block.id}>{text}</span>;
   }).filter(Boolean);
 }
+
 
 function renderFeatures(content) {
   // 1) featuresHtml이 BlockNote JSON 배열인 경우

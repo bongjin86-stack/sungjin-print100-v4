@@ -13,6 +13,8 @@ import { loadPricingData } from '@/lib/dbService';
 import { uploadImage } from '@/lib/supabase';
 import { getBusinessDate, formatBusinessDate } from '@/lib/businessDays';
 import BlockNoteEditor from '@/components/admin/BlockNoteEditor';
+import { ICON_LIST, getIconComponent } from '@/lib/highlightIcons';
+
 
 // 기본 콘텐츠 생성 함수
 function getDefaultContent(name) {
@@ -24,8 +26,8 @@ function getDefaultContent(name) {
       mainImage: null,
       thumbnails: [null, null, null, null],
       highlights: [
-        { icon: '🖨️', title: '고품질 인쇄', desc: '최신 인쇄 장비로 선명한 출력' },
-        { icon: '🚚', title: '빠른 배송', desc: '주문 후 1~3일 내 출고' }
+        { icon: 'Printer', title: '고품질 인쇄', desc: '최신 인쇄 장비로 선명한 출력' },
+        { icon: 'Truck', title: '빠른 배송', desc: '주문 후 1~3일 내 출고' }
       ]
     },
     '무선제본': {
@@ -35,8 +37,8 @@ function getDefaultContent(name) {
       mainImage: null,
       thumbnails: [null, null, null, null],
       highlights: [
-        { icon: '📚', title: '전문 제본', desc: '깔끔하고 튼튼한 무선제본' },
-        { icon: '✨', title: '고급 마감', desc: '표지 코팅으로 고급스러운 느낌' }
+        { icon: 'BookOpen', title: '전문 제본', desc: '깔끔하고 튼튼한 무선제본' },
+        { icon: 'Sparkles', title: '고급 마감', desc: '표지 코팅으로 고급스러운 느낌' }
       ]
     },
     '중철제본': {
@@ -46,8 +48,8 @@ function getDefaultContent(name) {
       mainImage: null,
       thumbnails: [null, null, null, null],
       highlights: [
-        { icon: '📎', title: '심플한 제본', desc: '가볍고 깔끔한 중철제본' },
-        { icon: '💰', title: '경제적', desc: '합리적인 가격의 제본 서비스' }
+        { icon: 'Paperclip', title: '심플한 제본', desc: '가볍고 깔끔한 중철제본' },
+        { icon: 'CircleDollarSign', title: '경제적', desc: '합리적인 가격의 제본 서비스' }
       ]
     },
     '스프링제본': {
@@ -57,8 +59,8 @@ function getDefaultContent(name) {
       mainImage: null,
       thumbnails: [null, null, null, null],
       highlights: [
-        { icon: '🔗', title: '편리한 사용', desc: '180도 완전히 펼쳐지는 스프링' },
-        { icon: '🛡️', title: '내구성', desc: 'PP 표지로 오래 사용 가능' }
+        { icon: 'Link2', title: '편리한 사용', desc: '180도 완전히 펼쳐지는 스프링' },
+        { icon: 'Shield', title: '내구성', desc: 'PP 표지로 오래 사용 가능' }
       ]
     }
   };
@@ -69,8 +71,8 @@ function getDefaultContent(name) {
     mainImage: null,
     thumbnails: [null, null, null, null],
     highlights: [
-      { icon: '📄', title: '', desc: '' },
-      { icon: '✨', title: '', desc: '' }
+      { icon: 'FileText', title: '', desc: '' },
+      { icon: 'Sparkles', title: '', desc: '' }
     ]
   };
 }
@@ -1093,47 +1095,74 @@ export default function AdminBuilder() {
                   </div>
                 ))}
               </div>
-              
-              {/* 특징 카드 2개 */}
-              <div className="grid grid-cols-2 gap-3">
-                {content.highlights?.map((h, idx) => (
-                  <div key={idx} className="p-3 border border-gray-200 rounded-xl">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xl">{h.icon}</span>
-                      <input
-                        type="text"
-                        value={h.title}
-                        onChange={(e) => {
-                          const newHighlights = [...content.highlights];
-                          newHighlights[idx] = { ...h, title: e.target.value };
-                          setCurrentProduct(prev => ({
-                            ...prev,
-                            content: { ...prev.content, highlights: newHighlights }
-                          }));
-                        }}
-                        className="font-medium text-sm bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary outline-none"
-                        placeholder="제목"
-                      />
+
+              {/* 하이라이트 카드 */}
+              <div className="grid grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-gray-100">
+                {content.highlights?.map((h, idx) => {
+                  const IconComp = getIconComponent(h.icon);
+                  const updateHighlight = (field, value) => {
+                    const newHighlights = [...content.highlights];
+                    newHighlights[idx] = { ...h, [field]: value };
+                    setCurrentProduct(prev => ({
+                      ...prev,
+                      content: { ...prev.content, highlights: newHighlights }
+                    }));
+                  };
+                  return (
+                    <div key={idx} className="flex items-start gap-3">
+                      {/* 아이콘 선택 */}
+                      <div className="relative group flex-shrink-0 pt-0.5">
+                        <button
+                          type="button"
+                          className="flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+                          onClick={(e) => {
+                            const dropdown = e.currentTarget.nextElementSibling;
+                            dropdown.classList.toggle('hidden');
+                          }}
+                        >
+                          <IconComp size={32} strokeWidth={1.3} className="text-[#222828]" />
+                        </button>
+                        <div className="hidden absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-2 grid grid-cols-5 gap-1 w-[200px]">
+                          {ICON_LIST.map(({ id, label, Component }) => (
+                            <button
+                              key={id}
+                              type="button"
+                              title={label}
+                              className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${h.icon === id ? 'bg-[#222828] text-white' : 'hover:bg-gray-100 text-[#222828]'}`}
+                              onClick={(e) => {
+                                updateHighlight('icon', id);
+                                e.currentTarget.closest('.grid').parentElement.classList.add('hidden');
+                              }}
+                            >
+                              <Component size={16} strokeWidth={1.5} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {/* 텍스트 */}
+                      <div className="flex-1 min-w-0">
+                        <input
+                          type="text"
+                          value={h.title || ''}
+                          onChange={(e) => updateHighlight('title', e.target.value)}
+                          className="block w-full text-[15px] font-semibold text-[#222828] bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none leading-snug mb-0.5"
+                          placeholder="제목"
+                        />
+                        <input
+                          type="text"
+                          value={h.desc || ''}
+                          onChange={(e) => updateHighlight('desc', e.target.value)}
+                          className="block w-full text-[13px] text-[#6b7280] bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none leading-relaxed"
+                          placeholder="설명"
+                        />
+                      </div>
                     </div>
-                    <input
-                      type="text"
-                      value={h.desc}
-                      onChange={(e) => {
-                        const newHighlights = [...content.highlights];
-                        newHighlights[idx] = { ...h, desc: e.target.value };
-                        setCurrentProduct(prev => ({
-                          ...prev,
-                          content: { ...prev.content, highlights: newHighlights }
-                        }));
-                      }}
-                      className="text-xs text-gray-500 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary outline-none w-full"
-                      placeholder="설명"
-                    />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+
             </div>
-            
+
             {/* 오른쪽: 옵션 영역 */}
             <div>
               {/* 제목 */}
@@ -1164,7 +1193,7 @@ export default function AdminBuilder() {
               <div className="mb-4">
                 <p className="font-medium text-sm mb-2">주요 특징</p>
                 <BlockNoteEditor
-                  initialContent={content.featuresHtml || '<ul><li>' + (content.features?.join('</li><li>') || '') + '</li></ul>'}
+                  initialContent={content.featuresHtml || (content.features?.map(f => `- ${f}`).join('\n') || '')}
                   onChange={(html) => setCurrentProduct(prev => ({
                     ...prev,
                     content: { ...prev.content, featuresHtml: html }
@@ -2741,8 +2770,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 disabled={isDisabled}
                 className={`flex-1 px-4 py-2.5 rounded-xl text-sm transition-all border-[1.5px] ${
                   customer.size === s
-                    ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                    : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                    ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                    : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                 } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, size: s }))}
               >
@@ -2772,7 +2801,7 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 <div
                   key={code}
                   className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border-[1.5px] ${
-                    isSelected ? 'bg-white border-[#0071E3] shadow-[0_0_0_1px_#0071E3]' : 'bg-white border-[#D2D2D7] hover:border-[#86868B]'
+                    isSelected ? 'bg-white border-[#222828] ' : 'bg-white border-[#cbd0d0] hover:border-[#8a9292]'
                   } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                   onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [paperField]: code, [weightField]: weights[0] }))}
                 >
@@ -2810,8 +2839,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                         disabled={isDisabled}
                         className={`px-2.5 py-1 text-xs rounded-lg transition-all border-[1.5px] ${
                           isSelected && customer[weightField] === w
-                            ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                            : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                            ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                            : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                         }`}
                         onClick={(e) => { e.stopPropagation(); !isDisabled && setCustomer(prev => ({ ...prev, [paperField]: code, [weightField]: w })); }}
                       >
@@ -2837,8 +2866,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 disabled={isDisabled}
                 className={`flex-1 px-4 py-2.5 rounded-xl text-sm transition-all border-[1.5px] ${
                   customer.pp === o
-                    ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                    : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                    ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                    : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                 }`}
                 onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, pp: o }))}
               >
@@ -2860,8 +2889,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 disabled={isDisabled}
                 className={`flex-1 px-4 py-2.5 rounded-xl text-sm transition-all border-[1.5px] ${
                   customer.coverPrint === o
-                    ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                    : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                    ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                    : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                 }`}
                 onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, coverPrint: o }))}
               >
@@ -2883,7 +2912,7 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                     <div
                       key={code}
                       className={`flex items-center justify-between p-2 rounded-xl cursor-pointer border-[1.5px] transition-all ${
-                        isSelected ? 'bg-white border-[#0071E3] shadow-[0_0_0_1px_#0071E3]' : 'bg-white border-[#D2D2D7] hover:border-[#86868B]'
+                        isSelected ? 'bg-white border-[#222828] ' : 'bg-white border-[#cbd0d0] hover:border-[#8a9292]'
                       }`}
                       onClick={() => setCustomer(prev => ({ ...prev, coverPaper: code, coverWeight: weights[0] }))}
                     >
@@ -2894,8 +2923,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                             key={w}
                             className={`px-2.5 py-1 text-xs rounded-lg transition-all border-[1.5px] ${
                               isSelected && customer.coverWeight === w
-                                ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                                : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                                ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                                : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                             }`}
                             onClick={(e) => { e.stopPropagation(); setCustomer(prev => ({ ...prev, coverPaper: code, coverWeight: w })); }}
                           >
@@ -2930,8 +2959,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                     disabled={isDisabled}
                     className={`flex-1 py-2.5 rounded-xl text-sm transition-all border-[1.5px] ${
                       customer[colorKey] === 'color'
-                        ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                        : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                        ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                        : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                     }`}
                     onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [colorKey]: 'color' }))}
                   >
@@ -2943,8 +2972,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                     disabled={isDisabled}
                     className={`flex-1 py-2.5 rounded-xl text-sm transition-all border-[1.5px] ${
                       customer[colorKey] === 'mono'
-                        ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                        : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                        ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                        : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                     }`}
                     onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [colorKey]: 'mono' }))}
                   >
@@ -2961,8 +2990,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                     disabled={isDisabled}
                     className={`flex-1 py-2.5 rounded-xl text-sm transition-all border-[1.5px] ${
                       customer[sideKey] === 'single'
-                        ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                        : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                        ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                        : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                     }`}
                     onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [sideKey]: 'single' }))}
                   >
@@ -2974,8 +3003,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                     disabled={isDisabled}
                     className={`flex-1 py-2.5 rounded-xl text-sm transition-all border-[1.5px] ${
                       customer[sideKey] === 'double'
-                        ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                        : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                        ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                        : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                     }`}
                     onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [sideKey]: 'double' }))}
                   >
@@ -3028,10 +3057,10 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                       disabled={isCoatingDisabled}
                       className={`px-4 py-2 rounded-xl text-sm transition-all border-[1.5px] ${
                         isCoatingDisabled
-                          ? 'bg-[#F5F5F7] text-[#AEAEB2] border-[#D2D2D7] cursor-not-allowed'
+                          ? 'bg-[#f5f7f7] text-[#8a9292] border-[#cbd0d0] cursor-not-allowed'
                           : customer.finishing?.coating
-                            ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                            : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                            ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                            : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                       }`}
                       onClick={() => !isCoatingDisabled && setCustomer(prev => ({
                         ...prev,
@@ -3059,8 +3088,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 <button
                   className={`px-4 py-2 rounded-xl text-sm transition-all border-[1.5px] ${
                     customer.finishing?.osiEnabled
-                      ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                      : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                      ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                      : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                   }`}
                   onClick={() => setCustomer(prev => ({
                     ...prev,
@@ -3078,8 +3107,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 <button
                   className={`px-4 py-2 rounded-xl text-sm transition-all border-[1.5px] ${
                     customer.finishing?.foldEnabled
-                      ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                      : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                      ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                      : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                   }`}
                   onClick={() => {
                     if (!customer.finishing?.foldEnabled) {
@@ -3099,8 +3128,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 <button
                   className={`px-4 py-2 rounded-xl text-sm transition-all border-[1.5px] ${
                     customer.finishing?.corner
-                      ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                      : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                      ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                      : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                   }`}
                   onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, corner: !prev.finishing?.corner } }))}
                 >
@@ -3111,8 +3140,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 <button
                   className={`px-4 py-2 rounded-xl text-sm transition-all border-[1.5px] ${
                     customer.finishing?.punch
-                      ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                      : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                      ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                      : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                   }`}
                   onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, punch: !prev.finishing?.punch } }))}
                 >
@@ -3123,8 +3152,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 <button
                   className={`px-4 py-2 rounded-xl text-sm transition-all border-[1.5px] ${
                     customer.finishing?.mising
-                      ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                      : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                      ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                      : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                   }`}
                   onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, mising: !prev.finishing?.mising } }))}
                 >
@@ -3142,8 +3171,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                       <button
                         className={`px-3 py-1.5 rounded-lg text-sm transition-all border-[1.5px] ${
                           customer.finishing?.coatingType === 'matte'
-                            ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                            : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                            ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                            : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                         }`}
                         onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingType: 'matte' } }))}
                       >
@@ -3154,8 +3183,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                       <button
                         className={`px-3 py-1.5 rounded-lg text-sm transition-all border-[1.5px] ${
                           customer.finishing?.coatingType === 'gloss'
-                            ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                            : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                            ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                            : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                         }`}
                         onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingType: 'gloss' } }))}
                       >
@@ -3169,8 +3198,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                       <button
                         className={`px-3 py-1.5 rounded-lg text-sm transition-all border-[1.5px] ${
                           customer.finishing?.coatingSide === 'single'
-                            ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                            : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                            ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                            : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                         }`}
                         onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingSide: 'single' } }))}
                       >
@@ -3181,8 +3210,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                       <button
                         className={`px-3 py-1.5 rounded-lg text-sm transition-all border-[1.5px] ${
                           customer.finishing?.coatingSide === 'double'
-                            ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                            : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                            ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                            : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                         }`}
                         onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingSide: 'double' } }))}
                       >
@@ -3203,8 +3232,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                       key={n}
                       className={`px-3 py-1.5 rounded-lg text-sm transition-all border-[1.5px] ${
                         customer.finishing?.osi === n
-                          ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                          : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                          ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                          : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                       }`}
                       onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, osi: n } }))}
                     >
@@ -3224,8 +3253,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                       key={n}
                       className={`px-3 py-1.5 rounded-lg text-sm transition-all border-[1.5px] ${
                         customer.finishing?.fold === n
-                          ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                          : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                          ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                          : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                       }`}
                       onClick={() => handleFoldSelect(n, cfg)}
                     >
@@ -3250,8 +3279,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 disabled={isDisabled}
                 className={`flex-1 px-4 py-2.5 rounded-xl text-sm transition-all border-[1.5px] ${
                   customer.back === o
-                    ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                    : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                    ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                    : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                 }`}
                 onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, back: o }))}
               >
@@ -3273,8 +3302,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 disabled={isDisabled}
                 className={`flex-1 px-4 py-2.5 rounded-xl text-sm transition-all border-[1.5px] ${
                   customer.springColor === o
-                    ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                    : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                    ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                    : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                 }`}
                 onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, springColor: o }))}
               >
@@ -3392,8 +3421,8 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                         key={`${code}-${w}`}
                         className={`px-3 py-1.5 text-xs rounded-lg transition-all border-[1.5px] ${
                           customer.coverPaper === code && customer.coverWeight === w
-                            ? 'bg-white border-[#0071E3] text-[#1D1D1F] font-medium shadow-[0_0_0_1px_#0071E3]'
-                            : 'bg-white border-[#D2D2D7] text-[#1D1D1F] hover:border-[#86868B]'
+                            ? 'bg-white border-[#222828] text-[#222828] font-medium'
+                            : 'bg-white border-[#cbd0d0] text-[#222828] hover:border-[#8a9292]'
                         }`}
                         onClick={() => setCustomer(prev => ({ ...prev, coverPaper: code, coverWeight: w }))}
                       >
@@ -3423,16 +3452,16 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                   key={opt.id}
                   className={`flex-1 py-3 px-2 rounded-xl text-center transition-all border-[1.5px] ${
                     customer.delivery === opt.id
-                      ? 'bg-white border-[#0071E3] shadow-[0_0_0_1px_#0071E3]'
-                      : 'bg-white border-[#D2D2D7] hover:border-[#86868B]'
+                      ? 'bg-white border-[#222828] '
+                      : 'bg-white border-[#cbd0d0] hover:border-[#8a9292]'
                   }`}
                   onClick={() => setCustomer(prev => ({ ...prev, delivery: opt.id, deliveryPercent: opt.percent }))}
                 >
-                  <p className={`text-sm font-medium ${customer.delivery === opt.id ? 'text-[#1D1D1F]' : 'text-[#1D1D1F]'}`}>{dateStr}</p>
+                  <p className={`text-sm font-medium ${customer.delivery === opt.id ? 'text-[#222828]' : 'text-[#222828]'}`}>{dateStr}</p>
                   <p className={`text-xs ${
                     customer.delivery === opt.id
-                      ? 'text-[#86868B]'
-                      : opt.percent > 0 ? 'text-red-500' : opt.percent < 0 ? 'text-green-600' : 'text-[#86868B]'
+                      ? 'text-[#8a9292]'
+                      : opt.percent > 0 ? 'text-red-500' : opt.percent < 0 ? 'text-green-600' : 'text-[#8a9292]'
                   }`}>
                     {opt.percent > 0 ? `+${opt.percent}%` : opt.percent < 0 ? `${opt.percent}%` : '기준가'}
                   </p>

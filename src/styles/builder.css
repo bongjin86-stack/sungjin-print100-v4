@@ -15,20 +15,20 @@
   --bg-page: #FFFFFF;
   --bg-card: #FFFFFF;
   --bg-button: #FFFFFF;
-  --bg-button-hover: #F5F5F7;
-  --bg-summary: #F5F5F7;
-  --bg-input: #F5F5F7;
+  --bg-button-hover: #f5f7f7;
+  --bg-summary: #f5f7f7;
+  --bg-input: #f5f7f7;
 
   /* 테두리 */
-  --border-default: #D2D2D7;
-  --border-hover: #86868B;
-  --border-selected: #0071E3;
+  --border-default: #cbd0d0;
+  --border-hover: #8a9292;
+  --border-selected: #222828;
 
   /* 텍스트 */
-  --text-primary: #1D1D1F;
-  --text-secondary: #86868B;
-  --text-tertiary: #AEAEB2;
-  --text-link: #0071E3;
+  --text-primary: #222828;
+  --text-secondary: #8a9292;
+  --text-tertiary: #8a9292;
+  --text-link: #222828;
 
   /* 타이포그래피 */
   --font-weight-regular: 400;
@@ -659,11 +659,11 @@
 }
 
 .cta-button:hover {
-  background-color: #0077ED;
+  background-color: #4a5050;
 }
 
 .cta-button:active {
-  background-color: #006ADB;
+  background-color: #0f1111;
 }
 
 /* ============================================ */
@@ -829,7 +829,7 @@
 }
 
 .input-bordered:focus {
-  outline: 2px solid var(--border-selected, #0071E3);
+  outline: 2px solid var(--border-selected, #222828);
   outline-offset: 0;
   border-color: transparent;
 }
@@ -871,33 +871,33 @@
 }
 
 .btn-primary {
-  background-color: #0071E3;
+  background-color: #222828;
   color: #fff;
-  border-color: #0071E3;
+  border-color: #222828;
 }
 
 .btn-primary:hover {
-  background-color: #005BB5;
+  background-color: #4a5050;
 }
 
 .btn-success {
-  background-color: #16a34a;
+  background-color: #222828;
   color: #fff;
-  border-color: #16a34a;
+  border-color: #222828;
 }
 
 .btn-success:hover {
-  background-color: #15803d;
+  background-color: #4a5050;
 }
 
 .btn-ghost {
   background-color: transparent;
-  color: var(--text-primary, #1D1D1F);
+  color: var(--text-primary, #222828);
   border-color: transparent;
 }
 
 .btn-ghost:hover {
-  background-color: var(--bg-button-hover, #F5F5F7);
+  background-color: var(--bg-button-hover, #f5f7f7);
 }
 
 .btn-circle {
