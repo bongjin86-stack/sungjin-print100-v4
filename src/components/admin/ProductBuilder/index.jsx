@@ -400,7 +400,12 @@ export default function AdminBuilder() {
           if (cfg.default) defaults.qty = cfg.default;
           break;
         case 'delivery':
-          if (cfg.default) defaults.delivery = cfg.default;
+          if (cfg.default) {
+            defaults.delivery = cfg.default;
+            const opts = cfg.options || [];
+            const defaultOpt = opts.find(o => o.id === cfg.default);
+            if (defaultOpt) defaults.deliveryPercent = defaultOpt.percent;
+          }
           break;
         case 'pages':
         case 'pages_saddle':

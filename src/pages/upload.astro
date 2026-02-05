@@ -1,0 +1,10 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Upload from '@/components/order/Upload';
+
+export const prerender = false;
+---
+
+<Layout title="파일 업로드 - 성진프린트" description="인쇄 파일 업로드">
+  <Upload client:only="react" />
+</Layout>

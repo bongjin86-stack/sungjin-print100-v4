@@ -1,0 +1,12 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import CustomerOrderStatus from '@/components/order/CustomerOrderStatus';
+
+export const prerender = false;
+
+const { uuid } = Astro.params;
+---
+
+<Layout title="주문 조회 - 성진프린트" description="주문 상태를 확인합니다">
+  <CustomerOrderStatus client:only="react" uuid={uuid} />
+</Layout>

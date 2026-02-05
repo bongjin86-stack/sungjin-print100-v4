@@ -1,0 +1,10 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import OrderComplete from '@/components/order/OrderComplete';
+
+export const prerender = false;
+---
+
+<Layout title="주문 완료 - 성진프린트" description="주문이 완료되었습니다">
+  <OrderComplete client:only="react" />
+</Layout>

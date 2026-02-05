@@ -1,0 +1,10 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import AdminOrders from '@/components/admin/AdminOrders';
+
+export const prerender = false;
+---
+
+<AdminLayout title="주문 관리">
+  <AdminOrders client:only="react" />
+</AdminLayout>

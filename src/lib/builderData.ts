@@ -441,6 +441,7 @@ export function getDefaultCustomer(): CustomerSelection {
       coatingSide: null
     },
     delivery: 'next2',
+    deliveryPercent: 0,
     qty: 100,
     pages: 16,
     pp: 'clear',

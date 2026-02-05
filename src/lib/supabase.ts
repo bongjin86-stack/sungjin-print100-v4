@@ -115,3 +115,45 @@ export async function deleteImage(path: string): Promise<void> {
   const { error } = await supabase.storage.from('images').remove([path]);
   if (error) throw error;
 }
+
+// ============================================================
+// 주문 파일 업로드
+// ============================================================
+
+/**
+ * 주문 인쇄 파일 업로드
+ */
+export async function uploadOrderFile(file: File, orderId: string) {
+  const MAX_SIZE = 30 * 1024 * 1024; // 30MB
+
+  if (file.size > MAX_SIZE) {
+    throw new Error('파일 크기가 30MB를 초과합니다.');
+  }
+
+  const ext = file.name.split('.').pop();
+  const safeName = `${orderId}_${Date.now()}.${ext}`;
+  const path = `orders/${safeName}`;
+
+  const { data, error } = await supabase.storage
+    .from('images')
+    .upload(path, file, { upsert: false });
+
+  if (error) throw error;
+
+  const { data: urlData } = supabase.storage.from('images').getPublicUrl(path);
+
+  return {
+    url: urlData.publicUrl,
+    path: path,
+    fileName: file.name,
+    fileSize: file.size
+  };
+}
+
+/**
+ * 주문 파일 삭제
+ */
+export async function deleteOrderFile(path: string) {
+  const { error } = await supabase.storage.from('images').remove([path]);
+  if (error) throw error;
+}

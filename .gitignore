@@ -40,3 +40,4 @@ pnpm-debug.log*
 ### GitHub Actions ###
 .github export-ignore
 .vercel
+.env*.local
