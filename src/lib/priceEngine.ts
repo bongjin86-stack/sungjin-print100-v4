@@ -389,7 +389,81 @@ export function calculateBindingPrice(
     }
   }
 
-  // 5. 출고일 할인/할증
+  // 5. 후가공 (finishing block - 표지 후가공)
+  // 코팅: finishing block에서 설정된 경우 (coverCoating이 이미 처리되지 않은 경우만)
+  if (customer.finishing?.coating && !breakdown.coverCoating) {
+    const coatingSide = customer.finishing.coatingSide || 'single';
+    const isDouble = coatingSide === 'double';
+    const coatingFaces = isDouble ? coverFaces : coverSheets;
+    const coatingCost = getCoatingCost(coatingFaces, isDouble);
+
+    if (coatingCost) {
+      const coatingTotal = coatingCost.setup_cost + (coatingCost.cost_per_unit * coatingFaces);
+      breakdown.coverCoating = coatingTotal;
+      total += coatingTotal;
+    }
+  }
+
+  // 오시
+  if (customer.finishing?.osiEnabled && customer.finishing?.osi > 0) {
+    const osiCount = customer.finishing.osi;
+    const osiCost = getFinishingCostByLines('creasing', osiCount, qty);
+
+    if (osiCost) {
+      const osiTotal = osiCost.setup_cost + (osiCost.cost_per_unit * qty);
+      breakdown.osi = osiTotal;
+      total += osiTotal;
+    }
+  }
+
+  // 접지
+  if (customer.finishing?.foldEnabled && customer.finishing?.fold > 0) {
+    const foldCount = customer.finishing.fold;
+    const foldCost = getFinishingCostByLines('folding', foldCount, qty);
+
+    if (foldCost) {
+      const foldTotal = foldCost.setup_cost + (foldCost.cost_per_unit * qty);
+      breakdown.fold = foldTotal;
+      total += foldTotal;
+    }
+  }
+
+  // 귀도리
+  if (customer.finishing?.corner) {
+    const cornerCost = getFinishingCost('corner_rounding');
+
+    if (cornerCost) {
+      const batches = Math.ceil(qty / 100);
+      const cornerTotal = cornerCost.setup_cost + (cornerCost.cost_per_unit * batches);
+      breakdown.corner = cornerTotal;
+      total += cornerTotal;
+    }
+  }
+
+  // 타공
+  if (customer.finishing?.punch) {
+    const punchCost = getFinishingCost('punching');
+
+    if (punchCost) {
+      const holes = customer.punchHoles || 2;
+      const punchTotal = punchCost.setup_cost + (punchCost.cost_per_unit * holes * qty);
+      breakdown.punch = punchTotal;
+      total += punchTotal;
+    }
+  }
+
+  // 미싱
+  if (customer.finishing?.mising) {
+    const misingCost = getFinishingCost('perforating');
+
+    if (misingCost) {
+      const misingTotal = misingCost.setup_cost + (misingCost.cost_per_unit * qty);
+      breakdown.mising = misingTotal;
+      total += misingTotal;
+    }
+  }
+
+  // 6. 출고일 할인/할증
   const deliveryPercent = customer.deliveryPercent || 0;
   const deliveryRate = 1 + (deliveryPercent / 100);
 
@@ -401,7 +475,7 @@ export function calculateBindingPrice(
 
   const perUnit = qty > 0 ? Math.round(total / qty) : 0;
 
-  // 6. 두께 계산 및 검증
+  // 7. 두께 계산 및 검증
   const totalThickness = calculateBindingThickness(
     bindingType,
     pages,
