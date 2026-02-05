@@ -5,6 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-02-05
+
+성진프린트 인쇄 주문 시스템 v1→v2 마이그레이션 완료.
+Nagi 기업 사이트 테마 위에 인쇄 주문 기능 전체 이식.
+
+### Added - 인프라
+
+- Supabase DB 서비스 레이어 이식 (`dbService.ts`, TypeScript)
+- Tailwind CSS 4 설치 및 CSS cascade layers 구성
+- Vercel SSR adapter 적용 (`output: "server"`)
+- BlockNote 리치 텍스트 에디터 도입 (Toast UI 에디터에서 전환)
+- Claude Code + bkit 프로젝트 설정 초기화 (`CLAUDE.md`, `.claude/settings.json`)
+
+### Added - Admin 시스템
+
+- DB 관리 UI 이식 (용지, 사이즈, 인쇄비, 후가공비, 제본비, 선계산가격)
+- 사업장 정보 DB 연동 (Footer + Admin 설정)
+- About 페이지 관리 (CEO/팀원/연혁 편집)
+- Hero 섹션 줄 단위 텍스트 관리 (크기/자간/굵기/여백)
+- Partner 로고 관리
+- Services 섹션 DB 연동
+- 대시보드 UI 개선 (스마트 빠른 작업 로직)
+
+### Added - 상품 시스템
+
+- 상품 빌더 시스템 이식 (`ProductBuilder/index.jsx`, 모놀리스)
+- 가격 엔진 이식 (`priceEngine.ts`, TypeScript)
+- 인쇄 규칙 관리 이식 (`rules.ts`)
+- 영업일 계산 이식 (`businessDays.ts`)
+- 하이라이트 카드 추가 (moo.com 스타일, 아이콘 선택 가능)
+- 빌더/상품페이지 nagi 색상 팔레트 적용 (#222828 primary)
+
+### Added - 주문 시스템
+
+- 주문서 작성 이식 (`Checkout.jsx`, `CheckoutSections.jsx`)
+- 파일 업로드 이식 (`Upload.jsx`)
+- 주문 완료 페이지 이식 (`OrderComplete.jsx`)
+- 주문 조회 이식 (`CustomerOrderStatus.jsx`)
+- 주문 관리 Admin 이식 (`AdminOrders.jsx`, `OrderDetailModal.jsx`)
+- 배송비/포장비 계산기 이식 (`shippingCalculator.js`, `packagingCalculator.js`)
+- 주문 알림 이메일 이식 (`emailService.js`)
+
+### Fixed
+
+- 제본 상품 후가공 비용 누락 버그 수정 (`calculateBindingPrice`에 finishing block 미반영)
+- 하이라이트 아이콘 선택 시 사라지는 버그 수정 (DOM 타겟 오류)
+- 출고일(deliveryPercent) 할인/할증 미반영 버그 수정
+- 빌더/상품페이지 스타일 불일치 수정 (box-shadow, 후가공 버튼 크기)
+- 용지 관리 이미지 크기 제한 추가
+- BlockNote SSR 에러 수정
+- Hero 미리보기 이미지 잘림 수정
+- 이미지 최적화 설정 수정 (noop 서비스)
+
+### Changed
+
+- v1 JavaScript → v2 TypeScript 전환 (priceEngine, builderData, businessDays, dbService, supabase)
+- Apple Blue (#0071E3) → nagi 팔레트 (#222828) 색상 변경
+- 뉴스 카테고리 한국어화
+- 전체 사이트 한국어 로컬라이제이션
+
+### Documentation
+
+- 가격 체계 완전 문서 (`docs/pricing-system.md`)
+- 연동 규칙/제한사항 문서 (`docs/rules-constraints.md`)
+- DB 마이그레이션 완료 보고서
+- DB 관리 시스템 이식 보고서
+- 에러 리포트 (`docs/error-report.md`)
+
+---
+
 ## [1.0.3] - 2026-01-27
 
 ### Changed

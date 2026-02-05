@@ -37,7 +37,6 @@ pnpm-debug.log*
 .claude/settings.local.json
 
 # other
-/docs
 .vscode
 
 ### GitHub Actions ###
