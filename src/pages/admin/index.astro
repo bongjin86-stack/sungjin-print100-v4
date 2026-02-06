@@ -15,6 +15,8 @@ const [
   { count: pendingCount },
   { count: monthCount },
   { data: recentOrders },
+  { data: todaySales },
+  { data: monthSales },
 ] = await Promise.all([
   // 오늘 주문
   supabase
@@ -37,7 +39,23 @@ const [
     .select('id, order_number, status, customer_email, total_amount, items, created_at')
     .order('created_at', { ascending: false })
     .limit(5),
+  // 오늘 매출 (취소 제외)
+  supabase
+    .from('orders')
+    .select('total_amount')
+    .gte('created_at', todayStart)
+    .neq('status', 'canceled'),
+  // 이번 달 매출 (취소 제외)
+  supabase
+    .from('orders')
+    .select('total_amount')
+    .gte('created_at', monthStart)
+    .neq('status', 'canceled'),
 ]);
+
+// 매출 합계 계산
+const todayRevenue = todaySales?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
+const monthRevenue = monthSales?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
 
 // 주문 상태 한글 변환
 const statusLabels: Record<string, string> = {
@@ -85,35 +103,47 @@ function formatDate(dateStr: string): string {
   return `${month}.${day}`;
 }
 
-// 빠른 작업
-const quickActions = [
-  { name: '공지사항 작성', href: '/admin/news/new' },
-  { name: 'Works 추가', href: '/admin/works/new' },
-  { name: '사이트 보기', href: '/', external: true },
-];
 ---
 
 <AdminLayout title="대시보드">
   <div class="dashboard">
-    <!-- 주문 현황 카드 -->
-    <div class="stats-section">
-      <h2 class="section-title">📦 주문 현황</h2>
-      <div class="stats-grid">
-        <a href="/admin/orders?filter=today" class="stat-card">
-          <span class="stat-label">오늘 주문</span>
-          <span class="stat-value">{todayCount || 0}</span>
-          <span class="stat-unit">건</span>
-        </a>
-        <a href="/admin/orders?status=pending,confirmed" class="stat-card highlight">
-          <span class="stat-label">처리 대기</span>
-          <span class="stat-value">{pendingCount || 0}</span>
-          <span class="stat-unit">건</span>
-        </a>
-        <a href="/admin/orders" class="stat-card">
-          <span class="stat-label">이번 달</span>
-          <span class="stat-value">{monthCount || 0}</span>
-          <span class="stat-unit">건</span>
-        </a>
+    <!-- 주문 & 매출 현황 -->
+    <div class="stats-row">
+      <div class="stats-section">
+        <h2 class="section-title">📦 주문 현황</h2>
+        <div class="stats-grid">
+          <a href="/admin/orders?filter=today" class="stat-card">
+            <span class="stat-label">오늘 주문</span>
+            <span class="stat-value">{todayCount || 0}</span>
+            <span class="stat-unit">건</span>
+          </a>
+          <a href="/admin/orders?status=pending,confirmed" class="stat-card highlight">
+            <span class="stat-label">처리 대기</span>
+            <span class="stat-value">{pendingCount || 0}</span>
+            <span class="stat-unit">건</span>
+          </a>
+          <a href="/admin/orders" class="stat-card">
+            <span class="stat-label">이번 달</span>
+            <span class="stat-value">{monthCount || 0}</span>
+            <span class="stat-unit">건</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="stats-section">
+        <h2 class="section-title">💰 매출 현황</h2>
+        <div class="stats-grid two-cols">
+          <div class="stat-card revenue">
+            <span class="stat-label">오늘 매출</span>
+            <span class="stat-value-sm">{todayRevenue.toLocaleString()}</span>
+            <span class="stat-unit">원</span>
+          </div>
+          <div class="stat-card revenue">
+            <span class="stat-label">이번 달 매출</span>
+            <span class="stat-value-sm">{monthRevenue.toLocaleString()}</span>
+            <span class="stat-unit">원</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -147,23 +177,6 @@ const quickActions = [
       </div>
     </div>
 
-    <!-- 빠른 링크 -->
-    <div class="dashboard-section">
-      <div class="section-header">
-        <h2>빠른 링크</h2>
-      </div>
-      <div class="quick-actions">
-        {quickActions.map((action) => (
-          <a
-            href={action.href}
-            class="action-card"
-            target={action.external ? '_blank' : undefined}
-          >
-            {action.name}
-          </a>
-        ))}
-      </div>
-    </div>
   </div>
 
   <style>
@@ -178,18 +191,38 @@ const quickActions = [
       margin: 0 0 1rem 0;
     }
 
-    .stats-section {
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
       margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .stats-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stats-section {
+      margin-bottom: 0;
     }
 
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
+      gap: 0.75rem;
+    }
+
+    .stats-grid.two-cols {
+      grid-template-columns: repeat(2, 1fr);
     }
 
     @media (max-width: 600px) {
       .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .stats-grid.two-cols {
         grid-template-columns: 1fr;
       }
     }
@@ -218,6 +251,11 @@ const quickActions = [
       border-color: #f59e0b;
     }
 
+    .stat-card.revenue {
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+      border-color: #10b981;
+    }
+
     .stat-label {
       font-size: var(--fs-sm);
       color: var(--c-text-sub);
@@ -225,6 +263,13 @@ const quickActions = [
 
     .stat-value {
       font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--c-text);
+      line-height: 1;
+    }
+
+    .stat-value-sm {
+      font-size: 1.5rem;
       font-weight: 700;
       color: var(--c-text);
       line-height: 1;
@@ -354,25 +399,5 @@ const quickActions = [
       font-size: var(--fs-sm);
     }
 
-    .quick-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-
-    .action-card {
-      padding: 0.75rem 1.25rem;
-      background: var(--c-bg-secondary);
-      border-radius: 8px;
-      text-decoration: none;
-      color: var(--c-text);
-      font-size: var(--fs-sm);
-      font-weight: 500;
-      transition: background 0.2s;
-    }
-
-    .action-card:hover {
-      background: var(--c-border-light);
-    }
   </style>
 </AdminLayout>
