@@ -21,6 +21,7 @@ export interface PaperCost {
   base_sheet: string; // '467x315' or '390x270'
   cost_per_sheet: number;
   margin_rate: number;
+  thickness: number | null; // 용지 두께 (mm) - 제본 두께 계산용
   is_active: boolean;
   created_at: string;
   updated_at: string;

@@ -17,10 +17,10 @@ import {
 
 // ============================================================
 // 선계산된 가격 테이블 사용 플래그
-// true: size_paper_price 테이블에서 부당 판매가 직접 조회
-// false: 기존 방식 (cost x margin_rate / up_count 계산)
+// false: dbService 캐시의 Map 인덱스로 O(1) 실시간 계산 (권장)
+// true: size_paper_price 테이블 사용 (deprecated)
 // ============================================================
-export const USE_PRECALC = true;
+export const USE_PRECALC = false;
 
 export interface PriceBreakdown {
   paper?: number;
@@ -524,10 +524,25 @@ export function calculatePrice(
 // 두께 계산 유틸리티
 // ============================================================
 
+/**
+ * 용지 1장 두께 추정 (mm)
+ *
+ * 두께 계수 (mm/g) - 2026-02-06 검증 완료:
+ * - 아트지/스노우지: 0.0009 (한국/해외 평균)
+ * - 모조지: 0.00115 (한국/해외 일치)
+ * - 랑데뷰/인스퍼: 0.0012 (프리미엄 용지, 평량보다 두꺼움)
+ * - 크라프트: 0.0012
+ *
+ * 참고: DB paper_costs.thickness에 실제값 저장됨
+ * 이 함수는 DB 데이터 없을 때 fallback용
+ */
 export function estimateThickness(weight: number, paperCode: string = ''): number {
   const thicknessFactors: Record<string, number> = {
-    'art': 0.0008,
-    'snow': 0.0008,
+    'art': 0.0009,
+    'snow': 0.0009,
+    'mojo': 0.00115,
+    'inspirer': 0.0012,
+    'rendezvous': 0.0012,
     'matte': 0.0009,
     'ivory': 0.0010,
     'kraft': 0.0012,
