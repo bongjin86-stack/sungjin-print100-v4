@@ -774,12 +774,13 @@ export default function AdminBuilder() {
           pagesLocked: false, pagesHidden: false,
         };
       case 'pages_saddle':
-        return { min: 8, max: 48, step: 4, default: 16 };
+        return { min: 8, max: 48, step: 4, default: 16, maxThickness: 2.5 };
       case 'pages_leaf':
-        return { min: 10, max: 500, step: 2, default: 50 };
+        return { min: 10, max: 500, step: 2, default: 50, maxThickness: 50 };
       case 'pages':
         return {
           min: 8, max: 48, step: 4, default: 16,
+          maxThickness: 2.5, // mm, 제본 두께 제한 (중철: 2.5, 무선: 50, 스프링: 20)
           bindingType: 'saddle',
           linkedBlocks: {}
         };

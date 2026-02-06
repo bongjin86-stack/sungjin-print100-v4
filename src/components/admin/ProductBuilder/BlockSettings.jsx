@@ -839,9 +839,9 @@ function BlockSettings({
       return (
         <div className="space-y-4">
           {/* 페이지 수 범위 */}
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-5 gap-3">
             <div>
-              <label className="text-xs text-gray-500 block mb-1">최소</label>
+              <label className="text-xs text-gray-500 block mb-1">최소 (p)</label>
               <input
                 type="number"
                 value={cfg.min}
@@ -850,7 +850,7 @@ function BlockSettings({
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">최대</label>
+              <label className="text-xs text-gray-500 block mb-1">최대 (p)</label>
               <input
                 type="number"
                 value={cfg.max}
@@ -879,7 +879,22 @@ function BlockSettings({
                 className="w-full select select-bordered select-sm"
               />
             </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">두께제한 (mm)</label>
+              <input
+                type="number"
+                value={cfg.maxThickness || ''}
+                step="0.1"
+                min="0"
+                placeholder="예: 2.5"
+                onChange={(e) => updateCfg(block.id, 'maxThickness', parseFloat(e.target.value) || null)}
+                className="w-full select select-bordered select-sm"
+              />
+            </div>
           </div>
+          <p className="text-xs text-gray-400">
+            💡 두께제한: 중철 2.5mm, 무선 50mm, 스프링 20mm 권장. 용지+평량+페이지로 두께 자동 계산되어 초과 시 에러 표시.
+          </p>
 
           {/* 제본 타입 선택 (pages 타입일 때만) */}
           {block.type === 'pages' && (
