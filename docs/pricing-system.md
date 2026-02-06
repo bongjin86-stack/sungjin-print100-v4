@@ -36,8 +36,8 @@ DB 조회 (dbService.ts의 캐시된 Map)
 ## 2. 공통 설정
 
 ```typescript
-USE_PRECALC = true  // size_paper_price 테이블에서 직접 조회 (빠름)
-                     // false면 paper_costs에서 계산
+USE_PRECALC = false  // 실시간 계산 (paper_costs + Map 인덱스)
+                      // size_paper_price 테이블은 deprecated
 ```
 
 ### 인쇄비 할인
@@ -75,7 +75,7 @@ cuttingTotal = setup_cost + (cost_per_unit × 수량)
 coatingFaces = 양면코팅 ? faces : sheets
 coatingTotal = setup_cost + (cost_per_unit × coatingFaces)
 ※ 양면 코팅시 setup_cost = setup_cost_double (보통 2배)
-※ 150g 미만 용지: 코팅 불가
+※ 150g 이하 용지: 코팅 불가
 ```
 
 #### 3-5. 오시 (선택)
@@ -268,7 +268,7 @@ PP커버: ppTotal = setup_cost + (cost_per_unit × 수량)
 | 코드 | 규칙 | 조건 | 동작 |
 |------|------|------|------|
 | R001 | 오시 강제 | 130g 이상 + 접지 | 오시 자동 추가 |
-| R002 | 코팅 제한 | 150g 미만 | 코팅 비활성화 |
+| R002 | 코팅 제한 | 150g 이하 | 코팅 비활성화 |
 | R-ST | 두께 제한 | 두께 초과 | 경고 또는 주문 차단 |
 | UI-001 | 옵션 자동잠금 | 활성 옵션 1개 | 블록 잠금 |
 | UI-002 | 더블클릭 기본값 | 더블클릭 | ★ 기본값 설정 |

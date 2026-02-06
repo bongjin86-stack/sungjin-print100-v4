@@ -37,6 +37,7 @@ src/
 │   │   └── *Form.tsx        # CMS content forms (Hero, About, etc.)
 │   ├── product/         # Customer-facing product view
 │   ├── order/           # Checkout, upload, order status
+│   ├── shared/          # Shared components (PreviewBlock, etc.)
 │   ├── layout/          # Header, Footer, Navigation
 │   ├── sections/        # Landing page sections
 │   └── ui/              # Reusable UI components

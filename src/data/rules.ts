@@ -36,10 +36,10 @@ export const RULES: Rule[] = [
     id: 'R001',
     name: '오시 강제',
     category: '후가공',
-    condition: '150g 이상 + 접지 선택',
+    condition: '130g 이상 + 접지 선택',
     action: '오시 자동 추가 (2단→1줄, 3단→2줄, 4단→3줄), 접지 해제시 오시도 해제',
     status: 'applied',
-    message: '150g 이상 용지는 접지 시 오시가 필요합니다. 오시비가 자동 추가됩니다.',
+    message: '130g 이상 용지는 접지 시 오시가 필요합니다. 오시비가 자동 추가됩니다.',
     implementedIn: 'ProductBuilder/index.jsx - handleFoldSelect + 접지OFF, ProductView.jsx - handleFoldSelect + 접지OFF'
   },
   {

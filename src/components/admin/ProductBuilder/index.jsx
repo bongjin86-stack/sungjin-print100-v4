@@ -649,9 +649,15 @@ export default function AdminBuilder() {
         product_type: currentProduct.productType || null,
         is_published: true
       })
-    }).catch(err => console.error('Supabase 저장 실패:', err));
-
-    alert('변경사항이 적용되었습니다.');
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        alert('변경사항이 적용되었습니다.');
+      })
+      .catch(err => {
+        console.error('Supabase 저장 실패:', err);
+        alert('저장에 실패했습니다. 다시 시도해주세요.');
+      });
   };
 
   // 블록 ON/OFF
@@ -687,7 +693,7 @@ export default function AdminBuilder() {
   const addBlock = (type) => {
     const blockType = BLOCK_TYPES[type];
     const newBlock = {
-      id: `block_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: crypto.randomUUID(),
       type,
       label: blockType.name,
       desc: blockType.desc || '',  // 블록 설명
@@ -989,9 +995,15 @@ export default function AdminBuilder() {
         product_type: currentProduct.productType || null,
         is_published: true
       })
-    }).catch(err => console.error('Supabase 저장 실패:', err));
-
-    alert(`"${currentProduct.name}" 저장 완료!`);
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        alert(`"${currentProduct.name}" 저장 완료!`);
+      })
+      .catch(err => {
+        console.error('Supabase 저장 실패:', err);
+        alert('저장에 실패했습니다. 다시 시도해주세요.');
+      });
   };
 
   // JSON 파일로 내보내기 (백업용)
