@@ -13,18 +13,30 @@ const { title, fullBleed = false } = Astro.props;
 
 const currentPath = Astro.url.pathname;
 
-const navItems = [
-  { href: '/admin', label: '대시보드' },
-  { href: '/admin/products', label: '상품 관리' },
+// 단독 메뉴 항목 (비즈니스)
+const businessItems = [
   { href: '/admin/orders', label: '주문 관리' },
-  { href: '/admin/about', label: 'About 페이지' },
-  { href: '/admin/news', label: '공지사항' },
-  { href: '/admin/works', label: 'Works' },
-  { href: '/admin/services', label: '서비스' },
-  { href: '/admin/faq', label: 'FAQ' },
-  { href: '/admin/db', label: 'DB 관리' },
-  { href: '/admin/settings', label: '설정' },
+  { href: '/admin/products', label: '상품 관리' },
 ];
+
+// 페이지별 메뉴 (홈페이지 구조대로)
+const pageItems = [
+  { href: '/admin/landing', label: '랜딩 페이지' },
+  { href: '/admin/about', label: '회사소개' },
+  { href: '/admin/services', label: '서비스' },
+  { href: '/admin/works', label: 'Works' },
+  { href: '/admin/news', label: '공지사항' },
+  { href: '/admin/faq', label: 'FAQ' },
+];
+
+// 시스템 그룹
+const systemGroup = {
+  title: '시스템',
+  items: [
+    { href: '/admin/db', label: 'DB 관리' },
+    { href: '/admin/settings', label: '설정' },
+  ],
+};
 
 function isActive(href: string) {
   if (href === '/admin') {
@@ -32,6 +44,9 @@ function isActive(href: string) {
   }
   return currentPath.startsWith(href);
 }
+
+// 대시보드 단독 항목
+const dashboardItem = { href: '/admin', label: '대시보드' };
 ---
 
 <!doctype html>
@@ -51,18 +66,52 @@ function isActive(href: string) {
           <span class="admin-badge">Admin</span>
         </div>
         <nav class="admin-nav">
-          <ul>
-            {navItems.map((item) => (
-              <li>
-                <a 
-                  href={item.href} 
-                  class:list={['admin-nav-item', { active: isActive(item.href) }]}
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
+          {/* 대시보드 */}
+          <a
+            href={dashboardItem.href}
+            class:list={['admin-nav-item', { active: isActive(dashboardItem.href) }]}
+          >
+            {dashboardItem.label}
+          </a>
+
+          {/* 비즈니스 메뉴 (주문관리, 상품관리) */}
+          {businessItems.map((item) => (
+            <a
+              href={item.href}
+              class:list={['admin-nav-item', { active: isActive(item.href) }]}
+            >
+              {item.label}
+            </a>
+          ))}
+
+          <div class="nav-divider"></div>
+
+          {/* 페이지별 메뉴 (홈페이지 구조대로) */}
+          {pageItems.map((item) => (
+            <a
+              href={item.href}
+              class:list={['admin-nav-item', { active: isActive(item.href) }]}
+            >
+              {item.label}
+            </a>
+          ))}
+
+          {/* 시스템 그룹 */}
+          <div class="nav-group">
+            <span class="nav-group-title">{systemGroup.title}</span>
+            <ul>
+              {systemGroup.items.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    class:list={['admin-nav-item', { active: isActive(item.href) }]}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </nav>
         <div class="admin-sidebar-footer">
           <div class="admin-user-info">
@@ -173,12 +222,36 @@ function isActive(href: string) {
       .admin-nav {
         flex: 1;
         padding: var(--sp-md) 0;
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-xs);
       }
 
       .admin-nav ul {
         list-style: none;
         margin: 0;
         padding: 0;
+      }
+
+      .nav-divider {
+        height: 1px;
+        background-color: rgba(255, 255, 255, 0.1);
+        margin: var(--sp-sm) var(--sp-lg);
+      }
+
+      .nav-group {
+        margin-top: var(--sp-sm);
+      }
+
+      .nav-group-title {
+        display: block;
+        padding: var(--sp-xs) var(--sp-lg);
+        font-size: var(--fs-xs);
+        font-weight: 600;
+        color: var(--c-text-inverse-sub);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.6;
       }
 
       .admin-nav-item {

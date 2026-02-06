@@ -32,7 +32,7 @@ if (error) {
       <div class="works-grid">
         {works && works.map((work) => (
           <article class="work-item fade" data-animate>
-            <a class="item-link" href={`/works/detail/${work.id}`}>
+            <a class="item-link" href={`/works/${work.id}`}>
               <div class="item-image">
                 <img
                   src={work.image || 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=800&h=600&fit=crop'}

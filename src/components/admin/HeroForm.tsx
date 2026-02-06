@@ -312,48 +312,57 @@ export default function HeroForm() {
         label="Hero 이미지"
       />
 
-      {/* 실제 사이트와 동일한 비율의 미리보기 */}
+      {/* 저장 버튼 */}
+      <div className="save-section">
+        <button
+          className="save-btn"
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? '저장 중...' : '저장하기'}
+        </button>
+      </div>
+
+      {/* 실제 사이트 비율 미리보기 */}
       <div className="preview-section">
         <div className="preview-header">
           <h3>실제 사이트 미리보기</h3>
-          <span className="preview-note">데스크탑 기준 (2.3:1 비율)</span>
+          <span className="preview-note">50% 축소 (데스크탑 기준)</span>
         </div>
-        <div className="hero-preview-container">
-          <div className="hero-preview">
-            <div className="preview-text">
-              {lines.map((line) => (
-                <span
-                  key={line.id}
-                  className="preview-line"
-                  style={{
-                    fontSize: `${line.fontSize}px`,
-                    letterSpacing: `${line.letterSpacing}px`,
-                    fontWeight: line.fontWeight,
-                    marginBottom: `${line.marginBottom}px`,
-                    display: 'block',
-                    lineHeight: 1.2
-                  }}
-                >
-                  {line.text}
-                </span>
-              ))}
-            </div>
-            {settings.image_url && (
-              <div className="preview-image">
-                <img src={settings.image_url} alt="Hero Preview" />
+        <div className="preview-viewport">
+          <div className="preview-scaler">
+            <div className="hero-preview">
+              <div className="preview-text">
+                {lines.map((line) => (
+                  <span
+                    key={line.id}
+                    className="preview-line"
+                    style={{
+                      fontSize: `${line.fontSize}px`,
+                      letterSpacing: `${line.letterSpacing}px`,
+                      fontWeight: line.fontWeight,
+                      marginBottom: `${line.marginBottom}px`,
+                      display: 'block',
+                      lineHeight: 1.2
+                    }}
+                  >
+                    {line.text}
+                  </span>
+                ))}
               </div>
-            )}
+              <div className="preview-image">
+                {settings.image_url ? (
+                  <img src={settings.image_url} alt="Hero Preview" />
+                ) : (
+                  <div className="preview-image-placeholder">
+                    이미지를 업로드하세요
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-      <button 
-        className="save-btn" 
-        onClick={handleSave}
-        disabled={saving}
-      >
-        {saving ? '저장 중...' : '저장하기'}
-      </button>
 
       <style>{`
         .hero-form {
@@ -558,21 +567,51 @@ export default function HeroForm() {
           text-align: right;
         }
 
-        /* 실제 사이트와 픽셀 단위로 동일한 미리보기 스타일 */
+        /* 저장 섹션 */
+        .save-section {
+          margin-top: 2rem;
+          padding: 1.5rem;
+          background: #f9fafb;
+          border-radius: 0.75rem;
+          border: 1px solid #e5e7eb;
+        }
+
+        .save-btn {
+          width: 100%;
+          padding: 1rem;
+          background: #2563eb;
+          color: white;
+          border: none;
+          border-radius: 0.5rem;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .save-btn:hover:not(:disabled) {
+          background: #1d4ed8;
+        }
+
+        .save-btn:disabled {
+          background: #9ca3af;
+          cursor: not-allowed;
+        }
+
+        /* 미리보기 섹션 - 축소된 브라우저 창 스타일 */
         .preview-section {
           margin-top: 2rem;
           background: #1a1a1a;
           border-radius: 1rem;
-          overflow: visible;
+          overflow: hidden;
         }
 
         .preview-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 1rem 1.5rem;
+          padding: 0.75rem 1rem;
           background: #2d2d2d;
-          border-bottom: 1px solid #404040;
         }
 
         .preview-header h3 {
@@ -586,68 +625,60 @@ export default function HeroForm() {
           color: #9ca3af;
         }
 
-        .hero-preview-container {
-          padding: 1.5rem;
-          padding-bottom: 2rem;
-          background: #ffffff;
-          overflow: visible;
+        .preview-viewport {
+          background: #f5f5f5;
+          padding: 1rem;
+          overflow: hidden;
         }
 
-        /* 실제 사이트 Hero 섹션과 동일한 스타일 */
-        .hero-preview {
+        .preview-scaler {
+          transform: scale(0.5);
+          transform-origin: top left;
+          width: 200%;
           background: white;
-          padding: 0;
-          max-width: 100%;
+          border-radius: 8px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+          overflow: hidden;
         }
 
-        /* 텍스트와 이미지 사이 간격: 실제 사이트는 gap: 64px (--sp-3xl) */
+        .hero-preview {
+          padding: 64px 48px;
+        }
+
         .preview-text {
-          margin-bottom: 64px;
+          margin-bottom: 48px;
           max-width: 900px;
         }
 
         .preview-line {
           color: #222828;
           font-family: "Outfit", "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, sans-serif;
-          line-height: 1.625;
+          line-height: 1.4;
         }
 
-        /* 이미지 border-radius: 실제 사이트는 24px (--radius-4xl) */
         .preview-image {
           width: 100%;
           border-radius: 24px;
-          overflow: visible;
+          overflow: hidden;
+          aspect-ratio: 2.3 / 1;
+          background: #e5e7eb;
         }
 
         .preview-image img {
           width: 100%;
-          height: auto;
-          object-fit: contain;
+          height: 100%;
+          object-fit: cover;
           display: block;
-          border-radius: 24px;
         }
 
-        .save-btn {
+        .preview-image-placeholder {
           width: 100%;
-          padding: 1rem;
-          background: #2563eb;
-          color: white;
-          border: none;
-          border-radius: 0.5rem;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          margin-top: 1.5rem;
-          transition: background 0.2s;
-        }
-
-        .save-btn:hover:not(:disabled) {
-          background: #1d4ed8;
-        }
-
-        .save-btn:disabled {
-          background: #9ca3af;
-          cursor: not-allowed;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #9ca3af;
+          font-size: 1.25rem;
         }
 
         .loading, .error {

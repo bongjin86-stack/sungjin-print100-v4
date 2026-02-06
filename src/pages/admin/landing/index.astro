@@ -1,0 +1,28 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import LandingSectionsForm from '@/components/admin/LandingSectionsForm';
+
+export const prerender = false;
+---
+
+<AdminLayout title="랜딩 페이지 관리">
+  <div class="landing-admin">
+    <p class="landing-desc">
+      메인 페이지의 Hero, About, CTA(문의하기) 섹션을 편집할 수 있습니다.
+    </p>
+
+    <LandingSectionsForm client:only="react" />
+  </div>
+</AdminLayout>
+
+<style>
+  .landing-admin {
+    max-width: 1200px;
+  }
+
+  .landing-desc {
+    color: var(--c-text-sub, #6b7280);
+    font-size: 0.875rem;
+    margin: 0 0 1rem 0;
+  }
+</style>
