@@ -194,45 +194,35 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
       return (
         <div className="pv-block">
           <p className="pv-block-label">{block.label}</p>
-          <div className="pv-print-grid">
-            <div>
-              <p className="pv-sub-label">컬러</p>
-              <div className="pv-btn-row">
-                {cfg.color && (
-                  <button
-                    disabled={isDisabled}
-                    className={`pv-btn ${customer[colorKey] === 'color' ? 'active' : ''}`}
-                    onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [colorKey]: 'color' }))}
-                  >컬러</button>
-                )}
-                {cfg.mono && (
-                  <button
-                    disabled={isDisabled}
-                    className={`pv-btn ${customer[colorKey] === 'mono' ? 'active' : ''}`}
-                    onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [colorKey]: 'mono' }))}
-                  >흑백</button>
-                )}
-              </div>
-            </div>
-            <div>
-              <p className="pv-sub-label">인쇄면</p>
-              <div className="pv-btn-row">
-                {cfg.single && (
-                  <button
-                    disabled={isDisabled}
-                    className={`pv-btn ${customer[sideKey] === 'single' ? 'active' : ''}`}
-                    onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [sideKey]: 'single' }))}
-                  >단면</button>
-                )}
-                {cfg.double && (
-                  <button
-                    disabled={isDisabled}
-                    className={`pv-btn ${customer[sideKey] === 'double' ? 'active' : ''}`}
-                    onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [sideKey]: 'double' }))}
-                  >양면</button>
-                )}
-              </div>
-            </div>
+          <div className="pv-btn-row">
+            {cfg.color && (
+              <button
+                disabled={isDisabled}
+                className={`pv-btn flex-1 ${customer[colorKey] === 'color' ? 'active' : ''}`}
+                onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [colorKey]: 'color' }))}
+              >컬러</button>
+            )}
+            {cfg.mono && (
+              <button
+                disabled={isDisabled}
+                className={`pv-btn flex-1 ${customer[colorKey] === 'mono' ? 'active' : ''}`}
+                onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [colorKey]: 'mono' }))}
+              >흑백</button>
+            )}
+            {cfg.single && (
+              <button
+                disabled={isDisabled}
+                className={`pv-btn flex-1 ${customer[sideKey] === 'single' ? 'active' : ''}`}
+                onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [sideKey]: 'single' }))}
+              >단면</button>
+            )}
+            {cfg.double && (
+              <button
+                disabled={isDisabled}
+                className={`pv-btn flex-1 ${customer[sideKey] === 'double' ? 'active' : ''}`}
+                onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [sideKey]: 'double' }))}
+              >양면</button>
+            )}
           </div>
         </div>
       );
@@ -243,7 +233,7 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
         <div className="pv-block">
           <p className="pv-block-label">{block.label}</p>
           <div className="pv-finishing">
-            <div className="pv-btn-row" style={{ flexWrap: 'wrap' }}>
+            <div className="pv-btn-row">
               {cfg.coating?.enabled && (() => {
                 let currentWeight = 80;
                 if (cfg.coating?.linkedPaper) {
@@ -265,27 +255,26 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                 const coatingValidation = validateCoatingWeight(currentWeight);
                 const isCoatingDisabled = !coatingValidation.valid;
                 return (
-                  <div className="pv-tooltip-wrap">
-                    <button
-                      disabled={isCoatingDisabled}
-                      className={`pv-btn ${isCoatingDisabled ? 'disabled-gray' : customer.finishing?.coating ? 'active' : ''}`}
-                      onClick={() => !isCoatingDisabled && setCustomer(prev => ({
-                        ...prev,
-                        finishing: {
-                          ...prev.finishing,
-                          coating: !prev.finishing?.coating,
-                          coatingType: !prev.finishing?.coating ? (prev.finishing?.coatingType || 'matte') : null,
-                          coatingSide: !prev.finishing?.coating ? (prev.finishing?.coatingSide || 'single') : null
-                        }
-                      }))}
-                    >코팅</button>
-                    {isCoatingDisabled && <div className="pv-tooltip">{coatingValidation.message}</div>}
-                  </div>
+                  <button
+                    key="coating"
+                    disabled={isCoatingDisabled}
+                    className={`pv-btn flex-1 ${isCoatingDisabled ? 'disabled-gray' : customer.finishing?.coating ? 'active' : ''}`}
+                    onClick={() => !isCoatingDisabled && setCustomer(prev => ({
+                      ...prev,
+                      finishing: {
+                        ...prev.finishing,
+                        coating: !prev.finishing?.coating,
+                        coatingType: !prev.finishing?.coating ? (prev.finishing?.coatingType || 'matte') : null,
+                        coatingSide: !prev.finishing?.coating ? (prev.finishing?.coatingSide || 'single') : null
+                      }
+                    }))}
+                    title={isCoatingDisabled ? coatingValidation.message : ''}
+                  >코팅</button>
                 );
               })()}
               {cfg.osi?.enabled && (
                 <button
-                  className={`pv-btn ${customer.finishing?.osiEnabled ? 'active' : ''}`}
+                  className={`pv-btn flex-1 ${customer.finishing?.osiEnabled ? 'active' : ''}`}
                   onClick={() => setCustomer(prev => ({
                     ...prev,
                     finishing: { ...prev.finishing, osiEnabled: !prev.finishing?.osiEnabled, osi: !prev.finishing?.osiEnabled ? (prev.finishing?.osi || 1) : null }
@@ -294,7 +283,7 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
               )}
               {cfg.fold?.enabled && (
                 <button
-                  className={`pv-btn ${customer.finishing?.foldEnabled ? 'active' : ''}`}
+                  className={`pv-btn flex-1 ${customer.finishing?.foldEnabled ? 'active' : ''}`}
                   onClick={() => {
                     if (!customer.finishing?.foldEnabled) {
                       handleFoldSelect(customer.finishing?.fold || 2, cfg);
@@ -306,19 +295,19 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
               )}
               {cfg.corner && (
                 <button
-                  className={`pv-btn ${customer.finishing?.corner ? 'active' : ''}`}
+                  className={`pv-btn flex-1 ${customer.finishing?.corner ? 'active' : ''}`}
                   onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, corner: !prev.finishing?.corner } }))}
                 >귀도리</button>
               )}
               {cfg.punch && (
                 <button
-                  className={`pv-btn ${customer.finishing?.punch ? 'active' : ''}`}
+                  className={`pv-btn flex-1 ${customer.finishing?.punch ? 'active' : ''}`}
                   onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, punch: !prev.finishing?.punch } }))}
                 >타공</button>
               )}
               {cfg.mising && (
                 <button
-                  className={`pv-btn ${customer.finishing?.mising ? 'active' : ''}`}
+                  className={`pv-btn flex-1 ${customer.finishing?.mising ? 'active' : ''}`}
                   onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, mising: !prev.finishing?.mising } }))}
                 >미싱</button>
               )}
