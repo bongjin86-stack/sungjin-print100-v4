@@ -10,19 +10,21 @@ import { useEffect, useRef,useState } from 'react';
 import Sortable from 'sortablejs';
 
 import BlockNoteEditor from '@/components/admin/BlockNoteEditor';
-import BlockItem, { getBlockSummary } from './BlockItem';
-import BlockLibraryModal from './BlockLibraryModal';
-import BlockSettings from './BlockSettings';
-import { PreviewBlock } from './PreviewBlock';
-import PriceDisplay from './PriceDisplay';
-import ProductEditor from './ProductEditor';
-import TemplateSelector from './TemplateSelector';
 import { BLOCK_TYPES, DB, getDefaultCustomer, LINK_RULES,TEMPLATES as DEFAULT_TEMPLATES } from '@/lib/builderData';
 import { formatBusinessDate,getBusinessDate } from '@/lib/businessDays';
 import { loadPricingData } from '@/lib/dbService';
 import { getIconComponent,ICON_LIST } from '@/lib/highlightIcons';
 import { calculatePrice, validateCoatingWeight } from '@/lib/priceEngine';
-import { uploadImage } from '@/lib/supabase';
+import { supabase, uploadImage } from '@/lib/supabase';
+
+import BlockItem, { getBlockSummary } from './BlockItem';
+import BlockLibraryModal from './BlockLibraryModal';
+import BlockSettings from './BlockSettings';
+import PriceDisplay from './PriceDisplay';
+// PreviewBlock은 shared 컴포넌트 사용 (ProductView와 동일)
+import { PreviewBlock } from '@/components/shared/PreviewBlock';
+import ProductEditor from './ProductEditor';
+import TemplateSelector from './TemplateSelector';
 
 
 // 기본 콘텐츠 생성 함수
@@ -169,18 +171,98 @@ export default function AdminBuilder() {
     localStorage.setItem('sungjin_templates_v4', JSON.stringify(templates));
   }, [templates]);
 
-  // URL 파라미터 변경 시 해당 상품 로드
+  // URL 파라미터 변경 시 해당 상품 로드 (DB 우선)
+  // dbLoaded 플래그로 이미 로드된 경우 스킵
+  const [dbProductLoaded, setDbProductLoaded] = useState(false);
+
   useEffect(() => {
-    if (urlProductId && urlProductId !== currentTemplateId) {
-      const found = templates.find(t => t.id === urlProductId);
-      if (found) {
+    async function loadProductFromDB() {
+      console.log('[Builder] useEffect 실행 - urlProductId:', urlProductId, ', dbProductLoaded:', dbProductLoaded);
+
+      if (!urlProductId) {
+        console.log('[Builder] urlProductId 없음, 스킵');
+        return;
+      }
+
+      if (dbProductLoaded) {
+        console.log('[Builder] 이미 로드됨, 스킵');
+        return;
+      }
+
+      // 1. DB에서 먼저 상품 로드 시도 (실제 저장된 상품)
+      console.log('[Builder] DB에서 로드 시도:', urlProductId);
+      try {
+        const { data: product, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('id', urlProductId)
+          .single();
+
+        console.log('[Builder] DB 응답:', { product, error });
+
+        if (error || !product) {
+          console.warn('[Builder] DB에서 상품을 찾을 수 없음, localStorage fallback 시도:', urlProductId);
+          // 2. DB에 없으면 localStorage에서 찾기 (새 상품 작업 중일 수 있음)
+          const localFound = templates.find(t => t.id === urlProductId);
+          if (localFound) {
+            console.log('[Builder] localStorage에서 찾음:', localFound.name);
+            setCurrentTemplateId(urlProductId);
+            setCurrentProduct({ ...localFound, blocks: localFound.blocks.map(b => ({ ...b, config: { ...b.config } })) });
+            setCustomer(extractDefaultsFromBlocks(localFound.blocks));
+            setDbProductLoaded(true);
+          }
+          return;
+        }
+
+        // JSON 파싱 헬퍼 (문자열이면 파싱, 객체면 그대로)
+        const parseJson = (val, fallback) => {
+          if (!val) return fallback;
+          if (typeof val === 'object') return val;
+          try { return JSON.parse(val); } catch { return fallback; }
+        };
+
+        const parsedContent = parseJson(product.content, {});
+        const parsedBlocks = parseJson(product.blocks, []);
+
+        console.log('[Builder] 파싱된 content:', parsedContent);
+        console.log('[Builder] 파싱된 blocks:', parsedBlocks);
+
+        // DB 상품 데이터를 빌더 형식으로 변환
+        const builderProduct = {
+          id: product.id,
+          name: product.name,
+          product_type: product.product_type,
+          blocks: parsedBlocks,
+          content: {
+            title: parsedContent.title || product.name,
+            description: parsedContent.description || product.description || '',
+            mainImage: parsedContent.mainImage || product.main_image || null,
+            thumbnails: parsedContent.thumbnails || [],
+            features: parsedContent.features || [],
+            featuresHtml: parsedContent.featuresHtml || null,
+            highlights: parsedContent.highlights || []
+          },
+          is_published: product.is_published
+        };
+
+        console.log('[Builder] 변환된 builderProduct:', builderProduct);
+
         setCurrentTemplateId(urlProductId);
-        setCurrentProduct({ ...found, blocks: found.blocks.map(b => ({ ...b, config: { ...b.config } })) });
-        // 블록 기본값 적용
-        setCustomer(extractDefaultsFromBlocks(found.blocks));
+        setCurrentProduct({
+          ...builderProduct,
+          blocks: builderProduct.blocks.map(b => ({ ...b, config: { ...b.config } }))
+        });
+        setCustomer(extractDefaultsFromBlocks(builderProduct.blocks));
+        setDbProductLoaded(true);
+
+        console.log('[Builder] DB에서 상품 로드 완료:', product.name);
+      } catch (err) {
+        console.error('[Builder] 상품 로드 오류:', err);
       }
     }
-  }, [urlProductId]);
+
+    loadProductFromDB();
+  }, [urlProductId, dbProductLoaded, templates]);
 
   // 초기 로드 시 블록 기본값 적용
   useEffect(() => {

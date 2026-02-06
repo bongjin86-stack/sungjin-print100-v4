@@ -199,6 +199,84 @@ Tailwind v4 프로젝트에서 기존 CSS 리셋/글로벌 스타일은 반드�
 
 ---
 
+## ERR-007: 빌더/상품 PreviewBlock 불일치 (Medium)
+
+| 항목 | 내용 |
+|------|------|
+| **발견일** | 2026-02-06 |
+| **심각도** | Medium (옵션 선택 오류) |
+| **상태** | 해결됨 |
+
+### 증상
+1. 빌더에서 컬러/흑백, 단면/양면 선택해도 가격에 반영 안 됨
+2. 빌더 디자인이 파란색(#0071E3), 실제 상품은 어두운 회색(#222828)
+
+### 원인
+두 개의 PreviewBlock 구현체가 존재하고 로직이 달랐음:
+- `ProductView.jsx` 내 인라인 PreviewBlock: `customer[colorKey]` 동적 키 사용 (정상)
+- `ProductBuilder/PreviewBlock.jsx`: `customer.color` 하드코딩 (잘못됨)
+
+제본 상품(saddle, perfect, spring)에서:
+- 내지 인쇄는 `innerColor`/`innerSide` 키 사용해야 함
+- 빌더의 PreviewBlock은 항상 `color`/`side` 참조해서 가격 미반영
+
+### 수정
+- `src/components/shared/PreviewBlock.jsx` 공유 컴포넌트 생성
+- ProductView, ProductBuilder 모두 shared 컴포넌트 사용
+- binding 제품 감지 후 동적 키 사용:
+```javascript
+const isBinding = ['saddle', 'perfect', 'spring'].includes(productType);
+const isInner = isBinding && allBlocks.some(b => b.config?.linkedBlocks?.innerPrint === block.id);
+const colorKey = isInner ? 'innerColor' : 'color';
+const sideKey = isInner ? 'innerSide' : 'side';
+```
+
+---
+
+## ERR-008: 상품 수정 시 DB 데이터 미로드 (High)
+
+| 항목 | 내용 |
+|------|------|
+| **발견일** | 2026-02-06 |
+| **심각도** | High (데이터 손실 위험) |
+| **상태** | 해결됨 |
+
+### 증상
+상품관리에서 "수정" 클릭 시 실제 저장된 상품 데이터(이미지, 옵션)가 아닌 빈/다른 데이터가 표시됨.
+
+### 원인
+ProductBuilder가 localStorage만 확인하고 Supabase DB를 조회하지 않음:
+
+```javascript
+// 기존 코드 - localStorage만 확인
+const localFound = templates.find(t => t.id === urlProductId);
+if (localFound) {
+  // localStorage에서 로드 (DB 상품이 아닌 템플릿 로드됨!)
+}
+```
+
+localStorage에 `id: 'perfect'` 템플릿이 있고, DB에도 `id: 'perfect'` 상품이 있으면 localStorage가 우선 로드됨.
+
+### 수정
+로딩 순서 변경: **DB 먼저 확인 → localStorage fallback**
+
+```javascript
+// 1. DB에서 먼저 상품 로드 시도
+const { data: product, error } = await supabase
+  .from('products')
+  .select('*')
+  .eq('id', urlProductId)
+  .single();
+
+if (error || !product) {
+  // 2. DB에 없으면 localStorage fallback (새 상품 작업 중일 수 있음)
+  const localFound = templates.find(t => t.id === urlProductId);
+  ...
+}
+```
+
+---
+
 ## 요약
 
 | ID | 설명 | 심각도 | 상태 |
@@ -209,3 +287,5 @@ Tailwind v4 프로젝트에서 기존 CSS 리셋/글로벌 스타일은 반드�
 | ERR-004 | 후가공 버튼 크기 불일치 | Low | 해결 |
 | ERR-005 | BlockNote SSR 에러 | Medium | 해결 |
 | ERR-006 | CSS Cascade Layers 충돌 | Critical | 해결 |
+| ERR-007 | 빌더/상품 PreviewBlock 불일치 | Medium | 해결 |
+| ERR-008 | 상품 수정 시 DB 미로드 | High | 해결 |
