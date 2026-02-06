@@ -1,0 +1,282 @@
+---
+// 인증 체크는 middleware.ts에서 처리됨
+import "@/styles/fonts.css";
+import "@/styles/tokens.css";
+import "@/styles/global.scss";
+import "@/styles/global.css";
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>관리자 로그인 | Sungjinprint</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="login-body">
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-header">
+          <span class="login-logo">Sungjinprint</span>
+          <span class="login-badge">Admin</span>
+        </div>
+
+        <p class="login-desc">관리자 계정으로 로그인하세요</p>
+
+        <form id="loginForm" class="login-form">
+          <div class="form-group">
+            <label for="email">이메일</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder="admin@example.com"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password">비밀번호</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              autocomplete="current-password"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div id="errorMessage" class="error-message"></div>
+
+          <button type="submit" class="login-button" id="submitButton">
+            <span class="button-text">로그인</span>
+            <span class="button-loading">로그인 중...</span>
+          </button>
+        </form>
+
+        <div class="login-footer">
+          <a href="/">← 사이트로 돌아가기</a>
+        </div>
+      </div>
+
+      <p class="login-copyright">© 2024 Sungjinprint. All rights reserved.</p>
+    </div>
+
+    <script>
+      import { supabase } from '@/lib/supabase';
+
+      // 이미 로그인된 경우 admin으로 이동
+      (async () => {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          window.location.href = '/admin';
+        }
+      })();
+
+      const form = document.getElementById('loginForm') as HTMLFormElement;
+      const errorMessage = document.getElementById('errorMessage') as HTMLDivElement;
+      const submitButton = document.getElementById('submitButton') as HTMLButtonElement;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = (document.getElementById('email') as HTMLInputElement).value;
+        const password = (document.getElementById('password') as HTMLInputElement).value;
+
+        // 로딩 상태
+        submitButton.disabled = true;
+        submitButton.classList.add('loading');
+        errorMessage.classList.remove('show');
+
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (error) {
+            throw new Error(error.message);
+          }
+
+          // 로그인 성공 - 대시보드로 이동
+          window.location.href = '/admin';
+        } catch (err: any) {
+          // 에러 메시지 표시
+          errorMessage.textContent = err.message === 'Invalid login credentials'
+            ? '이메일 또는 비밀번호가 올바르지 않습니다.'
+            : err.message;
+          errorMessage.classList.add('show');
+
+          // 버튼 복구
+          submitButton.disabled = false;
+          submitButton.classList.remove('loading');
+        }
+      });
+    </script>
+
+    <style>
+      .login-body {
+        margin: 0;
+        padding: 0;
+        font-family: var(--font-family);
+        background-color: var(--c-bg-secondary);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .login-container {
+        width: 100%;
+        max-width: 420px;
+        padding: var(--sp-lg);
+      }
+
+      .login-card {
+        background: var(--c-bg);
+        border: 1px solid var(--c-border-light);
+        padding: var(--sp-2xl);
+      }
+
+      .login-header {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-sm);
+        margin-bottom: var(--sp-sm);
+      }
+
+      .login-logo {
+        font-size: var(--fs-xl);
+        font-weight: 600;
+        color: var(--c-text);
+        letter-spacing: -0.02em;
+      }
+
+      .login-badge {
+        background-color: var(--c-bg-inverse);
+        color: var(--c-text-inverse);
+        font-size: var(--fs-xs);
+        padding: 2px 8px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .login-desc {
+        margin: 0 0 var(--sp-xl);
+        font-size: var(--fs-sm);
+        color: var(--c-text-sub);
+      }
+
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-md);
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-xs);
+      }
+
+      .form-group label {
+        font-size: var(--fs-sm);
+        font-weight: 500;
+        color: var(--c-text);
+      }
+
+      .form-group input {
+        padding: var(--sp-md);
+        border: 1px solid var(--c-border);
+        background: var(--c-bg);
+        font-size: var(--fs-base);
+        font-family: var(--font-family);
+        transition: border-color var(--transition-fast);
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--c-text);
+      }
+
+      .form-group input::placeholder {
+        color: var(--c-text-light);
+      }
+
+      .error-message {
+        display: none;
+        background: #fef2f2;
+        color: var(--c-error);
+        padding: var(--sp-md);
+        font-size: var(--fs-sm);
+        border: 1px solid #fecaca;
+      }
+
+      .error-message.show {
+        display: block;
+      }
+
+      .login-button {
+        background: var(--c-bg-inverse);
+        color: var(--c-text-inverse);
+        padding: var(--sp-md) var(--sp-lg);
+        border: none;
+        font-size: var(--fs-base);
+        font-weight: 500;
+        font-family: var(--font-family);
+        cursor: pointer;
+        transition: opacity var(--transition-fast);
+        margin-top: var(--sp-sm);
+      }
+
+      .login-button:hover:not(:disabled) {
+        opacity: 0.85;
+      }
+
+      .login-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .login-button .button-loading {
+        display: none;
+      }
+
+      .login-button.loading .button-text {
+        display: none;
+      }
+
+      .login-button.loading .button-loading {
+        display: inline;
+      }
+
+      .login-footer {
+        margin-top: var(--sp-xl);
+        padding-top: var(--sp-lg);
+        border-top: 1px solid var(--c-border-light);
+      }
+
+      .login-footer a {
+        color: var(--c-text-sub);
+        text-decoration: none;
+        font-size: var(--fs-sm);
+        transition: color var(--transition-fast);
+      }
+
+      .login-footer a:hover {
+        color: var(--c-text);
+      }
+
+      .login-copyright {
+        text-align: center;
+        margin-top: var(--sp-xl);
+        font-size: var(--fs-xs);
+        color: var(--c-text-light);
+      }
+    </style>
+  </body>
+</html>

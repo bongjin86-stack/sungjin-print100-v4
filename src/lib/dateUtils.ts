@@ -1,9 +1,9 @@
 /**
  * 출고일 계산 (영업일 기준)
- * @param {number} businessDays - 제작 영업일 수
- * @returns {string} - "2026.02.04 (수)" 형식
+ * @param businessDays - 제작 영업일 수
+ * @returns "2026.02.04 (수)" 형식
  */
-export function calculateReleaseDate(businessDays) {
+export function calculateReleaseDate(businessDays: number): string {
   const today = new Date();
   let count = 0;
   const result = new Date(today);
@@ -27,11 +27,14 @@ export function calculateReleaseDate(businessDays) {
 
 /**
  * 특정 날짜 기준으로 출고일 계산 (영업일 기준)
- * @param {string|Date} startDate - 기준 날짜
- * @param {number} businessDays - 제작 영업일 수
- * @returns {string} - "2026.02.04 (수)" 형식
+ * @param startDate - 기준 날짜
+ * @param businessDays - 제작 영업일 수
+ * @returns "2026.02.04 (수)" 형식
  */
-export function calculateReleaseDateFrom(startDate, businessDays) {
+export function calculateReleaseDateFrom(
+  startDate: string | Date,
+  businessDays: number
+): string {
   const start = new Date(startDate);
   let count = 0;
   const result = new Date(start);

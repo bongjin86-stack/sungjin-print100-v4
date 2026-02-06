@@ -65,10 +65,43 @@ function isActive(href: string) {
           </ul>
         </nav>
         <div class="admin-sidebar-footer">
+          <div class="admin-user-info">
+            <span class="user-email" id="userEmail">로딩중...</span>
+          </div>
           <a href="/" class="admin-nav-item" target="_blank">
             사이트 보기
           </a>
+          <button id="logoutButton" class="admin-nav-item logout-btn">
+            로그아웃
+          </button>
         </div>
+
+        <script>
+          import { supabase } from '@/lib/supabase';
+
+          // 클라이언트 사이드 인증 체크
+          (async () => {
+            const { data } = await supabase.auth.getSession();
+
+            if (!data.session) {
+              // 로그인 안 됨 - 로그인 페이지로 이동
+              window.location.href = '/admin/login';
+              return;
+            }
+
+            // 사용자 이메일 표시
+            const userEmailEl = document.getElementById('userEmail');
+            if (userEmailEl) {
+              userEmailEl.textContent = data.session.user.email || '';
+            }
+          })();
+
+          // 로그아웃 버튼
+          document.getElementById('logoutButton')?.addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = '/admin/login';
+          });
+        </script>
       </aside>
 
       <!-- Main Content -->
@@ -172,6 +205,32 @@ function isActive(href: string) {
       .admin-sidebar-footer {
         padding: var(--sp-md) 0;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .admin-user-info {
+        padding: var(--sp-sm) var(--sp-lg);
+        margin-bottom: var(--sp-xs);
+      }
+
+      .user-email {
+        font-size: var(--fs-xs);
+        color: var(--c-text-inverse-sub);
+        word-break: break-all;
+      }
+
+      .logout-btn {
+        width: 100%;
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        font-family: inherit;
+        color: #f87171;
+      }
+
+      .logout-btn:hover {
+        background-color: rgba(248, 113, 113, 0.1);
+        color: #ef4444;
       }
 
       /* Main - Nagi 스타일 */

@@ -1,10 +1,34 @@
+import type { LucideIcon } from 'lucide-react';
 import {
-Award, BookOpen, CircleDollarSign, Clock,   FileText, Link2, Package,
-Palette,
-Paperclip,
-  Printer,   Shield, Sparkles, Star, Truck, Zap} from 'lucide-react';
+  Award,
+  BookOpen,
+  CircleDollarSign,
+  Clock,
+  FileText,
+  Link2,
+  Package,
+  Palette,
+  Paperclip,
+  Printer,
+  Shield,
+  Sparkles,
+  Star,
+  Truck,
+  Zap,
+} from 'lucide-react';
 
-export const ICON_MAP = {
+export interface IconEntry {
+  component: LucideIcon;
+  label: string;
+}
+
+export interface IconListItem {
+  id: string;
+  label: string;
+  Component: LucideIcon;
+}
+
+export const ICON_MAP: Record<string, IconEntry> = {
   Printer: { component: Printer, label: '인쇄' },
   Truck: { component: Truck, label: '배송' },
   BookOpen: { component: BookOpen, label: '제본' },
@@ -22,12 +46,14 @@ export const ICON_MAP = {
   Package: { component: Package, label: '포장' },
 };
 
-export const ICON_LIST = Object.entries(ICON_MAP).map(([key, val]) => ({
-  id: key,
-  label: val.label,
-  Component: val.component,
-}));
+export const ICON_LIST: IconListItem[] = Object.entries(ICON_MAP).map(
+  ([key, val]) => ({
+    id: key,
+    label: val.label,
+    Component: val.component,
+  })
+);
 
-export function getIconComponent(iconName) {
+export function getIconComponent(iconName: string): LucideIcon {
   return ICON_MAP[iconName]?.component || FileText;
 }
