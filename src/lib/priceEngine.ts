@@ -486,7 +486,7 @@ export function calculateBindingPrice(
     customer.coverPaper || ''
   );
 
-  const thicknessValidation = validateBindingThickness(bindingType, totalThickness);
+  const thicknessValidation = validateBindingThickness(bindingType, totalThickness, customer.maxThickness);
 
   return {
     total,
@@ -573,28 +573,38 @@ export function calculateBindingThickness(
   const innerThickness = estimateThickness(innerWeight, innerPaperCode);
   const coverThickness = estimateThickness(coverWeight, coverPaperCode);
 
+  // 통일 공식: 페이지 수 / 2 × 용지두께 (모든 제본 동일)
+  // - 중철: 접혀서 2겹
+  // - 무선/스프링: 낱장 앞뒤
+  const innerLayerThickness = (pages / 2) * innerThickness;
+
   if (bindingType === 'saddle') {
-    const innerSheetCount = Math.ceil((pages - 4) / 4);
-    return innerSheetCount * innerThickness + coverThickness;
+    // 중철: 내지만 (표지는 접힌 1장이라 무시)
+    return innerLayerThickness;
   } else if (bindingType === 'perfect') {
-    const innerSheetCount = Math.ceil(pages / 2);
-    return innerSheetCount * innerThickness + coverThickness;
+    // 무선: 내지 + 표지 1장
+    return innerLayerThickness + coverThickness;
   } else if (bindingType === 'spring') {
-    const innerSheetCount = Math.ceil(pages / 2);
-    return innerSheetCount * innerThickness + coverThickness * 2;
+    // 스프링: 내지 + 표지 2장 (앞뒤 분리)
+    return innerLayerThickness + coverThickness * 2;
   }
 
-  return 0;
+  return innerLayerThickness;
 }
 
-export function validateBindingThickness(bindingType: string, thickness: number): ThicknessValidation {
-  const limits: Record<string, { warning: number; error: number; unit: string }> = {
-    saddle: { warning: 2.0, error: 2.5, unit: 'mm' },
-    perfect: { warning: 40, error: 50, unit: 'mm' },
-    spring: { warning: 15, error: 20, unit: 'mm' }
+export function validateBindingThickness(
+  bindingType: string,
+  thickness: number,
+  customLimit?: number // 빌더에서 설정한 커스텀 두께 제한 (mm)
+): ThicknessValidation {
+  // 기본 제한값 (빌더 설정이 없을 때 사용)
+  const defaultLimits: Record<string, number> = {
+    saddle: 2.5,
+    perfect: 50,
+    spring: 20
   };
 
-  const limit = limits[bindingType];
+  const limit = customLimit || defaultLimits[bindingType];
   if (!limit) return { valid: true, warning: false, error: false, message: null };
 
   const bindingNames: Record<string, string> = {
@@ -603,21 +613,12 @@ export function validateBindingThickness(bindingType: string, thickness: number)
     spring: '스프링제본'
   };
 
-  if (thickness > limit.error) {
+  if (thickness > limit) {
     return {
       valid: false,
       warning: false,
       error: true,
-      message: `${bindingNames[bindingType]} 두께가 ${limit.error}${limit.unit}를 초과합니다. (현재: ${thickness.toFixed(1)}${limit.unit}) 페이지를 줄이거나 얇은 용지를 선택해주세요.`
-    };
-  }
-
-  if (thickness > limit.warning) {
-    return {
-      valid: true,
-      warning: true,
-      error: false,
-      message: `${bindingNames[bindingType]} 두께가 ${limit.warning}${limit.unit}를 초과합니다. (현재: ${thickness.toFixed(1)}${limit.unit}) 제작은 가능하나 주의가 필요합니다.`
+      message: `${bindingNames[bindingType] || '제본'} 두께 ${limit}mm 초과 (현재: ${thickness.toFixed(1)}mm)`
     };
   }
 

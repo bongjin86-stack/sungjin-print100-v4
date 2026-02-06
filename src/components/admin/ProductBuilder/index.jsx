@@ -10,6 +10,8 @@ import { useEffect, useRef,useState } from 'react';
 import Sortable from 'sortablejs';
 
 import BlockNoteEditor from '@/components/admin/BlockNoteEditor';
+// PreviewBlock은 shared 컴포넌트 사용 (ProductView와 동일)
+import { PreviewBlock } from '@/components/shared/PreviewBlock';
 import { BLOCK_TYPES, DB, getDefaultCustomer, LINK_RULES,TEMPLATES as DEFAULT_TEMPLATES } from '@/lib/builderData';
 import { formatBusinessDate,getBusinessDate } from '@/lib/businessDays';
 import { loadPricingData } from '@/lib/dbService';
@@ -21,8 +23,6 @@ import BlockItem, { getBlockSummary } from './BlockItem';
 import BlockLibraryModal from './BlockLibraryModal';
 import BlockSettings from './BlockSettings';
 import PriceDisplay from './PriceDisplay';
-// PreviewBlock은 shared 컴포넌트 사용 (ProductView와 동일)
-import { PreviewBlock } from '@/components/shared/PreviewBlock';
 import ProductEditor from './ProductEditor';
 import TemplateSelector from './TemplateSelector';
 
@@ -314,6 +314,7 @@ export default function AdminBuilder() {
         ghostClass: 'opacity-50',
         chosenClass: 'shadow-lg',
         dragClass: 'rotate-1',
+        forceFallback: true, // 브라우저 기본 드래그 대신 JS 사용
         onEnd: (evt) => {
           const { oldIndex, newIndex } = evt;
           if (oldIndex === newIndex) return;
@@ -333,7 +334,7 @@ export default function AdminBuilder() {
         sortableInstance.destroy();
       }
     };
-  }, [currentProduct?.id]);
+  }, [currentProduct?.id, currentProduct?.blocks?.length]);
 
   // 템플릿 드래그앤드롭
   useEffect(() => {
@@ -504,6 +505,7 @@ export default function AdminBuilder() {
         case 'pages_saddle':
         case 'pages_leaf':
           if (cfg.default) defaults.pages = cfg.default;
+          if (cfg.maxThickness) defaults.maxThickness = cfg.maxThickness;
           break;
         case 'pp':
           if (cfg.default) defaults.pp = cfg.default;
@@ -540,6 +542,7 @@ export default function AdminBuilder() {
           if (cfg.defaultPrint?.color) defaults.innerColor = cfg.defaultPrint.color;
           if (cfg.defaultPrint?.side) defaults.innerSide = cfg.defaultPrint.side;
           if (cfg.defaultPages) defaults.pages = cfg.defaultPages;
+          if (cfg.maxThickness) defaults.maxThickness = cfg.maxThickness;
           break;
       }
     });
@@ -750,12 +753,13 @@ export default function AdminBuilder() {
         return { options: [50, 100, 200, 500, 1000], default: 100 };
       case 'inner_layer_saddle':
         return {
-          papers: { mojo: [80, 100], snow: [100, 120] },
+          // 모든 용지 타입 (DB에서 로드된 용지 기준)
+          papers: { mojo: [80, 100, 120], snow: [100, 120, 150], art: [100, 120, 150], rendezvous: [120, 150], insper: [120, 150] },
           defaultPaper: { paper: 'mojo', weight: 80 },
           color: true, mono: true, single: false, double: true,
           defaultPrint: { color: 'color', side: 'double' },
-          min: 8, max: 48, step: 4, defaultPages: 16,
-          formula: 'pages - 4',
+          min: 8, step: 4, defaultPages: 16,
+          maxThickness: 2.5,
           paperLocked: false, paperHidden: false,
           printColorLocked: false, printColorHidden: false,
           printSideLocked: true, printSideHidden: true,
@@ -763,11 +767,13 @@ export default function AdminBuilder() {
         };
       case 'inner_layer_leaf':
         return {
-          papers: { mojo: [80, 100], snow: [100, 120] },
+          // 모든 용지 타입 (DB에서 로드된 용지 기준)
+          papers: { mojo: [80, 100, 120], snow: [100, 120, 150], art: [100, 120, 150], rendezvous: [120, 150], insper: [120, 150] },
           defaultPaper: { paper: 'mojo', weight: 80 },
           color: true, mono: true, single: true, double: true,
           defaultPrint: { color: 'color', side: 'double' },
-          min: 10, max: 500, step: 2, defaultPages: 50,
+          min: 10, step: 1, defaultPages: 50,
+          maxThickness: 50,
           paperLocked: false, paperHidden: false,
           printColorLocked: false, printColorHidden: false,
           printSideLocked: false, printSideHidden: false,
@@ -847,6 +853,14 @@ export default function AdminBuilder() {
             if (backDefault) next.back = backDefault;
             const springColorDefault = cfg.springColor?.options?.find(o => o.default)?.id;
             if (springColorDefault) next.springColor = springColorDefault;
+            break;
+          case 'inner_layer_saddle':
+          case 'inner_layer_leaf':
+            if (cfg.defaultPaper?.paper) next.innerPaper = cfg.defaultPaper.paper;
+            if (cfg.defaultPaper?.weight) next.innerWeight = cfg.defaultPaper.weight;
+            if (cfg.defaultPrint?.color) next.innerColor = cfg.defaultPrint.color;
+            if (cfg.defaultPrint?.side) next.innerSide = cfg.defaultPrint.side;
+            if (cfg.defaultPages) next.pages = cfg.defaultPages;
             break;
         }
         return next;

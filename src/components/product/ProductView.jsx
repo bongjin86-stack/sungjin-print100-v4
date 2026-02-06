@@ -12,7 +12,7 @@ import { PreviewBlock } from '@/components/shared/PreviewBlock';
 import { getDefaultCustomer } from '@/lib/builderData';
 import { loadPricingData } from '@/lib/dbService';
 import { getIconComponent } from '@/lib/highlightIcons';
-import { calculatePrice } from '@/lib/priceEngine';
+import { calculatePrice, estimateThickness, validateBindingThickness } from '@/lib/priceEngine';
 
 export default function ProductView({ product: initialProduct }) {
   const [product] = useState(initialProduct);
@@ -131,6 +131,44 @@ export default function ProductView({ product: initialProduct }) {
     }
   }
 
+  // 두께 검증 (inner_layer 또는 pages 블록의 maxThickness 기반)
+  const thicknessBlock = product?.blocks?.find(b => b.on &&
+    ['inner_layer_saddle', 'inner_layer_leaf', 'pages', 'pages_saddle', 'pages_leaf'].includes(b.type));
+  let thicknessCheck = { error: false, message: null, thickness: 0 };
+
+  if (thicknessBlock?.config?.maxThickness && customer.pages > 0) {
+    const innerWeight = customer.innerWeight || customer.weight || 80;
+    const innerPaper = customer.innerPaper || customer.paper || '';
+    const paperThickness = estimateThickness(innerWeight, innerPaper);
+
+    // 통일 공식: 페이지 수 / 2 × 용지두께 (모든 제본 동일)
+    const totalThickness = (customer.pages / 2) * paperThickness;
+
+    const bindingType = thicknessBlock.type.includes('saddle') ? 'saddle' : 'perfect';
+    const validation = validateBindingThickness(bindingType, totalThickness, thicknessBlock.config.maxThickness);
+    thicknessCheck = { ...validation, thickness: totalThickness };
+
+    // 디버그 로그 (개발 시 확인용)
+    console.log('[두께검증]', {
+      blockType: thicknessBlock.type,
+      pages: customer.pages,
+      weight: innerWeight,
+      paperThickness,
+      totalThickness: totalThickness.toFixed(2) + 'mm',
+      maxThickness: thicknessBlock.config.maxThickness + 'mm',
+      error: validation.error
+    });
+  }
+
+  // 두께 검증 결과를 price에 병합 (항상 적용)
+  if (thicknessCheck.thickness > 0) {
+    price = {
+      ...price,
+      thicknessValidation: thicknessCheck,
+      totalThickness: thicknessCheck.thickness
+    };
+  }
+
   const images = [
     content.mainImage,
     ...(content.thumbnails || [])
@@ -226,6 +264,7 @@ export default function ProductView({ product: initialProduct }) {
               dbPapers={dbPapers}
               dbPapersList={dbPapersList}
               allBlocks={product?.blocks || []}
+              thicknessError={price.thicknessValidation?.error}
             />
           ))}
 
@@ -244,14 +283,9 @@ export default function ProductView({ product: initialProduct }) {
               </div>
             </div>
 
-            {/* 두께 경고/에러 */}
+            {/* 두께 에러 */}
             {price.thicknessValidation?.error && (
               <div className="pv-thickness-error">
-                <p>&#9888; {price.thicknessValidation.message}</p>
-              </div>
-            )}
-            {price.thicknessValidation?.warning && !price.thicknessValidation?.error && (
-              <div className="pv-thickness-warning">
                 <p>&#9888; {price.thicknessValidation.message}</p>
               </div>
             )}
@@ -424,6 +458,7 @@ function extractDefaultsFromBlocks(blocks) {
       case 'pages_saddle':
       case 'pages_leaf':
         if (cfg.default) defaults.pages = cfg.default;
+        if (cfg.maxThickness) defaults.maxThickness = cfg.maxThickness;
         break;
       case 'pp':
         if (cfg.default) defaults.pp = cfg.default;
@@ -460,6 +495,7 @@ function extractDefaultsFromBlocks(blocks) {
         if (cfg.defaultPrint?.color) defaults.innerColor = cfg.defaultPrint.color;
         if (cfg.defaultPrint?.side) defaults.innerSide = cfg.defaultPrint.side;
         if (cfg.defaultPages) defaults.pages = cfg.defaultPages;
+        if (cfg.maxThickness) defaults.maxThickness = cfg.maxThickness;
         break;
     }
   });

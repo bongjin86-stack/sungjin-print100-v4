@@ -839,22 +839,13 @@ function BlockSettings({
       return (
         <div className="space-y-4">
           {/* 페이지 수 범위 */}
-          <div className="grid grid-cols-5 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             <div>
               <label className="text-xs text-gray-500 block mb-1">최소 (p)</label>
               <input
                 type="number"
                 value={cfg.min}
                 onChange={(e) => updateCfg(block.id, 'min', parseInt(e.target.value))}
-                className="w-full select select-bordered select-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">최대 (p)</label>
-              <input
-                type="number"
-                value={cfg.max}
-                onChange={(e) => updateCfg(block.id, 'max', parseInt(e.target.value))}
                 className="w-full select select-bordered select-sm"
               />
             </div>
@@ -873,7 +864,6 @@ function BlockSettings({
                 type="number"
                 value={cfg.default || cfg.min}
                 min={cfg.min}
-                max={cfg.max}
                 step={cfg.step}
                 onChange={(e) => updateCfg(block.id, 'default', parseInt(e.target.value))}
                 className="w-full select select-bordered select-sm"
@@ -1045,61 +1035,59 @@ function BlockSettings({
     case 'inner_layer_leaf':
       return (
         <div className="space-y-4">
-          {/* 내지 용지 */}
-          <div className="p-3 bg-white rounded-lg border">
+          <p className="text-xs text-info bg-info/10 px-3 py-2 rounded-lg">
+            더블클릭으로 기본값 설정 (★ 표시)
+          </p>
+
+          {/* 내지 용지 - paper 블록과 동일한 스타일 */}
+          <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-gray-500 font-medium">내지 용지</label>
-              <div className="flex gap-2">
-                <label className="flex items-center gap-1 text-xs">
-                  <input type="checkbox" checked={cfg.paperLocked} onChange={(e) => updateCfg(block.id, 'paperLocked', e.target.checked)} />
+              <label className="text-xs text-gray-500">내지 용지</label>
+              <div className="flex gap-3">
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+                  <input type="checkbox" className="checkbox checkbox-xs" checked={cfg.paperLocked} onChange={(e) => updateCfg(block.id, 'paperLocked', e.target.checked)} />
                   고정
                 </label>
-                <label className="flex items-center gap-1 text-xs">
-                  <input type="checkbox" checked={cfg.paperHidden} onChange={(e) => updateCfg(block.id, 'paperHidden', e.target.checked)} />
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+                  <input type="checkbox" className="checkbox checkbox-xs" checked={cfg.paperHidden} onChange={(e) => updateCfg(block.id, 'paperHidden', e.target.checked)} />
                   숨김
                 </label>
               </div>
             </div>
             {papersList.map(paper => {
               const isOn = cfg.papers && cfg.papers[paper.code];
+              const isDefaultPaper = cfg.defaultPaper?.paper === paper.code;
               return (
-                <div key={paper.code} className="mb-2">
-                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <div key={paper.code} className="mb-2 p-3 bg-white rounded-lg border border-gray-200">
+                  <label
+                    className="flex items-center gap-2 text-sm font-medium cursor-pointer"
+                    onDoubleClick={() => updateCfg(block.id, 'defaultPaper', { ...cfg.defaultPaper, paper: paper.code })}
+                  >
                     <input
                       type="checkbox"
                       checked={!!isOn}
-                      onChange={(e) => {
-                        let papersObj = { ...cfg.papers };
-                        if (e.target.checked) {
-                          papersObj[paper.code] = DB.weights[paper.code].filter(w => w <= 120).slice(0, 3);
-                        } else {
-                          delete papersObj[paper.code];
-                        }
-                        updateCfg(block.id, 'papers', papersObj);
-                      }}
+                      onChange={(e) => togglePaper(block.id, paper.code, e.target.checked)}
+                      className="checkbox checkbox-sm"
                     />
                     {paper.name}
+                    {isDefaultPaper && <span className="text-warning">★</span>}
                   </label>
                   {isOn && (
-                    <div className="flex flex-wrap gap-2 mt-1 ml-6">
-                      {DB.weights[paper.code]?.filter(w => w <= 150).map(w => (
-                        <label key={w} className="flex items-center gap-1 text-xs bg-gray-50 px-2 py-1 rounded cursor-pointer">
+                    <div className="flex flex-wrap gap-2 mt-2 ml-6">
+                      {DB.weights[paper.code]?.map(w => (
+                        <label
+                          key={w}
+                          className="flex items-center gap-1 text-xs bg-gray-50 px-2 py-1 rounded cursor-pointer"
+                          onDoubleClick={() => updateCfg(block.id, 'defaultPaper', { paper: paper.code, weight: w })}
+                        >
                           <input
                             type="checkbox"
                             checked={cfg.papers[paper.code]?.includes(w)}
-                            onChange={(e) => {
-                              let papersObj = { ...cfg.papers };
-                              let ws = papersObj[paper.code] || [];
-                              if (e.target.checked) {
-                                if (!ws.includes(w)) ws = [...ws, w].sort((a,b) => a-b);
-                              } else {
-                                ws = ws.filter(ww => ww !== w);
-                              }
-                              papersObj[paper.code] = ws;
-                              updateCfg(block.id, 'papers', papersObj);
-                            }}
+                            onChange={(e) => toggleWeight(block.id, paper.code, w, e.target.checked)}
+                            className="checkbox checkbox-xs"
                           />
                           {w}g
+                          {cfg.defaultPaper?.paper === paper.code && cfg.defaultPaper?.weight === w && <span className="text-warning ml-1">★</span>}
                         </label>
                       ))}
                     </div>
@@ -1109,92 +1097,99 @@ function BlockSettings({
             })}
           </div>
 
-          {/* 내지 인쇄 - 컬러 */}
-          <div className="p-3 bg-white rounded-lg border">
+          {/* 컬러 - print 블록과 동일한 스타일 */}
+          <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-gray-500 font-medium">내지 인쇄 - 컬러</label>
-              <div className="flex gap-2">
-                <label className="flex items-center gap-1 text-xs">
-                  <input type="checkbox" checked={cfg.printColorLocked} onChange={(e) => updateCfg(block.id, 'printColorLocked', e.target.checked)} />
+              <label className="text-xs text-gray-500">컬러</label>
+              <div className="flex gap-3">
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+                  <input type="checkbox" className="checkbox checkbox-xs" checked={cfg.printColorLocked} onChange={(e) => updateCfg(block.id, 'printColorLocked', e.target.checked)} />
                   고정
                 </label>
-                <label className="flex items-center gap-1 text-xs">
-                  <input type="checkbox" checked={cfg.printColorHidden} onChange={(e) => updateCfg(block.id, 'printColorHidden', e.target.checked)} />
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+                  <input type="checkbox" className="checkbox checkbox-xs" checked={cfg.printColorHidden} onChange={(e) => updateCfg(block.id, 'printColorHidden', e.target.checked)} />
                   숨김
                 </label>
               </div>
             </div>
             <div className="flex gap-3">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" checked={cfg.color} onChange={(e) => updateCfg(block.id, 'color', e.target.checked)} />
+              <label
+                className="flex items-center gap-2 text-sm bg-white px-3 py-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50"
+                onDoubleClick={() => updateCfg(block.id, 'defaultPrint', { ...cfg.defaultPrint, color: 'color' })}
+              >
+                <input type="checkbox" checked={cfg.color} onChange={(e) => updateCfg(block.id, 'color', e.target.checked)} className="checkbox checkbox-sm" />
                 컬러
+                {cfg.defaultPrint?.color === 'color' && <span className="text-warning">★</span>}
               </label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" checked={cfg.mono} onChange={(e) => updateCfg(block.id, 'mono', e.target.checked)} />
+              <label
+                className="flex items-center gap-2 text-sm bg-white px-3 py-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50"
+                onDoubleClick={() => updateCfg(block.id, 'defaultPrint', { ...cfg.defaultPrint, color: 'mono' })}
+              >
+                <input type="checkbox" checked={cfg.mono} onChange={(e) => updateCfg(block.id, 'mono', e.target.checked)} className="checkbox checkbox-sm" />
                 흑백
+                {cfg.defaultPrint?.color === 'mono' && <span className="text-warning">★</span>}
               </label>
             </div>
           </div>
 
-          {/* 내지 인쇄 - 면수 */}
-          <div className="p-3 bg-white rounded-lg border">
+          {/* 면수 - print 블록과 동일한 스타일 */}
+          <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-gray-500 font-medium">내지 인쇄 - 면수</label>
-              <div className="flex gap-2">
-                <label className="flex items-center gap-1 text-xs">
-                  <input type="checkbox" checked={cfg.printSideLocked} onChange={(e) => updateCfg(block.id, 'printSideLocked', e.target.checked)} />
+              <label className="text-xs text-gray-500">면수</label>
+              <div className="flex gap-3">
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+                  <input type="checkbox" className="checkbox checkbox-xs" checked={cfg.printSideLocked} onChange={(e) => updateCfg(block.id, 'printSideLocked', e.target.checked)} />
                   고정
                 </label>
-                <label className="flex items-center gap-1 text-xs">
-                  <input type="checkbox" checked={cfg.printSideHidden} onChange={(e) => updateCfg(block.id, 'printSideHidden', e.target.checked)} />
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+                  <input type="checkbox" className="checkbox checkbox-xs" checked={cfg.printSideHidden} onChange={(e) => updateCfg(block.id, 'printSideHidden', e.target.checked)} />
                   숨김
                 </label>
               </div>
             </div>
             <div className="flex gap-3">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" checked={cfg.single} onChange={(e) => updateCfg(block.id, 'single', e.target.checked)} />
+              <label
+                className="flex items-center gap-2 text-sm bg-white px-3 py-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50"
+                onDoubleClick={() => updateCfg(block.id, 'defaultPrint', { ...cfg.defaultPrint, side: 'single' })}
+              >
+                <input type="checkbox" checked={cfg.single} onChange={(e) => updateCfg(block.id, 'single', e.target.checked)} className="checkbox checkbox-sm" />
                 단면
+                {cfg.defaultPrint?.side === 'single' && <span className="text-warning">★</span>}
               </label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" checked={cfg.double} onChange={(e) => updateCfg(block.id, 'double', e.target.checked)} />
+              <label
+                className="flex items-center gap-2 text-sm bg-white px-3 py-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50"
+                onDoubleClick={() => updateCfg(block.id, 'defaultPrint', { ...cfg.defaultPrint, side: 'double' })}
+              >
+                <input type="checkbox" checked={cfg.double} onChange={(e) => updateCfg(block.id, 'double', e.target.checked)} className="checkbox checkbox-sm" />
                 양면
+                {cfg.defaultPrint?.side === 'double' && <span className="text-warning">★</span>}
               </label>
             </div>
           </div>
 
           {/* 페이지 수 */}
-          <div className="p-3 bg-white rounded-lg border">
+          <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-gray-500 font-medium">페이지 수</label>
-              <div className="flex gap-2">
-                <label className="flex items-center gap-1 text-xs">
-                  <input type="checkbox" checked={cfg.pagesLocked} onChange={(e) => updateCfg(block.id, 'pagesLocked', e.target.checked)} />
+              <label className="text-xs text-gray-500">페이지 수</label>
+              <div className="flex gap-3">
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+                  <input type="checkbox" className="checkbox checkbox-xs" checked={cfg.pagesLocked} onChange={(e) => updateCfg(block.id, 'pagesLocked', e.target.checked)} />
                   고정
                 </label>
-                <label className="flex items-center gap-1 text-xs">
-                  <input type="checkbox" checked={cfg.pagesHidden} onChange={(e) => updateCfg(block.id, 'pagesHidden', e.target.checked)} />
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+                  <input type="checkbox" className="checkbox checkbox-xs" checked={cfg.pagesHidden} onChange={(e) => updateCfg(block.id, 'pagesHidden', e.target.checked)} />
                   숨김
                 </label>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-2">
               <div>
                 <label className="text-xs text-gray-400 block mb-1">최소</label>
                 <input
                   type="number"
                   value={cfg.min}
                   onChange={(e) => updateCfg(block.id, 'min', parseInt(e.target.value))}
-                  className="w-full px-2 py-1 border rounded text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-400 block mb-1">최대</label>
-                <input
-                  type="number"
-                  value={cfg.max}
-                  onChange={(e) => updateCfg(block.id, 'max', parseInt(e.target.value))}
-                  className="w-full px-2 py-1 border rounded text-sm"
+                  className="input input-bordered input-sm w-full"
                 />
               </div>
               <div>
@@ -1203,13 +1198,30 @@ function BlockSettings({
                   type="number"
                   value={cfg.step}
                   onChange={(e) => updateCfg(block.id, 'step', parseInt(e.target.value))}
-                  className="w-full px-2 py-1 border rounded text-sm"
+                  className="input input-bordered input-sm w-full"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">기본값</label>
+                <input
+                  type="number"
+                  value={cfg.defaultPages || cfg.min}
+                  onChange={(e) => updateCfg(block.id, 'defaultPages', parseInt(e.target.value))}
+                  className="input input-bordered input-sm w-full"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">두께제한</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={cfg.maxThickness || ''}
+                  onChange={(e) => updateCfg(block.id, 'maxThickness', e.target.value ? parseFloat(e.target.value) : null)}
+                  className="input input-bordered input-sm w-full"
+                  placeholder="mm"
                 />
               </div>
             </div>
-            {block.type === 'inner_layer_saddle' && (
-              <p className="text-xs text-gray-600 mt-2">📌 수식: 내지 페이지 = 총 페이지 - 4 (표지 제외)</p>
-            )}
           </div>
         </div>
       );

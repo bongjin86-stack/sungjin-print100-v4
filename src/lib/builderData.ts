@@ -106,6 +106,7 @@ export interface CustomerSelection {
   innerColor: string;
   innerSide: string;
   deliveryPercent?: number;
+  maxThickness?: number; // 블록 설정의 두께 제한 (mm)
   coverColor?: string;
   coverCoating?: string;
   coverCoatingSide?: string;
@@ -146,6 +147,8 @@ export const BLOCK_TYPES: Record<string, BlockTypeInfo> = {
   spring_color: { name: '스프링색상', icon: '🔗', color: 'from-stone-100 to-stone-200', desc: '스프링 색상' },
   pages: { name: '페이지 수', icon: '📖', color: 'from-stone-100 to-stone-200', desc: '페이지 수 + 연동 블록' },
   spring_options: { name: '스프링 옵션', icon: '🔧', color: 'from-stone-100 to-stone-200', desc: 'PP/표지인쇄/뒷판/스프링색상' },
+  inner_layer_saddle: { name: '내지(중철)', icon: '📚', color: 'from-amber-100 to-amber-200', desc: '내지 용지+인쇄+페이지 (4p단위)' },
+  inner_layer_leaf: { name: '내지(무선/스프링)', icon: '📗', color: 'from-emerald-100 to-emerald-200', desc: '내지 용지+인쇄+페이지 (1p단위)' },
 };
 
 // 상품 템플릿

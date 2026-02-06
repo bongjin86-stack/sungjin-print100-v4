@@ -14,7 +14,7 @@ import { DB } from '@/lib/builderData';
 import { formatBusinessDate, getBusinessDate } from '@/lib/businessDays';
 import { validateCoatingWeight } from '@/lib/priceEngine';
 
-export function PreviewBlock({ block, customer, setCustomer, calculatePrice, linkStatus, handleFoldSelect, productType, dbPapers = {}, dbPapersList = [], allBlocks = [] }) {
+export function PreviewBlock({ block, customer, setCustomer, calculatePrice, linkStatus, handleFoldSelect, productType, dbPapers = {}, dbPapersList = [], allBlocks = [], thicknessError = false }) {
   const cfg = block.config;
   const isDisabled = block.locked;
 
@@ -558,56 +558,118 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
 
     case 'pages_saddle':
     case 'pages_leaf':
-    case 'pages':
+    case 'pages': {
+      // 페이지 입력값 검증 (최소값, step 배수)
+      const validatePages = (value) => {
+        let pages = parseInt(value) || cfg.min;
+        pages = Math.max(cfg.min, pages);
+        // step 배수로 맞춤
+        const remainder = (pages - cfg.min) % cfg.step;
+        if (remainder !== 0) {
+          pages = pages - remainder + cfg.step;
+        }
+        return pages;
+      };
       return (
-        <div className="pv-block">
+        <div className={`pv-block ${thicknessError ? 'pv-block-error' : ''}`}>
           <p className="pv-block-label">페이지 수</p>
-          <div className="pv-pages-row">
+          <div className={`pv-pages-row ${thicknessError ? 'pv-pages-error' : ''}`}>
             <button
               disabled={isDisabled}
               className="pv-pages-btn"
               onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, pages: Math.max(cfg.min, prev.pages - cfg.step) }))}
             >−</button>
             <div className="pv-pages-val">
-              <span className="pv-pages-num">{customer.pages}</span>
-              <span className="pv-pages-unit">p</span>
+              <input
+                type="number"
+                disabled={isDisabled}
+                className={`pv-pages-input ${thicknessError ? 'pv-pages-input-error' : ''}`}
+                value={customer.pages}
+                min={cfg.min}
+                step={cfg.step}
+                onChange={(e) => !isDisabled && setCustomer(prev => ({ ...prev, pages: parseInt(e.target.value) || cfg.min }))}
+                onBlur={(e) => !isDisabled && setCustomer(prev => ({ ...prev, pages: validatePages(e.target.value) }))}
+              />
+              <span className={`pv-pages-unit ${thicknessError ? 'pv-pages-unit-error' : ''}`}>p</span>
             </div>
             <button
               disabled={isDisabled}
               className="pv-pages-btn"
-              onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, pages: Math.min(cfg.max, prev.pages + cfg.step) }))}
+              onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, pages: prev.pages + cfg.step }))}
             >+</button>
           </div>
         </div>
       );
+    }
 
     case 'inner_layer_saddle':
-    case 'inner_layer_leaf':
+    case 'inner_layer_leaf': {
+      // 페이지 입력값 검증 (최소값, step 배수)
+      const validateInnerPages = (value) => {
+        const minPages = cfg.min || 4;
+        const stepPages = cfg.step || 2;
+        let pages = parseInt(value) || minPages;
+        pages = Math.max(minPages, pages);
+        const remainder = (pages - minPages) % stepPages;
+        if (remainder !== 0) {
+          pages = pages - remainder + stepPages;
+        }
+        return pages;
+      };
+
       return (
-        <div className="pv-block pv-inner-layer">
+        <div className={`pv-block ${thicknessError ? 'pv-block-error' : ''}`}>
           <p className="pv-block-label">{block.label}</p>
 
+          {/* 내지 용지 - paper 블록과 동일한 스타일 */}
           {!cfg.paperHidden && (
-            <div className="pv-inner-section">
-              <p className="pv-sub-label">내지 용지</p>
+            <div className="pv-paper-list">
               {Object.entries(cfg.papers || {}).map(([code, weights]) => {
                 const paper = dbPapersList.find(p => p.code === code) || DB.papers.find(p => p.code === code);
                 if (!paper || !weights.length) return null;
+                const isSelected = customer.innerPaper === code;
                 return (
                   <div
                     key={code}
-                    className={`pv-inner-paper ${customer.innerPaper === code ? 'active' : ''} ${cfg.paperLocked ? 'disabled' : ''}`}
+                    className={`pv-paper-item ${isSelected ? 'active' : ''} ${cfg.paperLocked ? 'disabled' : ''}`}
                     onClick={() => !cfg.paperLocked && setCustomer(prev => ({ ...prev, innerPaper: code, innerWeight: weights[0] }))}
                   >
-                    <span className="pv-paper-name">{paper.name}</span>
+                    <div className="pv-paper-thumb">
+                      {dbPapers[code]?.image_url ? (
+                        <img src={dbPapers[code].image_url} alt={dbPapers[code]?.name || paper.name} />
+                      ) : (
+                        <div
+                          className="pv-paper-swatch"
+                          style={{
+                            background: code === 'snow'
+                              ? 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)'
+                              : code === 'mojo'
+                              ? 'linear-gradient(135deg, #fefcf3 0%, #fef3c7 50%, #fde68a 100%)'
+                              : code === 'artpaper'
+                              ? 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)'
+                              : code === 'rendezvous'
+                              ? 'linear-gradient(135deg, #faf5ef 0%, #f5ebe0 50%, #eddfcc 100%)'
+                              : code === 'inspire' || code === 'inspirer'
+                              ? 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 50%, #d6d3d1 100%)'
+                              : 'linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)'
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div className="pv-paper-info">
+                      <p className={`pv-paper-name ${isSelected ? 'active' : ''}`}>{dbPapers[code]?.name || paper.name}</p>
+                      <p className="pv-paper-desc">{dbPapers[code]?.desc || paper.desc}</p>
+                    </div>
                     <div className="pv-weight-btns">
                       {weights.map(w => (
                         <button
                           key={w}
                           disabled={cfg.paperLocked}
-                          className={`pv-weight-btn ${customer.innerPaper === code && customer.innerWeight === w ? 'active' : ''}`}
+                          className={`pv-weight-btn ${isSelected && customer.innerWeight === w ? 'active' : ''}`}
                           onClick={(e) => { e.stopPropagation(); !cfg.paperLocked && setCustomer(prev => ({ ...prev, innerPaper: code, innerWeight: w })); }}
-                        >{w}g</button>
+                        >
+                          {w}g
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -616,70 +678,65 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
             </div>
           )}
 
-          <div className="pv-print-grid">
-            {!cfg.printColorHidden && (
-              <div>
-                <p className="pv-sub-label">컬러</p>
-                <div className="pv-btn-row">
-                  {cfg.color && (
-                    <button disabled={cfg.printColorLocked}
-                      className={`pv-btn-sm ${customer.innerColor === 'color' ? 'active' : ''}`}
-                      onClick={() => !cfg.printColorLocked && setCustomer(prev => ({ ...prev, innerColor: 'color' }))}
-                    >컬러</button>
-                  )}
-                  {cfg.mono && (
-                    <button disabled={cfg.printColorLocked}
-                      className={`pv-btn-sm ${customer.innerColor === 'mono' ? 'active' : ''}`}
-                      onClick={() => !cfg.printColorLocked && setCustomer(prev => ({ ...prev, innerColor: 'mono' }))}
-                    >흑백</button>
-                  )}
-                </div>
-              </div>
+          {/* 인쇄 옵션 - 라벨 없이 버튼만 표시, 개수에 따라 자동 조절 */}
+          <div className="pv-btn-row" style={{ marginTop: '0.75rem' }}>
+            {!cfg.printColorHidden && cfg.color && (
+              <button disabled={cfg.printColorLocked}
+                className={`pv-btn flex-1 ${customer.innerColor === 'color' ? 'active' : ''}`}
+                onClick={() => !cfg.printColorLocked && setCustomer(prev => ({ ...prev, innerColor: 'color' }))}
+              >컬러</button>
             )}
-            {!cfg.printSideHidden && (
-              <div>
-                <p className="pv-sub-label">면수</p>
-                <div className="pv-btn-row">
-                  {cfg.single && (
-                    <button disabled={cfg.printSideLocked}
-                      className={`pv-btn-sm ${customer.innerSide === 'single' ? 'active' : ''}`}
-                      onClick={() => !cfg.printSideLocked && setCustomer(prev => ({ ...prev, innerSide: 'single' }))}
-                    >단면</button>
-                  )}
-                  {cfg.double && (
-                    <button disabled={cfg.printSideLocked}
-                      className={`pv-btn-sm ${customer.innerSide === 'double' ? 'active' : ''}`}
-                      onClick={() => !cfg.printSideLocked && setCustomer(prev => ({ ...prev, innerSide: 'double' }))}
-                    >양면</button>
-                  )}
-                </div>
-              </div>
+            {!cfg.printColorHidden && cfg.mono && (
+              <button disabled={cfg.printColorLocked}
+                className={`pv-btn flex-1 ${customer.innerColor === 'mono' ? 'active' : ''}`}
+                onClick={() => !cfg.printColorLocked && setCustomer(prev => ({ ...prev, innerColor: 'mono' }))}
+              >흑백</button>
+            )}
+            {!cfg.printSideHidden && cfg.single && (
+              <button disabled={cfg.printSideLocked}
+                className={`pv-btn flex-1 ${customer.innerSide === 'single' ? 'active' : ''}`}
+                onClick={() => !cfg.printSideLocked && setCustomer(prev => ({ ...prev, innerSide: 'single' }))}
+              >단면</button>
+            )}
+            {!cfg.printSideHidden && cfg.double && (
+              <button disabled={cfg.printSideLocked}
+                className={`pv-btn flex-1 ${customer.innerSide === 'double' ? 'active' : ''}`}
+                onClick={() => !cfg.printSideLocked && setCustomer(prev => ({ ...prev, innerSide: 'double' }))}
+              >양면</button>
             )}
           </div>
 
+          {/* 페이지 수 - pages 블록과 동일한 스타일 (입력 필드 포함) */}
           {!cfg.pagesHidden && (
-            <div className="pv-inner-section">
-              <p className="pv-sub-label">페이지 수</p>
-              <div className="pv-pages-row">
-                <button disabled={cfg.pagesLocked} className="pv-pages-btn"
-                  onClick={() => !cfg.pagesLocked && setCustomer(prev => ({ ...prev, pages: Math.max(cfg.min, prev.pages - cfg.step) }))}
-                >−</button>
-                <div className="pv-pages-val">
-                  <span className="pv-pages-num">{customer.pages}</span>
-                  <span className="pv-pages-unit">p</span>
-                </div>
-                <button disabled={cfg.pagesLocked} className="pv-pages-btn"
-                  onClick={() => !cfg.pagesLocked && setCustomer(prev => ({ ...prev, pages: Math.min(cfg.max, prev.pages + cfg.step) }))}
-                >+</button>
-                <span className="pv-pages-range">{cfg.min}~{cfg.max}p</span>
+            <div className={`pv-pages-row ${thicknessError ? 'pv-pages-error' : ''}`} style={{ marginTop: '0.75rem' }}>
+              <button
+                disabled={cfg.pagesLocked}
+                className="pv-pages-btn"
+                onClick={() => !cfg.pagesLocked && setCustomer(prev => ({ ...prev, pages: Math.max(cfg.min || 4, prev.pages - (cfg.step || 2)) }))}
+              >−</button>
+              <div className="pv-pages-val">
+                <input
+                  type="number"
+                  disabled={cfg.pagesLocked}
+                  className={`pv-pages-input ${thicknessError ? 'pv-pages-input-error' : ''}`}
+                  value={customer.pages || cfg.defaultPages || cfg.min}
+                  min={cfg.min || 4}
+                  step={cfg.step || 2}
+                  onChange={(e) => !cfg.pagesLocked && setCustomer(prev => ({ ...prev, pages: parseInt(e.target.value) || cfg.min || 4 }))}
+                  onBlur={(e) => !cfg.pagesLocked && setCustomer(prev => ({ ...prev, pages: validateInnerPages(e.target.value) }))}
+                />
+                <span className={`pv-pages-unit ${thicknessError ? 'pv-pages-unit-error' : ''}`}>p</span>
               </div>
-              {block.type === 'inner_layer_saddle' && (
-                <p className="pv-pages-note">내지: {Math.max(0, customer.pages - 4)}p (표지 4p 제외)</p>
-              )}
+              <button
+                disabled={cfg.pagesLocked}
+                className="pv-pages-btn"
+                onClick={() => !cfg.pagesLocked && setCustomer(prev => ({ ...prev, pages: (customer.pages || cfg.defaultPages || cfg.min || 4) + (cfg.step || 2) }))}
+              >+</button>
             </div>
           )}
         </div>
       );
+    }
 
     case 'quantity':
       return (

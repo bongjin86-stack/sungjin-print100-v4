@@ -230,10 +230,14 @@ export function getBlockSummary(block, dbPapersList = []) {
     case 'pages_saddle':
     case 'pages_leaf':
     case 'pages':
-      return `${cfg.min}~${cfg.max}p (${cfg.step}p 단위)`;
+      return `최소 ${cfg.min}p, ${cfg.step}p 단위${cfg.maxThickness ? `, 두께제한 ${cfg.maxThickness}mm` : ''}`;
     case 'inner_layer_saddle':
-    case 'inner_layer_leaf':
-      return `내지 용지+인쇄+페이지 통합`;
+    case 'inner_layer_leaf': {
+      const papers = cfg.papers ? Object.keys(cfg.papers).map(p => papersList.find(pp => pp.code === p)?.name || p).join('/') : '';
+      const pages = cfg.min ? `${cfg.min}p~, ${cfg.step}p단위` : '';
+      const thickness = cfg.maxThickness ? `, ≤${cfg.maxThickness}mm` : '';
+      return `${papers} ${pages}${thickness}` || '내지 설정';
+    }
     default:
       return '-';
   }
