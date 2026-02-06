@@ -1419,6 +1419,7 @@ export default function AdminBuilder() {
                 setNewQtyInput={setNewQtyInput}
                 allBlocks={currentProduct.blocks}
                 dbPapersList={dbPapersList}
+                BlockSettingsComponent={BlockSettings}
               />
             ))}
           </div>
