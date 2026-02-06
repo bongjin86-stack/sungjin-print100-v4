@@ -66,20 +66,24 @@ const CUTOFF_HOUR = 14;
 
 export function getBusinessDate(businessDays: number): Date {
   const now = new Date();
-  const date = new Date();
+  // 항상 새로운 Date 객체로 시작
+  const date = new Date(now.getTime());
 
   const isPastCutoff = now.getHours() >= CUTOFF_HOUR;
 
+  // 마감 시간 지났거나 영업일이 아니면 다음 영업일로
   if (isPastCutoff || !isBusinessDay(date)) {
     do {
       date.setDate(date.getDate() + 1);
     } while (!isBusinessDay(date));
   }
 
+  // 당일 출고면 바로 반환
   if (businessDays === 0) {
-    return date;
+    return new Date(date.getTime());
   }
 
+  // N영업일 후 계산
   let count = 0;
   while (count < businessDays) {
     date.setDate(date.getDate() + 1);
@@ -88,7 +92,7 @@ export function getBusinessDate(businessDays: number): Date {
     }
   }
 
-  return date;
+  return new Date(date.getTime());
 }
 
 export function formatBusinessDate(date: Date): string {

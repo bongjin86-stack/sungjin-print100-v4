@@ -14,7 +14,7 @@
  * - PreviewBlock.jsx도 함께 수정 필요
  */
 
-import { DB } from '@/lib/builderData';
+import { DB, TEMPLATES } from '@/lib/builderData';
 
 function BlockSettings({
   block, updateCfg, updateBlockProp, toggleSizeOption, togglePaper, toggleWeight,
@@ -457,21 +457,51 @@ function BlockSettings({
         </div>
       );
 
-    case 'spring_options':
+    case 'spring_options': {
+      // 옵션이 없으면 TEMPLATES.spring에서 기본값 가져오기
+      const defaultSpringCfg = TEMPLATES.spring?.blocks?.find(b => b.type === 'spring_options')?.config || {};
+      const ppOptions = cfg.pp?.options?.length > 0 ? cfg.pp.options : defaultSpringCfg.pp?.options || [];
+      const coverPrintOptions = cfg.coverPrint?.options?.length > 0 ? cfg.coverPrint.options : defaultSpringCfg.coverPrint?.options || [];
+      const backOptions = cfg.back?.options?.length > 0 ? cfg.back.options : defaultSpringCfg.back?.options || [];
+      const springColorOptions = cfg.springColor?.options?.length > 0 ? cfg.springColor.options : defaultSpringCfg.springColor?.options || [];
+
+      // 옵션이 cfg에 없으면 기본 템플릿 복사해서 저장하는 함수
+      const initializeOptions = () => {
+        updateCfg(block.id, 'pp', defaultSpringCfg.pp || {});
+        updateCfg(block.id, 'coverPrint', defaultSpringCfg.coverPrint || {});
+        updateCfg(block.id, 'back', defaultSpringCfg.back || {});
+        updateCfg(block.id, 'springColor', defaultSpringCfg.springColor || {});
+      };
+
+      const needsInit = !cfg.pp?.options?.length && !cfg.coverPrint?.options?.length && !cfg.back?.options?.length && !cfg.springColor?.options?.length;
+
       return (
         <div className="space-y-4">
+          {/* 초기화 버튼 (옵션이 없을 때) */}
+          {needsInit && (
+            <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <p className="text-sm text-amber-700 mb-2">옵션이 설정되지 않았습니다.</p>
+              <button
+                className="btn btn-sm btn-warning"
+                onClick={initializeOptions}
+              >
+                기본 옵션으로 초기화
+              </button>
+            </div>
+          )}
+
           {/* PP 옵션 - 가로 체크박스 */}
           <div className="p-4 bg-white rounded-lg border border-gray-200">
             <div className="flex items-center justify-between">
               <label className="text-xs text-gray-400 font-medium">PP (전면 커버)</label>
               <div className="flex items-center gap-4">
-                {cfg.pp?.options?.map(opt => (
+                {ppOptions.map(opt => (
                   <label
                     key={opt.id}
                     className="flex items-center gap-2 text-sm cursor-pointer"
                     onDoubleClick={() => {
-                      const newOptions = cfg.pp.options.map(o => ({ ...o, default: o.id === opt.id }));
-                      updateCfg(block.id, 'pp', { ...cfg.pp, options: newOptions });
+                      const newOptions = ppOptions.map(o => ({ ...o, default: o.id === opt.id }));
+                      updateCfg(block.id, 'pp', { ...(cfg.pp || {}), options: newOptions });
                     }}
                   >
                     <input
@@ -479,10 +509,10 @@ function BlockSettings({
                       className="checkbox checkbox-sm"
                       checked={opt.enabled}
                       onChange={(e) => {
-                        const newOptions = cfg.pp.options.map(o =>
+                        const newOptions = ppOptions.map(o =>
                           o.id === opt.id ? { ...o, enabled: e.target.checked } : o
                         );
-                        updateCfg(block.id, 'pp', { ...cfg.pp, options: newOptions });
+                        updateCfg(block.id, 'pp', { ...(cfg.pp || {}), options: newOptions });
                       }}
                     />
                     <span className={opt.default ? 'font-medium' : ''}>{opt.label}</span>
@@ -500,28 +530,28 @@ function BlockSettings({
               <label className="text-xs text-gray-400 font-medium block mb-3">표지인쇄</label>
               <select
                 className="select select-bordered select-sm w-full mb-3"
-                value={cfg.coverPrint?.options?.find(o => o.default)?.id || ''}
+                value={coverPrintOptions.find(o => o.default)?.id || ''}
                 onChange={(e) => {
-                  const newOptions = cfg.coverPrint.options.map(o => ({ ...o, default: o.id === e.target.value }));
-                  updateCfg(block.id, 'coverPrint', { ...cfg.coverPrint, options: newOptions });
+                  const newOptions = coverPrintOptions.map(o => ({ ...o, default: o.id === e.target.value }));
+                  updateCfg(block.id, 'coverPrint', { ...(cfg.coverPrint || {}), options: newOptions });
                 }}
               >
-                {cfg.coverPrint?.options?.filter(o => o.enabled).map(opt => (
+                {coverPrintOptions.filter(o => o.enabled).map(opt => (
                   <option key={opt.id} value={opt.id}>{opt.label}</option>
                 ))}
               </select>
               <div className="space-y-1">
-                {cfg.coverPrint?.options?.map(opt => (
+                {coverPrintOptions.map(opt => (
                   <label key={opt.id} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
                     <input
                       type="checkbox"
                       className="checkbox checkbox-xs"
                       checked={opt.enabled}
                       onChange={(e) => {
-                        const newOptions = cfg.coverPrint.options.map(o =>
+                        const newOptions = coverPrintOptions.map(o =>
                           o.id === opt.id ? { ...o, enabled: e.target.checked } : o
                         );
-                        updateCfg(block.id, 'coverPrint', { ...cfg.coverPrint, options: newOptions });
+                        updateCfg(block.id, 'coverPrint', { ...(cfg.coverPrint || {}), options: newOptions });
                       }}
                     />
                     {opt.label}
@@ -535,28 +565,28 @@ function BlockSettings({
               <label className="text-xs text-gray-400 font-medium block mb-3">뒷판</label>
               <select
                 className="select select-bordered select-sm w-full mb-3"
-                value={cfg.back?.options?.find(o => o.default)?.id || ''}
+                value={backOptions.find(o => o.default)?.id || ''}
                 onChange={(e) => {
-                  const newOptions = cfg.back.options.map(o => ({ ...o, default: o.id === e.target.value }));
-                  updateCfg(block.id, 'back', { ...cfg.back, options: newOptions });
+                  const newOptions = backOptions.map(o => ({ ...o, default: o.id === e.target.value }));
+                  updateCfg(block.id, 'back', { ...(cfg.back || {}), options: newOptions });
                 }}
               >
-                {cfg.back?.options?.filter(o => o.enabled).map(opt => (
+                {backOptions.filter(o => o.enabled).map(opt => (
                   <option key={opt.id} value={opt.id}>{opt.label}</option>
                 ))}
               </select>
               <div className="space-y-1">
-                {cfg.back?.options?.map(opt => (
+                {backOptions.map(opt => (
                   <label key={opt.id} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
                     <input
                       type="checkbox"
                       className="checkbox checkbox-xs"
                       checked={opt.enabled}
                       onChange={(e) => {
-                        const newOptions = cfg.back.options.map(o =>
+                        const newOptions = backOptions.map(o =>
                           o.id === opt.id ? { ...o, enabled: e.target.checked } : o
                         );
-                        updateCfg(block.id, 'back', { ...cfg.back, options: newOptions });
+                        updateCfg(block.id, 'back', { ...(cfg.back || {}), options: newOptions });
                       }}
                     />
                     {opt.label}
@@ -571,28 +601,28 @@ function BlockSettings({
               <label className="text-xs text-gray-400 font-medium block mb-3">스프링 색상</label>
               <select
                 className="select select-bordered select-sm w-full mb-3"
-                value={cfg.springColor?.options?.find(o => o.default)?.id || ''}
+                value={springColorOptions.find(o => o.default)?.id || ''}
                 onChange={(e) => {
-                  const newOptions = cfg.springColor.options.map(o => ({ ...o, default: o.id === e.target.value }));
-                  updateCfg(block.id, 'springColor', { ...cfg.springColor, options: newOptions });
+                  const newOptions = springColorOptions.map(o => ({ ...o, default: o.id === e.target.value }));
+                  updateCfg(block.id, 'springColor', { ...(cfg.springColor || {}), options: newOptions });
                 }}
               >
-                {cfg.springColor?.options?.filter(o => o.enabled).map(opt => (
+                {springColorOptions.filter(o => o.enabled).map(opt => (
                   <option key={opt.id} value={opt.id}>{opt.label}</option>
                 ))}
               </select>
               <div className="space-y-1">
-                {cfg.springColor?.options?.map(opt => (
+                {springColorOptions.map(opt => (
                   <label key={opt.id} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
                     <input
                       type="checkbox"
                       className="checkbox checkbox-xs"
                       checked={opt.enabled}
                       onChange={(e) => {
-                        const newOptions = cfg.springColor.options.map(o =>
+                        const newOptions = springColorOptions.map(o =>
                           o.id === opt.id ? { ...o, enabled: e.target.checked } : o
                         );
-                        updateCfg(block.id, 'springColor', { ...cfg.springColor, options: newOptions });
+                        updateCfg(block.id, 'springColor', { ...(cfg.springColor || {}), options: newOptions });
                       }}
                     />
                     {opt.label}
@@ -664,136 +694,139 @@ function BlockSettings({
           </p>
         </div>
       );
+    }
 
-    case 'delivery':
-      // 배열 구조로 출고일 옵션 관리
-      const defaultDeliveryOptions = [
-        { id: 'same', label: '당일', enabled: false, percent: 30 },
-        { id: 'next1', label: '1영업일', enabled: true, percent: 15 },
-        { id: 'next2', label: '2영업일', enabled: true, percent: 0 },
-        { id: 'next3', label: '3영업일', enabled: true, percent: -5 },
+    case 'delivery': {
+      // 고정 출고일 옵션 4개 (하드코딩) - ID는 절대 변경 불가
+      const FIXED_DELIVERY_OPTIONS = [
+        { id: 'same', label: '당일', days: 0, defaultPercent: 30 },
+        { id: 'next1', label: '1영업일', days: 1, defaultPercent: 15 },
+        { id: 'next2', label: '2영업일', days: 2, defaultPercent: 0 },
+        { id: 'next3', label: '3영업일', days: 3, defaultPercent: -5 },
       ];
 
-      // 기존 개별 키 데이터 마이그레이션 (cfg.same, cfg.next1 등이 있는 경우)
-      const deliveryOptions = cfg.options?.length > 0 ? cfg.options :
-        (cfg.same !== undefined || cfg.next1 !== undefined) ? [
-          { id: 'same', label: '당일', enabled: !!(cfg.same?.enabled ?? cfg.same), percent: cfg.same?.rate ?? 30 },
-          { id: 'next1', label: '1영업일', enabled: !!(cfg.next1?.enabled ?? cfg.next1), percent: cfg.next1?.rate ?? 15 },
-          { id: 'next2', label: '2영업일', enabled: !!(cfg.next2?.enabled ?? cfg.next2), percent: cfg.next2?.rate ?? 0 },
-          { id: 'next3', label: '3영업일', enabled: !!(cfg.next3?.enabled ?? cfg.next3), percent: cfg.next3?.rate ?? -5 },
-        ] : defaultDeliveryOptions;
+      // cfg.options에서 고정 ID만 추출 (커스텀 옵션 무시)
+      const getOptionConfig = (id) => {
+        const opt = cfg.options?.find(o => o.id === id);
+        if (opt) return opt;
+        // 없으면 기본값
+        const fixedOpt = FIXED_DELIVERY_OPTIONS.find(o => o.id === id);
+        return { id, enabled: id !== 'same', percent: fixedOpt?.defaultPercent || 0 };
+      };
 
-      // 옵션 업데이트 함수
+      // 옵션 업데이트 - 항상 고정 4개 ID만 저장
       const updateDeliveryOption = (optId, field, value) => {
-        const newOptions = deliveryOptions.map(opt =>
-          opt.id === optId ? { ...opt, [field]: value } : opt
-        );
-        updateCfg(block.id, 'options', newOptions);
-      };
+        // 고정 ID가 아니면 무시
+        if (!FIXED_DELIVERY_OPTIONS.find(o => o.id === optId)) return;
 
-      // 출고일 옵션 추가 함수
-      const addDeliveryOption = () => {
-        const newId = `custom_${Date.now()}`;
-        const newOptions = [...deliveryOptions, { id: newId, label: '새 옵션', enabled: true, percent: 0 }];
-        updateCfg(block.id, 'options', newOptions);
-      };
-
-      // 출고일 옵션 삭제 함수
-      const removeDeliveryOption = (optId) => {
-        if (deliveryOptions.length <= 1) return; // 최소 1개는 유지
-        const newOptions = deliveryOptions.filter(opt => opt.id !== optId);
-        // 삭제된 옵션이 기본값이었다면 첫 번째 활성화된 옵션을 기본값으로
-        if (cfg.default === optId) {
-          const firstEnabled = newOptions.find(o => o.enabled);
-          if (firstEnabled) {
-            updateCfg(block.id, 'default', firstEnabled.id);
+        // 고정 4개 옵션으로 새 배열 생성
+        const newOptions = FIXED_DELIVERY_OPTIONS.map(fixedOpt => {
+          const current = getOptionConfig(fixedOpt.id);
+          if (fixedOpt.id === optId) {
+            return { ...current, id: fixedOpt.id, [field]: value };
           }
-        }
+          return { ...current, id: fixedOpt.id };
+        });
         updateCfg(block.id, 'options', newOptions);
       };
 
-      // 라벨 수정 함수
-      const updateDeliveryLabel = (optId, newLabel) => {
-        const newOptions = deliveryOptions.map(opt =>
-          opt.id === optId ? { ...opt, label: newLabel } : opt
-        );
-        updateCfg(block.id, 'options', newOptions);
+      // 리셋 함수 - 기본값으로 초기화
+      const resetToDefault = () => {
+        const defaultOptions = FIXED_DELIVERY_OPTIONS.map(o => ({
+          id: o.id,
+          enabled: o.id !== 'same',
+          percent: o.defaultPercent
+        }));
+        updateCfg(block.id, 'options', defaultOptions);
+        updateCfg(block.id, 'default', 'next2');
       };
 
       return (
         <div className="space-y-4">
-          <p className="text-xs text-info bg-info/10 px-3 py-2 rounded-lg">
-            더블클릭으로 기본값 설정 (★ 표시)
-          </p>
-          <div>
-            <label className="text-xs text-gray-500 block mb-2">마감 시간</label>
+          {/* 출고 기준 마감시간 */}
+          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <label className="text-xs text-blue-700 font-medium block mb-2">출고 기준 마감시간</label>
             <div className="flex items-center gap-2">
               <input
                 type="time"
-                value={cfg.cutoffTime || '12:00'}
+                value={cfg.cutoffTime || '14:00'}
                 onChange={(e) => updateCfg(block.id, 'cutoffTime', e.target.value)}
-                className="select select-bordered select-sm"
+                className="input input-bordered input-sm w-32"
               />
-              <span className="text-xs text-gray-400">마감</span>
+              <span className="text-xs text-blue-600">이후 주문은 다음 영업일 기준</span>
             </div>
           </div>
+
+          {/* 출고일 옵션 목록 */}
           <div>
-            <label className="text-xs text-gray-500 block mb-2">출고일 옵션 및 가격 조정</label>
-            <div className="space-y-2">
-              {deliveryOptions.map(opt => (
-                <div
-                  key={opt.id}
-                  className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border cursor-pointer hover:bg-white"
-                  onDoubleClick={() => updateCfg(block.id, 'default', opt.id)}
-                >
-                  <input
-                    type="checkbox"
-                    checked={opt.enabled}
-                    onChange={(e) => updateDeliveryOption(opt.id, 'enabled', e.target.checked)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="checkbox checkbox-sm"
-                  />
-                  <input
-                    type="text"
-                    value={opt.label}
-                    onChange={(e) => updateDeliveryLabel(opt.id, e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-24 px-2 py-1 border rounded text-sm"
-                    placeholder="라벨"
-                  />
-                  {cfg.default === opt.id && <span className="text-warning">★</span>}
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      value={opt.percent}
-                      onChange={(e) => updateDeliveryOption(opt.id, 'percent', parseInt(e.target.value) || 0)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-16 px-2 py-1 border rounded text-sm text-center"
-                    />
-                    <span className="text-xs text-gray-400">%</span>
-                  </div>
-                  <span className="text-xs text-gray-400 w-16">
-                    {opt.percent > 0 ? `+${opt.percent}%` : opt.percent === 0 ? '기준가' : `${opt.percent}%`}
-                  </span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); removeDeliveryOption(opt.id); }}
-                    className="text-gray-400 hover:text-error ml-auto"
-                    title="삭제"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs text-gray-500">출고일 옵션 (고정 4개)</label>
+              <button
+                onClick={resetToDefault}
+                className="text-xs text-blue-500 hover:underline"
+              >
+                기본값으로 리셋
+              </button>
             </div>
-            <button
-              onClick={addDeliveryOption}
-              className="mt-2 text-sm text-neutral-600 hover:text-neutral-800 flex items-center gap-1"
-            >
-              <span>+</span> 출고일 추가
-            </button>
+            <div className="space-y-2">
+              {FIXED_DELIVERY_OPTIONS.map(fixedOpt => {
+                const cfgOpt = getOptionConfig(fixedOpt.id);
+                const isEnabled = cfgOpt.enabled !== false;
+                const percent = cfgOpt.percent ?? fixedOpt.defaultPercent;
+                const isDefault = cfg.default === fixedOpt.id;
+
+                return (
+                  <div
+                    key={fixedOpt.id}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${isEnabled ? 'bg-white' : 'bg-gray-50'}`}
+                    onDoubleClick={() => updateCfg(block.id, 'default', fixedOpt.id)}
+                  >
+                    {/* 활성화 체크박스 */}
+                    <input
+                      type="checkbox"
+                      checked={isEnabled}
+                      onChange={(e) => updateDeliveryOption(fixedOpt.id, 'enabled', e.target.checked)}
+                      className="checkbox checkbox-sm"
+                    />
+
+                    {/* 라벨 (고정) */}
+                    <span className={`w-20 text-sm ${isEnabled ? 'text-gray-700' : 'text-gray-400'}`}>
+                      {fixedOpt.label}
+                    </span>
+
+                    {/* 영업일 수 표시 */}
+                    <span className="text-xs text-gray-400 w-16">
+                      {fixedOpt.days === 0 ? '출고 당일' : `+${fixedOpt.days}영업일`}
+                    </span>
+
+                    {/* 기본값 표시 */}
+                    {isDefault && <span className="text-warning text-sm">★</span>}
+
+                    {/* percent 입력 */}
+                    <div className="flex items-center gap-1 ml-auto">
+                      <input
+                        type="number"
+                        value={percent}
+                        onChange={(e) => updateDeliveryOption(fixedOpt.id, 'percent', parseInt(e.target.value) || 0)}
+                        className="w-16 px-2 py-1 border rounded text-sm text-center"
+                        disabled={!isEnabled}
+                      />
+                      <span className="text-xs text-gray-400">%</span>
+                    </div>
+
+                    {/* percent 표시 */}
+                    <span className={`text-xs w-14 text-right ${percent > 0 ? 'text-red-500' : percent < 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+                      {percent > 0 ? `+${percent}%` : percent === 0 ? '기준가' : `${percent}%`}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-400 mt-2">더블클릭으로 기본값 설정 (★)</p>
           </div>
         </div>
       );
+    }
 
     case 'quantity':
       return (

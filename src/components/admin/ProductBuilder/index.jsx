@@ -12,6 +12,8 @@ import Sortable from 'sortablejs';
 import BlockNoteEditor from '@/components/admin/BlockNoteEditor';
 // PreviewBlock은 shared 컴포넌트 사용 (ProductView와 동일)
 import { PreviewBlock } from '@/components/shared/PreviewBlock';
+// ProductView와 동일한 스타일 사용
+import '@/components/product/ProductView.css';
 import { BLOCK_TYPES, DB, getDefaultCustomer, LINK_RULES,TEMPLATES as DEFAULT_TEMPLATES } from '@/lib/builderData';
 import { formatBusinessDate,getBusinessDate } from '@/lib/businessDays';
 import { loadPricingData } from '@/lib/dbService';
@@ -499,6 +501,11 @@ export default function AdminBuilder() {
             const opts = cfg.options || [];
             const defaultOpt = opts.find(o => o.id === cfg.default);
             if (defaultOpt) defaults.deliveryPercent = defaultOpt.percent;
+            // 출고일 계산
+            const businessDaysMap = { 'same': 0, 'next1': 1, 'next2': 2, 'next3': 3 };
+            const days = businessDaysMap[cfg.default] ?? 2;
+            const date = getBusinessDate(days);
+            defaults.deliveryDate = formatBusinessDate(date);
           }
           break;
         case 'pages':
@@ -516,6 +523,31 @@ export default function AdminBuilder() {
         case 'spring_color':
           if (cfg.default) defaults.springColor = cfg.default;
           break;
+        case 'spring_options': {
+          // PP
+          if (cfg.pp?.enabled) {
+            const ppDefault = cfg.pp.options?.find(o => o.default)?.id || cfg.pp.options?.[0]?.id;
+            if (ppDefault) defaults.pp = ppDefault;
+          }
+          // 표지인쇄
+          if (cfg.coverPrint?.enabled) {
+            const coverPrintDefault = cfg.coverPrint.options?.find(o => o.default)?.id || cfg.coverPrint.options?.[0]?.id;
+            if (coverPrintDefault) defaults.coverPrint = coverPrintDefault;
+            if (cfg.coverPrint.defaultPaper?.paper) defaults.coverPaper = cfg.coverPrint.defaultPaper.paper;
+            if (cfg.coverPrint.defaultPaper?.weight) defaults.coverWeight = cfg.coverPrint.defaultPaper.weight;
+          }
+          // 뒷판
+          if (cfg.back?.enabled) {
+            const backDefault = cfg.back.options?.find(o => o.default)?.id || cfg.back.options?.[0]?.id;
+            if (backDefault) defaults.back = backDefault;
+          }
+          // 스프링 색상
+          if (cfg.springColor?.enabled) {
+            const springColorDefault = cfg.springColor.options?.find(o => o.default)?.id || cfg.springColor.options?.[0]?.id;
+            if (springColorDefault) defaults.springColor = springColorDefault;
+          }
+          break;
+        }
         case 'finishing':
           if (cfg.default) {
             const hasCoating = cfg.default.coating || !!cfg.default.coatingType || !!cfg.default.coatingSide;
@@ -1064,85 +1096,87 @@ export default function AdminBuilder() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-6">
-        {/* 템플릿 선택 */}
-        <div className="card bg-white shadow-xl p-4 mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs text-gray-500">템플릿 (드래그하여 순서 변경)</span>
-          </div>
-          <div ref={templateListRef} className="flex gap-2 flex-wrap">
-            {templates.sort((a, b) => a.order - b.order).map((template) => (
-              <div
-                key={template.id}
-                className={`group relative inline-flex items-center gap-2.5 pl-3 pr-2 py-2 rounded-md cursor-pointer transition-all border ${
-                  currentTemplateId === template.id
-                    ? 'bg-gray-100 border-gray-300'
-                    : 'bg-white border-gray-200 hover:border-gray-300'
-                }`}
-                onClick={() => selectTemplate(template.id)}
-              >
-                <span
-                  className="text-sm cursor-pointer opacity-60"
-                  onClick={(e) => { e.stopPropagation(); changeTemplateIcon(template.id); }}
-                  title="클릭하여 아이콘 변경"
+        {/* 템플릿 선택 - 수정 모드(urlProductId 있음)에서는 숨김 */}
+        {!urlProductId && (
+          <div className="card bg-white shadow-xl p-4 mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs text-gray-500">템플릿 (드래그하여 순서 변경)</span>
+            </div>
+            <div ref={templateListRef} className="flex gap-2 flex-wrap">
+              {templates.sort((a, b) => a.order - b.order).map((template) => (
+                <div
+                  key={template.id}
+                  className={`group relative inline-flex items-center gap-2.5 pl-3 pr-2 py-2 rounded-md cursor-pointer transition-all border ${
+                    currentTemplateId === template.id
+                      ? 'bg-gray-100 border-gray-300'
+                      : 'bg-white border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => selectTemplate(template.id)}
                 >
-                  {template.icon}
-                </span>
-
-                {editingTemplateId === template.id ? (
-                  <input
-                    type="text"
-                    value={editingTemplateName}
-                    onChange={(e) => setEditingTemplateName(e.target.value)}
-                    onBlur={finishEditTemplateName}
-                    onKeyDown={(e) => e.key === 'Enter' && finishEditTemplateName()}
-                    className="input input-bordered input-xs w-24 h-6"
-                    autoFocus
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                ) : (
                   <span
-                    className="text-sm text-gray-700"
-                    onDoubleClick={(e) => { e.stopPropagation(); startEditTemplateName(template.id, template.name); }}
-                    title="더블클릭하여 이름 수정"
+                    className="text-sm cursor-pointer opacity-60"
+                    onClick={(e) => { e.stopPropagation(); changeTemplateIcon(template.id); }}
+                    title="클릭하여 아이콘 변경"
                   >
-                    {template.name}
+                    {template.icon}
                   </span>
-                )}
 
-                <button
-                  className="w-4 h-4 flex items-center justify-center rounded text-xs opacity-0 group-hover:opacity-40 hover:!opacity-100 transition-opacity"
-                  onClick={(e) => { e.stopPropagation(); deleteTemplate(template.id); }}
-                  title="삭제"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
+                  {editingTemplateId === template.id ? (
+                    <input
+                      type="text"
+                      value={editingTemplateName}
+                      onChange={(e) => setEditingTemplateName(e.target.value)}
+                      onBlur={finishEditTemplateName}
+                      onKeyDown={(e) => e.key === 'Enter' && finishEditTemplateName()}
+                      className="input input-bordered input-xs w-24 h-6"
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : (
+                    <span
+                      className="text-sm text-gray-700"
+                      onDoubleClick={(e) => { e.stopPropagation(); startEditTemplateName(template.id, template.name); }}
+                      title="더블클릭하여 이름 수정"
+                    >
+                      {template.name}
+                    </span>
+                  )}
 
-            <button
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-dashed border-gray-200 hover:border-gray-400 hover:bg-gray-50 text-gray-400 hover:text-gray-700 transition-all"
-              onClick={() => {
-                const newId = `template_${Date.now()}`;
-                const newTemplate = {
-                  id: newId,
-                  order: templates.length,
-                  icon: '📄',
-                  name: '새 상품',
-                  blocks: [],
-                  content: getDefaultContent('새 상품')
-                };
-                setTemplates(prev => [...prev, newTemplate]);
-                setCurrentTemplateId(newId);
-                setCurrentProduct(newTemplate);
-                // URL 업데이트로 새 상품 ID 보존
-                history.replaceState(null, '', `?id=${newId}`);
-              }}
-            >
-              <span className="text-sm">+</span>
-              <span className="text-sm">추가</span>
-            </button>
+                  <button
+                    className="w-4 h-4 flex items-center justify-center rounded text-xs opacity-0 group-hover:opacity-40 hover:!opacity-100 transition-opacity"
+                    onClick={(e) => { e.stopPropagation(); deleteTemplate(template.id); }}
+                    title="삭제"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+
+              <button
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-dashed border-gray-200 hover:border-gray-400 hover:bg-gray-50 text-gray-400 hover:text-gray-700 transition-all"
+                onClick={() => {
+                  const newId = `template_${Date.now()}`;
+                  const newTemplate = {
+                    id: newId,
+                    order: templates.length,
+                    icon: '📄',
+                    name: '새 상품',
+                    blocks: [],
+                    content: getDefaultContent('새 상품')
+                  };
+                  setTemplates(prev => [...prev, newTemplate]);
+                  setCurrentTemplateId(newId);
+                  setCurrentProduct(newTemplate);
+                  // URL 업데이트로 새 상품 ID 보존
+                  history.replaceState(null, '', `?id=${newId}`);
+                }}
+              >
+                <span className="text-sm">+</span>
+                <span className="text-sm">추가</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 연동 에러 표시 */}
         {linkStatus.error && (
@@ -1338,54 +1372,8 @@ export default function AdminBuilder() {
                   />
                 ))}
 
-              {/* 가격 표시 */}
-              <div className="border border-gray-200 rounded-lg p-4 mt-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-gray-600">{currentProduct.name}</p>
-                    <p className="text-xs text-gray-400">{customer.qty}부 · {customer.pages || '-'}장</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-semibold text-gray-900 tracking-tight">{price.total.toLocaleString()}<span className="text-sm font-normal text-gray-400 ml-0.5">원</span></p>
-                    <p className="text-xs text-gray-400">부가세 별도</p>
-                  </div>
-                </div>
-
-                {/* 두께 경고/에러 표시 */}
-                {price.thicknessValidation?.error && (
-                  <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-xs text-red-600 flex items-center gap-1">
-                      <span>⚠️</span> {price.thicknessValidation.message}
-                    </p>
-                  </div>
-                )}
-                {price.thicknessValidation?.warning && !price.thicknessValidation?.error && (
-                  <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-xs text-yellow-700 flex items-center gap-1">
-                      <span>⚠️</span> {price.thicknessValidation.message}
-                    </p>
-                  </div>
-                )}
-
-                {/* 두께 정보 표시 (제본 상품일 때) */}
-                {price.totalThickness > 0 && (
-                  <p className="text-xs text-gray-400 mt-2 text-right">
-                    예상 두께: {price.totalThickness.toFixed(1)}mm
-                  </p>
-                )}
-              </div>
-
-              {/* 주문하기 버튼 */}
-              <button
-                disabled={price.thicknessValidation?.error}
-                className={`w-full mt-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                  price.thicknessValidation?.error
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-gray-50 text-gray-300 cursor-not-allowed'
-                }`}
-              >
-                {price.thicknessValidation?.error ? '주문 불가 (두께 초과)' : '주문하기'}
-              </button>
+              {/* 가격 표시 - 공유 컴포넌트 사용 */}
+              <PriceDisplay price={price} customer={customer} productName={currentProduct.name} />
             </div>
           </div>
         </div>

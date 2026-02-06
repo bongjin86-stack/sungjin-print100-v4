@@ -53,6 +53,7 @@ export interface SingleLayerResult {
   faces: number;
   upCount: number;
   baseSheet: string;
+  estimatedWeight: number;
 }
 
 export interface ThicknessValidation {
@@ -74,6 +75,7 @@ export interface BindingResult {
   totalThickness: number;
   thicknessValidation: ThicknessValidation;
   pages: number;
+  estimatedWeight: number;
 }
 
 /**
@@ -223,6 +225,12 @@ export function calculateSingleLayerPrice(customer: CustomerSelection, qty: numb
 
   const perUnit = qty > 0 ? Math.round(total / qty) : 0;
 
+  // 예상 무게 계산 (kg)
+  // 무게(g) = (width_mm × height_mm / 1,000,000) × gsm × sheets
+  const paperAreaM2 = (sizeInfo.width * sizeInfo.height) / 1_000_000;
+  const paperGsm = customer.weight || 100;
+  const estimatedWeight = (paperAreaM2 * paperGsm * sheets) / 1000;
+
   return {
     total,
     breakdown,
@@ -231,7 +239,8 @@ export function calculateSingleLayerPrice(customer: CustomerSelection, qty: numb
     sheets,
     faces,
     upCount,
-    baseSheet
+    baseSheet,
+    estimatedWeight
   };
 }
 
@@ -483,10 +492,20 @@ export function calculateBindingPrice(
     customer.innerWeight || 80,
     customer.coverWeight || 200,
     customer.innerPaper || '',
-    customer.coverPaper || ''
+    customer.coverPaper || '',
+    customer.innerSide || 'double'
   );
 
   const thicknessValidation = validateBindingThickness(bindingType, totalThickness, customer.maxThickness);
+
+  // 예상 무게 계산 (kg)
+  // 제본 = 표지 무게 + 내지 무게
+  const paperAreaM2 = (sizeInfo.width * sizeInfo.height) / 1_000_000;
+  const coverGsm = customer.coverWeight || 200;
+  const innerGsm = customer.innerWeight || 80;
+  const coverWeight = (paperAreaM2 * coverGsm * coverSheets) / 1000;
+  const innerWeight = (paperAreaM2 * innerGsm * innerSheets) / 1000;
+  const estimatedWeight = coverWeight + innerWeight;
 
   return {
     total,
@@ -499,7 +518,8 @@ export function calculateBindingPrice(
     innerFaces,
     totalThickness,
     thicknessValidation,
-    pages
+    pages,
+    estimatedWeight
   };
 }
 
@@ -568,15 +588,17 @@ export function calculateBindingThickness(
   innerWeight: number,
   coverWeight: number,
   innerPaperCode: string = '',
-  coverPaperCode: string = ''
+  coverPaperCode: string = '',
+  innerSide: string = 'double' // 단면/양면
 ): number {
   const innerThickness = estimateThickness(innerWeight, innerPaperCode);
   const coverThickness = estimateThickness(coverWeight, coverPaperCode);
 
-  // 통일 공식: 페이지 수 / 2 × 용지두께 (모든 제본 동일)
-  // - 중철: 접혀서 2겹
-  // - 무선/스프링: 낱장 앞뒤
-  const innerLayerThickness = (pages / 2) * innerThickness;
+  // 장수 계산: 양면이면 pages/2, 단면이면 pages
+  // - 양면: 1장에 앞뒤 2페이지
+  // - 단면: 1장에 1페이지
+  const innerSheets = innerSide === 'single' ? pages : pages / 2;
+  const innerLayerThickness = innerSheets * innerThickness;
 
   if (bindingType === 'saddle') {
     // 중철: 내지만 (표지는 접힌 1장이라 무시)

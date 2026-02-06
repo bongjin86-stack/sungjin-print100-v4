@@ -10,7 +10,7 @@
  * 스타일: ProductView.css의 pv-* 클래스 사용
  */
 
-import { DB } from '@/lib/builderData';
+import { DB, TEMPLATES } from '@/lib/builderData';
 import { formatBusinessDate, getBusinessDate } from '@/lib/businessDays';
 import { validateCoatingWeight } from '@/lib/priceEngine';
 
@@ -228,62 +228,116 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
       );
     }
 
-    case 'finishing':
+    case 'finishing': {
+      // 코팅 관련 로직
+      let currentWeight = 80;
+      if (cfg.coating?.linkedPaper) {
+        const linkedBlock = allBlocks?.find(b => b.id === cfg.coating.linkedPaper);
+        if (linkedBlock) {
+          const isCover = linkedBlock.label?.includes('표지');
+          const isInner = linkedBlock.label?.includes('내지');
+          if (linkedBlock.type === 'inner_layer_saddle' || linkedBlock.type === 'inner_layer_leaf' || isInner) {
+            currentWeight = customer.innerWeight || 80;
+          } else if (linkedBlock.type === 'cover_print' || isCover) {
+            currentWeight = customer.coverWeight || 80;
+          } else {
+            currentWeight = customer.weight || 80;
+          }
+        }
+      } else {
+        currentWeight = customer.coverWeight || customer.weight || customer.innerWeight || 80;
+      }
+      const coatingValidation = validateCoatingWeight(currentWeight);
+      const isCoatingDisabled = !coatingValidation.valid;
+
       return (
         <div className="pv-block">
           <p className="pv-block-label">{block.label}</p>
-          <div className="pv-finishing">
-            <div className="pv-btn-row">
-              {cfg.coating?.enabled && (() => {
-                let currentWeight = 80;
-                if (cfg.coating?.linkedPaper) {
-                  const linkedBlock = allBlocks?.find(b => b.id === cfg.coating.linkedPaper);
-                  if (linkedBlock) {
-                    const isCover = linkedBlock.label?.includes('표지');
-                    const isInner = linkedBlock.label?.includes('내지');
-                    if (linkedBlock.type === 'inner_layer_saddle' || linkedBlock.type === 'inner_layer_leaf' || isInner) {
-                      currentWeight = customer.innerWeight || 80;
-                    } else if (linkedBlock.type === 'cover_print' || isCover) {
-                      currentWeight = customer.coverWeight || 80;
-                    } else {
-                      currentWeight = customer.weight || 80;
+          <div className="pv-finishing-list">
+            {/* 코팅 */}
+            {cfg.coating?.enabled && (
+              <div className={`pv-finishing-row ${customer.finishing?.coating ? 'expanded' : ''} ${isCoatingDisabled ? 'disabled' : ''}`}>
+                <div
+                  className="pv-finishing-toggle"
+                  onClick={() => !isCoatingDisabled && setCustomer(prev => ({
+                    ...prev,
+                    finishing: {
+                      ...prev.finishing,
+                      coating: !prev.finishing?.coating,
+                      coatingType: !prev.finishing?.coating ? (prev.finishing?.coatingType || 'matte') : null,
+                      coatingSide: !prev.finishing?.coating ? (prev.finishing?.coatingSide || 'single') : null
                     }
-                  }
-                } else {
-                  currentWeight = customer.coverWeight || customer.weight || customer.innerWeight || 80;
-                }
-                const coatingValidation = validateCoatingWeight(currentWeight);
-                const isCoatingDisabled = !coatingValidation.valid;
-                return (
-                  <button
-                    key="coating"
-                    disabled={isCoatingDisabled}
-                    className={`pv-btn flex-1 ${isCoatingDisabled ? 'disabled-gray' : customer.finishing?.coating ? 'active' : ''}`}
-                    onClick={() => !isCoatingDisabled && setCustomer(prev => ({
-                      ...prev,
-                      finishing: {
-                        ...prev.finishing,
-                        coating: !prev.finishing?.coating,
-                        coatingType: !prev.finishing?.coating ? (prev.finishing?.coatingType || 'matte') : null,
-                        coatingSide: !prev.finishing?.coating ? (prev.finishing?.coatingSide || 'single') : null
-                      }
-                    }))}
-                    title={isCoatingDisabled ? coatingValidation.message : ''}
-                  >코팅</button>
-                );
-              })()}
-              {cfg.osi?.enabled && (
-                <button
-                  className={`pv-btn flex-1 ${customer.finishing?.osiEnabled ? 'active' : ''}`}
+                  }))}
+                >
+                  <span className="pv-finishing-name">코팅</span>
+                  <span className="pv-finishing-icon" aria-hidden="true" />
+                </div>
+                {customer.finishing?.coating && (
+                  <div className="pv-finishing-options">
+                    <div className="pv-opt-group">
+                      {(cfg.coating?.matte ?? true) && (
+                        <button className={`pv-opt-btn ${customer.finishing?.coatingType === 'matte' ? 'active' : ''}`}
+                          onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingType: 'matte' } }))}
+                        >무광</button>
+                      )}
+                      {(cfg.coating?.gloss ?? true) && (
+                        <button className={`pv-opt-btn ${customer.finishing?.coatingType === 'gloss' ? 'active' : ''}`}
+                          onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingType: 'gloss' } }))}
+                        >유광</button>
+                      )}
+                    </div>
+                    <span className="pv-opt-divider">|</span>
+                    <div className="pv-opt-group">
+                      {(cfg.coating?.single ?? true) && (
+                        <button className={`pv-opt-btn ${customer.finishing?.coatingSide === 'single' ? 'active' : ''}`}
+                          onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingSide: 'single' } }))}
+                        >단면</button>
+                      )}
+                      {(cfg.coating?.double ?? true) && (
+                        <button className={`pv-opt-btn ${customer.finishing?.coatingSide === 'double' ? 'active' : ''}`}
+                          onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingSide: 'double' } }))}
+                        >양면</button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {isCoatingDisabled && <span className="pv-finishing-hint">{coatingValidation.message}</span>}
+              </div>
+            )}
+
+            {/* 오시 */}
+            {cfg.osi?.enabled && (
+              <div className={`pv-finishing-row ${customer.finishing?.osiEnabled ? 'expanded' : ''}`}>
+                <div
+                  className="pv-finishing-toggle"
                   onClick={() => setCustomer(prev => ({
                     ...prev,
                     finishing: { ...prev.finishing, osiEnabled: !prev.finishing?.osiEnabled, osi: !prev.finishing?.osiEnabled ? (prev.finishing?.osi || 1) : null }
                   }))}
-                >오시</button>
-              )}
-              {cfg.fold?.enabled && (
-                <button
-                  className={`pv-btn flex-1 ${customer.finishing?.foldEnabled ? 'active' : ''}`}
+                >
+                  <span className="pv-finishing-name">오시</span>
+                  <span className="pv-finishing-icon" aria-hidden="true" />
+                </div>
+                {customer.finishing?.osiEnabled && (
+                  <div className="pv-finishing-options">
+                    <div className="pv-opt-group">
+                      {[1, 2, 3].map(n => (
+                        <button key={n}
+                          className={`pv-opt-btn ${customer.finishing?.osi === n ? 'active' : ''}`}
+                          onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, osi: n } }))}
+                        >{n}줄</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 접지 */}
+            {cfg.fold?.enabled && (
+              <div className={`pv-finishing-row ${customer.finishing?.foldEnabled ? 'expanded' : ''}`}>
+                <div
+                  className="pv-finishing-toggle"
                   onClick={() => {
                     if (!customer.finishing?.foldEnabled) {
                       handleFoldSelect(customer.finishing?.fold || 2, cfg);
@@ -291,89 +345,67 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
                       setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, foldEnabled: false, fold: null, osiEnabled: false, osi: null } }));
                     }
                   }}
-                >접지</button>
-              )}
-              {cfg.corner && (
-                <button
-                  className={`pv-btn flex-1 ${customer.finishing?.corner ? 'active' : ''}`}
+                >
+                  <span className="pv-finishing-name">접지</span>
+                  <span className="pv-finishing-icon" aria-hidden="true" />
+                </div>
+                {customer.finishing?.foldEnabled && (
+                  <div className="pv-finishing-options">
+                    <div className="pv-opt-group">
+                      {[2, 3, 4].map(n => (
+                        <button key={n}
+                          className={`pv-opt-btn ${customer.finishing?.fold === n ? 'active' : ''}`}
+                          onClick={() => handleFoldSelect(n, cfg)}
+                        >{n}단</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 귀도리 */}
+            {cfg.corner && (
+              <div className={`pv-finishing-row ${customer.finishing?.corner ? 'expanded' : ''}`}>
+                <div
+                  className="pv-finishing-toggle"
                   onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, corner: !prev.finishing?.corner } }))}
-                >귀도리</button>
-              )}
-              {cfg.punch && (
-                <button
-                  className={`pv-btn flex-1 ${customer.finishing?.punch ? 'active' : ''}`}
+                >
+                  <span className="pv-finishing-name">귀도리</span>
+                  <span className="pv-finishing-icon" aria-hidden="true" />
+                </div>
+              </div>
+            )}
+
+            {/* 타공 */}
+            {cfg.punch && (
+              <div className={`pv-finishing-row ${customer.finishing?.punch ? 'expanded' : ''}`}>
+                <div
+                  className="pv-finishing-toggle"
                   onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, punch: !prev.finishing?.punch } }))}
-                >타공</button>
-              )}
-              {cfg.mising && (
-                <button
-                  className={`pv-btn flex-1 ${customer.finishing?.mising ? 'active' : ''}`}
+                >
+                  <span className="pv-finishing-name">타공</span>
+                  <span className="pv-finishing-icon" aria-hidden="true" />
+                </div>
+              </div>
+            )}
+
+            {/* 미싱 */}
+            {cfg.mising && (
+              <div className={`pv-finishing-row ${customer.finishing?.mising ? 'expanded' : ''}`}>
+                <div
+                  className="pv-finishing-toggle"
                   onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, mising: !prev.finishing?.mising } }))}
-                >미싱</button>
-              )}
-            </div>
-
-            {/* 코팅 하위 옵션 */}
-            {customer.finishing?.coating && cfg.coating?.enabled && (
-              <div className="pv-sub-options">
-                <div className="pv-btn-row">
-                  {(cfg.coating?.matte ?? true) && (
-                    <button className={`pv-btn-sm ${customer.finishing?.coatingType === 'matte' ? 'active' : ''}`}
-                      onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingType: 'matte' } }))}
-                    >무광</button>
-                  )}
-                  {(cfg.coating?.gloss ?? true) && (
-                    <button className={`pv-btn-sm ${customer.finishing?.coatingType === 'gloss' ? 'active' : ''}`}
-                      onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingType: 'gloss' } }))}
-                    >유광</button>
-                  )}
-                </div>
-                <span className="pv-divider">|</span>
-                <div className="pv-btn-row">
-                  {(cfg.coating?.single ?? true) && (
-                    <button className={`pv-btn-sm ${customer.finishing?.coatingSide === 'single' ? 'active' : ''}`}
-                      onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingSide: 'single' } }))}
-                    >단면</button>
-                  )}
-                  {(cfg.coating?.double ?? true) && (
-                    <button className={`pv-btn-sm ${customer.finishing?.coatingSide === 'double' ? 'active' : ''}`}
-                      onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, coatingSide: 'double' } }))}
-                    >양면</button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* 오시 하위 옵션 */}
-            {customer.finishing?.osiEnabled && cfg.osi?.enabled && (
-              <div className="pv-sub-options">
-                <div className="pv-btn-row">
-                  {[1, 2, 3].map(n => (
-                    <button key={n}
-                      className={`pv-btn-sm ${customer.finishing?.osi === n ? 'active' : ''}`}
-                      onClick={() => setCustomer(prev => ({ ...prev, finishing: { ...prev.finishing, osi: n } }))}
-                    >{n}줄</button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 접지 하위 옵션 */}
-            {customer.finishing?.foldEnabled && cfg.fold?.enabled && (
-              <div className="pv-sub-options">
-                <div className="pv-btn-row">
-                  {[2, 3, 4].map(n => (
-                    <button key={n}
-                      className={`pv-btn-sm ${customer.finishing?.fold === n ? 'active' : ''}`}
-                      onClick={() => handleFoldSelect(n, cfg)}
-                    >{n}단</button>
-                  ))}
+                >
+                  <span className="pv-finishing-name">미싱</span>
+                  <span className="pv-finishing-icon" aria-hidden="true" />
                 </div>
               </div>
             )}
           </div>
         </div>
       );
+    }
 
     case 'back':
       return (
@@ -414,6 +446,14 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
       );
 
     case 'spring_options': {
+      // 옵션이 없으면 TEMPLATES.spring에서 기본값 가져오기
+      const defaultSpringCfg = TEMPLATES.spring?.blocks?.find(b => b.type === 'spring_options')?.config || {};
+      const ppOptions = cfg.pp?.options?.length > 0 ? cfg.pp.options : defaultSpringCfg.pp?.options || [];
+      const coverPrintOptions = cfg.coverPrint?.options?.length > 0 ? cfg.coverPrint.options : defaultSpringCfg.coverPrint?.options || [];
+      const backOptions = cfg.back?.options?.length > 0 ? cfg.back.options : defaultSpringCfg.back?.options || [];
+      const springColorOptions = cfg.springColor?.options?.length > 0 ? cfg.springColor.options : defaultSpringCfg.springColor?.options || [];
+      const coverPrintPapers = cfg.coverPrint?.papers || defaultSpringCfg.coverPrint?.papers || {};
+
       const ppIsNone = customer.pp === 'none';
       const coverPrintIsNone = customer.coverPrint === 'none';
       const showCoverError = ppIsNone && coverPrintIsNone;
@@ -430,73 +470,81 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
               </div>
             )}
 
-            <div className="pv-spring-row">
-              <span className="pv-spring-label">PP</span>
-              <div className="pv-radio-group">
-                {cfg.pp?.options?.filter(o => o.enabled).map(opt => (
-                  <label key={opt.id} className="pv-radio">
-                    <input
-                      type="radio"
-                      name="pp"
-                      checked={customer.pp === opt.id}
-                      disabled={isDisabled}
-                      onChange={() => !isDisabled && setCustomer(prev => ({ ...prev, pp: opt.id }))}
-                    />
-                    <span>{opt.label}</span>
-                  </label>
-                ))}
+            {ppOptions.length > 0 && (
+              <div className="pv-spring-row">
+                <span className="pv-spring-label">PP</span>
+                <div className="pv-radio-group">
+                  {ppOptions.filter(o => o.enabled !== false).map(opt => (
+                    <label key={opt.id} className="pv-radio">
+                      <input
+                        type="radio"
+                        name="pp"
+                        checked={customer.pp === opt.id}
+                        disabled={isDisabled}
+                        onChange={() => !isDisabled && setCustomer(prev => ({ ...prev, pp: opt.id }))}
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="pv-spring-selects">
-              <div>
-                <label className="pv-select-label">표지인쇄</label>
-                <select
-                  value={customer.coverPrint}
-                  disabled={isDisabled}
-                  onChange={(e) => !isDisabled && setCustomer(prev => ({ ...prev, coverPrint: e.target.value }))}
-                  className="pv-select"
-                >
-                  {cfg.coverPrint?.options?.filter(o => o.enabled).map(opt => (
-                    <option key={opt.id} value={opt.id}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className={isBackDisabled ? 'opacity-50' : ''}>
-                <label className="pv-select-label">
-                  뒷판 {isBackDisabled && <span>(자동)</span>}
-                </label>
-                <select
-                  value={customer.back}
-                  disabled={isDisabled || isBackDisabled}
-                  onChange={(e) => !isDisabled && !isBackDisabled && setCustomer(prev => ({ ...prev, back: e.target.value }))}
-                  className="pv-select"
-                >
-                  {cfg.back?.options?.filter(o => o.enabled).map(opt => (
-                    <option key={opt.id} value={opt.id}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="pv-select-label">스프링색상</label>
-                <select
-                  value={customer.springColor}
-                  disabled={isDisabled}
-                  onChange={(e) => !isDisabled && setCustomer(prev => ({ ...prev, springColor: e.target.value }))}
-                  className="pv-select"
-                >
-                  {cfg.springColor?.options?.filter(o => o.enabled).map(opt => (
-                    <option key={opt.id} value={opt.id}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
+              {coverPrintOptions.length > 0 && (
+                <div>
+                  <label className="pv-select-label">표지인쇄</label>
+                  <select
+                    value={customer.coverPrint || ''}
+                    disabled={isDisabled}
+                    onChange={(e) => !isDisabled && setCustomer(prev => ({ ...prev, coverPrint: e.target.value }))}
+                    className="pv-select"
+                  >
+                    {coverPrintOptions.filter(o => o.enabled !== false).map(opt => (
+                      <option key={opt.id} value={opt.id}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {backOptions.length > 0 && (
+                <div className={isBackDisabled ? 'opacity-50' : ''}>
+                  <label className="pv-select-label">
+                    뒷판 {isBackDisabled && <span>(자동)</span>}
+                  </label>
+                  <select
+                    value={customer.back || ''}
+                    disabled={isDisabled || isBackDisabled}
+                    onChange={(e) => !isDisabled && !isBackDisabled && setCustomer(prev => ({ ...prev, back: e.target.value }))}
+                    className="pv-select"
+                  >
+                    {backOptions.filter(o => o.enabled !== false).map(opt => (
+                      <option key={opt.id} value={opt.id}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {springColorOptions.length > 0 && (
+                <div>
+                  <label className="pv-select-label">스프링색상</label>
+                  <select
+                    value={customer.springColor || ''}
+                    disabled={isDisabled}
+                    onChange={(e) => !isDisabled && setCustomer(prev => ({ ...prev, springColor: e.target.value }))}
+                    className="pv-select"
+                  >
+                    {springColorOptions.filter(o => o.enabled !== false).map(opt => (
+                      <option key={opt.id} value={opt.id}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
-            {customer.coverPrint !== 'none' && cfg.coverPrint?.papers && (
+            {customer.coverPrint !== 'none' && Object.keys(coverPrintPapers).length > 0 && (
               <div className="pv-sub-section">
                 <p className="pv-sub-label">표지 용지 선택</p>
                 <div className="pv-btn-row" style={{ flexWrap: 'wrap' }}>
-                  {Object.entries(cfg.coverPrint.papers).map(([code, weights]) => {
+                  {Object.entries(coverPrintPapers).map(([code, weights]) => {
                     const paper = dbPapersList.find(p => p.code === code) || DB.papers.find(p => p.code === code);
                     if (!paper || !weights.length) return null;
                     return weights.map(w => (
@@ -518,20 +566,53 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
     }
 
     case 'delivery': {
-      const businessDaysMap = { 'same': 0, 'next1': 1, 'next2': 2, 'next3': 3 };
+      // 고정 옵션 4개 (ID와 days 매핑)
+      const FIXED_OPTIONS = [
+        { id: 'same', label: '당일', days: 0, defaultPercent: 30 },
+        { id: 'next1', label: '1영업일', days: 1, defaultPercent: 15 },
+        { id: 'next2', label: '2영업일', days: 2, defaultPercent: 0 },
+        { id: 'next3', label: '3영업일', days: 3, defaultPercent: -5 },
+      ];
+
+      // cfg.options에서 설정 가져오기 (고정 ID만)
+      const getOptionConfig = (id) => cfg.options?.find(o => o.id === id);
+
+      // 고정 4개 옵션 기반으로 활성화된 것만 필터
+      const activeOptions = FIXED_OPTIONS
+        .map(fixed => {
+          const cfgOpt = getOptionConfig(fixed.id);
+          return {
+            id: fixed.id,
+            label: fixed.label,
+            days: fixed.days,
+            enabled: cfgOpt?.enabled ?? (fixed.id !== 'same'), // 당일은 기본 비활성화
+            percent: cfgOpt?.percent ?? fixed.defaultPercent,
+          };
+        })
+        .filter(opt => opt.enabled);
+
+      // 당일 선택 여부
+      const isSameDaySelected = customer.delivery === 'same';
+
       return (
         <div className="pv-block">
           <p className="pv-block-label">출고일</p>
           <div className="pv-delivery-row">
-            {cfg.options?.filter(opt => opt.enabled).map(opt => {
-              const days = businessDaysMap[opt.id] ?? 2;
-              const date = getBusinessDate(days);
+            {activeOptions.map(opt => {
+              const date = getBusinessDate(opt.days);
               const dateStr = formatBusinessDate(date);
+
               return (
                 <button
                   key={opt.id}
                   className={`pv-delivery-btn ${customer.delivery === opt.id ? 'active' : ''}`}
-                  onClick={() => setCustomer(prev => ({ ...prev, delivery: opt.id, deliveryPercent: opt.percent }))}
+                  onClick={() => setCustomer(prev => ({
+                    ...prev,
+                    delivery: opt.id,
+                    deliveryDays: opt.days,
+                    deliveryPercent: opt.percent,
+                    deliveryDate: dateStr
+                  }))}
                 >
                   <p className="pv-delivery-date">{dateStr}</p>
                   <p className={`pv-delivery-percent ${opt.percent > 0 ? 'up' : opt.percent < 0 ? 'down' : ''}`}>
@@ -541,6 +622,12 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
               );
             })}
           </div>
+          {/* 당일 선택 시 경고 메시지 */}
+          {isSameDaySelected && (
+            <p className="pv-delivery-warning">
+              ⚠️ 당일 제작은 반드시 고객센터로 문의 후 주문해주세요.
+            </p>
+          )}
         </div>
       );
     }
@@ -730,12 +817,12 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
     case 'quantity':
       return (
         <div className="pv-block">
-          <p className="pv-block-label">수량</p>
+          <p className="pv-block-label">{block.label || '수량'}</p>
           <div className="pv-qty-table-wrap">
             <table className="pv-qty-table">
               <thead>
                 <tr>
-                  <th>수량</th>
+                  <th>부수</th>
                   <th>단가</th>
                   <th>총 가격</th>
                 </tr>

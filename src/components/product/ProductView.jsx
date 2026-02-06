@@ -9,7 +9,9 @@ import { useEffect,useState } from 'react';
 import DOMPurify from 'isomorphic-dompurify';
 
 import { PreviewBlock } from '@/components/shared/PreviewBlock';
+import { PriceBox } from '@/components/shared/PriceBox';
 import { getDefaultCustomer } from '@/lib/builderData';
+import { formatBusinessDate, getBusinessDate } from '@/lib/businessDays';
 import { loadPricingData } from '@/lib/dbService';
 import { getIconComponent } from '@/lib/highlightIcons';
 import { calculatePrice, estimateThickness, validateBindingThickness } from '@/lib/priceEngine';
@@ -268,38 +270,12 @@ export default function ProductView({ product: initialProduct }) {
             />
           ))}
 
-          {/* 가격 표시 */}
-          <div className="pv-price-box">
-            <div className="pv-price-row">
-              <div>
-                <p className="pv-price-name">{product.name}</p>
-                <p className="pv-price-spec">{customer.qty}부 · {customer.pages || '-'}장</p>
-              </div>
-              <div className="pv-price-amount">
-                <p className="pv-price-total">
-                  {price.total.toLocaleString()}<span className="pv-price-unit">원</span>
-                </p>
-                <p className="pv-price-vat">부가세 별도</p>
-              </div>
-            </div>
-
-            {/* 두께 에러 */}
-            {price.thicknessValidation?.error && (
-              <div className="pv-thickness-error">
-                <p>&#9888; {price.thicknessValidation.message}</p>
-              </div>
-            )}
-
-            {price.totalThickness > 0 && (
-              <p className="pv-thickness-info">
-                총 두께: {price.totalThickness.toFixed(1)}mm
-              </p>
-            )}
-          </div>
-
-          {/* 주문하기 버튼 */}
-          <button
-            onClick={() => {
+          {/* 가격 표시 - 공유 컴포넌트 */}
+          <PriceBox
+            price={price}
+            customer={customer}
+            isPreview={false}
+            onOrderClick={() => {
               const finishingList = [];
               if (customer.finishing?.foldEnabled) finishingList.push(`접지 ${customer.finishing.fold}단`);
               if (customer.finishing?.osiEnabled) finishingList.push(`오시 ${customer.finishing.osi}줄`);
@@ -339,10 +315,7 @@ export default function ProductView({ product: initialProduct }) {
 
               window.location.href = '/upload';
             }}
-            className="pv-order-btn"
-          >
-            주문하기
-          </button>
+          />
         </div>
       </div>
     </div>
@@ -452,6 +425,11 @@ function extractDefaultsFromBlocks(blocks) {
           const opts = cfg.options || [];
           const defaultOpt = opts.find(o => o.id === cfg.default);
           if (defaultOpt) defaults.deliveryPercent = defaultOpt.percent;
+          // 출고일 계산
+          const businessDaysMap = { 'same': 0, 'next1': 1, 'next2': 2, 'next3': 3 };
+          const days = businessDaysMap[cfg.default] ?? 2;
+          const date = getBusinessDate(days);
+          defaults.deliveryDate = formatBusinessDate(date);
         }
         break;
       case 'pages':
@@ -469,6 +447,31 @@ function extractDefaultsFromBlocks(blocks) {
       case 'spring_color':
         if (cfg.default) defaults.springColor = cfg.default;
         break;
+      case 'spring_options': {
+        // PP
+        if (cfg.pp?.enabled) {
+          const ppDefault = cfg.pp.options?.find(o => o.default)?.id || cfg.pp.options?.[0]?.id;
+          if (ppDefault) defaults.pp = ppDefault;
+        }
+        // 표지인쇄
+        if (cfg.coverPrint?.enabled) {
+          const coverPrintDefault = cfg.coverPrint.options?.find(o => o.default)?.id || cfg.coverPrint.options?.[0]?.id;
+          if (coverPrintDefault) defaults.coverPrint = coverPrintDefault;
+          if (cfg.coverPrint.defaultPaper?.paper) defaults.coverPaper = cfg.coverPrint.defaultPaper.paper;
+          if (cfg.coverPrint.defaultPaper?.weight) defaults.coverWeight = cfg.coverPrint.defaultPaper.weight;
+        }
+        // 뒷판
+        if (cfg.back?.enabled) {
+          const backDefault = cfg.back.options?.find(o => o.default)?.id || cfg.back.options?.[0]?.id;
+          if (backDefault) defaults.back = backDefault;
+        }
+        // 스프링 색상
+        if (cfg.springColor?.enabled) {
+          const springColorDefault = cfg.springColor.options?.find(o => o.default)?.id || cfg.springColor.options?.[0]?.id;
+          if (springColorDefault) defaults.springColor = springColorDefault;
+        }
+        break;
+      }
       case 'finishing':
         if (cfg.default) {
           const hasCoating = cfg.default.coating || !!cfg.default.coatingType || !!cfg.default.coatingSide;
