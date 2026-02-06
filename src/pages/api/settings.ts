@@ -36,14 +36,13 @@ export const POST: APIRoute = async ({ request }) => {
     const settings = [
       { key: 'site_name', value: data.site_name || '' },
       { key: 'site_description', value: data.site_description || '' },
-      { key: 'contact_email', value: data.contact_email || '' },
-      { key: 'contact_phone', value: data.contact_phone || '' },
-      { key: 'contact_address', value: data.contact_address || '' },
       { key: 'service_intro', value: data.service_intro || '' },
       // 사업장 정보
       { key: 'company_name', value: data.company_name || '' },
       { key: 'ceo_name', value: data.ceo_name || '' },
       { key: 'business_number', value: data.business_number || '' },
+      { key: 'ecommerce_license', value: data.ecommerce_license || '' },
+      { key: 'privacy_officer', value: data.privacy_officer || '' },
       { key: 'phone', value: data.phone || '' },
       { key: 'email', value: data.email || '' },
       { key: 'address', value: data.address || '' },

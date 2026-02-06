@@ -2,29 +2,39 @@
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import LinkButton from "@/components/ui/LinkButton.astro";
+import { getConfig, loadSiteConfig } from "@/lib/siteConfigService";
+
+// DB에서 설정 로드
+await loadSiteConfig();
+
+const ctaTitle = getConfig('landing_cta_title');
+const ctaSubtitle = getConfig('landing_cta_subtitle');
+const ctaText = getConfig('landing_cta_text');
+const ctaListRaw = getConfig('landing_cta_list');
+const ctaButtonText = getConfig('landing_cta_button_text');
+const ctaButtonLink = getConfig('landing_cta_button_link');
+
+// 줄바꿈으로 구분된 문자열을 배열로 변환
+const ctaList = ctaListRaw.split('\n').filter(item => item.trim());
 ---
 
 <Section background="inverse">
   <Container>
     <div class="cta-header">
-      <h2 class="cta-title">Contact</h2>
-      <span class="cta-subtitle">문의하기</span>
+      <h2 class="cta-title">{ctaTitle}</h2>
+      <span class="cta-subtitle">{ctaSubtitle}</span>
     </div>
-    <p class="cta-text">
-      견적 문의, 상담, 샘플 요청 등 무엇이든 편하게 문의해 주세요.
-    </p>
-    <ul class="cta-list">
-      <li class="cta-list-item">
-        책자, 카탈로그, 브로슈어 인쇄를 의뢰하고 싶다
-      </li>
-      <li class="cta-list-item">대량 인쇄 견적을 받고 싶다</li>
-      <li class="cta-list-item">용지 선택이나 후가공에 대해 상담하고 싶다</li>
-      <li class="cta-list-item">납기 일정을 확인하고 싶다</li>
-      <li class="cta-list-item">용지 샘플을 받아보고 싶다 등</li>
-    </ul>
+    <p class="cta-text">{ctaText}</p>
+    {ctaList.length > 0 && (
+      <ul class="cta-list">
+        {ctaList.map((item) => (
+          <li class="cta-list-item">{item}</li>
+        ))}
+      </ul>
+    )}
     <div class="cta-actions">
-      <LinkButton href="/contact" variant="solid-sub" size="large">
-        문의하기
+      <LinkButton href={ctaButtonLink || '/contact'} variant="solid-sub" size="large">
+        {ctaButtonText || '문의하기'}
       </LinkButton>
     </div>
   </Container>

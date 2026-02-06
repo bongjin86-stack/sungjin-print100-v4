@@ -116,7 +116,8 @@ export async function loadPricingData(): Promise<PricingData> {
   if (cachedData) return cachedData;
 
   try {
-    // 9개 쿼리 병렬 실행 (순차 ~900ms → 병렬 ~100ms)
+    // 8개 쿼리 병렬 실행 (순차 ~800ms → 병렬 ~100ms)
+    // size_paper_price 제거: 실시간 계산으로 대체 (USE_PRECALC = false)
     const [
       { data: papers, error: e1 },
       { data: paperCosts, error: e2 },
@@ -126,7 +127,6 @@ export async function loadPricingData(): Promise<PricingData> {
       { data: finishingCosts, error: e6 },
       { data: bindingTypes, error: e7 },
       { data: bindingCosts, error: e8 },
-      { data: sizePaperPrice, error: e9 },
     ] = await Promise.all([
       supabase
         .from('papers').select('*')
@@ -160,10 +160,6 @@ export async function loadPricingData(): Promise<PricingData> {
         .from('binding_costs').select('*, binding_type:binding_types(id, code, name)')
         .eq('is_active', true)
         .order('binding_type_id').order('min_qty'),
-      supabase
-        .from('size_paper_price')
-        .select('*, size:sizes(id, code, name), paper_cost:paper_costs(id, paper_id, weight, paper:papers(id, code, name))')
-        .eq('is_active', true),
     ]);
 
     if (e1) throw e1;
@@ -174,7 +170,6 @@ export async function loadPricingData(): Promise<PricingData> {
     if (e6) throw e6;
     if (e7) throw e7;
     if (e8) throw e8;
-    if (e9) console.warn('size_paper_price 로드 실패 (테이블 없을 수 있음):', e9.message);
 
     cachedData = {
       papers: papers as Paper[],
@@ -185,7 +180,7 @@ export async function loadPricingData(): Promise<PricingData> {
       finishingCosts: finishingCosts as FinishingCost[],
       bindingTypes: bindingTypes as BindingType[],
       bindingCosts: bindingCosts as BindingCost[],
-      sizePaperPrice: (sizePaperPrice as SizePaperPrice[]) || [],
+      sizePaperPrice: [],  // deprecated - 실시간 계산 사용
     };
 
     // Map 인덱스 빌드 (O(1) 조회용)

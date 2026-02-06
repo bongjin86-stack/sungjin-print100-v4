@@ -105,7 +105,7 @@ function formatDate(dateStr: string): string {
 
   .news-link {
     display: grid;
-    grid-template-columns: 88px 1fr;
+    grid-template-columns: auto 1fr;
     grid-template-rows: auto auto;
     align-items: center;
     gap: var(--sp-sm) var(--sp-xs);
@@ -113,7 +113,7 @@ function formatDate(dateStr: string): string {
     text-decoration: none;
 
     @media (min-width: 600px) {
-      grid-template-columns: 88px 120px 1fr;
+      grid-template-columns: auto 120px 1fr;
       grid-template-rows: auto;
       gap: 0 var(--sp-sm);
     }
@@ -125,10 +125,13 @@ function formatDate(dateStr: string): string {
     color: var(--c-text-sub);
     font-size: var(--fs-sm);
     align-self: center;
+    white-space: nowrap;
+    min-width: 80px;
 
     @media (min-width: 600px) {
       grid-column: 1 / 2;
       font-size: var(--fs-base);
+      min-width: 90px;
     }
   }
 

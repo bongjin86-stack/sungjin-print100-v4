@@ -1,4 +1,5 @@
 ---
+import LogoUploader from '../../../components/admin/LogoUploader';
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { supabase } from '../../../lib/supabase';
 
@@ -21,14 +22,13 @@ if (settingsData) {
 const settings = {
   site_name: siteSettings.site_name || 'Sungjinprint',
   site_description: siteSettings.site_description || '성진프린트 - 고품질 인쇄 서비스',
-  contact_email: siteSettings.contact_email || '',
-  contact_phone: siteSettings.contact_phone || '',
-  contact_address: siteSettings.contact_address || '',
   service_intro: siteSettings.service_intro || '',
   // 사업장 정보
   company_name: siteSettings.company_name || '',
   ceo_name: siteSettings.ceo_name || '',
   business_number: siteSettings.business_number || '',
+  ecommerce_license: siteSettings.ecommerce_license || '',
+  privacy_officer: siteSettings.privacy_officer || '',
   phone: siteSettings.phone || '',
   email: siteSettings.email || '',
   address: siteSettings.address || '',
@@ -44,6 +44,15 @@ const settings = {
 <AdminLayout title="사이트 설정">
   <div class="admin-header">
     <h1>사이트 설정</h1>
+  </div>
+
+  <div class="settings-form">
+    <!-- 로고 설정 (React 컴포넌트) -->
+    <div class="form-section">
+      <h2>사이트 로고</h2>
+      <p class="section-desc">헤더에 표시되는 로고 이미지를 설정합니다.</p>
+      <LogoUploader client:only="react" />
+    </div>
   </div>
 
   <form id="settings-form" class="settings-form">
@@ -77,6 +86,17 @@ const settings = {
       <div class="form-group">
         <label for="business_number">사업자등록번호</label>
         <input type="text" id="business_number" name="business_number" value={settings.business_number} placeholder="123-45-67890" />
+      </div>
+
+      <div class="form-group">
+        <label for="ecommerce_license">통신판매업신고번호</label>
+        <input type="text" id="ecommerce_license" name="ecommerce_license" value={settings.ecommerce_license} placeholder="2024-서울송파-0000" />
+        <p class="form-hint">전자상거래 시 필수 표시 항목</p>
+      </div>
+
+      <div class="form-group">
+        <label for="privacy_officer">개인정보관리책임자</label>
+        <input type="text" id="privacy_officer" name="privacy_officer" value={settings.privacy_officer} placeholder="홍길동" />
       </div>
 
       <div class="form-group">
@@ -135,25 +155,6 @@ const settings = {
     </div>
 
     <div class="form-section">
-      <h2>연락처 정보 (기존)</h2>
-      
-      <div class="form-group">
-        <label for="contact_email">이메일</label>
-        <input type="email" id="contact_email" name="contact_email" value={settings.contact_email} />
-      </div>
-
-      <div class="form-group">
-        <label for="contact_phone">전화번호</label>
-        <input type="tel" id="contact_phone" name="contact_phone" value={settings.contact_phone} />
-      </div>
-
-      <div class="form-group">
-        <label for="contact_address">주소</label>
-        <input type="text" id="contact_address" name="contact_address" value={settings.contact_address} />
-      </div>
-    </div>
-
-    <div class="form-section">
       <h2>서비스 페이지</h2>
       
       <div class="form-group">
@@ -196,9 +197,15 @@ const settings = {
     font-size: 1.125rem;
     font-weight: 600;
     color: var(--c-text);
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
     padding-bottom: 0.75rem;
     border-bottom: 1px solid #eee;
+  }
+
+  .section-desc {
+    font-size: 0.875rem;
+    color: var(--c-text-sub, #666);
+    margin: 0 0 1rem 0;
   }
 
   .form-group {
@@ -279,14 +286,13 @@ const settings = {
     const data = {
       site_name: formData.get('site_name'),
       site_description: formData.get('site_description'),
-      contact_email: formData.get('contact_email'),
-      contact_phone: formData.get('contact_phone'),
-      contact_address: formData.get('contact_address'),
       service_intro: formData.get('service_intro'),
       // 사업장 정보
       company_name: formData.get('company_name'),
       ceo_name: formData.get('ceo_name'),
       business_number: formData.get('business_number'),
+      ecommerce_license: formData.get('ecommerce_license'),
+      privacy_officer: formData.get('privacy_officer'),
       phone: formData.get('phone'),
       email: formData.get('email'),
       address: formData.get('address'),

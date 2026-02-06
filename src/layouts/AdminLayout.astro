@@ -1,4 +1,6 @@
 ---
+import { supabase } from "@/lib/supabase";
+
 import "@/styles/fonts.css";
 import "@/styles/tokens.css";
 import "@/styles/global.scss";
@@ -12,6 +14,21 @@ interface Props {
 const { title, fullBleed = false } = Astro.props;
 
 const currentPath = Astro.url.pathname;
+
+// DB에서 로고 URL 조회
+let logoUrl: string | null = null;
+try {
+  const { data } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'logo_url')
+    .single();
+  if (data?.value) {
+    logoUrl = data.value;
+  }
+} catch {
+  // 없으면 기본 텍스트 사용
+}
 
 // 단독 메뉴 항목 (비즈니스)
 const businessItems = [
@@ -62,7 +79,13 @@ const dashboardItem = { href: '/admin', label: '대시보드' };
       <!-- Sidebar -->
       <aside class="admin-sidebar">
         <div class="admin-logo">
-          <a href="/admin">Sungjinprint</a>
+          <a href="/admin">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" class="admin-logo-img" />
+            ) : (
+              "Sungjinprint"
+            )}
+          </a>
           <span class="admin-badge">Admin</span>
         </div>
         <nav class="admin-nav">
@@ -207,6 +230,13 @@ const dashboardItem = { href: '/admin', label: '대시보드' };
         font-size: var(--fs-lg);
         font-weight: 700;
         letter-spacing: -0.02em;
+      }
+
+      .admin-logo-img {
+        height: 28px;
+        width: auto;
+        object-fit: contain;
+        filter: brightness(0) invert(1);  /* 흰색으로 변환 */
       }
 
       .admin-badge {

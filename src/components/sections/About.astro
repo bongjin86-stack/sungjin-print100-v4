@@ -3,6 +3,14 @@ import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import LinkButton from "@/components/ui/LinkButton.astro";
 import SectionTitle from "@/components/ui/SectionTitle.astro";
+import { getConfig, loadSiteConfig } from "@/lib/siteConfigService";
+
+// DB에서 설정 로드
+await loadSiteConfig();
+const aboutText = getConfig('landing_about_text');
+
+// 줄바꿈을 <br />로 변환
+const formattedText = aboutText.split('\n').map(line => line || '<br />').join('<br />');
 ---
 
 <Section background="secondary">
@@ -15,17 +23,7 @@ import SectionTitle from "@/components/ui/SectionTitle.astro";
       />
 
       <div class="about-content">
-        <p class="about-text">
-          20년 경력의 인쇄 전문가가 운영하는<br />
-          Sungjinprint입니다.<br />
-          <br />
-          무선제본, 중철제본, 스프링제본 등<br />
-          다양한 제본 서비스와 빠른 납기를 제공합니다.<br />
-          <br />
-          50부 이상 대량 주문 시 단가가 낮아지며,<br />
-          최신 장비로 깔끔한 인쇄 품질을 보장합니다.<br />
-          언제든 편하게 문의해 주세요.
-        </p>
+        <p class="about-text" set:html={formattedText} />
         <LinkButton
           href="/about/"
           ariaLabel="회사소개"

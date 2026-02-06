@@ -1,6 +1,7 @@
 ---
 import LogoImage from "@/assets/logo.svg";
 import siteConfig from "@/config/site.config.json";
+import { supabase } from "@/lib/supabase";
 import type { SiteConfig } from "@/types/index.d.ts";
 
 interface Props {
@@ -12,23 +13,46 @@ interface Props {
 const { h1, inverse, class: className, ...rest } = Astro.props;
 const typedSiteConfig = siteConfig as SiteConfig;
 const siteTitle = typedSiteConfig.site.title as string;
+
+// DB에서 로고 URL 조회
+let logoUrl: string | null = null;
+try {
+  const { data } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'logo_url')
+    .single();
+  if (data?.value) {
+    logoUrl = data.value;
+  }
+} catch {
+  // 없으면 기본 SVG 사용
+}
 ---
 
 {
   h1 ? (
     <h1 class:list={["logo", className]} {...rest}>
       <a href="/" class="logo-link" aria-label={siteTitle}>
-        <LogoImage
-          color={inverse ? "var(--c-text-inverse)" : "var(--c-text)"}
-        />
+        {logoUrl ? (
+          <img src={logoUrl} alt={siteTitle} class="logo-img" />
+        ) : (
+          <LogoImage
+            color={inverse ? "var(--c-text-inverse)" : "var(--c-text)"}
+          />
+        )}
       </a>
     </h1>
   ) : (
     <div class:list={["logo", className]} {...rest}>
       <a href="/" class="logo-link" aria-label={siteTitle}>
-        <LogoImage
-          color={inverse ? "var(--c-text-inverse)" : "var(--c-text)"}
-        />
+        {logoUrl ? (
+          <img src={logoUrl} alt={siteTitle} class="logo-img" />
+        ) : (
+          <LogoImage
+            color={inverse ? "var(--c-text-inverse)" : "var(--c-text)"}
+          />
+        )}
       </a>
     </div>
   )
@@ -42,7 +66,8 @@ const siteTitle = typedSiteConfig.site.title as string;
     width: fit-content;
     z-index: var(--z-fixed);
 
-    svg {
+    svg,
+    .logo-img {
       width: 100%;
       height: 40px;
       object-fit: contain;
@@ -50,6 +75,10 @@ const siteTitle = typedSiteConfig.site.title as string;
       @media (min-width: 900px) {
         height: 45px;
       }
+    }
+
+    .logo-img {
+      display: block;
     }
   }
 </style>

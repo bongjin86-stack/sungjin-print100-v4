@@ -1,11 +1,13 @@
-import { useEffect,useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { adminFormStyles as styles, mergeStyles } from './adminFormStyles';
 import ImageUploader from './ImageUploader';
 
 interface Product {
   id: string;
   name: string;
   icon: string;
+  is_published?: boolean;
 }
 
 interface ServicesFormProps {
@@ -46,21 +48,21 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
 
   useEffect(() => {
     fetch('/api/products')
-      .then(res => res.json())
-      .then((data: Product[]) => setProducts(data.filter(p => p.is_published !== false)))
+      .then((res) => res.json())
+      .then((data: Product[]) => setProducts(data.filter((p) => p.is_published !== false)))
       .catch(() => setProducts([]));
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? parseInt(value) || 0 : value
+      [name]: type === 'number' ? parseInt(value) || 0 : value,
     }));
   };
 
   const handleImageUpload = (url: string) => {
-    setFormData(prev => ({ ...prev, image: url }));
+    setFormData((prev) => ({ ...prev, image: url }));
   };
 
   const addTask = () => {
@@ -101,7 +103,7 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
         const error = await res.json();
         alert(error.message || '저장에 실패했습니다.');
       }
-    } catch (error) {
+    } catch {
       alert('저장에 실패했습니다.');
     } finally {
       setIsSubmitting(false);
@@ -113,7 +115,9 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
       <div style={styles.formGrid}>
         <div style={styles.formRow}>
           <div style={styles.formGroup}>
-            <label style={styles.label}>슬러그 (URL)</label>
+            <label style={styles.labelRequired}>
+              슬러그 (URL) <span style={styles.requiredBadge}>필수</span>
+            </label>
             <input
               type="text"
               name="slug"
@@ -123,7 +127,7 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
               required
               style={styles.input}
             />
-            <span style={styles.hint}>URL에 사용될 고유 식별자</span>
+            <p style={styles.hint}>URL에 사용될 고유 식별자</p>
           </div>
 
           <div style={styles.formGroup}>
@@ -141,7 +145,9 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
 
         <div style={styles.formRow}>
           <div style={styles.formGroup}>
-            <label style={styles.label}>제목 (한글)</label>
+            <label style={styles.labelRequired}>
+              제목 (한글) <span style={styles.requiredBadge}>필수</span>
+            </label>
             <input
               type="text"
               name="title"
@@ -176,7 +182,7 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
             placeholder="책등에 접착제를 사용하여 내지를 표지에 붙이는 방식입니다."
             style={styles.input}
           />
-          <span style={styles.hint}>목록에서 보여지는 짧은 설명</span>
+          <p style={styles.hint}>목록에서 보여지는 짧은 설명</p>
         </div>
 
         <div style={styles.formGroup}>
@@ -185,11 +191,11 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
             name="detail_description"
             value={formData.detail_description}
             onChange={handleChange}
-            placeholder="무선제본은 책등에 접착제를 사용하여 내지를 표지에 붙이는 방식입니다. 깔끔하고 전문적인 마감으로 책자, 카탈로그, 보고서, 논문집 등에 널리 사용됩니다."
+            placeholder="무선제본은 책등에 접착제를 사용하여 내지를 표지에 붙이는 방식입니다."
             rows={4}
             style={styles.textarea}
           />
-          <span style={styles.hint}>상세 페이지에서 보여지는 긴 설명</span>
+          <p style={styles.hint}>상세 페이지에서 보여지는 긴 설명</p>
         </div>
 
         {/* 이미지 업로더 */}
@@ -200,37 +206,30 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
           label="서비스 이미지"
         />
 
+        {/* 제공 서비스 목록 */}
         <div style={styles.formGroup}>
           <label style={styles.label}>제공 서비스 목록</label>
-          <div style={styles.tasksContainer}>
-            <div style={styles.tasksList}>
+          <div style={styles.listEditor}>
+            <div style={localStyles.tasksList}>
               {tasks.map((task, index) => (
-                <div key={index} style={styles.taskItem}>
+                <div key={index} style={styles.tagItem}>
                   <span>{task}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeTask(index)}
-                    style={styles.removeTaskBtn}
-                  >
-                    X
+                  <button type="button" onClick={() => removeTask(index)} style={styles.tagRemoveButton}>
+                    ✕
                   </button>
                 </div>
               ))}
             </div>
-            <div style={styles.addTaskRow}>
+            <div style={styles.listItem}>
               <input
                 type="text"
                 value={newTask}
                 onChange={(e) => setNewTask(e.target.value)}
                 placeholder="새 서비스 항목 추가"
-                style={styles.input}
+                style={styles.listInput}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTask())}
               />
-              <button
-                type="button"
-                onClick={addTask}
-                style={styles.addTaskBtn}
-              >
+              <button type="button" onClick={addTask} style={localStyles.addTaskBtn}>
                 추가
               </button>
             </div>
@@ -238,32 +237,32 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
         </div>
 
         {/* 연결 상품 */}
-        <div style={styles.linkedProductSection}>
+        <div style={styles.formGroup}>
           <label style={styles.label}>연결 상품</label>
-          <div style={styles.linkedProductRow}>
+          <div style={styles.formRow}>
             <select
               name="linked_product_id"
               value={formData.linked_product_id}
               onChange={handleChange}
-              style={styles.select}
+              style={mergeStyles(styles.select, { maxWidth: 'none' })}
             >
               <option value="">선택 안 함</option>
-              {products.map(p => (
-                <option key={p.id} value={p.id}>{p.icon} {p.name}</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.icon} {p.name}
+                </option>
               ))}
             </select>
-            <div style={styles.formGroup}>
-              <input
-                type="text"
-                name="order_button_text"
-                value={formData.order_button_text}
-                onChange={handleChange}
-                placeholder="주문하기"
-                style={styles.input}
-              />
-            </div>
+            <input
+              type="text"
+              name="order_button_text"
+              value={formData.order_button_text}
+              onChange={handleChange}
+              placeholder="주문하기"
+              style={styles.input}
+            />
           </div>
-          <span style={styles.hint}>고객이 이 서비스 페이지에서 버튼을 누르면 연결된 상품 페이지로 이동합니다</span>
+          <p style={styles.hint}>고객이 이 서비스 페이지에서 버튼을 누르면 연결된 상품 페이지로 이동합니다</p>
         </div>
 
         <div style={styles.formGroup}>
@@ -271,8 +270,8 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
           <select
             name="is_active"
             value={formData.is_active ? 'true' : 'false'}
-            onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.value === 'true' }))}
-            style={styles.select}
+            onChange={(e) => setFormData((prev) => ({ ...prev, is_active: e.target.value === 'true' }))}
+            style={mergeStyles(styles.select, { maxWidth: '200px' })}
           >
             <option value="true">공개</option>
             <option value="false">비공개</option>
@@ -281,116 +280,26 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
       </div>
 
       <div style={styles.formActions}>
-        <button
-          type="button"
-          onClick={() => window.location.href = '/admin/services'}
-          style={styles.cancelButton}
-        >
+        <button type="button" onClick={() => (window.location.href = '/admin/services')} style={styles.cancelButton}>
           취소
         </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          style={styles.submitButton}
-        >
-          {isSubmitting ? '저장 중...' : (mode === 'create' ? '추가하기' : '수정하기')}
+        <button type="submit" disabled={isSubmitting} style={styles.submitButton}>
+          {isSubmitting ? '저장 중...' : mode === 'create' ? '추가하기' : '수정하기'}
         </button>
       </div>
     </form>
   );
 }
 
-const styles: { [key: string]: React.CSSProperties } = {
-  form: {
-    background: 'white',
-    borderRadius: '0.5rem',
-    padding: '2rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-  },
-  formGrid: {
-    display: 'grid',
-    gap: '1.5rem',
-    marginBottom: '2rem',
-  },
-  formGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-  },
-  formRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '1.5rem',
-  },
-  label: {
-    fontWeight: 600,
-    fontSize: '0.875rem',
-    color: '#374151',
-  },
-  input: {
-    padding: '0.75rem 1rem',
-    border: '1px solid #e5e7eb',
-    borderRadius: '0.375rem',
-    fontSize: '1rem',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-  },
-  textarea: {
-    padding: '0.75rem 1rem',
-    border: '1px solid #e5e7eb',
-    borderRadius: '0.375rem',
-    fontSize: '1rem',
-    outline: 'none',
-    resize: 'vertical',
-    fontFamily: 'inherit',
-    lineHeight: 1.6,
-  },
-  select: {
-    padding: '0.75rem 1rem',
-    border: '1px solid #e5e7eb',
-    borderRadius: '0.375rem',
-    fontSize: '1rem',
-    outline: 'none',
-    background: 'white',
-    maxWidth: '200px',
-  },
-  hint: {
-    fontSize: '0.75rem',
-    color: '#6b7280',
-  },
-  tasksContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-  },
+// 이 컴포넌트 전용 스타일
+const localStyles: Record<string, React.CSSProperties> = {
   tasksList: {
     display: 'flex',
     flexWrap: 'wrap',
     gap: '0.5rem',
   },
-  taskItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    background: '#f3f4f6',
-    padding: '0.5rem 0.75rem',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
-  },
-  removeTaskBtn: {
-    background: 'none',
-    border: 'none',
-    color: '#991b1b',
-    cursor: 'pointer',
-    fontSize: '0.75rem',
-    fontWeight: 'bold',
-  },
-  addTaskRow: {
-    display: 'flex',
-    gap: '0.5rem',
-  },
   addTaskBtn: {
-    padding: '0.75rem 1.5rem',
+    padding: '0.5rem 1rem',
     background: '#e5e7eb',
     color: '#374151',
     border: 'none',
@@ -399,42 +308,5 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 500,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
-  },
-  linkedProductSection: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.5rem',
-  },
-  linkedProductRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '1rem',
-  },
-  formActions: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '1rem',
-    paddingTop: '1rem',
-    borderTop: '1px solid #e5e7eb',
-  },
-  cancelButton: {
-    padding: '0.75rem 1.5rem',
-    background: '#e5e7eb',
-    color: '#374151',
-    border: 'none',
-    borderRadius: '0.375rem',
-    fontSize: '1rem',
-    fontWeight: 500,
-    cursor: 'pointer',
-  },
-  submitButton: {
-    padding: '0.75rem 1.5rem',
-    background: '#000',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.375rem',
-    fontSize: '1rem',
-    fontWeight: 500,
-    cursor: 'pointer',
   },
 };

@@ -27,8 +27,22 @@ export const GET: APIRoute = async () => {
 // POST - 새 가이드 생성
 export const POST: APIRoute = async ({ request }) => {
   const body = await request.json();
-  
-  const { title, description, tag, content, image, is_published } = body;
+
+  const {
+    title,
+    subtitle,
+    description,
+    client,
+    category_id,
+    year,
+    tag,
+    content,
+    image,
+    overview,
+    support,
+    achievements,
+    is_published,
+  } = body;
 
   if (!title) {
     return new Response(JSON.stringify({ message: '제목은 필수입니다.' }), {
@@ -39,14 +53,23 @@ export const POST: APIRoute = async ({ request }) => {
 
   const { data, error } = await supabase
     .from('works')
-    .insert([{
-      title,
-      description: description || '',
-      tag: tag || '',
-      content: content || '',
-      image: image || '',
-      is_published: is_published ?? true,
-    }])
+    .insert([
+      {
+        title,
+        subtitle: subtitle || '',
+        description: description || '',
+        client: client || '',
+        category_id: category_id || null,
+        year: year || new Date().getFullYear().toString(),
+        tag: tag || '',
+        content: content || '',
+        image: image || '',
+        overview: overview || '',
+        support: support || [],
+        achievements: achievements || [],
+        is_published: is_published ?? true,
+      },
+    ])
     .select()
     .single();
 

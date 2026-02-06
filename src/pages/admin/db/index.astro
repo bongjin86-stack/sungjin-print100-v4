@@ -12,7 +12,6 @@ const [
   { count: finishingCosts },
   { count: bindingTypes },
   { count: bindingCosts },
-  { count: sizePaperPrice },
 ] = await Promise.all([
   supabase.from('papers').select('*', { count: 'exact', head: true }),
   supabase.from('paper_costs').select('*', { count: 'exact', head: true }),
@@ -22,7 +21,6 @@ const [
   supabase.from('finishing_costs').select('*', { count: 'exact', head: true }),
   supabase.from('binding_types').select('*', { count: 'exact', head: true }),
   supabase.from('binding_costs').select('*', { count: 'exact', head: true }),
-  supabase.from('size_paper_price').select('*', { count: 'exact', head: true }),
 ]);
 
 const stats = {
@@ -34,7 +32,6 @@ const stats = {
   finishingCosts: finishingCosts || 0,
   bindingTypes: bindingTypes || 0,
   bindingCosts: bindingCosts || 0,
-  sizePaperPrice: sizePaperPrice || 0,
 };
 
 const tables = [
@@ -81,14 +78,6 @@ const tables = [
       { label: '제본 비용', value: stats.bindingCosts },
     ],
   },
-  {
-    name: '1차 계산',
-    path: '/admin/db/precalc',
-    color: 'orange',
-    stats: [
-      { label: 'size_paper_price', value: stats.sizePaperPrice },
-    ],
-  },
 ];
 ---
 
@@ -132,10 +121,6 @@ const tables = [
         <div class="stat-box">
           <p class="stat-number">{stats.bindingCosts}</p>
           <p class="stat-description">제본 비용</p>
-        </div>
-        <div class="stat-box">
-          <p class="stat-number">{stats.sizePaperPrice}</p>
-          <p class="stat-description">1차 계산</p>
         </div>
       </div>
     </div>

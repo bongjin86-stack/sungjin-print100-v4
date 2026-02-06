@@ -32,7 +32,21 @@ export const PUT: APIRoute = async ({ params, request }) => {
   const { id } = params;
   const body = await request.json();
 
-  const { title, description, tag, content, image, is_published } = body;
+  const {
+    title,
+    subtitle,
+    description,
+    client,
+    category_id,
+    year,
+    tag,
+    content,
+    image,
+    overview,
+    support,
+    achievements,
+    is_published,
+  } = body;
 
   if (!title) {
     return new Response(JSON.stringify({ message: '제목은 필수입니다.' }), {
@@ -45,10 +59,17 @@ export const PUT: APIRoute = async ({ params, request }) => {
     .from('works')
     .update({
       title,
+      subtitle: subtitle || '',
       description: description || '',
+      client: client || '',
+      category_id: category_id || null,
+      year: year || new Date().getFullYear().toString(),
       tag: tag || '',
       content: content || '',
       image: image || '',
+      overview: overview || '',
+      support: support || [],
+      achievements: achievements || [],
       is_published: is_published ?? true,
       updated_at: new Date().toISOString(),
     })
