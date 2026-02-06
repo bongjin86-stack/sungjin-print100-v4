@@ -338,12 +338,14 @@ export function calculateBindingPrice(
   breakdown.innerPaper = innerPaperTotal;
   total += innerPaperTotal;
 
-  // 내지 인쇄비
-  const innerPrintCost = getPrintCostPerFace(innerFaces);
+  // 내지 인쇄비 (up_count 적용: A4면 467x315 대비 2배수이므로 면당 단가 1/2)
+  const sizeUpCount = sizeInfo.up_count;
+  const baseSheetFaces = Math.ceil(innerFaces / sizeUpCount);  // 실제 인쇄 면수 (467x315 기준)
+  const innerPrintCost = getPrintCostPerFace(baseSheetFaces);
   const adjustedInnerPrintCost = innerIsColor
     ? innerPrintCost
     : Math.round(innerPrintCost * 0.65);
-  const innerPrintTotal = adjustedInnerPrintCost * innerFaces;
+  const innerPrintTotal = adjustedInnerPrintCost * baseSheetFaces;
   breakdown.innerPrint = innerPrintTotal;
   total += innerPrintTotal;
 
