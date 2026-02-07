@@ -13,7 +13,8 @@
 | `src/lib/dbService.ts` | DB 데이터 로딩 + 조회 함수 |
 | `src/lib/builderData.ts` | 상품 템플릿 + CustomerSelection 타입 |
 | `src/lib/businessDays.ts` | 영업일/출고일 계산 |
-| `src/data/rules.ts` | 인쇄 규칙 (코팅 제한, 오시 강제 등) |
+| `src/lib/blockDefaults.ts` | 블록 규칙 제어센터 (코팅 제한, 오시 강제 등) |
+| `src/data/rules.ts` | 규칙 메타데이터 카탈로그 (읽기 전용) |
 
 ---
 

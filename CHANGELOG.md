@@ -41,8 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - `CLAUDE.md` — Block Rules Control Center 섹션 추가, 문서 관리 가이드 추가
-- `docs/BUILDER_ANALYSIS_REPORT.md` — 빌더 분석 보고서
-- `docs/BUILDER_INTEGRATION_PLAN.md` — 5단계 통합 계획서
+- ~~`docs/BUILDER_ANALYSIS_REPORT.md`~~ — 빌더 분석 보고서 (작성 후 삭제, CHANGELOG에 통합)
+- ~~`docs/BUILDER_INTEGRATION_PLAN.md`~~ — 5단계 통합 계획서 (작성 후 삭제, CHANGELOG에 통합)
 - `rules.ts` — 모든 `implementedIn` 필드 blockDefaults 기준으로 정확화
 
 ---
@@ -78,9 +78,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
-- 보안 감사 결과 리포트 (`docs/SECURITY_AUDIT_REPORT.md`)
-- 보안 수정 가이드 (`docs/SECURITY_REMEDIATION_GUIDE.md`)
-- 보안 강화 작업 보고서 (`docs/SECURITY_HARDENING_20260207.md`)
+- ~~보안 감사 결과 리포트 (`docs/SECURITY_AUDIT_REPORT.md`)~~ (삭제됨, CHANGELOG에 통합)
+- ~~보안 수정 가이드 (`docs/SECURITY_REMEDIATION_GUIDE.md`)~~ (삭제됨, CHANGELOG에 통합)
+- ~~보안 강화 작업 보고서 (`docs/SECURITY_HARDENING_20260207.md`)~~ (삭제됨, CHANGELOG에 통합)
 
 ---
 
@@ -150,7 +150,7 @@ Nagi 기업 사이트 테마 위에 인쇄 주문 기능 전체 이식.
 - 연동 규칙/제한사항 문서 (`docs/rules-constraints.md`)
 - DB 마이그레이션 완료 보고서
 - DB 관리 시스템 이식 보고서
-- 에러 리포트 (`docs/error-report.md`)
+- ~~에러 리포트 (`docs/error-report.md`)~~ (삭제됨, CHANGELOG에 통합)
 
 ---
 

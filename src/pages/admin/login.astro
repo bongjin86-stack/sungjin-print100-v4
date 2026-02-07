@@ -69,9 +69,18 @@ import "@/styles/global.css";
       import { supabase } from '@/lib/supabase';
 
       // 이미 로그인된 경우 admin으로 이동
+      // getUser()로 서버 검증 (getSession()은 localStorage 캐시만 확인 → 만료 토큰도 true 반환 → 리다이렉트 루프 발생)
       (async () => {
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return; // 미인증 또는 만료 → 로그인 폼 표시
+
+        // 유효한 세션 → 쿠키 동기화 후 리다이렉트
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const secure = window.location.protocol === 'https:';
+          const cookieOpts = `path=/; max-age=${session.expires_in}; SameSite=Lax${secure ? '; Secure' : ''}`;
+          document.cookie = `sb-access-token=${session.access_token}; ${cookieOpts}`;
+          document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? '; Secure' : ''}`;
           window.location.href = '/admin';
         }
       })();

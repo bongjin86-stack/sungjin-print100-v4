@@ -32,7 +32,7 @@ Admin manages products via ProductBuilder, orders, and site content.
 src/
 ├── components/
 │   ├── admin/           # Admin pages (React, client:only)
-│   │   ├── ProductBuilder/  # Product creation/editing (MONOLITH index.jsx)
+│   │   ├── ProductBuilder/  # Product creation/editing (index.jsx + 6 sub-modules)
 │   │   ├── *Manager.tsx     # DB entity managers (Papers, Sizes, etc.)
 │   │   └── *Form.tsx        # CMS content forms (Hero, About, etc.)
 │   ├── product/         # Customer-facing product view
@@ -48,11 +48,11 @@ src/
 │   ├── dbService.ts     # DB data loading (cached)
 │   ├── builderData.ts   # Product templates & types
 │   ├── businessDays.ts  # Business day calculation
-│   ├── orderService.js  # Order CRUD
-│   ├── shippingCalculator.js  # Shipping cost
-│   ├── packagingCalculator.js # Packaging cost
-│   ├── emailService.js  # Order notification emails
-│   ├── siteConfigService.js   # Site settings
+│   ├── orderService.ts  # Order CRUD
+│   ├── shippingCalculator.ts  # Shipping cost
+│   ├── packagingCalculator.ts # Packaging cost
+│   ├── emailService.ts  # Order notification emails
+│   ├── siteConfigService.ts   # Site settings
 │   └── supabase.ts      # Supabase client (single instance)
 │
 ├── pages/               # Astro pages (.astro files)
@@ -83,10 +83,10 @@ These are already implemented. Modify the existing files:
 |---------|------|-------|
 | Block rules | `src/lib/blockDefaults.ts` | ALL block validation/linking rules here |
 | Price calculation | `src/lib/priceEngine.ts` | ALL pricing logic here (server-only) |
-| Shipping cost | `src/lib/shippingCalculator.js` | |
-| Packaging cost | `src/lib/packagingCalculator.js` | |
+| Shipping cost | `src/lib/shippingCalculator.ts` | |
+| Packaging cost | `src/lib/packagingCalculator.ts` | |
 | Business days | `src/lib/businessDays.ts` | Holiday-aware |
-| Order processing | `src/lib/orderService.js` | |
+| Order processing | `src/lib/orderService.ts` | |
 | DB connection | `src/lib/supabase.ts` | Single client instance |
 | DB data loading | `src/lib/dbService.ts` | Cached lookups |
 
@@ -97,10 +97,16 @@ These are already implemented. Modify the existing files:
 - `tokens.css` (`:root` variables only) is safe unlayered
 - `builder.css` variables scoped to `.admin-content` (not `:root`)
 
-### ProductBuilder is a MONOLITH
-- `src/components/admin/ProductBuilder/index.jsx` contains ALL code inline
-- Separate files (`BlockSettings.jsx`, `PreviewBlock.jsx`) exist but are NOT imported
-- **ALWAYS modify `index.jsx` directly**
+### ProductBuilder Structure
+- `src/components/admin/ProductBuilder/index.jsx` — Main orchestrator (state, save, UI layout)
+- Sub-modules imported by index.jsx:
+  - `BlockItem.jsx` — Block list item + drag handle
+  - `BlockSettings.jsx` — Block config panel (options, defaults, linkedPaper)
+  - `BlockLibraryModal.jsx` — Block type picker modal
+  - `PriceDisplay.jsx` — Price preview
+  - `ProductEditor.jsx` — Product content editor (images, highlights)
+  - `TemplateSelector.jsx` — Product template selection
+- `PreviewBlock.jsx` is in `shared/` (used by both Builder and ProductView)
 
 ### Astro + React Integration
 - React components in `.astro` pages need `client:only="react"` directive
@@ -142,12 +148,13 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 | Path | Component | Purpose |
 |------|-----------|---------|
 | `/` | Landing page | Public homepage |
-| `/product/:slug` | ProductView | Customer product page |
+| `/product/:id` | ProductView | Customer product page |
 | `/upload` | Upload | File upload |
 | `/checkout` | Checkout | Order form |
 | `/order-complete` | OrderComplete | Order confirmation |
 | `/order/:uuid` | CustomerOrderStatus | Order tracking |
 | `/admin` | Admin dashboard | Admin area (auth required) |
+| `/admin/login` | Login page | Admin authentication |
 | `/admin/builder` | ProductBuilder | Product creation/editing |
 | `/admin/orders` | AdminOrders | Order management |
 | `/admin/products` | Product list | Product management |
