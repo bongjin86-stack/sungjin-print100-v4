@@ -14,11 +14,11 @@ import BlockNoteEditor from '@/components/admin/BlockNoteEditor';
 import { PreviewBlock } from '@/components/shared/PreviewBlock';
 // ProductView와 동일한 스타일 사용
 import '@/components/product/ProductView.css';
-import { checkLinkRules, extractDefaultsFromBlocks, getFoldUpdate } from '@/lib/blockDefaults';
+import { checkLinkRules, extractDefaultsFromBlocks, getFoldUpdate, mapPrintOptionsToCustomer } from '@/lib/blockDefaults';
 import { BLOCK_TYPES, DB, getDefaultCustomer, LINK_RULES,TEMPLATES as DEFAULT_TEMPLATES } from '@/lib/builderData';
 import { loadPricingData } from '@/lib/dbService';
 import { getIconComponent,ICON_LIST } from '@/lib/highlightIcons';
-import { calculatePrice, validateCoatingWeight } from '@/lib/priceEngine';
+import { validateCoatingWeight } from '@/lib/priceEngine';
 import { supabase, uploadImage } from '@/lib/supabase';
 
 import BlockItem, { getBlockSummary } from './BlockItem';
@@ -163,6 +163,11 @@ export default function AdminBuilder() {
   // 상품 이미지 업로드 상태
   const [imageUploading, setImageUploading] = useState(false);
 
+  // 서버 가격 계산
+  const [serverPrice, setServerPrice] = useState(null);
+  const [qtyPrices, setQtyPrices] = useState({});
+  const debounceRef = useRef(null);
+
   const blockListRef = useRef(null);
   const templateListRef = useRef(null);
   const mainImageRef = useRef(null);
@@ -304,6 +309,36 @@ export default function AdminBuilder() {
     }
     loadDbPapers();
   }, []);
+
+  // 서버 가격 계산 (debounce 300ms) — ProductView와 동일 경로
+  useEffect(() => {
+    if (!dbLoaded) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const qtyBlock = currentProduct?.blocks?.find(b => b.on && b.type === 'quantity');
+      const allQtys = qtyBlock?.config?.options || [];
+      try {
+        const res = await fetch('/api/calculate-price', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer: mapPrintOptionsToCustomer(customer, currentProduct?.blocks),
+            qty: customer.qty,
+            productType: currentProduct?.productType || currentTemplateId,
+            allQtys,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setServerPrice(data.selected || null);
+          if (data.byQty) setQtyPrices(data.byQty);
+        }
+      } catch (e) {
+        console.warn('Price fetch error:', e.message);
+      }
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [customer, dbLoaded, currentTemplateId]);
 
   // 블록 드래그앤드롭
   useEffect(() => {
@@ -889,8 +924,9 @@ export default function AdminBuilder() {
   // ON 블록 수
   const onCount = currentProduct?.blocks?.filter(b => b.on).length || 0;
 
-  // 가격 계산 (productType으로 제본 상품 분기) - DB 로드 완료 후에만
-  const price = dbLoaded ? (calculatePrice(customer, customer.qty, currentTemplateId) || { total: 0, unitPrice: 0, sheets: 0, faces: 0 }) : { total: 0, unitPrice: 0, sheets: 0, faces: 0 };
+  // 서버에서 계산된 가격 사용
+  const defaultPrice = { total: 0, unitPrice: 0, perUnit: 0, sheets: 0, faces: 0 };
+  const price = serverPrice || defaultPrice;
 
   // 콘텐츠
   const content = currentProduct?.content || getDefaultContent(currentProduct?.name || '');
@@ -1186,7 +1222,7 @@ export default function AdminBuilder() {
                     block={block}
                     customer={customer}
                     setCustomer={setCustomer}
-                    calculatePrice={calculatePrice}
+                    qtyPrices={qtyPrices}
                     linkStatus={linkStatus}
                     handleFoldSelect={handleFoldSelect}
                     productType={currentTemplateId}
