@@ -38,6 +38,12 @@ pnpm-debug.log*
 
 # other
 .vscode
+nul
+
+# bkit plugin auto-generated
+docs/.bkit-memory.json
+docs/.pdca-status.json
+docs/.pdca-snapshots/
 
 ### GitHub Actions ###
 .github export-ignore
