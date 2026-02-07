@@ -5,6 +5,7 @@
 
 import { getDefaultCustomer } from '@/lib/builderData';
 import { formatBusinessDate, getBusinessDate } from '@/lib/businessDays';
+import { estimateThickness, validateBindingThickness } from '@/lib/priceEngine';
 
 // ============================================================
 // 블록 설정에서 기본값 추출
@@ -183,6 +184,27 @@ export function getFoldUpdate(foldOpt, cfg, customer) {
       ...(needsOsi && cfg.osi?.enabled ? { osiEnabled: true, osi: osiLines } : {})
     };
   }
+}
+
+// ============================================================
+// 두께 검증 (ProductView + Builder 공용)
+// ============================================================
+export function checkThickness(blocks, customer) {
+  const thicknessBlock = blocks?.find(b => b.on &&
+    ['inner_layer_saddle', 'inner_layer_leaf', 'pages', 'pages_saddle', 'pages_leaf'].includes(b.type));
+
+  if (!thicknessBlock?.config?.maxThickness || !(customer.pages > 0)) {
+    return { error: false, message: null, thickness: 0 };
+  }
+
+  const innerWeight = customer.innerWeight || customer.weight || 80;
+  const innerPaper = customer.innerPaper || customer.paper || '';
+  const paperThickness = estimateThickness(innerWeight, innerPaper);
+  const totalThickness = (customer.pages / 2) * paperThickness;
+
+  const bindingType = thicknessBlock.type.includes('saddle') ? 'saddle' : 'perfect';
+  const validation = validateBindingThickness(bindingType, totalThickness, thicknessBlock.config.maxThickness);
+  return { ...validation, thickness: totalThickness };
 }
 
 // ============================================================

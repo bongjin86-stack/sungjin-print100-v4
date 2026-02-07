@@ -10,10 +10,9 @@ import DOMPurify from 'isomorphic-dompurify';
 
 import { PreviewBlock } from '@/components/shared/PreviewBlock';
 import { PriceBox } from '@/components/shared/PriceBox';
-import { checkLinkRules, extractDefaultsFromBlocks, getFoldUpdate, mapPrintOptionsToCustomer } from '@/lib/blockDefaults';
+import { checkLinkRules, checkThickness, extractDefaultsFromBlocks, getFoldUpdate, mapPrintOptionsToCustomer } from '@/lib/blockDefaults';
 import { loadPricingData } from '@/lib/dbService';
 import { getIconComponent } from '@/lib/highlightIcons';
-import { estimateThickness, validateBindingThickness } from '@/lib/priceEngine';
 
 export default function ProductView({ product: initialProduct }) {
   const [product] = useState(initialProduct);
@@ -114,36 +113,8 @@ export default function ProductView({ product: initialProduct }) {
   const defaultPrice = { total: 0, unitPrice: 0, perUnit: 0, sheets: 0, faces: 0 };
   let price = serverPrice || defaultPrice;
 
-  // 두께 검증 (inner_layer 또는 pages 블록의 maxThickness 기반)
-  const thicknessBlock = product?.blocks?.find(b => b.on &&
-    ['inner_layer_saddle', 'inner_layer_leaf', 'pages', 'pages_saddle', 'pages_leaf'].includes(b.type));
-  let thicknessCheck = { error: false, message: null, thickness: 0 };
-
-  if (thicknessBlock?.config?.maxThickness && customer.pages > 0) {
-    const innerWeight = customer.innerWeight || customer.weight || 80;
-    const innerPaper = customer.innerPaper || customer.paper || '';
-    const paperThickness = estimateThickness(innerWeight, innerPaper);
-
-    // 통일 공식: 페이지 수 / 2 × 용지두께 (모든 제본 동일)
-    const totalThickness = (customer.pages / 2) * paperThickness;
-
-    const bindingType = thicknessBlock.type.includes('saddle') ? 'saddle' : 'perfect';
-    const validation = validateBindingThickness(bindingType, totalThickness, thicknessBlock.config.maxThickness);
-    thicknessCheck = { ...validation, thickness: totalThickness };
-
-    // 디버그 로그 (개발 시 확인용)
-    console.log('[두께검증]', {
-      blockType: thicknessBlock.type,
-      pages: customer.pages,
-      weight: innerWeight,
-      paperThickness,
-      totalThickness: totalThickness.toFixed(2) + 'mm',
-      maxThickness: thicknessBlock.config.maxThickness + 'mm',
-      error: validation.error
-    });
-  }
-
-  // 두께 검증 결과를 price에 병합 (항상 적용)
+  // 두께 검증 (공유 함수 사용)
+  const thicknessCheck = checkThickness(product?.blocks, customer);
   if (thicknessCheck.thickness > 0) {
     price = {
       ...price,

@@ -14,7 +14,7 @@ import BlockNoteEditor from '@/components/admin/BlockNoteEditor';
 import { PreviewBlock } from '@/components/shared/PreviewBlock';
 // ProductView와 동일한 스타일 사용
 import '@/components/product/ProductView.css';
-import { checkLinkRules, extractDefaultsFromBlocks, getFoldUpdate, mapPrintOptionsToCustomer } from '@/lib/blockDefaults';
+import { checkLinkRules, checkThickness, extractDefaultsFromBlocks, getFoldUpdate, mapPrintOptionsToCustomer } from '@/lib/blockDefaults';
 import { BLOCK_TYPES, DB, getDefaultCustomer, LINK_RULES,TEMPLATES as DEFAULT_TEMPLATES } from '@/lib/builderData';
 import { loadPricingData } from '@/lib/dbService';
 import { getIconComponent,ICON_LIST } from '@/lib/highlightIcons';
@@ -926,7 +926,17 @@ export default function AdminBuilder() {
 
   // 서버에서 계산된 가격 사용
   const defaultPrice = { total: 0, unitPrice: 0, perUnit: 0, sheets: 0, faces: 0 };
-  const price = serverPrice || defaultPrice;
+  let price = serverPrice || defaultPrice;
+
+  // 두께 검증 (ProductView와 동일 로직)
+  const thicknessCheck = checkThickness(currentProduct?.blocks, customer);
+  if (thicknessCheck.thickness > 0) {
+    price = {
+      ...price,
+      thicknessValidation: thicknessCheck,
+      totalThickness: thicknessCheck.thickness
+    };
+  }
 
   // 콘텐츠
   const content = currentProduct?.content || getDefaultContent(currentProduct?.name || '');
@@ -1229,6 +1239,7 @@ export default function AdminBuilder() {
                     dbPapers={dbPapers}
                     dbPapersList={dbPapersList}
                     allBlocks={currentProduct.blocks}
+                    thicknessError={price.thicknessValidation?.error}
                   />
                 ))}
 
