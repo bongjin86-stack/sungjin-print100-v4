@@ -647,14 +647,6 @@ export function validateBindingThickness(
   return { valid: true, warning: false, error: false, message: null };
 }
 
-export function validateCoatingWeight(weight: number): { valid: boolean; message: string | null } {
-  if (weight <= 150) {
-    return {
-      valid: false,
-      message: '150g 이하 용지는 코팅이 불가합니다.'
-    };
-  }
-  return { valid: true, message: null };
-}
+// validateCoatingWeight → blockDefaults.ts로 이관됨 (규칙 제어센터)
 
 export default calculatePrice;

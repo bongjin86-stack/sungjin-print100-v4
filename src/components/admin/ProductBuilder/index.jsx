@@ -14,11 +14,10 @@ import BlockNoteEditor from '@/components/admin/BlockNoteEditor';
 import { PreviewBlock } from '@/components/shared/PreviewBlock';
 // ProductView와 동일한 스타일 사용
 import '@/components/product/ProductView.css';
-import { checkLinkRules, checkThickness, extractDefaultsFromBlocks, getFoldUpdate, mapPrintOptionsToCustomer } from '@/lib/blockDefaults';
+import { checkLinkRules, checkThickness, extractDefaultsFromBlocks, getFoldUpdate, mapPrintOptionsToCustomer, validateCoatingWeight } from '@/lib/blockDefaults';
 import { BLOCK_TYPES, DB, getDefaultCustomer, TEMPLATES as DEFAULT_TEMPLATES } from '@/lib/builderData';
 import { getBuilderData, loadPricingData } from '@/lib/dbService';
 import { getIconComponent,ICON_LIST } from '@/lib/highlightIcons';
-import { validateCoatingWeight } from '@/lib/priceEngine';
 import { supabase, uploadImage } from '@/lib/supabase';
 
 import BlockItem, { getBlockSummary } from './BlockItem';

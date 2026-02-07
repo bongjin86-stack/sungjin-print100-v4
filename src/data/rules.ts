@@ -40,7 +40,7 @@ export const RULES: Rule[] = [
     action: '오시 자동 추가 (2단→1줄, 3단→2줄, 4단→3줄), 접지 해제시 오시도 해제',
     status: 'applied',
     message: '130g 이상 용지는 접지 시 오시가 필요합니다. 오시비가 자동 추가됩니다.',
-    implementedIn: 'ProductBuilder/index.jsx - handleFoldSelect + 접지OFF, ProductView.jsx - handleFoldSelect + 접지OFF'
+    implementedIn: 'blockDefaults.ts - getFoldUpdate(), ProductView.jsx + ProductBuilder/index.jsx에서 호출'
   },
   {
     id: 'R002',
@@ -50,7 +50,7 @@ export const RULES: Rule[] = [
     action: '코팅 블록 비활성화 (회색 처리) + 툴팁 메시지',
     status: 'applied',
     message: '150g 이하 용지는 코팅이 불가합니다.',
-    implementedIn: 'priceEngine.ts - validateCoatingWeight(), ProductBuilder/index.jsx + ProductView.jsx - finishing block'
+    implementedIn: 'blockDefaults.ts - validateCoatingWeight(), PreviewBlock.jsx - finishing block'
   },
   {
     id: 'R003',
@@ -144,7 +144,7 @@ export const RULES: Rule[] = [
     action: '주문 버튼 비활성화 + 경고 메시지',
     status: 'applied',
     message: '중철제본 두께가 2.5mm를 초과합니다.',
-    implementedIn: 'priceEngine.ts - validateBindingThickness(), ProductBuilder - price display'
+    implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
   },
   {
     id: 'R-ST02',
@@ -154,7 +154,7 @@ export const RULES: Rule[] = [
     action: '경고 표시 (제작은 가능)',
     status: 'applied',
     message: '중철제본 두께가 2.0mm를 초과합니다. 제작은 가능하나 주의가 필요합니다.',
-    implementedIn: 'priceEngine.ts - validateBindingThickness(), ProductBuilder - price display'
+    implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
   },
   {
     id: 'R-ST03',
@@ -174,7 +174,7 @@ export const RULES: Rule[] = [
     action: '주문 버튼 비활성화 + 경고 메시지',
     status: 'applied',
     message: '선택하신 용지와 페이지 수로는 무선제본이 불가합니다. (최대 50mm)',
-    implementedIn: 'priceEngine.ts - validateBindingThickness(), ProductBuilder - price display'
+    implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
   },
   {
     id: 'R-ST05',
@@ -184,7 +184,7 @@ export const RULES: Rule[] = [
     action: '경고 표시 (제작은 가능)',
     status: 'applied',
     message: '무선제본 두께가 40mm를 초과합니다. 제작은 가능하나 주의가 필요합니다.',
-    implementedIn: 'priceEngine.ts - validateBindingThickness(), ProductBuilder - price display'
+    implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
   },
   {
     id: 'R-ST06',
@@ -194,7 +194,7 @@ export const RULES: Rule[] = [
     action: '주문 버튼 비활성화 + 경고 메시지',
     status: 'applied',
     message: '선택하신 용지와 페이지 수로는 스프링제본이 불가합니다. (최대 20mm)',
-    implementedIn: 'priceEngine.ts - validateBindingThickness(), ProductBuilder - price display'
+    implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
   },
   {
     id: 'R-ST07',
@@ -204,7 +204,7 @@ export const RULES: Rule[] = [
     action: '경고 표시 (제작은 가능)',
     status: 'applied',
     message: '스프링제본 두께가 15mm를 초과합니다. 제작은 가능하나 주의가 필요합니다.',
-    implementedIn: 'priceEngine.ts - validateBindingThickness(), ProductBuilder - price display'
+    implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
   },
 
   // 후가공 호환성 규칙 (R-PP)

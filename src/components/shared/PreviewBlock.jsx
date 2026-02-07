@@ -10,9 +10,9 @@
  * 스타일: ProductView.css의 pv-* 클래스 사용
  */
 
+import { validateCoatingWeight } from '@/lib/blockDefaults';
 import { DB, TEMPLATES } from '@/lib/builderData';
 import { formatBusinessDate, getBusinessDate } from '@/lib/businessDays';
-import { validateCoatingWeight } from '@/lib/priceEngine';
 
 export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStatus, handleFoldSelect, productType, dbPapers = {}, dbPapersList = [], allBlocks = [], thicknessError = false, dbSizes }) {
   const cfg = block.config;
@@ -56,6 +56,11 @@ export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStat
       const paperField = isCoverPaper ? 'coverPaper' : isInnerPaper ? 'innerPaper' : 'paper';
       const weightField = isCoverPaper ? 'coverWeight' : isInnerPaper ? 'innerWeight' : 'weight';
 
+      const handlePaperSelect = (code, w) => {
+        if (isDisabled) return;
+        setCustomer(prev => ({ ...prev, [paperField]: code, [weightField]: w }));
+      };
+
       return (
         <div className="pv-block">
           <p className="pv-block-label">{block.label}</p>
@@ -68,7 +73,7 @@ export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStat
                 <div
                   key={code}
                   className={`pv-paper-item ${isSelected ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
-                  onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, [paperField]: code, [weightField]: weights[0] }))}
+                  onClick={() => handlePaperSelect(code, weights[0])}
                 >
                   <div className="pv-paper-thumb">
                     {dbPapers[code]?.image_url ? (
@@ -102,7 +107,7 @@ export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStat
                         key={w}
                         disabled={isDisabled}
                         className={`pv-weight-btn ${isSelected && customer[weightField] === w ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); !isDisabled && setCustomer(prev => ({ ...prev, [paperField]: code, [weightField]: w })); }}
+                        onClick={(e) => { e.stopPropagation(); handlePaperSelect(code, w); }}
                       >
                         {w}g
                       </button>
@@ -229,7 +234,8 @@ export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStat
     }
 
     case 'finishing': {
-      // 코팅 관련 로직
+      // 코팅 관련 로직 — 제본 상품은 coverWeight, 단층 상품은 weight
+      const isBindingProduct = ['saddle', 'perfect', 'spring'].includes(productType);
       let currentWeight = 80;
       if (cfg.coating?.linkedPaper) {
         const linkedBlock = allBlocks?.find(b => b.id === cfg.coating.linkedPaper);
@@ -244,8 +250,10 @@ export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStat
             currentWeight = customer.weight || 80;
           }
         }
+      } else if (isBindingProduct) {
+        currentWeight = customer.coverWeight || customer.weight || 80;
       } else {
-        currentWeight = customer.coverWeight || customer.weight || customer.innerWeight || 80;
+        currentWeight = customer.weight || 80;
       }
       const coatingValidation = validateCoatingWeight(currentWeight);
       const isCoatingDisabled = !coatingValidation.valid;
@@ -272,7 +280,7 @@ export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStat
                   <span className="pv-finishing-name">코팅</span>
                   <span className="pv-finishing-icon" aria-hidden="true" />
                 </div>
-                {customer.finishing?.coating && (
+                {customer.finishing?.coating && !isCoatingDisabled && (
                   <div className="pv-finishing-options">
                     <div className="pv-opt-group">
                       {(cfg.coating?.matte ?? true) && (
@@ -454,10 +462,9 @@ export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStat
       const springColorOptions = cfg.springColor?.options?.length > 0 ? cfg.springColor.options : defaultSpringCfg.springColor?.options || [];
       const coverPrintPapers = cfg.coverPrint?.papers || defaultSpringCfg.coverPrint?.papers || {};
 
-      const ppIsNone = customer.pp === 'none';
-      const coverPrintIsNone = customer.coverPrint === 'none';
-      const showCoverError = ppIsNone && coverPrintIsNone;
-      const isBackDisabled = customer.coverPrint === 'front_back';
+      // 연동 규칙은 blockDefaults.checkLinkRules()에서 관리 → linkStatus prop으로 전달됨
+      const showCoverError = !!linkStatus?.error;
+      const isBackDisabled = !!linkStatus?.backDisabled;
 
       return (
         <div className="pv-block">
@@ -466,7 +473,7 @@ export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStat
           <div className="pv-spring-options">
             {showCoverError && (
               <div className="pv-spring-error">
-                <p>전면 커버(PP 또는 표지인쇄) 중 하나는 선택해야 합니다.</p>
+                <p>{linkStatus.error}</p>
               </div>
             )}
 

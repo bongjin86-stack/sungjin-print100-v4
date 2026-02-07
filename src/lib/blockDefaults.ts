@@ -1,11 +1,51 @@
 /**
- * blockDefaults.ts — ProductView와 ProductBuilder 공용 함수
- * Phase 1: 기능 변경 없이 기존 코드 추출만 수행
+ * @module blockDefaults
+ * @description 블록 규칙 제어센터 (Block Rules Control Center)
+ *
+ * ⚠️  블록 간 연동, 검증, 기본값 로직은 반드시 이 파일에서만 관리합니다.
+ *     다른 파일에 규칙을 분산시키지 마세요.
+ *
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │  함수명                       │  역할                       │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  extractDefaultsFromBlocks    │  블록 config → 초기값 매핑  │
+ * │  checkLinkRules               │  블록 간 연동 규칙 체크     │
+ * │  checkThickness               │  제본 두께 제한 검증        │
+ * │  validateCoatingWeight        │  코팅 무게 제한 (≤150g 불가)│
+ * │  getFoldUpdate                │  접지 → 오시 자동 연동      │
+ * │  mapPrintOptionsToCustomer    │  인쇄옵션 → 고객값 매핑     │
+ * └─────────────────────────────────────────────────────────────┘
+ *
+ * [사용처]
+ * - PreviewBlock.jsx       (공용 블록 UI — 고객 + 관리자 미리보기)
+ * - ProductView.jsx        (고객 상품 페이지)
+ * - ProductBuilder/index.jsx (관리자 빌더)
+ *
+ * [의존성]
+ * - builderData.ts   : getDefaultCustomer()
+ * - businessDays.ts  : 영업일 계산
+ * - priceEngine.ts   : estimateThickness(), validateBindingThickness() (두께 계산만)
+ *
+ * [규칙 추가 시 체크리스트]
+ * 1. 이 파일에 함수 추가
+ * 2. 위 테이블에 항목 추가
+ * 3. CLAUDE.md "Block Rules Control Center" 섹션 업데이트
+ * 4. src/data/rules.ts 에 규칙 메타데이터 추가
  */
 
 import { getDefaultCustomer } from '@/lib/builderData';
 import { formatBusinessDate, getBusinessDate } from '@/lib/businessDays';
 import { estimateThickness, validateBindingThickness } from '@/lib/priceEngine';
+
+// ============================================================
+// 코팅 무게 제한 (priceEngine에서 이관)
+// ============================================================
+export function validateCoatingWeight(weight: number): { valid: boolean; message: string | null } {
+  if (weight <= 150) {
+    return { valid: false, message: '150g 이하 용지는 코팅이 불가합니다.' };
+  }
+  return { valid: true, message: null };
+}
 
 // ============================================================
 // 블록 설정에서 기본값 추출
@@ -170,7 +210,7 @@ export function checkLinkRules(blocks, customer) {
 // ============================================================
 export function getFoldUpdate(foldOpt, cfg, customer) {
   const currentWeight = customer.weight || 100;
-  const needsOsi = currentWeight >= 150;
+  const needsOsi = currentWeight >= 130;
   const osiLines = foldOpt - 1;
 
   if (foldOpt === customer.finishing?.fold && customer.finishing?.foldEnabled) {

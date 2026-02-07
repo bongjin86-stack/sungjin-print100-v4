@@ -43,6 +43,7 @@ src/
 │   └── ui/              # Reusable UI components
 │
 ├── lib/                 # Core business logic
+│   ├── blockDefaults.ts # ⚠️ Block Rules Control Center (see below)
 │   ├── priceEngine.ts   # Price calculation (ALL pricing logic here)
 │   ├── dbService.ts     # DB data loading (cached)
 │   ├── builderData.ts   # Product templates & types
@@ -80,7 +81,8 @@ These are already implemented. Modify the existing files:
 
 | Feature | File | Notes |
 |---------|------|-------|
-| Price calculation | `src/lib/priceEngine.ts` | ALL price logic here |
+| Block rules | `src/lib/blockDefaults.ts` | ALL block validation/linking rules here |
+| Price calculation | `src/lib/priceEngine.ts` | ALL pricing logic here (server-only) |
 | Shipping cost | `src/lib/shippingCalculator.js` | |
 | Packaging cost | `src/lib/packagingCalculator.js` | |
 | Business days | `src/lib/businessDays.ts` | Holiday-aware |
@@ -105,11 +107,34 @@ These are already implemented. Modify the existing files:
 - Use `@/` path aliases (configured in tsconfig.json)
 - SSR mode: `output: "server"` with Vercel adapter
 
+### Block Rules Control Center - CRITICAL
+**ALL block validation, linking, and default-value rules live in `src/lib/blockDefaults.ts`.**
+Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other file.
+
+| Function | Purpose |
+|----------|---------|
+| `extractDefaultsFromBlocks` | Block config → customer initial values |
+| `checkLinkRules` | Inter-block linking (back disable, PP+cover required) |
+| `checkThickness` | Binding thickness limit validation |
+| `validateCoatingWeight` | Coating weight limit (<=150g disabled) |
+| `getFoldUpdate` | Fold → osi auto-link |
+| `mapPrintOptionsToCustomer` | Print options → innerColor/coverColor mapping |
+
+**When adding a new rule:**
+1. Add function to `blockDefaults.ts`
+2. Update the JSDoc table at top of that file
+3. Update this CLAUDE.md section
+4. Add rule metadata to `src/data/rules.ts`
+5. UI components consume via props (e.g., `linkStatus`) — never inline the logic
+
+**Rule metadata catalog:** `src/data/rules.ts` (read-only reference, not executable logic)
+
 ### Pricing System
 - `innerColor`/`innerSide`: Binding products use these keys (NOT `color`/`side`)
 - Binding finishing block sets `customer.finishing.*` fields
 - Single-layer finishing also uses `customer.finishing.*`
 - Delivery percent: +30% (same day), +15% (1 day), 0% (2 days), -5% (3 days)
+- `priceEngine.ts` is server-only — never import core pricing functions in client components
 
 ## Routing
 
