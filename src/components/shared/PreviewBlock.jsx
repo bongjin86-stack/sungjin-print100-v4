@@ -14,7 +14,7 @@ import { DB, TEMPLATES } from '@/lib/builderData';
 import { formatBusinessDate, getBusinessDate } from '@/lib/businessDays';
 import { validateCoatingWeight } from '@/lib/priceEngine';
 
-export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStatus, handleFoldSelect, productType, dbPapers = {}, dbPapersList = [], allBlocks = [], thicknessError = false }) {
+export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStatus, handleFoldSelect, productType, dbPapers = {}, dbPapersList = [], allBlocks = [], thicknessError = false, dbSizes }) {
   const cfg = block.config;
   const isDisabled = block.locked;
 
@@ -43,7 +43,7 @@ export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStat
                 className={`pv-btn ${customer.size === s ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
                 onClick={() => !isDisabled && setCustomer(prev => ({ ...prev, size: s }))}
               >
-                {DB.sizeMultipliers[s]?.name || s.toUpperCase()}
+                {(dbSizes || DB.sizeMultipliers)[s]?.name || s.toUpperCase()}
               </button>
             ))}
           </div>

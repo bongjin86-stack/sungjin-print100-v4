@@ -18,10 +18,13 @@ import { DB, TEMPLATES } from '@/lib/builderData';
 
 function BlockSettings({
   block, updateCfg, updateBlockProp, toggleSizeOption, togglePaper, toggleWeight,
-  toggleArrayOption, addQty, removeQty, newQtyInput, setNewQtyInput, allBlocks, dbPapersList
+  toggleArrayOption, addQty, removeQty, newQtyInput, setNewQtyInput, allBlocks, dbPapersList,
+  dbWeights, dbSizes
 }) {
   // DB에서 정렬된 용지 목록 사용 (없으면 하드코딩된 목록 폴백)
   const papersList = dbPapersList?.length > 0 ? dbPapersList : DB.papers;
+  const weights = dbWeights || weights;
+  const sizes = dbSizes || sizes;
   const cfg = block.config;
 
   switch (block.type) {
@@ -33,7 +36,7 @@ function BlockSettings({
           </p>
           <label className="text-xs text-gray-500 block mb-2">사이즈 옵션</label>
           <div className="flex flex-wrap gap-2">
-            {Object.entries(DB.sizeMultipliers).map(([code, info]) => (
+            {Object.entries(sizes).map(([code, info]) => (
               <label
                 key={code}
                 className="flex items-center gap-1 text-sm bg-white px-3 py-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50"
@@ -87,7 +90,7 @@ function BlockSettings({
                 </label>
                 {isOn && (
                   <div className="flex flex-wrap gap-2 mt-2 ml-6">
-                    {DB.weights[paper.code]?.map(w => (
+                    {weights[paper.code]?.map(w => (
                       <label
                         key={w}
                         className="flex items-center gap-1 text-xs bg-gray-50 px-2 py-1 rounded cursor-pointer"
@@ -188,7 +191,7 @@ function BlockSettings({
                       onChange={(e) => {
                         let papersObj = { ...cfg.papers };
                         if (e.target.checked) {
-                          papersObj[paper.code] = DB.weights[paper.code].filter(w => w >= 150).slice(0, 3);
+                          papersObj[paper.code] = weights[paper.code].filter(w => w >= 150).slice(0, 3);
                         } else {
                           delete papersObj[paper.code];
                         }
@@ -199,7 +202,7 @@ function BlockSettings({
                   </label>
                   {isOn && (
                     <div className="flex flex-wrap gap-2 mt-2 ml-6">
-                      {DB.weights[paper.code]?.filter(w => w >= 150).map(w => (
+                      {weights[paper.code]?.filter(w => w >= 150).map(w => (
                         <label key={w} className="flex items-center gap-1 text-xs bg-gray-50 px-2 py-1 rounded cursor-pointer">
                           <input
                             type="checkbox"
@@ -648,7 +651,7 @@ function BlockSettings({
                         onChange={(e) => {
                           let papersObj = { ...cfg.coverPrint?.papers };
                           if (e.target.checked) {
-                            papersObj[paper.code] = DB.weights[paper.code].filter(w => w >= 150).slice(0, 3);
+                            papersObj[paper.code] = weights[paper.code].filter(w => w >= 150).slice(0, 3);
                           } else {
                             delete papersObj[paper.code];
                           }
@@ -659,7 +662,7 @@ function BlockSettings({
                     </label>
                     {isOn && (
                       <div className="flex flex-wrap gap-1 ml-6">
-                        {DB.weights[paper.code]?.filter(w => w >= 150).map(w => (
+                        {weights[paper.code]?.filter(w => w >= 150).map(w => (
                           <label key={w} className="inline-flex items-center gap-1 text-xs bg-gray-50 px-2 py-1 rounded cursor-pointer hover:bg-gray-100 transition-colors">
                             <input
                               type="checkbox"
@@ -1107,7 +1110,7 @@ function BlockSettings({
                   </label>
                   {isOn && (
                     <div className="flex flex-wrap gap-2 mt-2 ml-6">
-                      {DB.weights[paper.code]?.map(w => (
+                      {weights[paper.code]?.map(w => (
                         <label
                           key={w}
                           className="flex items-center gap-1 text-xs bg-gray-50 px-2 py-1 rounded cursor-pointer"

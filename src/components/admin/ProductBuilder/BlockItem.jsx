@@ -37,6 +37,8 @@ function BlockItem({
   setNewQtyInput,
   allBlocks,
   dbPapersList = [],
+  dbWeights,
+  dbSizes,
   BlockSettingsComponent  // BlockSettings 컴포넌트를 props로 받음
 }) {
   const blockType = BLOCK_TYPES[block.type] || { name: block.type, icon: '📦', color: 'from-stone-100 to-stone-200' };
@@ -68,7 +70,7 @@ function BlockItem({
             {block.hidden && <span className="text-xs text-gray-400 px-1.5 py-0.5 bg-gray-50 rounded">숨김</span>}
           </div>
           <p className="text-xs text-gray-400 mt-0.5">
-            {block.desc || getBlockSummary(block, dbPapersList)}
+            {block.desc || getBlockSummary(block, dbPapersList, dbSizes)}
           </p>
         </div>
 
@@ -167,6 +169,8 @@ function BlockItem({
               setNewQtyInput={setNewQtyInput}
               allBlocks={allBlocks}
               dbPapersList={dbPapersList}
+              dbWeights={dbWeights}
+              dbSizes={dbSizes}
             />
           )}
 
@@ -193,14 +197,15 @@ function BlockItem({
 // ============================================================
 // 블록 요약 텍스트
 // ============================================================
-export function getBlockSummary(block, dbPapersList = []) {
+export function getBlockSummary(block, dbPapersList = [], dbSizes = null) {
   const cfg = block.config;
   // DB에서 정렬된 용지 목록 사용 (없으면 하드코딩된 목록 폴백)
   const papersList = dbPapersList?.length > 0 ? dbPapersList : DB.papers;
+  const sizes = dbSizes || DB.sizeMultipliers;
 
   switch (block.type) {
     case 'size':
-      return cfg.options?.map(s => DB.sizeMultipliers[s]?.name || s.toUpperCase()).join(', ') || '-';
+      return cfg.options?.map(s => sizes[s]?.name || s.toUpperCase()).join(', ') || '-';
     case 'paper':
       return Object.keys(cfg.papers || {}).map(p => papersList.find(pp => pp.code === p)?.name).filter(Boolean).join(', ') || '-';
     case 'print':

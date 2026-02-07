@@ -16,7 +16,7 @@ import { PreviewBlock } from '@/components/shared/PreviewBlock';
 import '@/components/product/ProductView.css';
 import { checkLinkRules, checkThickness, extractDefaultsFromBlocks, getFoldUpdate, mapPrintOptionsToCustomer } from '@/lib/blockDefaults';
 import { BLOCK_TYPES, DB, getDefaultCustomer, LINK_RULES,TEMPLATES as DEFAULT_TEMPLATES } from '@/lib/builderData';
-import { loadPricingData } from '@/lib/dbService';
+import { getBuilderData, loadPricingData } from '@/lib/dbService';
 import { getIconComponent,ICON_LIST } from '@/lib/highlightIcons';
 import { validateCoatingWeight } from '@/lib/priceEngine';
 import { supabase, uploadImage } from '@/lib/supabase';
@@ -157,6 +157,10 @@ export default function AdminBuilder() {
   const [dbPapers, setDbPapers] = useState({});
   // DB에서 로드한 용지 목록 (sort_order 순서 유지)
   const [dbPapersList, setDbPapersList] = useState([]);
+  // DB 용지 평량 { snow: [100,120,...], ... }
+  const [dbWeights, setDbWeights] = useState(null);
+  // DB 사이즈 { a4: {name:'A4', multiplier:2}, ... }
+  const [dbSizes, setDbSizes] = useState(null);
   // DB 데이터 로드 완료 여부
   const [dbLoaded, setDbLoaded] = useState(false);
 
@@ -300,6 +304,15 @@ export default function AdminBuilder() {
             name: p.name,
             desc: p.description || ''
           })));
+        }
+        // DB 평량/사이즈 로드 (loadPricingData 후 캐시 히트)
+        const bd = getBuilderData();
+        if (bd) {
+          // paperWeights: { snow: { all: [100,120,...] } } → { snow: [100,120,...] }
+          const weights = {};
+          Object.entries(bd.paperWeights).forEach(([code, v]) => { weights[code] = v.all; });
+          setDbWeights(weights);
+          setDbSizes(bd.sizes);
         }
         setDbLoaded(true);
       } catch (err) {
@@ -808,7 +821,7 @@ export default function AdminBuilder() {
         if (b.id !== blockId) return b;
         let papers = { ...b.config.papers };
         if (checked) {
-          papers[paperCode] = DB.weights[paperCode].slice(0, 3);
+          papers[paperCode] = (dbWeights?.[paperCode] || DB.weights[paperCode] || []).slice(0, 3);
         } else {
           delete papers[paperCode];
         }
@@ -1240,6 +1253,7 @@ export default function AdminBuilder() {
                     dbPapersList={dbPapersList}
                     allBlocks={currentProduct.blocks}
                     thicknessError={price.thicknessValidation?.error}
+                    dbSizes={dbSizes}
                   />
                 ))}
 
@@ -1293,6 +1307,8 @@ export default function AdminBuilder() {
                 setNewQtyInput={setNewQtyInput}
                 allBlocks={currentProduct.blocks}
                 dbPapersList={dbPapersList}
+                dbWeights={dbWeights}
+                dbSizes={dbSizes}
                 BlockSettingsComponent={BlockSettings}
               />
             ))}

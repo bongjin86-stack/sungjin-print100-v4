@@ -11,7 +11,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { PreviewBlock } from '@/components/shared/PreviewBlock';
 import { PriceBox } from '@/components/shared/PriceBox';
 import { checkLinkRules, checkThickness, extractDefaultsFromBlocks, getFoldUpdate, mapPrintOptionsToCustomer } from '@/lib/blockDefaults';
-import { loadPricingData } from '@/lib/dbService';
+import { getBuilderData, loadPricingData } from '@/lib/dbService';
 import { getIconComponent } from '@/lib/highlightIcons';
 
 export default function ProductView({ product: initialProduct }) {
@@ -20,6 +20,7 @@ export default function ProductView({ product: initialProduct }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [dbPapers, setDbPapers] = useState({});
   const [dbPapersList, setDbPapersList] = useState([]);
+  const [dbSizes, setDbSizes] = useState(null);
   const [pricingDataLoaded, setPricingDataLoaded] = useState(false);
   const [serverPrice, setServerPrice] = useState(null);
   const [qtyPrices, setQtyPrices] = useState({});
@@ -45,6 +46,8 @@ export default function ProductView({ product: initialProduct }) {
         setDbPapers(paperMap);
         setDbPapersList(data.papers);
       }
+      const bd = getBuilderData();
+      if (bd?.sizes) setDbSizes(bd.sizes);
       setPricingDataLoaded(true);
     } catch (err) {
       console.error('Failed to load paper data:', err);
@@ -219,6 +222,7 @@ export default function ProductView({ product: initialProduct }) {
               dbPapersList={dbPapersList}
               allBlocks={product?.blocks || []}
               thicknessError={price.thicknessValidation?.error}
+              dbSizes={dbSizes}
             />
           ))}
 
