@@ -1,51 +1,16 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-06T11:30:28.919Z",
+  "lastUpdated": "2026-02-07T03:12:31.462Z",
   "activeFeatures": [
-    "admin",
-    "works",
     "sungjin-print100-nagi",
-    "sections",
-    "landing",
+    "admin",
     "layouts",
-    "about",
-    "db",
-    "settings",
-    "ui",
     "api",
-    "layout",
-    "ProductBuilder",
-    "product",
-    "data"
+    "order",
+    "product"
   ],
-  "primaryFeature": "admin",
+  "primaryFeature": "sungjin-print100-nagi",
   "features": {
-    "admin": {
-      "phase": "do",
-      "phaseNumber": 3,
-      "matchRate": null,
-      "iterationCount": 0,
-      "requirements": [],
-      "documents": {},
-      "timestamps": {
-        "started": "2026-02-06T04:36:04.768Z",
-        "lastUpdated": "2026-02-06T07:02:12.483Z"
-      },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\components\\admin\\LogoUploader.tsx"
-    },
-    "works": {
-      "phase": "do",
-      "phaseNumber": 3,
-      "matchRate": null,
-      "iterationCount": 0,
-      "requirements": [],
-      "documents": {},
-      "timestamps": {
-        "started": "2026-02-06T04:36:29.315Z",
-        "lastUpdated": "2026-02-06T04:36:48.145Z"
-      },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\pages\\api\\works\\index.ts"
-    },
     "sungjin-print100-nagi": {
       "phase": "do",
       "phaseNumber": 3,
@@ -54,12 +19,12 @@
       "requirements": [],
       "documents": {},
       "timestamps": {
-        "started": "2026-02-06T04:51:12.474Z",
-        "lastUpdated": "2026-02-06T11:30:28.919Z"
+        "started": "2026-02-07T03:07:54.313Z",
+        "lastUpdated": "2026-02-07T03:08:02.127Z"
       },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\components\\shared\\PreviewBlock.jsx"
+      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\env.d.ts"
     },
-    "sections": {
+    "admin": {
       "phase": "do",
       "phaseNumber": 3,
       "matchRate": null,
@@ -67,23 +32,10 @@
       "requirements": [],
       "documents": {},
       "timestamps": {
-        "started": "2026-02-06T04:51:34.163Z",
-        "lastUpdated": "2026-02-06T05:45:33.041Z"
+        "started": "2026-02-07T03:08:13.585Z",
+        "lastUpdated": "2026-02-07T03:08:13.585Z"
       },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\components\\sections\\WorksDB.astro"
-    },
-    "landing": {
-      "phase": "do",
-      "phaseNumber": 3,
-      "matchRate": null,
-      "iterationCount": 0,
-      "requirements": [],
-      "documents": {},
-      "timestamps": {
-        "started": "2026-02-06T04:53:47.714Z",
-        "lastUpdated": "2026-02-06T05:09:33.306Z"
-      },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\pages\\admin\\landing\\index.astro"
+      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\pages\\admin\\login.astro"
     },
     "layouts": {
       "phase": "do",
@@ -93,62 +45,10 @@
       "requirements": [],
       "documents": {},
       "timestamps": {
-        "started": "2026-02-06T04:54:19.519Z",
-        "lastUpdated": "2026-02-06T06:50:08.473Z"
+        "started": "2026-02-07T03:08:30.810Z",
+        "lastUpdated": "2026-02-07T03:08:30.810Z"
       },
       "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\layouts\\AdminLayout.astro"
-    },
-    "about": {
-      "phase": "do",
-      "phaseNumber": 3,
-      "matchRate": null,
-      "iterationCount": 0,
-      "requirements": [],
-      "documents": {},
-      "timestamps": {
-        "started": "2026-02-06T05:19:36.763Z",
-        "lastUpdated": "2026-02-06T05:41:37.819Z"
-      },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\pages\\admin\\about\\index.astro"
-    },
-    "db": {
-      "phase": "do",
-      "phaseNumber": 3,
-      "matchRate": null,
-      "iterationCount": 0,
-      "requirements": [],
-      "documents": {},
-      "timestamps": {
-        "started": "2026-02-06T06:35:59.320Z",
-        "lastUpdated": "2026-02-06T06:36:17.900Z"
-      },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\pages\\admin\\db\\index.astro"
-    },
-    "settings": {
-      "phase": "do",
-      "phaseNumber": 3,
-      "matchRate": null,
-      "iterationCount": 0,
-      "requirements": [],
-      "documents": {},
-      "timestamps": {
-        "started": "2026-02-06T06:48:13.484Z",
-        "lastUpdated": "2026-02-06T06:58:45.231Z"
-      },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\pages\\admin\\settings\\index.astro"
-    },
-    "ui": {
-      "phase": "do",
-      "phaseNumber": 3,
-      "matchRate": null,
-      "iterationCount": 0,
-      "requirements": [],
-      "documents": {},
-      "timestamps": {
-        "started": "2026-02-06T06:48:55.861Z",
-        "lastUpdated": "2026-02-06T06:49:07.711Z"
-      },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\components\\ui\\SiteLogo.astro"
     },
     "api": {
       "phase": "do",
@@ -158,12 +58,12 @@
       "requirements": [],
       "documents": {},
       "timestamps": {
-        "started": "2026-02-06T06:59:14.547Z",
-        "lastUpdated": "2026-02-06T06:59:14.547Z"
+        "started": "2026-02-07T03:09:30.264Z",
+        "lastUpdated": "2026-02-07T03:11:01.261Z"
       },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\pages\\api\\settings.ts"
+      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\pages\\api\\create-order.ts"
     },
-    "layout": {
+    "order": {
       "phase": "do",
       "phaseNumber": 3,
       "matchRate": null,
@@ -171,23 +71,10 @@
       "requirements": [],
       "documents": {},
       "timestamps": {
-        "started": "2026-02-06T06:59:29.191Z",
-        "lastUpdated": "2026-02-06T06:59:42.783Z"
+        "started": "2026-02-07T03:11:16.240Z",
+        "lastUpdated": "2026-02-07T03:11:30.768Z"
       },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\components\\layout\\Footer.astro"
-    },
-    "ProductBuilder": {
-      "phase": "do",
-      "phaseNumber": 3,
-      "matchRate": null,
-      "iterationCount": 0,
-      "requirements": [],
-      "documents": {},
-      "timestamps": {
-        "started": "2026-02-06T07:11:21.635Z",
-        "lastUpdated": "2026-02-06T11:14:54.596Z"
-      },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\components\\admin\\ProductBuilder\\BlockSettings.jsx"
+      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\components\\order\\Checkout.jsx"
     },
     "product": {
       "phase": "do",
@@ -197,23 +84,10 @@
       "requirements": [],
       "documents": {},
       "timestamps": {
-        "started": "2026-02-06T07:28:21.112Z",
-        "lastUpdated": "2026-02-06T10:21:40.497Z"
+        "started": "2026-02-07T03:12:31.462Z",
+        "lastUpdated": "2026-02-07T03:12:31.462Z"
       },
       "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\components\\product\\ProductView.jsx"
-    },
-    "data": {
-      "phase": "do",
-      "phaseNumber": 3,
-      "matchRate": null,
-      "iterationCount": 0,
-      "requirements": [],
-      "documents": {},
-      "timestamps": {
-        "started": "2026-02-06T08:09:19.098Z",
-        "lastUpdated": "2026-02-06T08:09:19.098Z"
-      },
-      "lastFile": "C:\\projects\\sungjin-print100-nagi\\src\\data\\rules.ts"
     }
   },
   "pipeline": {
@@ -222,956 +96,68 @@
     "phaseHistory": []
   },
   "session": {
-    "startedAt": "2026-02-06T04:04:05.606Z",
+    "startedAt": "2026-02-06T15:26:53.011Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-06T11:30:28.919Z"
+    "lastActivity": "2026-02-07T03:12:31.462Z"
   },
   "history": [
     {
-      "timestamp": "2026-02-06T04:36:04.768Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:36:15.763Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:36:29.315Z",
-      "feature": "works",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:36:48.145Z",
-      "feature": "works",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:37:53.238Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:43:21.627Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:43:43.895Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:44:02.771Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:44:39.926Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:44:52.144Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:45:26.512Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:51:12.474Z",
+      "timestamp": "2026-02-07T03:07:54.313Z",
       "feature": "sungjin-print100-nagi",
       "phase": "do",
       "action": "updated"
     },
     {
-      "timestamp": "2026-02-06T04:51:34.163Z",
-      "feature": "sections",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:52:06.759Z",
-      "feature": "sections",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:53:14.165Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:53:47.714Z",
-      "feature": "landing",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:54:19.519Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:54:35.615Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:54:52.810Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:55:09.191Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:56:10.193Z",
-      "feature": "sections",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:56:27.043Z",
-      "feature": "sections",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T04:56:46.764Z",
-      "feature": "sections",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:07:11.884Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:07:21.559Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:08:18.135Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:08:33.323Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:08:41.640Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:08:52.255Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:09:01.852Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:09:11.019Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:09:22.017Z",
-      "feature": "landing",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:09:33.306Z",
-      "feature": "landing",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:14:55.734Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:15:25.570Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:19:04.144Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:19:36.763Z",
-      "feature": "about",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:27:41.341Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:28:40.139Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:28:54.236Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:29:07.230Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:29:22.722Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:36:52.757Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:37:05.299Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:37:12.154Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:41:23.929Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:41:37.819Z",
-      "feature": "about",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:45:33.041Z",
-      "feature": "sections",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:50:50.716Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:50:58.679Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:51:06.563Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:51:19.157Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:51:28.372Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:51:36.032Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:51:43.797Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T05:51:52.022Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:07:06.864Z",
+      "timestamp": "2026-02-07T03:08:02.127Z",
       "feature": "sungjin-print100-nagi",
       "phase": "do",
       "action": "updated"
     },
     {
-      "timestamp": "2026-02-06T06:18:48.067Z",
+      "timestamp": "2026-02-07T03:08:13.585Z",
       "feature": "admin",
       "phase": "do",
       "action": "updated"
     },
     {
-      "timestamp": "2026-02-06T06:18:57.169Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:19:04.657Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:33:45.612Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:34:19.797Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:34:29.947Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:34:37.611Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:34:44.451Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:35:59.320Z",
-      "feature": "db",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:36:09.672Z",
-      "feature": "db",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:36:17.900Z",
-      "feature": "db",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:48:02.818Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:48:13.484Z",
-      "feature": "settings",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:48:25.442Z",
-      "feature": "settings",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:48:37.774Z",
-      "feature": "settings",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:48:55.861Z",
-      "feature": "ui",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:49:07.711Z",
-      "feature": "ui",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:49:32.727Z",
+      "timestamp": "2026-02-07T03:08:30.810Z",
       "feature": "layouts",
       "phase": "do",
       "action": "updated"
     },
     {
-      "timestamp": "2026-02-06T06:49:44.723Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:50:08.473Z",
-      "feature": "layouts",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:58:00.464Z",
-      "feature": "settings",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:58:15.988Z",
-      "feature": "settings",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:58:29.238Z",
-      "feature": "settings",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:58:45.231Z",
-      "feature": "settings",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T06:59:14.547Z",
+      "timestamp": "2026-02-07T03:09:30.264Z",
       "feature": "api",
       "phase": "do",
       "action": "updated"
     },
     {
-      "timestamp": "2026-02-06T06:59:29.191Z",
-      "feature": "layout",
+      "timestamp": "2026-02-07T03:10:16.677Z",
+      "feature": "api",
       "phase": "do",
       "action": "updated"
     },
     {
-      "timestamp": "2026-02-06T06:59:42.783Z",
-      "feature": "layout",
+      "timestamp": "2026-02-07T03:11:01.261Z",
+      "feature": "api",
       "phase": "do",
       "action": "updated"
     },
     {
-      "timestamp": "2026-02-06T07:00:28.586Z",
-      "feature": "sungjin-print100-nagi",
+      "timestamp": "2026-02-07T03:11:16.240Z",
+      "feature": "order",
       "phase": "do",
       "action": "updated"
     },
     {
-      "timestamp": "2026-02-06T07:00:44.829Z",
-      "feature": "sungjin-print100-nagi",
+      "timestamp": "2026-02-07T03:11:30.768Z",
+      "feature": "order",
       "phase": "do",
       "action": "updated"
     },
     {
-      "timestamp": "2026-02-06T07:01:12.297Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:01:26.949Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:01:43.019Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:01:57.605Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:02:12.483Z",
-      "feature": "admin",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:11:21.635Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:28:01.131Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:28:21.112Z",
+      "timestamp": "2026-02-07T03:12:31.462Z",
       "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:28:45.592Z",
-      "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:31:15.626Z",
-      "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:33:10.837Z",
-      "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:33:34.889Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:38:46.875Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:39:13.995Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:40:05.925Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:42:36.589Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:43:31.516Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T07:43:52.320Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T08:09:19.098Z",
-      "feature": "data",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T08:09:58.566Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T08:10:29.272Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T08:10:50.489Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T08:25:22.163Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T08:44:00.123Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T08:44:27.622Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T08:56:16.084Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T08:56:50.772Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:04:01.270Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:08:44.723Z",
-      "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:09:10.619Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:09:28.106Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:10:09.701Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:16:23.718Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:16:52.561Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:17:31.391Z",
-      "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:17:53.574Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:18:12.768Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:19:01.674Z",
-      "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:22:31.807Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:23:13.831Z",
-      "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:23:33.191Z",
-      "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:30:45.528Z",
-      "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T09:32:27.489Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:19:46.163Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:20:00.877Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:20:36.239Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:21:09.949Z",
-      "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:21:40.497Z",
-      "feature": "product",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:21:59.805Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:33:12.051Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:33:52.188Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:39:41.040Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:48:01.068Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:48:46.450Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:53:08.152Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:53:37.795Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T10:59:25.946Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:05:21.496Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:06:44.503Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:07:10.632Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:09:57.964Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:14:05.702Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:14:29.178Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:14:42.003Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:14:54.596Z",
-      "feature": "ProductBuilder",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:15:23.104Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:19:38.233Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:26:38.634Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:27:11.883Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:29:46.732Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:30:02.674Z",
-      "feature": "sungjin-print100-nagi",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-06T11:30:28.919Z",
-      "feature": "sungjin-print100-nagi",
       "phase": "do",
       "action": "updated"
     }

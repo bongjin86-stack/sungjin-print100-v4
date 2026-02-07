@@ -101,7 +101,13 @@ import "@/styles/global.css";
             throw new Error(error.message);
           }
 
-          // 로그인 성공 - 대시보드로 이동
+          // 로그인 성공 - 쿠키 설정 후 대시보드로 이동
+          if (data.session) {
+            const secure = window.location.protocol === 'https:';
+            const cookieOpts = `path=/; max-age=${data.session.expires_in}; SameSite=Lax${secure ? '; Secure' : ''}`;
+            document.cookie = `sb-access-token=${data.session.access_token}; ${cookieOpts}`;
+            document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? '; Secure' : ''}`;
+          }
           window.location.href = '/admin';
         } catch (err: any) {
           // 에러 메시지 표시

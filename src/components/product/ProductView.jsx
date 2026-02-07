@@ -311,6 +311,8 @@ export default function ProductView({ product: initialProduct }) {
                 isBinding,
                 innerWeight: isBinding ? (customer.innerWeight || 80) : null,
                 coverWeight: isBinding ? (customer.coverWeight || customer.weight || 200) : null,
+                // Server-side price verification data
+                customerSelection: customer,
               }));
 
               window.location.href = '/upload';

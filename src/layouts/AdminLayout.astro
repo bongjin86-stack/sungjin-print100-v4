@@ -151,15 +151,32 @@ const dashboardItem = { href: '/admin', label: '대시보드' };
         <script>
           import { supabase } from '@/lib/supabase';
 
-          // 클라이언트 사이드 인증 체크
+          // 쿠키 설정 헬퍼
+          function setAuthCookies(session) {
+            if (!session) return;
+            const secure = window.location.protocol === 'https:';
+            const cookieOpts = `path=/; max-age=${session.expires_in}; SameSite=Lax${secure ? '; Secure' : ''}`;
+            document.cookie = `sb-access-token=${session.access_token}; ${cookieOpts}`;
+            document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? '; Secure' : ''}`;
+          }
+
+          function clearAuthCookies() {
+            document.cookie = 'sb-access-token=; path=/; max-age=0';
+            document.cookie = 'sb-refresh-token=; path=/; max-age=0';
+          }
+
+          // 클라이언트 사이드 인증 체크 (서버 미들웨어가 1차 보호, 이건 2차)
           (async () => {
             const { data } = await supabase.auth.getSession();
 
             if (!data.session) {
-              // 로그인 안 됨 - 로그인 페이지로 이동
+              clearAuthCookies();
               window.location.href = '/admin/login';
               return;
             }
+
+            // 쿠키 동기화 (토큰 갱신 시)
+            setAuthCookies(data.session);
 
             // 사용자 이메일 표시
             const userEmailEl = document.getElementById('userEmail');
@@ -168,9 +185,20 @@ const dashboardItem = { href: '/admin', label: '대시보드' };
             }
           })();
 
+          // 토큰 자동 갱신 시 쿠키도 업데이트
+          supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'TOKEN_REFRESHED' && session) {
+              setAuthCookies(session);
+            }
+            if (event === 'SIGNED_OUT') {
+              clearAuthCookies();
+            }
+          });
+
           // 로그아웃 버튼
           document.getElementById('logoutButton')?.addEventListener('click', async () => {
             await supabase.auth.signOut();
+            clearAuthCookies();
             window.location.href = '/admin/login';
           });
         </script>

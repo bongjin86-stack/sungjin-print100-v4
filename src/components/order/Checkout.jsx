@@ -1,7 +1,19 @@
 import { useEffect, useMemo,useState } from 'react';
 
 import { calculateReleaseDate } from '@/lib/dateUtils';
-import { createOrder } from '@/lib/orderService';
+// Order creation via server API (price verified server-side)
+async function createOrderViaApi(orderData, priceInput) {
+  const res = await fetch('/api/create-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderData, priceInput }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || data.error || '주문 생성에 실패했습니다.');
+  }
+  return data;
+}
 import { calculateBindingPackaging, calculatePackaging, estimateThickness } from '@/lib/packagingCalculator';
 import { calculateShippingCost } from '@/lib/shippingCalculator';
 
@@ -113,7 +125,14 @@ export default function Checkout() {
         }],
       };
 
-      const result = await createOrder(orderData);
+      // Price verification input (server recalculates to prevent manipulation)
+      const priceInput = {
+        customer: product.customerSelection || {},
+        qty: product.spec?.quantity || 1,
+        productType: product.type || 'flyer',
+      };
+
+      const result = await createOrderViaApi(orderData, priceInput);
 
       sessionStorage.setItem('orderComplete', JSON.stringify({
         orderNumber: result.orderNumber,

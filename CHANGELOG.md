@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-02-07
+
+### Security — 보안 강화
+
+- **[CRITICAL] 서버사이드 인증 미들웨어** 구현 (`middleware.ts` 전면 재작성)
+  - `/admin/*`: JWT 쿠키 검증 → 미인증 시 로그인 리다이렉트
+  - `/api/*` POST/PUT/DELETE: 쿠키 또는 Authorization 헤더 검증 → 미인증 시 401
+  - 토큰 만료 시 refresh_token 자동 갱신
+- **[CRITICAL] API 인증 가드** — 18개 쓰기 엔드포인트 전부 미들웨어에서 보호
+- **[CRITICAL] 주문금액 서버 재검증** — `/api/create-order` 엔드포인트에서 가격 재계산 후 비교
+- **[CRITICAL] 업로드 보안 강화** — 파일 크기(30MB)/확장자/MIME 검증, 경로 순회 방지
+- **[NEW] 서버사이드 가격계산** — `/api/calculate-price` 엔드포인트 (가격 공식 서버 보호)
+
+### Added
+
+- `src/pages/api/calculate-price.ts` — 서버사이드 가격 계산 API
+- `src/pages/api/create-order.ts` — 가격 검증 포함 주문 생성 API
+- `src/env.d.ts` — App.Locals TypeScript 타입 정의
+- `docs/SECURITY_HARDENING_20260207.md` — 보안 강화 상세 보고서
+
+### Changed
+
+- `src/middleware.ts` — no-op → JWT 인증 미들웨어
+- `src/pages/admin/login.astro` — 로그인 시 인증 쿠키 설정
+- `src/layouts/AdminLayout.astro` — 쿠키 동기화 (토큰 갱신/로그아웃)
+- `src/pages/api/upload.ts` — 파일 검증 로직 추가
+- `src/components/order/Checkout.jsx` — 서버 API 경유 주문 생성
+- `src/components/product/ProductView.jsx` — customerSelection 데이터 전달 추가
+
+### Documentation
+
+- 보안 감사 결과 리포트 (`docs/SECURITY_AUDIT_REPORT.md`)
+- 보안 수정 가이드 (`docs/SECURITY_REMEDIATION_GUIDE.md`)
+- 보안 강화 작업 보고서 (`docs/SECURITY_HARDENING_20260207.md`)
+
+---
+
 ## [2.0.0] - 2026-02-05
 
 성진프린트 인쇄 주문 시스템 v1→v2 마이그레이션 완료.

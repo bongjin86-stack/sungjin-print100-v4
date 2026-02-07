@@ -121,14 +121,34 @@ These are already implemented. Modify the existing files:
 | `/checkout` | Checkout | Order form |
 | `/order-complete` | OrderComplete | Order confirmation |
 | `/order/:uuid` | CustomerOrderStatus | Order tracking |
-| `/admin` | Admin dashboard | Admin area |
+| `/admin` | Admin dashboard | Admin area (auth required) |
 | `/admin/builder` | ProductBuilder | Product creation/editing |
 | `/admin/orders` | AdminOrders | Order management |
 | `/admin/products` | Product list | Product management |
 | `/admin/db/*` | DB managers | Papers, sizes, finishing, etc. |
 | `/admin/settings` | Site settings | General settings |
+| `/api/calculate-price` | API | Server-side price calculation (public) |
+| `/api/create-order` | API | Order creation with price verification (public) |
+
+## Security (v2.1.0)
+
+### Authentication Flow
+- `src/middleware.ts` — Server-side JWT auth middleware
+  - `/admin/*` (login 제외): 쿠키 검증 → 실패 시 `/admin/login` 리다이렉트
+  - `/api/*` POST/PUT/DELETE/PATCH: 쿠키 또는 Authorization 헤더 검증 → 실패 시 401
+  - 공개 쓰기 엔드포인트: `/api/calculate-price`, `/api/create-order`
+- Auth cookies: `sb-access-token`, `sb-refresh-token` (login.astro에서 설정, AdminLayout에서 동기화)
+- 토큰 만료 시 refresh_token으로 자동 갱신
+
+### Price Verification
+- 주문 생성 시 서버에서 `priceEngine.ts`로 가격 재계산
+- 제출 금액과 서버 계산 금액 비교 (3% 초과 차이 시 거부)
+- `Checkout.jsx` → `/api/create-order` → `priceEngine` → `orderService`
+
+### Upload Security
+- 파일 크기 30MB 제한, 확장자/MIME 화이트리스트, 경로 순회 방지
 
 ## Supabase
 - Access ONLY through `src/lib/supabase.ts`
-- Never call `createClient` directly
+- Never call `createClient` directly (예외: `middleware.ts`는 독립 인스턴스 사용)
 - Environment variables in `.env.local`
