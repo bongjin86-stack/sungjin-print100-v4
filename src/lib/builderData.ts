@@ -125,14 +125,6 @@ export interface SizeMultiplier {
   multiplier: number;
 }
 
-export interface LinkRule {
-  trigger: Record<string, any>;
-  target?: Record<string, any>;
-  action: string;
-  message?: string;
-  mapping?: Record<number, number>;
-}
-
 // 블록 타입 정의 (Dieter Rams style - muted colors with icons)
 export const BLOCK_TYPES: Record<string, BlockTypeInfo> = {
   size: { name: '사이즈', icon: '📐', color: 'from-stone-100 to-stone-200', desc: '출력 사이즈' },
@@ -459,22 +451,3 @@ export function getDefaultCustomer(): CustomerSelection {
   };
 }
 
-// 조건부 연동 규칙
-export const LINK_RULES: Record<string, LinkRule> = {
-  cover_print_front_back_disables_back: {
-    trigger: { block: 'cover_print', value: 'front_back' },
-    target: { block: 'back' },
-    action: 'disable'
-  },
-  spring_front_cover_required: {
-    trigger: { blocks: ['pp', 'cover_print'], condition: 'both_none' },
-    action: 'error',
-    message: '전면 커버(PP 또는 표지인쇄) 중 하나는 선택해야 합니다.'
-  },
-  fold_requires_osi: {
-    trigger: { block: 'finishing', subOption: 'fold', condition: 'weight >= 130' },
-    target: { block: 'finishing', subOption: 'osi' },
-    action: 'auto_enable',
-    mapping: { 2: 1, 3: 2, 4: 3 }
-  }
-};
