@@ -10,8 +10,7 @@ import DOMPurify from 'isomorphic-dompurify';
 
 import { PreviewBlock } from '@/components/shared/PreviewBlock';
 import { PriceBox } from '@/components/shared/PriceBox';
-import { getDefaultCustomer } from '@/lib/builderData';
-import { formatBusinessDate, getBusinessDate } from '@/lib/businessDays';
+import { checkLinkRules, extractDefaultsFromBlocks, getFoldUpdate, mapPrintOptionsToCustomer } from '@/lib/blockDefaults';
 import { loadPricingData } from '@/lib/dbService';
 import { getIconComponent } from '@/lib/highlightIcons';
 import { estimateThickness, validateBindingThickness } from '@/lib/priceEngine';
@@ -54,60 +53,13 @@ export default function ProductView({ product: initialProduct }) {
     }
   };
 
-  // 연동 규칙 체크
-  const checkLinkRules = () => {
-    const coverPrintBlock = product?.blocks?.find(b => b.type === 'cover_print');
-    const backBlock = product?.blocks?.find(b => b.type === 'back');
-    if (coverPrintBlock && backBlock && customer.coverPrint === 'front_back') {
-      return { backDisabled: true };
-    }
-    const ppBlock = product?.blocks?.find(b => b.type === 'pp');
-    if (ppBlock && coverPrintBlock && customer.pp === 'none' && customer.coverPrint === 'none') {
-      return { error: '전면 커버(PP 또는 표지인쇄) 중 하나는 선택해야 합니다.' };
-    }
-    return {};
-  };
-
-  // printOptions를 innerSide/innerColor로 매핑
-  const mapPrintOptionsToCustomer = (cust, blocks) => {
-    if (!blocks) return cust;
-    const pagesBlock = blocks.find(b => b.type === 'pages');
-    const linkedBlocks = pagesBlock?.config?.linkedBlocks || {};
-    const innerPrintBlockId = linkedBlocks.innerPrint;
-    const innerPrintOpt = innerPrintBlockId ? cust.printOptions?.[innerPrintBlockId] : null;
-    const coverPrintBlockId = linkedBlocks.coverPrint;
-    const coverPrintOpt = coverPrintBlockId ? cust.printOptions?.[coverPrintBlockId] : null;
-    return {
-      ...cust,
-      innerSide: innerPrintOpt?.side || cust.innerSide || 'double',
-      innerColor: innerPrintOpt?.color || cust.innerColor || 'color',
-      coverSide: coverPrintOpt?.side || cust.coverSide || 'double',
-      coverColor: coverPrintOpt?.color || cust.coverColor || 'color',
-    };
-  };
-
-  // 접지 선택 핸들러
+  // 접지 선택 핸들러 (getFoldUpdate 래퍼)
   const handleFoldSelect = (foldOpt, cfg) => {
-    const currentWeight = customer.weight || 100;
-    const needsOsi = currentWeight >= 150;
-    const osiLines = foldOpt - 1;
-
-    if (foldOpt === customer.finishing?.fold && customer.finishing?.foldEnabled) {
-      setCustomer(prev => ({
-        ...prev,
-        finishing: { ...prev.finishing, foldEnabled: false, fold: null, osiEnabled: false, osi: null }
-      }));
-    } else {
-      setCustomer(prev => ({
-        ...prev,
-        finishing: {
-          ...prev.finishing,
-          foldEnabled: true,
-          fold: foldOpt,
-          ...(needsOsi && cfg.osi?.enabled ? { osiEnabled: true, osi: osiLines } : {})
-        }
-      }));
-    }
+    const foldUpdate = getFoldUpdate(foldOpt, cfg, customer);
+    setCustomer(prev => ({
+      ...prev,
+      finishing: { ...prev.finishing, ...foldUpdate }
+    }));
   };
 
   // 서버 가격 계산 (debounce 300ms)
@@ -156,7 +108,7 @@ export default function ProductView({ product: initialProduct }) {
 
   const content = product.content || {};
   const blocks = product.blocks?.filter(b => b.on && !b.hidden) || [];
-  const linkStatus = checkLinkRules();
+  const linkStatus = checkLinkRules(product?.blocks, customer);
 
   // 서버에서 계산된 가격 사용
   const defaultPrice = { total: 0, unitPrice: 0, perUnit: 0, sheets: 0, faces: 0 };
@@ -416,123 +368,3 @@ function renderFeatures(content) {
   return null;
 }
 
-// ============================================================
-// 블록 설정에서 기본값 추출
-// ============================================================
-function extractDefaultsFromBlocks(blocks) {
-  const defaults = { ...getDefaultCustomer() };
-  if (!blocks) return defaults;
-
-  blocks.forEach(block => {
-    if (!block.on) return;
-    const cfg = block.config;
-    if (!cfg) return;
-
-    switch (block.type) {
-      case 'size':
-        if (cfg.default) defaults.size = cfg.default;
-        break;
-      case 'paper':
-        if (cfg.default?.paper) defaults.paper = cfg.default.paper;
-        if (cfg.default?.weight) defaults.weight = cfg.default.weight;
-        break;
-      case 'print': {
-        const isInnerPrint = blocks.some(b => b.config?.linkedBlocks?.innerPrint === block.id);
-        if (isInnerPrint) {
-          if (cfg.default?.color) defaults.innerColor = cfg.default.color;
-          if (cfg.default?.side) defaults.innerSide = cfg.default.side;
-        } else {
-          if (cfg.default?.color) defaults.color = cfg.default.color;
-          if (cfg.default?.side) defaults.side = cfg.default.side;
-        }
-        break;
-      }
-      case 'quantity':
-        if (cfg.default) defaults.qty = cfg.default;
-        break;
-      case 'delivery':
-        if (cfg.default) {
-          defaults.delivery = cfg.default;
-          const opts = cfg.options || [];
-          const defaultOpt = opts.find(o => o.id === cfg.default);
-          if (defaultOpt) defaults.deliveryPercent = defaultOpt.percent;
-          // 출고일 계산
-          const businessDaysMap = { 'same': 0, 'next1': 1, 'next2': 2, 'next3': 3 };
-          const days = businessDaysMap[cfg.default] ?? 2;
-          const date = getBusinessDate(days);
-          defaults.deliveryDate = formatBusinessDate(date);
-        }
-        break;
-      case 'pages':
-      case 'pages_saddle':
-      case 'pages_leaf':
-        if (cfg.default) defaults.pages = cfg.default;
-        if (cfg.maxThickness) defaults.maxThickness = cfg.maxThickness;
-        break;
-      case 'pp':
-        if (cfg.default) defaults.pp = cfg.default;
-        break;
-      case 'back':
-        if (cfg.default) defaults.back = cfg.default;
-        break;
-      case 'spring_color':
-        if (cfg.default) defaults.springColor = cfg.default;
-        break;
-      case 'spring_options': {
-        // PP
-        if (cfg.pp?.enabled) {
-          const ppDefault = cfg.pp.options?.find(o => o.default)?.id || cfg.pp.options?.[0]?.id;
-          if (ppDefault) defaults.pp = ppDefault;
-        }
-        // 표지인쇄
-        if (cfg.coverPrint?.enabled) {
-          const coverPrintDefault = cfg.coverPrint.options?.find(o => o.default)?.id || cfg.coverPrint.options?.[0]?.id;
-          if (coverPrintDefault) defaults.coverPrint = coverPrintDefault;
-          if (cfg.coverPrint.defaultPaper?.paper) defaults.coverPaper = cfg.coverPrint.defaultPaper.paper;
-          if (cfg.coverPrint.defaultPaper?.weight) defaults.coverWeight = cfg.coverPrint.defaultPaper.weight;
-        }
-        // 뒷판
-        if (cfg.back?.enabled) {
-          const backDefault = cfg.back.options?.find(o => o.default)?.id || cfg.back.options?.[0]?.id;
-          if (backDefault) defaults.back = backDefault;
-        }
-        // 스프링 색상
-        if (cfg.springColor?.enabled) {
-          const springColorDefault = cfg.springColor.options?.find(o => o.default)?.id || cfg.springColor.options?.[0]?.id;
-          if (springColorDefault) defaults.springColor = springColorDefault;
-        }
-        break;
-      }
-      case 'finishing':
-        if (cfg.default) {
-          const hasCoating = cfg.default.coating || !!cfg.default.coatingType || !!cfg.default.coatingSide;
-          defaults.finishing = {
-            ...defaults.finishing,
-            coating: hasCoating,
-            coatingType: hasCoating ? (cfg.default.coatingType || 'matte') : null,
-            coatingSide: hasCoating ? (cfg.default.coatingSide || 'single') : null,
-            corner: cfg.default.corner || false,
-            punch: cfg.default.punch || false,
-            mising: cfg.default.mising || false,
-          };
-        }
-        break;
-      case 'cover_print':
-        if (cfg.default) defaults.coverPrint = cfg.default;
-        if (cfg.defaultPaper?.paper) defaults.coverPaper = cfg.defaultPaper.paper;
-        if (cfg.defaultPaper?.weight) defaults.coverWeight = cfg.defaultPaper.weight;
-        break;
-      case 'inner_layer_saddle':
-      case 'inner_layer_leaf':
-        if (cfg.defaultPaper?.paper) defaults.innerPaper = cfg.defaultPaper.paper;
-        if (cfg.defaultPaper?.weight) defaults.innerWeight = cfg.defaultPaper.weight;
-        if (cfg.defaultPrint?.color) defaults.innerColor = cfg.defaultPrint.color;
-        if (cfg.defaultPrint?.side) defaults.innerSide = cfg.defaultPrint.side;
-        if (cfg.defaultPages) defaults.pages = cfg.defaultPages;
-        if (cfg.maxThickness) defaults.maxThickness = cfg.maxThickness;
-        break;
-    }
-  });
-
-  return defaults;
-}
