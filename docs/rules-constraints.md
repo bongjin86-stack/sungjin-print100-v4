@@ -188,6 +188,7 @@
 | 함수 | 규칙 |
 |------|------|
 | `getFoldUpdate()` | R001 (접지→오시 강제, 130g 기준) |
+| `getCoatingWeight()` | R002 (코팅 기준 평량 결정: linkedPaper → 자동감지 폴백) |
 | `validateCoatingWeight()` | R002 (코팅 150g 이하 차단) |
 | `checkThickness()` | R-ST01~07 (제본 두께 경고/차단, priceEngine 호출) |
 | `checkLinkRules()` | 블록 연동 (뒷판 비활성화, PP+표지 필수) |
@@ -198,6 +199,6 @@
 
 | 컴포넌트 | 역할 |
 |----------|------|
-| `PreviewBlock.jsx` | `linkStatus` prop으로 연동 결과 렌더링, `validateCoatingWeight` 호출 |
+| `PreviewBlock.jsx` | `linkStatus` prop으로 연동 결과 렌더링, `getCoatingWeight`+`validateCoatingWeight` 호출 |
 | `ProductView.jsx` | blockDefaults 함수 호출 → 결과를 PreviewBlock에 전달 |
 | `ProductBuilder/index.jsx` | blockDefaults 함수 호출 → 결과를 PreviewBlock에 전달 |

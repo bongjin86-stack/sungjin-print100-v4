@@ -12,6 +12,7 @@
  * │  checkLinkRules               │  블록 간 연동 규칙 체크     │
  * │  checkThickness               │  제본 두께 제한 검증        │
  * │  validateCoatingWeight        │  코팅 무게 제한 (≤150g 불가)│
+ * │  getCoatingWeight             │  코팅 기준 용지 평량 결정    │
  * │  getFoldUpdate                │  접지 → 오시 자동 연동      │
  * │  mapPrintOptionsToCustomer    │  인쇄옵션 → 고객값 매핑     │
  * └─────────────────────────────────────────────────────────────┘
@@ -45,6 +46,40 @@ export function validateCoatingWeight(weight: number): { valid: boolean; message
     return { valid: false, message: '150g 이하 용지는 코팅이 불가합니다.' };
   }
   return { valid: true, message: null };
+}
+
+// ============================================================
+// 코팅 기준 용지 평량 결정 (finishing 블록용)
+// ============================================================
+export function getCoatingWeight(blocks: any[], customer: any, productType: string): number {
+  const finishingBlock = blocks?.find(b => b.on && b.type === 'finishing');
+  if (!finishingBlock) return customer.weight || 80;
+
+  const cfg = finishingBlock.config;
+  const isBindingProduct = ['saddle', 'perfect', 'spring'].includes(productType);
+
+  // 1) linkedPaper가 설정된 경우: 해당 블록 기준으로 평량 결정
+  if (cfg?.coating?.linkedPaper) {
+    const linkedBlock = blocks?.find(b => b.id === cfg.coating.linkedPaper);
+    if (linkedBlock) {
+      const isInner = linkedBlock.type === 'inner_layer_saddle' ||
+                      linkedBlock.type === 'inner_layer_leaf' ||
+                      linkedBlock.label?.includes('내지');
+      const isCover = linkedBlock.type === 'cover_print' ||
+                      linkedBlock.label?.includes('표지');
+
+      if (isInner) return customer.innerWeight || 80;
+      if (isCover) return customer.coverWeight || 80;
+      return customer.weight || 80;
+    }
+    // linkedPaper가 설정됐지만 블록을 찾을 수 없음 → 아래 자동 감지로 폴백
+  }
+
+  // 2) 자동 감지: 제본 상품은 coverWeight 우선, 단층 상품은 weight
+  if (isBindingProduct) {
+    return customer.coverWeight || customer.weight || 80;
+  }
+  return customer.weight || 80;
 }
 
 // ============================================================

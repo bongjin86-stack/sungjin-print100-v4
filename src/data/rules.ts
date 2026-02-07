@@ -50,7 +50,7 @@ export const RULES: Rule[] = [
     action: '코팅 블록 비활성화 (회색 처리) + 툴팁 메시지',
     status: 'applied',
     message: '150g 이하 용지는 코팅이 불가합니다.',
-    implementedIn: 'blockDefaults.ts - validateCoatingWeight(), PreviewBlock.jsx - finishing block'
+    implementedIn: 'blockDefaults.ts - getCoatingWeight() + validateCoatingWeight(), PreviewBlock에서 호출'
   },
   {
     id: 'R003',

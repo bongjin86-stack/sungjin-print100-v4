@@ -10,7 +10,7 @@
  * 스타일: ProductView.css의 pv-* 클래스 사용
  */
 
-import { validateCoatingWeight } from '@/lib/blockDefaults';
+import { getCoatingWeight, validateCoatingWeight } from '@/lib/blockDefaults';
 import { DB, TEMPLATES } from '@/lib/builderData';
 import { formatBusinessDate, getBusinessDate } from '@/lib/businessDays';
 
@@ -234,27 +234,8 @@ export function PreviewBlock({ block, customer, setCustomer, qtyPrices, linkStat
     }
 
     case 'finishing': {
-      // 코팅 관련 로직 — 제본 상품은 coverWeight, 단층 상품은 weight
-      const isBindingProduct = ['saddle', 'perfect', 'spring'].includes(productType);
-      let currentWeight = 80;
-      if (cfg.coating?.linkedPaper) {
-        const linkedBlock = allBlocks?.find(b => b.id === cfg.coating.linkedPaper);
-        if (linkedBlock) {
-          const isCover = linkedBlock.label?.includes('표지');
-          const isInner = linkedBlock.label?.includes('내지');
-          if (linkedBlock.type === 'inner_layer_saddle' || linkedBlock.type === 'inner_layer_leaf' || isInner) {
-            currentWeight = customer.innerWeight || 80;
-          } else if (linkedBlock.type === 'cover_print' || isCover) {
-            currentWeight = customer.coverWeight || 80;
-          } else {
-            currentWeight = customer.weight || 80;
-          }
-        }
-      } else if (isBindingProduct) {
-        currentWeight = customer.coverWeight || customer.weight || 80;
-      } else {
-        currentWeight = customer.weight || 80;
-      }
+      // 코팅 평량 판정 → blockDefaults.getCoatingWeight() 단일 함수 사용
+      const currentWeight = getCoatingWeight(allBlocks, customer, productType);
       const coatingValidation = validateCoatingWeight(currentWeight);
       const isCoatingDisabled = !coatingValidation.valid;
 

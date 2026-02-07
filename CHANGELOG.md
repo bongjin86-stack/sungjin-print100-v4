@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **[BUG] 코팅 200g 비활성 버그** — `linkedPaper` 설정 시 블록 못 찾으면 폴백 없이 80g 고정 → 자동감지 폴백 추가
+- `getCoatingWeight()` 함수 추출 — PreviewBlock 인라인 코팅 평량 로직 → blockDefaults 이동 (단일 제어센터 원칙)
 - 코팅 UI 겹침 — 비활성 시 옵션과 경고 동시 표시 수정
 - 코팅 weight 판정 — 제본 상품은 `coverWeight`, 단층 상품은 `weight` 사용
 - 오시(R001) 임계값 버그 — 150g→130g 수정 (rules.ts 규칙과 일치)

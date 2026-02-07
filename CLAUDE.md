@@ -117,6 +117,7 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 | `checkLinkRules` | Inter-block linking (back disable, PP+cover required) |
 | `checkThickness` | Binding thickness limit validation |
 | `validateCoatingWeight` | Coating weight limit (<=150g disabled) |
+| `getCoatingWeight` | Determine coating reference weight from blocks/customer |
 | `getFoldUpdate` | Fold → osi auto-link |
 | `mapPrintOptionsToCustomer` | Print options → innerColor/coverColor mapping |
 
