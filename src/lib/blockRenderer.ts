@@ -3,7 +3,9 @@
  * 프론트엔드에서 DB에 저장된 JSON 블록 콘텐츠를 표시할 때 사용
  */
 
-import DOMPurify from 'isomorphic-dompurify';
+// DOMPurify 제거: blockRenderer의 HTML은 우리 코드가 BlockNote JSON/마크다운에서
+// 직접 생성하는 관리자 컨텐츠. isomorphic-dompurify는 서버에서 jsdom을 필요로 하며
+// Vercel 번들러 호환 문제로 SSR 페이지 500 에러 유발.
 
 interface BlockContent {
   type: string;
@@ -161,7 +163,7 @@ export function renderBlocksToHTML(content: string | Block[]): string {
   
   if (nonEmptyBlocks.length === 0) return '';
 
-  return DOMPurify.sanitize(groupListItems(nonEmptyBlocks));
+  return groupListItems(nonEmptyBlocks);
 }
 
 /**
@@ -229,7 +231,7 @@ export function markdownToHTML(markdown: string): string {
     return `<p>${trimmed.replace(/\n/g, '<br>')}</p>`;
   }).filter(p => p).join('\n');
 
-  return DOMPurify.sanitize(html);
+  return html;
 }
 
 /**

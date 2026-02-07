@@ -4,8 +4,13 @@ import CloseIcon from "@/assets/icons/x.svg";
 import LinkButton from "@/components/ui/LinkButton.astro";
 import menuData from "@/config/menu.json";
 import siteConfig from "@/config/site.config.json";
+import type { MenuItem } from "@/types/index.d.ts";
 
-const mainMenu = menuData.main;
+interface Props {
+  mainMenu?: MenuItem[];
+}
+
+const { mainMenu = menuData.main as MenuItem[] } = Astro.props;
 const contactMenu = menuData.contact;
 
 const headerHeight = siteConfig.settings.header_height_mobile;

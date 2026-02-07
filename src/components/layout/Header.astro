@@ -6,11 +6,31 @@ import MobileMenu from "@/components/ui/MobileMenu.astro";
 import SiteLogo from "@/components/ui/SiteLogo.astro";
 import menuData from "@/config/menu.json";
 import siteConfig from "@/config/site.config.json";
-import type { MenuData } from "@/types/index.d.ts";
+import { supabase } from "@/lib/supabase";
+import type { MenuData, MenuItem } from "@/types/index.d.ts";
 
 const typedMenuData = menuData as MenuData;
-const mainMenu = typedMenuData.main;
 const contactMenu = typedMenuData.contact;
+
+// DB에서 활성 서비스 목록을 가져와 "서비스" 드롭다운을 동적으로 구성
+const { data: services } = await supabase
+  .from('services')
+  .select('title, slug')
+  .eq('is_active', true)
+  .order('sort_order', { ascending: true });
+
+const mainMenu: MenuItem[] = typedMenuData.main.map(item => {
+  if (item.path === '/services/' && services && services.length > 0) {
+    return {
+      ...item,
+      children: services.map(s => ({
+        title: s.title,
+        path: `/services/#${s.slug}`
+      }))
+    };
+  }
+  return item;
+});
 
 const headerHeight = siteConfig.settings.header_height;
 const headerHeightMobile = siteConfig.settings.header_height_mobile;
@@ -59,7 +79,7 @@ const isHome = Astro.url.pathname === "/";
           </li>
         </ul>
       </nav>
-      <MobileMenu />
+      <MobileMenu mainMenu={mainMenu} />
     </div>
   </Container>
 </header>
