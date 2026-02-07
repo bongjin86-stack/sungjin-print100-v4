@@ -207,7 +207,7 @@ export const TEMPLATES: Record<string, Template> = {
         config: {
           min: 40, max: 500, step: 2, default: 100,
           bindingType: 'leaf',
-          linkedBlocks: { innerPaper: 5, innerPrint: 6 }
+          linkedBlocks: { coverPaper: 2, coverPrint: 3, innerPaper: 5, innerPrint: 6 }
         }},
       { id: 8, type: 'delivery', label: '출고일', on: true, optional: false, locked: false, hidden: false,
         config: {

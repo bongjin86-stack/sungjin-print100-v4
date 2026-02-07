@@ -22,18 +22,29 @@ export function extractDefaultsFromBlocks(blocks) {
       case 'size':
         if (cfg.default) defaults.size = cfg.default;
         break;
-      case 'paper':
-        if (cfg.default?.paper) defaults.paper = cfg.default.paper;
-        if (cfg.default?.weight) defaults.weight = cfg.default.weight;
+      case 'paper': {
+        const isCoverPaper = blocks.some(b => b.config?.linkedBlocks?.coverPaper === block.id);
+        if (isCoverPaper) {
+          if (cfg.default?.paper) defaults.coverPaper = cfg.default.paper;
+          if (cfg.default?.weight) defaults.coverWeight = cfg.default.weight;
+        } else {
+          if (cfg.default?.paper) defaults.paper = cfg.default.paper;
+          if (cfg.default?.weight) defaults.weight = cfg.default.weight;
+        }
         break;
+      }
       case 'print': {
         const isInnerPrint = blocks.some(b => b.config?.linkedBlocks?.innerPrint === block.id);
+        const isCoverPrint = blocks.some(b => b.config?.linkedBlocks?.coverPrint === block.id);
         if (isInnerPrint) {
           if (cfg.default?.color) defaults.innerColor = cfg.default.color;
           if (cfg.default?.side) defaults.innerSide = cfg.default.side;
         } else {
           if (cfg.default?.color) defaults.color = cfg.default.color;
           if (cfg.default?.side) defaults.side = cfg.default.side;
+        }
+        if (isCoverPrint) {
+          if (cfg.default?.color) defaults.coverColor = cfg.default.color;
         }
         break;
       }
