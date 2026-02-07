@@ -1,6 +1,6 @@
 # sungjin-print100-nagi (v2) 문서 인덱스
 
-> 최종 업데이트: 2026-02-06
+> 최종 업데이트: 2026-02-07
 > 문서 관리 시스템: bkit PDCA v1.5.0
 
 ---
@@ -31,7 +31,7 @@ docs/
 | 문서 | 설명 | 최종 업데이트 |
 |------|------|---------------|
 | [pricing-system.md](./pricing-system.md) | 전체 가격 계산 로직, DB 스키마, customer 키 매핑 | 2026-02-05 |
-| [rules-constraints.md](./rules-constraints.md) | 옵션 연동 규칙 (오시/접지, 코팅 제한, 두께 검증) | 2026-02-05 |
+| [rules-constraints.md](./rules-constraints.md) | 옵션 연동 규칙 (오시/접지, 코팅 제한, 두께 검증) | 2026-02-07 |
 
 ---
 
@@ -84,7 +84,16 @@ docs/
 
 ---
 
-## 4. 시스템 감사 (Audit Reports)
+## 4. 빌더 재설계 (Builder Redesign)
+
+빌더 아키텍처 분석 및 5단계 통합 작업.
+
+| 문서 | 설명 | 날짜 |
+|------|------|------|
+| [BUILDER_ANALYSIS_REPORT.md](./BUILDER_ANALYSIS_REPORT.md) | 빌더 시스템 전체 분석 (중복, 위험도, 개선점) | 2026-02-07 |
+| [BUILDER_INTEGRATION_PLAN.md](./BUILDER_INTEGRATION_PLAN.md) | 5단계 통합 계획서 (Phase 1~5) | 2026-02-07 |
+
+## 5. 시스템 감사 (Audit Reports)
 
 기존 시스템 분석 및 개선 방향 제안.
 
@@ -101,7 +110,7 @@ docs/
 
 ---
 
-## 5. PDCA 피처 문서
+## 6. PDCA 피처 문서
 
 bkit PDCA 방법론에 따른 피처 개발 문서.
 
@@ -129,6 +138,13 @@ bkit PDCA 방법론에 따른 피처 개발 문서.
 ├── ADMIN_EDITOR_AUDIT: 에디터 시스템 분석
 ├── ERR-007: PreviewBlock 불일치 수정
 └── ERR-008: 상품 수정 시 DB 미로드 수정
+
+2026-02-07
+├── v2.1.0: 보안 강화 (인증 미들웨어, 가격 재검증, 업로드 보안)
+├── v2.2.0: 빌더 재설계 5-Phase (규칙 중앙화, DB 데이터 로딩, 중복 제거)
+├── blockDefaults.ts: 블록 규칙 제어센터 확립
+├── 코팅 UI 버그 수정 (겹침, weight 판정, 오시 임계값)
+└── CLAUDE.md: Block Rules Control Center + 문서 관리 가이드 추가
 ```
 
 ---

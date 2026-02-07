@@ -1,19 +1,20 @@
 # 연동 기준 / 액션 제한 규칙
 
-> 최종 업데이트: 2026-02-05
-> 대상: sungjin-print100-nagi (v2)
-> 코드: `src/data/rules.ts`
+> 최종 업데이트: 2026-02-07
+> 대상: sungjin-print100-nagi (v2.2.0)
 
 ---
 
-## 관련 파일
+## 규칙 제어센터
+
+**모든 블록 규칙의 실행 로직은 `src/lib/blockDefaults.ts` 단일 파일에서 관리합니다.**
 
 | 파일 | 역할 |
 |------|------|
-| `src/data/rules.ts` | 규칙 데이터 (코드 내 참조용) |
-| `src/lib/priceEngine.ts` | 코팅 검증, 두께 검증 함수 |
-| `src/components/admin/ProductBuilder/index.jsx` | 관리자 빌더 규칙 적용 |
-| `src/components/product/ProductView.jsx` | 고객 페이지 규칙 적용 |
+| `src/lib/blockDefaults.ts` | **규칙 실행 로직 (단일 제어센터)** |
+| `src/data/rules.ts` | 규칙 메타데이터 카탈로그 (읽기 전용) |
+| `src/lib/priceEngine.ts` | 두께 임계값 계산 (서버 전용, blockDefaults에서 호출) |
+| `src/components/shared/PreviewBlock.jsx` | 규칙 결과 UI 렌더링 (로직 없음, prop 소비만) |
 
 ---
 
@@ -27,7 +28,7 @@
 | **동작** | 2단접지→오시1줄, 3단→2줄, 4단→3줄 자동 설정 |
 | **해제** | 접지 해제 시 오시도 자동 해제 |
 | **예외** | 오시 단독 선택은 평량 무관 가능 |
-| **구현** | `handleFoldSelect()` (빌더 + 고객 페이지) |
+| **구현** | `blockDefaults.ts - getFoldUpdate()` |
 
 ```
 130g 이상 + 접지 2단 → 오시 1줄 강제
@@ -45,7 +46,7 @@
 | **조건** | 용지 평량 150g 이하 |
 | **동작** | 코팅 버튼 비활성화 (회색) + 툴팁 메시지 |
 | **메시지** | "150g 이하 용지는 코팅이 불가합니다." |
-| **구현** | `validateCoatingWeight()` (priceEngine.ts) |
+| **구현** | `blockDefaults.ts - validateCoatingWeight()` |
 
 ```
 용지 150g 이하 → 코팅 비활성화 (disabled-gray)
@@ -182,29 +183,21 @@
 
 ## 4. 규칙 적용 위치 요약
 
-### priceEngine.ts
+### blockDefaults.ts (규칙 제어센터)
 
 | 함수 | 규칙 |
 |------|------|
+| `getFoldUpdate()` | R001 (접지→오시 강제, 130g 기준) |
 | `validateCoatingWeight()` | R002 (코팅 150g 이하 차단) |
-| `validateBindingThickness()` | R-ST01~07 (제본 두께 경고/차단) |
-| `calculateBindingPrice()` 섹션 5 | 제본 후가공 비용 (finishing block 연동, 2026-02-05 추가) |
-
-### ProductBuilder/index.jsx (관리자)
-
-| 위치 | 규칙 |
-|------|------|
-| `handleFoldSelect()` | R001 (접지→오시 강제) |
-| 접지 OFF 인라인 핸들러 | R001 (접지 해제→오시 해제) |
-| finishing PreviewBlock | R002 (코팅 비활성화 UI) |
-| 각 토글 함수 | UI-001 (옵션 1개 잠금) |
-| BlockSettings `onDoubleClick` | UI-002 (★ 기본값) |
-
-### ProductView.jsx (고객)
-
-| 위치 | 규칙 |
-|------|------|
-| `handleFoldSelect()` | R001 (접지→오시 강제) |
-| 접지 OFF 인라인 핸들러 | R001 (접지 해제→오시 해제) |
-| finishing PreviewBlock | R002 (코팅 비활성화 UI) |
+| `checkThickness()` | R-ST01~07 (제본 두께 경고/차단, priceEngine 호출) |
+| `checkLinkRules()` | 블록 연동 (뒷판 비활성화, PP+표지 필수) |
 | `extractDefaultsFromBlocks()` | UI-002 (★ 기본값 로드) |
+| `mapPrintOptionsToCustomer()` | 인쇄옵션 매핑 |
+
+### UI 컴포넌트 (규칙 소비만, 로직 없음)
+
+| 컴포넌트 | 역할 |
+|----------|------|
+| `PreviewBlock.jsx` | `linkStatus` prop으로 연동 결과 렌더링, `validateCoatingWeight` 호출 |
+| `ProductView.jsx` | blockDefaults 함수 호출 → 결과를 PreviewBlock에 전달 |
+| `ProductBuilder/index.jsx` | blockDefaults 함수 호출 → 결과를 PreviewBlock에 전달 |

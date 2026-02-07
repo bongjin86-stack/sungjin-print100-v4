@@ -173,6 +173,35 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 ### Upload Security
 - 파일 크기 30MB 제한, 확장자/MIME 화이트리스트, 경로 순회 방지
 
+## Documentation Management
+
+### Master Change Log
+**`CHANGELOG.md`** (프로젝트 루트) — 모든 버전별 변경 이력의 단일 관리 문서.
+작업 완료 후 반드시 여기에 기록합니다.
+
+### Document Index
+**`docs/README.md`** — 모든 문서의 인덱스. 새 문서 추가 시 여기에 등록합니다.
+
+### Key Documents
+
+| 문서 | 위치 | 역할 |
+|------|------|------|
+| `CHANGELOG.md` | 루트 | **마스터 변경 이력** (Keep a Changelog 형식) |
+| `CLAUDE.md` | 루트 | AI/개발자 작업 지침서 (프로젝트 진입점) |
+| `docs/README.md` | docs/ | 문서 인덱스 + 타임라인 |
+| `docs/rules-constraints.md` | docs/ | 규칙 마스터 문서 (사람이 읽는 상세 설명) |
+| `docs/pricing-system.md` | docs/ | 가격 체계 완전 문서 |
+| `src/data/rules.ts` | src/ | 규칙 메타데이터 (코드 참조용) |
+
+### When to Update
+
+| 이벤트 | 업데이트 대상 |
+|--------|---------------|
+| 새 버전 릴리즈 | `CHANGELOG.md` |
+| 새 규칙 추가 | `blockDefaults.ts` + `rules.ts` + `rules-constraints.md` + `CLAUDE.md` |
+| 새 문서 생성 | `docs/README.md` 인덱스에 등록 |
+| 아키텍처 변경 | `CLAUDE.md` 해당 섹션 |
+
 ## Supabase
 - Access ONLY through `src/lib/supabase.ts`
 - Never call `createClient` directly (예외: `middleware.ts`는 독립 인스턴스 사용)

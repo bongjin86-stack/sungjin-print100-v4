@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-02-07
+
+### Refactored — 빌더 아키텍처 재설계 (5-Phase)
+
+- **Phase 1**: 공용 함수 추출 — `blockDefaults.ts` 생성 (extractDefaults, checkLinkRules, getFoldUpdate, mapPrintOptions)
+- **Phase 2**: 가격 계산 서버 경로 통일 — Builder도 `/api/calculate-price` 사용 (priceEngine 클라이언트 노출 제거)
+- **Phase 3**: 두께 검증 공유 — `checkThickness()` 추출, ProductView 28줄→3줄, Builder에도 적용
+- **Phase 4**: DB 기반 데이터 로딩 — `DB.weights`/`DB.sizeMultipliers` 하드코딩 → `getBuilderData()` DB 로딩으로 대체
+- **Phase 5**: 스킵 (빌더 설정으로 이미 커버)
+
+### Added — 규칙 제어센터
+
+- `blockDefaults.ts`를 블록 규칙 단일 제어센터로 확립 (CLAUDE.md에 명시)
+- `validateCoatingWeight` priceEngine → blockDefaults 이관
+- 규칙 추가 체크리스트 JSDoc 문서화
+
+### Fixed
+
+- 코팅 UI 겹침 — 비활성 시 옵션과 경고 동시 표시 수정
+- 코팅 weight 판정 — 제본 상품은 `coverWeight`, 단층 상품은 `weight` 사용
+- 오시(R001) 임계값 버그 — 150g→130g 수정 (rules.ts 규칙과 일치)
+- PreviewBlock 중복 규칙 로직 제거 — `linkStatus` prop으로 통일
+- 출고일 고정옵션, 두께계산 단면대응, UI 정렬 개선
+
+### Removed
+
+- `LINK_RULES` 미사용 export 삭제 (builderData.ts)
+- `LinkRule` 미사용 인터페이스 삭제 (builderData.ts)
+- `calculatePrice` 데드 prop 제거 (PreviewBlock)
+- `validateCoatingWeight` priceEngine에서 제거 (blockDefaults로 이관)
+
+### Documentation
+
+- `CLAUDE.md` — Block Rules Control Center 섹션 추가, 문서 관리 가이드 추가
+- `docs/BUILDER_ANALYSIS_REPORT.md` — 빌더 분석 보고서
+- `docs/BUILDER_INTEGRATION_PLAN.md` — 5단계 통합 계획서
+- `rules.ts` — 모든 `implementedIn` 필드 blockDefaults 기준으로 정확화
+
+---
+
 ## [2.1.0] - 2026-02-07
 
 ### Security — 보안 강화
