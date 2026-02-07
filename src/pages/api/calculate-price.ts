@@ -17,7 +17,7 @@ export const prerender = false;
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { customer, qty, productType } = body;
+    const { customer, qty, productType, allQtys } = body;
 
     if (!customer || !qty || qty <= 0) {
       return new Response(
@@ -29,9 +29,22 @@ export const POST: APIRoute = async ({ request }) => {
     // Ensure pricing data is loaded (cached after first call)
     await loadPricingData();
 
-    const result = calculatePrice(customer, qty, productType || 'flyer');
+    const selected = calculatePrice(customer, qty, productType || 'flyer');
 
-    return new Response(JSON.stringify(result), {
+    // Calculate prices for all quantity options (for quantity table display)
+    let byQty: Record<number, unknown> | undefined;
+    if (Array.isArray(allQtys) && allQtys.length > 0) {
+      byQty = {};
+      for (const q of allQtys) {
+        try {
+          byQty[q] = calculatePrice(customer, q, productType || 'flyer');
+        } catch {
+          byQty[q] = null;
+        }
+      }
+    }
+
+    return new Response(JSON.stringify({ selected, byQty }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

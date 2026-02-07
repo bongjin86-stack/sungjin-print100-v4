@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { supabase } from '@/lib/supabase';
+import { supabase, uploadImage } from '@/lib/supabase';
 
 import { adminFormStyles as styles } from './adminFormStyles';
 
@@ -157,18 +157,8 @@ export default function AboutPageForm() {
 
   const handleImageUpload = async (key: keyof FormData, file: File) => {
     try {
-      const timestamp = Date.now();
-      const ext = file.name.split('.').pop();
-      const fileName = `about/${timestamp}.${ext}`;
-
-      const { error } = await supabase.storage
-        .from('images')
-        .upload(fileName, file, { cacheControl: '3600', upsert: false });
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage.from('images').getPublicUrl(fileName);
-      setFormData((prev) => ({ ...prev, [key]: urlData.publicUrl }));
+      const publicUrl = await uploadImage(file, 'about');
+      setFormData((prev) => ({ ...prev, [key]: publicUrl }));
     } catch (err) {
       console.error('업로드 실패:', err);
       alert('이미지 업로드에 실패했습니다.');
@@ -292,18 +282,8 @@ export default function AboutPageForm() {
   const handleMemberImageUpload = async (file: File) => {
     if (!editingMember) return;
     try {
-      const timestamp = Date.now();
-      const ext = file.name.split('.').pop();
-      const fileName = `team/${timestamp}.${ext}`;
-
-      const { error } = await supabase.storage
-        .from('images')
-        .upload(fileName, file, { cacheControl: '3600', upsert: false });
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage.from('images').getPublicUrl(fileName);
-      setEditingMember({ ...editingMember, image_path: urlData.publicUrl });
+      const publicUrl = await uploadImage(file, 'team');
+      setEditingMember({ ...editingMember, image_path: publicUrl });
     } catch (err) {
       alert('업로드 실패');
     }

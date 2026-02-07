@@ -1,6 +1,6 @@
 import React, { useRef,useState } from 'react';
 
-import { supabase } from '@/lib/supabase';
+import { uploadImage } from '@/lib/supabase';
 
 interface ImageUploaderProps {
   currentImage?: string;
@@ -35,31 +35,7 @@ export default function ImageUploader({ currentImage, folder, onUpload, label = 
     setUploading(true);
 
     try {
-      // Generate unique filename
-      const timestamp = Date.now();
-      const randomStr = Math.random().toString(36).substring(2, 8);
-      const ext = file.name.split('.').pop();
-      const fileName = `${folder}/${timestamp}-${randomStr}.${ext}`;
-
-      // Upload to Supabase Storage
-      const { data, error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('images')
-        .getPublicUrl(fileName);
-
-      const publicUrl = urlData.publicUrl;
-      
+      const publicUrl = await uploadImage(file, folder);
       setPreview(publicUrl);
       onUpload(publicUrl);
     } catch (err: any) {

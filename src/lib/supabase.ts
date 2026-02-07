@@ -1,9 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_SUPABASE_URL) || 'https://zqtmzbcfzozgzspslccp.supabase.co';
-const supabaseAnonKey = (typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_SUPABASE_ANON_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdG16YmNmem96Z3pzcHNsY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NzM2NjAsImV4cCI6MjA4NTI0OTY2MH0.H7w5s_8sSm-_-oU8Ft9fZah6i4NjC6GqQ-GoR3_8MVo';
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('[supabase] Missing PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_ANON_KEY env vars');
+}
+
+// Build-time placeholder: createClient requires a valid URL string.
+// At runtime, env vars are loaded from .env.local or hosting provider.
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder',
+);
 
 // Database types
 export interface News {
@@ -90,21 +99,20 @@ export async function deleteNews(id: string) {
 // ============================================================
 
 /**
- * 이미지 업로드
- * @param path - 저장 경로 (예: 'papers/snow.jpg', 'products/flyer/main.jpg')
+ * 이미지 업로드 (서버 /api/upload 경유 — 파일 검증 포함)
  * @param file - 업로드할 파일
+ * @param folder - 저장 폴더 (예: 'papers', 'products', 'hero')
  * @returns 공개 URL
  */
-export async function uploadImage(path: string, file: File): Promise<string> {
-  const { data, error } = await supabase.storage
-    .from('images')
-    .upload(path, file, { upsert: true });
+export async function uploadImage(file: File, folder: string): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('folder', folder);
 
-  if (error) throw error;
-
-  const { data: urlData } = supabase.storage.from('images').getPublicUrl(path);
-  // 캐시 우회를 위해 타임스탬프 추가
-  return `${urlData.publicUrl}?t=${Date.now()}`;
+  const res = await fetch('/api/upload', { method: 'POST', body: formData });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || '업로드에 실패했습니다.');
+  return `${data.url}?t=${Date.now()}`;
 }
 
 /**
@@ -121,32 +129,22 @@ export async function deleteImage(path: string): Promise<void> {
 // ============================================================
 
 /**
- * 주문 인쇄 파일 업로드
+ * 주문 인쇄 파일 업로드 (서버 /api/upload 경유 — 파일 검증 포함)
  */
-export async function uploadOrderFile(file: File, orderId: string) {
-  const MAX_SIZE = 30 * 1024 * 1024; // 30MB
+export async function uploadOrderFile(file: File, _orderId: string) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('folder', 'orders');
 
-  if (file.size > MAX_SIZE) {
-    throw new Error('파일 크기가 30MB를 초과합니다.');
-  }
-
-  const ext = file.name.split('.').pop();
-  const safeName = `${orderId}_${Date.now()}.${ext}`;
-  const path = `orders/${safeName}`;
-
-  const { data, error } = await supabase.storage
-    .from('images')
-    .upload(path, file, { upsert: false });
-
-  if (error) throw error;
-
-  const { data: urlData } = supabase.storage.from('images').getPublicUrl(path);
+  const res = await fetch('/api/upload', { method: 'POST', body: formData });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || '파일 업로드에 실패했습니다.');
 
   return {
-    url: urlData.publicUrl,
-    path: path,
+    url: data.url,
+    path: data.path,
     fileName: file.name,
-    fileSize: file.size
+    fileSize: file.size,
   };
 }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef,useState } from 'react';
 
-import { supabase } from '@/lib/supabase';
+import { supabase, uploadImage } from '@/lib/supabase';
 
 interface PartnerLogo {
   id: string;
@@ -56,25 +56,7 @@ export default function PartnerLogosForm() {
     setMessage(null);
 
     try {
-      const timestamp = Date.now();
-      const randomStr = Math.random().toString(36).substring(2, 8);
-      const ext = file.name.split('.').pop();
-      const fileName = `partners/${timestamp}-${randomStr}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('images')
-        .getPublicUrl(fileName);
-
-      const publicUrl = urlData.publicUrl;
+      const publicUrl = await uploadImage(file, 'partners');
 
       // Update database
       const { error: updateError } = await supabase

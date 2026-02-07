@@ -14,6 +14,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 const PUBLIC_WRITE_PATHS = [
   '/api/calculate-price',
   '/api/create-order',
+  '/api/upload',
 ];
 
 export const onRequest = defineMiddleware(async (context, next) => {

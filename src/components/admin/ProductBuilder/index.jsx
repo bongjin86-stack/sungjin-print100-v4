@@ -425,8 +425,7 @@ export default function AdminBuilder() {
 
     try {
       setImageUploading(true);
-      const path = `products/${currentTemplateId}/main.${file.name.split('.').pop()}`;
-      const url = await uploadImage(path, file);
+      const url = await uploadImage(file, 'products');
       setCurrentProduct(prev => ({
         ...prev,
         content: { ...prev.content, mainImage: url }
@@ -444,8 +443,7 @@ export default function AdminBuilder() {
 
     try {
       setImageUploading(true);
-      const path = `products/${currentTemplateId}/thumb-${index}.${file.name.split('.').pop()}`;
-      const url = await uploadImage(path, file);
+      const url = await uploadImage(file, 'products');
       setCurrentProduct(prev => {
         const newThumbnails = [...(prev.content.thumbnails || [null, null, null, null])];
         newThumbnails[index] = url;

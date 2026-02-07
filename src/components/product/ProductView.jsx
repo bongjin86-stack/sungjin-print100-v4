@@ -4,7 +4,7 @@
 // PreviewBlock은 shared 컴포넌트 사용
 // ============================================================
 
-import { useEffect,useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -14,7 +14,7 @@ import { getDefaultCustomer } from '@/lib/builderData';
 import { formatBusinessDate, getBusinessDate } from '@/lib/businessDays';
 import { loadPricingData } from '@/lib/dbService';
 import { getIconComponent } from '@/lib/highlightIcons';
-import { calculatePrice, estimateThickness, validateBindingThickness } from '@/lib/priceEngine';
+import { estimateThickness, validateBindingThickness } from '@/lib/priceEngine';
 
 export default function ProductView({ product: initialProduct }) {
   const [product] = useState(initialProduct);
@@ -23,6 +23,9 @@ export default function ProductView({ product: initialProduct }) {
   const [dbPapers, setDbPapers] = useState({});
   const [dbPapersList, setDbPapersList] = useState([]);
   const [pricingDataLoaded, setPricingDataLoaded] = useState(false);
+  const [serverPrice, setServerPrice] = useState(null);
+  const [qtyPrices, setQtyPrices] = useState({});
+  const debounceRef = useRef(null);
 
   useEffect(() => {
     loadDbPapers();
@@ -107,6 +110,39 @@ export default function ProductView({ product: initialProduct }) {
     }
   };
 
+  // 서버 가격 계산 (debounce 300ms)
+  useEffect(() => {
+    if (!pricingDataLoaded) return;
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const qtyBlock = product?.blocks?.find(b => b.on && b.type === 'quantity');
+      const allQtys = qtyBlock?.config?.options || [];
+
+      try {
+        const res = await fetch('/api/calculate-price', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer: mapPrintOptionsToCustomer(customer, product?.blocks),
+            qty: customer.qty,
+            productType: product.product_type || product.id,
+            allQtys,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setServerPrice(data.selected || null);
+          if (data.byQty) setQtyPrices(data.byQty);
+        }
+      } catch (e) {
+        console.warn('Price fetch error:', e.message);
+      }
+    }, 300);
+
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [customer, pricingDataLoaded]);
+
   if (!product) {
     return (
       <div className="py-20 text-center">
@@ -122,16 +158,9 @@ export default function ProductView({ product: initialProduct }) {
   const blocks = product.blocks?.filter(b => b.on && !b.hidden) || [];
   const linkStatus = checkLinkRules();
 
-  // 가격 데이터 로드 전에는 계산하지 않음 (SSR 시 getSizeInfo가 비어있음)
+  // 서버에서 계산된 가격 사용
   const defaultPrice = { total: 0, unitPrice: 0, perUnit: 0, sheets: 0, faces: 0 };
-  let price = defaultPrice;
-  if (pricingDataLoaded) {
-    try {
-      price = calculatePrice(mapPrintOptionsToCustomer(customer, product?.blocks), customer.qty, product.product_type || product.id) || defaultPrice;
-    } catch (e) {
-      console.warn('Price calculation error:', e.message);
-    }
-  }
+  let price = serverPrice || defaultPrice;
 
   // 두께 검증 (inner_layer 또는 pages 블록의 maxThickness 기반)
   const thicknessBlock = product?.blocks?.find(b => b.on &&
@@ -259,7 +288,7 @@ export default function ProductView({ product: initialProduct }) {
               block={block}
               customer={customer}
               setCustomer={setCustomer}
-              calculatePrice={calculatePrice}
+              qtyPrices={qtyPrices}
               linkStatus={linkStatus}
               handleFoldSelect={handleFoldSelect}
               productType={product.product_type || product.id}

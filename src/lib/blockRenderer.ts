@@ -3,6 +3,8 @@
  * 프론트엔드에서 DB에 저장된 JSON 블록 콘텐츠를 표시할 때 사용
  */
 
+import DOMPurify from 'isomorphic-dompurify';
+
 interface BlockContent {
   type: string;
   text?: string;
@@ -158,8 +160,8 @@ export function renderBlocksToHTML(content: string | Block[]): string {
   });
   
   if (nonEmptyBlocks.length === 0) return '';
-  
-  return groupListItems(nonEmptyBlocks);
+
+  return DOMPurify.sanitize(groupListItems(nonEmptyBlocks));
 }
 
 /**
@@ -226,8 +228,8 @@ export function markdownToHTML(markdown: string): string {
     // 단일 줄바꿈을 <br>로 변환
     return `<p>${trimmed.replace(/\n/g, '<br>')}</p>`;
   }).filter(p => p).join('\n');
-  
-  return html;
+
+  return DOMPurify.sanitize(html);
 }
 
 /**

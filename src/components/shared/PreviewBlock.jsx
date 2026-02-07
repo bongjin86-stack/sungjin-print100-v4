@@ -14,7 +14,7 @@ import { DB, TEMPLATES } from '@/lib/builderData';
 import { formatBusinessDate, getBusinessDate } from '@/lib/businessDays';
 import { validateCoatingWeight } from '@/lib/priceEngine';
 
-export function PreviewBlock({ block, customer, setCustomer, calculatePrice, linkStatus, handleFoldSelect, productType, dbPapers = {}, dbPapersList = [], allBlocks = [], thicknessError = false }) {
+export function PreviewBlock({ block, customer, setCustomer, calculatePrice, qtyPrices, linkStatus, handleFoldSelect, productType, dbPapers = {}, dbPapersList = [], allBlocks = [], thicknessError = false }) {
   const cfg = block.config;
   const isDisabled = block.locked;
 
@@ -830,7 +830,11 @@ export function PreviewBlock({ block, customer, setCustomer, calculatePrice, lin
               <tbody>
                 {cfg.options?.map((q) => {
                   let p = { unitPrice: 0, total: 0 };
-                  try { p = calculatePrice(customer, q, productType) || p; } catch (e) { /* pricing data not loaded */ }
+                  if (qtyPrices && qtyPrices[q]) {
+                    p = qtyPrices[q];
+                  } else if (calculatePrice) {
+                    try { p = calculatePrice(customer, q, productType) || p; } catch (e) { /* pricing data not loaded */ }
+                  }
                   const unitPrice = p.unitPrice || p.perUnit || 0;
                   const total = p.total || 0;
                   const isSelected = customer.qty === q;

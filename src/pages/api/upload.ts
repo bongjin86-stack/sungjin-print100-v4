@@ -48,12 +48,20 @@ const ALLOWED_FOLDERS = new Set([
   'team', 'hero', 'about', 'orders', 'partners', 'faq', 'general',
 ]);
 
-// NOTE: Auth is handled by middleware.ts (POST /api/upload requires auth)
-export const POST: APIRoute = async ({ request }) => {
+// Auth check: unauthenticated requests can only upload to 'orders' folder
+export const POST: APIRoute = async ({ request, cookies }) => {
   try {
+    // Check authentication status
+    const accessToken = cookies.get('sb-access-token')?.value
+      || request.headers.get('Authorization')?.replace('Bearer ', '');
+    const isAuthenticated = !!accessToken;
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const folder = formData.get('folder') as string || 'uploads';
+    const requestedFolder = formData.get('folder') as string || 'uploads';
+
+    // Unauthenticated users can only upload to 'orders'
+    const folder = isAuthenticated ? requestedFolder : 'orders';
 
     if (!file) {
       return new Response(JSON.stringify({ error: 'No file provided' }), {

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { supabase } from '@/lib/supabase';
+import { supabase, uploadImage } from '@/lib/supabase';
 
 export default function LogoUploader() {
   const [logoUrl, setLogoUrl] = useState<string>('');
@@ -52,27 +52,8 @@ export default function LogoUploader() {
     setUploading(true);
 
     try {
-      // Generate unique filename
-      const timestamp = Date.now();
-      const ext = file.name.split('.').pop();
-      const fileName = `logo/site-logo-${timestamp}.${ext}`;
-
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('images')
-        .getPublicUrl(fileName);
-
-      setLogoUrl(urlData.publicUrl);
+      const publicUrl = await uploadImage(file, 'general');
+      setLogoUrl(publicUrl);
     } catch (err: any) {
       console.error('Upload error:', err);
       setError(err.message || '업로드에 실패했습니다.');

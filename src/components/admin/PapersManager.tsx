@@ -86,11 +86,8 @@ export default function PapersPage() {
   const uploadPaperImage = async (code) => {
     if (!imageFile) return paperFormData.image_url; // 기존 URL 유지
 
-    const ext = imageFile.name.split('.').pop();
-    const path = `papers/${code}.${ext}`;
-
     try {
-      const url = await uploadImage(path, imageFile);
+      const url = await uploadImage(imageFile, 'papers');
       return url;
     } catch (err) {
       console.error('이미지 업로드 실패:', err);
@@ -108,9 +105,7 @@ export default function PapersPage() {
 
     try {
       setUploading(true);
-      const ext = file.name.split('.').pop();
-      const path = `papers/${paper.code}.${ext}`;
-      const url = await uploadImage(path, file);
+      const url = await uploadImage(file, 'papers');
 
       // DB 업데이트
       const { error } = await supabase

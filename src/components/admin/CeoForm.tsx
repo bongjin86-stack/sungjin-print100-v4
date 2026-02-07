@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { supabase } from '@/lib/supabase';
+import { supabase, uploadImage } from '@/lib/supabase';
 
 import BlockNoteEditor from './BlockNoteEditor';
 
@@ -42,20 +42,7 @@ export default function CeoForm({ initialData }: CeoFormProps) {
     setUploadStatus('업로드 중...');
 
     try {
-      const timestamp = Date.now();
-      const randomStr = Math.random().toString(36).substring(2, 8);
-      const ext = file.name.split('.').pop();
-      const fileName = `ceo/${timestamp}-${randomStr}.${ext}`;
-
-      const { data, error } = await supabase.storage
-        .from('images')
-        .upload(fileName, file, { cacheControl: '3600', upsert: false });
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage.from('images').getPublicUrl(fileName);
-      const publicUrl = urlData.publicUrl;
-
+      const publicUrl = await uploadImage(file, 'ceo');
       setFormData(prev => ({ ...prev, image: publicUrl }));
       setUploadStatus('업로드 완료!');
     } catch (err: any) {
