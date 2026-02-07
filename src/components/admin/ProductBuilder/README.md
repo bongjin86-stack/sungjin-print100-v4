@@ -82,7 +82,7 @@ index.jsx (상태 관리)
 - `PreviewBlock.jsx`: switch case 추가
 
 ### 2. 가격 계산 수정
-여기서 하지 마세요! `src/lib/priceEngine.js` 수정
+여기서 하지 마세요! `src/lib/priceEngine.ts` 수정
 
 ### 3. 새 컴포넌트 만들기
 이 폴더에 새 파일을 만들기 전에:
@@ -101,10 +101,10 @@ import AdminBuilder from './components/AdminBuilder'
 
 | 파일 | 용도 |
 |------|------|
-| `../../lib/builderData.js` | BLOCK_TYPES, DB, TEMPLATES |
-| `../../lib/priceEngine.js` | 가격 계산 |
-| `../../lib/supabase.js` | 이미지 업로드 |
-| `../../lib/businessDays.js` | 영업일 계산 |
+| `../../lib/builderData.ts` | BLOCK_TYPES, DB, TEMPLATES |
+| `../../lib/priceEngine.ts` | 가격 계산 |
+| `../../lib/supabase.ts` | 이미지 업로드 |
+| `../../lib/businessDays.ts` | 영업일 계산 |
 | `../NotionEditor.jsx` | 리치 텍스트 편집기 |
 
 ## Migration Status

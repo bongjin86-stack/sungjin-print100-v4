@@ -123,8 +123,8 @@ Nagi 기업 사이트 테마 위에 인쇄 주문 기능 전체 이식.
 - 주문 완료 페이지 이식 (`OrderComplete.jsx`)
 - 주문 조회 이식 (`CustomerOrderStatus.jsx`)
 - 주문 관리 Admin 이식 (`AdminOrders.jsx`, `OrderDetailModal.jsx`)
-- 배송비/포장비 계산기 이식 (`shippingCalculator.js`, `packagingCalculator.js`)
-- 주문 알림 이메일 이식 (`emailService.js`)
+- 배송비/포장비 계산기 이식 (`shippingCalculator.ts`, `packagingCalculator.ts`)
+- 주문 알림 이메일 이식 (`emailService.ts`)
 
 ### Fixed
 

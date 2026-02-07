@@ -55,11 +55,14 @@
 
 ### R-ST: 제본 두께 제한
 
-| 제본 | 경고 | 차단 | 구현 |
-|------|------|------|------|
-| 중철 | 2.0mm | 2.5mm | `validateBindingThickness()` |
-| 무선 | 40mm | 50mm | `validateBindingThickness()` |
-| 스프링 | 15mm | 20mm | `validateBindingThickness()` |
+| 제본 | 차단 (기본값) | 구현 |
+|------|-------------|------|
+| 중철 | 2.5mm | `checkThickness()` → `validateBindingThickness()` |
+| 무선 | 50mm | `checkThickness()` → `validateBindingThickness()` |
+| 스프링 | 20mm | `checkThickness()` → `validateBindingThickness()` |
+
+> 차단 임계값은 빌더 `BlockSettings`에서 블록별 `maxThickness`로 관리자가 직접 설정.
+> 위 값은 빌더 기본값이며, 설정이 없으면 두께 검증 자체가 스킵됨.
 
 **두께 계수 (mm/g):**
 
@@ -175,9 +178,9 @@
 
 | 상태 | 수 |
 |------|-----|
-| 적용됨 (applied) | 11 |
+| 적용됨 (applied) | 9 |
 | 미적용 (pending) | 12 |
-| 합계 | 23 |
+| 합계 | 21 |
 
 ---
 

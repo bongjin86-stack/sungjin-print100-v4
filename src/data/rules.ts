@@ -147,16 +147,6 @@ export const RULES: Rule[] = [
     implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
   },
   {
-    id: 'R-ST02',
-    name: '중철 두께 경고',
-    category: '제본 두께',
-    condition: '중철 두께 > 2.0mm',
-    action: '경고 표시 (제작은 가능)',
-    status: 'applied',
-    message: '중철제본 두께가 2.0mm를 초과합니다. 제작은 가능하나 주의가 필요합니다.',
-    implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
-  },
-  {
     id: 'R-ST03',
     name: '페이지 수 제한',
     category: '제본 두께',
@@ -177,16 +167,6 @@ export const RULES: Rule[] = [
     implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
   },
   {
-    id: 'R-ST05',
-    name: '무선 두께 경고',
-    category: '제본 두께',
-    condition: '무선 두께 > 40mm',
-    action: '경고 표시 (제작은 가능)',
-    status: 'applied',
-    message: '무선제본 두께가 40mm를 초과합니다. 제작은 가능하나 주의가 필요합니다.',
-    implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
-  },
-  {
     id: 'R-ST06',
     name: '스프링 두께 차단',
     category: '제본 두께',
@@ -196,15 +176,17 @@ export const RULES: Rule[] = [
     message: '선택하신 용지와 페이지 수로는 스프링제본이 불가합니다. (최대 20mm)',
     implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
   },
+
+  // 제본 후가공 연동 규칙
   {
-    id: 'R-ST07',
-    name: '스프링 두께 경고',
-    category: '제본 두께',
-    condition: '스프링 두께 > 15mm',
-    action: '경고 표시 (제작은 가능)',
+    id: 'BIND-FINISH',
+    name: '제본 후가공 연동',
+    category: '제본',
+    condition: '제본 상품 + finishing block 존재',
+    action: 'customer.finishing.* 키로 표지 후가공 비용 계산 (coverCoating 이중 방지)',
     status: 'applied',
-    message: '스프링제본 두께가 15mm를 초과합니다. 제작은 가능하나 주의가 필요합니다.',
-    implementedIn: 'blockDefaults.ts - checkThickness() → priceEngine.ts - validateBindingThickness()'
+    message: null,
+    implementedIn: 'priceEngine.ts - calculateBindingPrice() 섹션 5'
   },
 
   // 후가공 호환성 규칙 (R-PP)
