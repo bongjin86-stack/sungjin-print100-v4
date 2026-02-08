@@ -83,6 +83,28 @@ function BlockSettings({
     case "paper":
       return (
         <div>
+          {/* 용지 역할 — 제본 상품에서 표지/내지 구분 */}
+          <div className="mb-3 p-3 bg-white rounded-lg border border-gray-200">
+            <label className="text-xs text-gray-500 block mb-1">용지 역할</label>
+            <select
+              value={cfg.role || "default"}
+              onChange={(e) =>
+                updateCfg(
+                  block.id,
+                  "role",
+                  e.target.value === "default" ? undefined : e.target.value
+                )
+              }
+              className="select select-bordered select-sm w-full"
+            >
+              <option value="default">기본 (단층 상품)</option>
+              <option value="cover">표지 용지</option>
+              <option value="inner">내지 용지</option>
+            </select>
+            <p className="text-xs text-gray-400 mt-1">
+              제본 상품에서 동일 용지 블록을 여러 개 사용할 때 역할을 지정합니다.
+            </p>
+          </div>
           <p className="text-xs text-info bg-info/10 px-3 py-2 rounded-lg mb-3">
             더블클릭으로 기본값 설정 (★ 표시)
           </p>

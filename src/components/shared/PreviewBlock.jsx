@@ -12,7 +12,11 @@
 
 import { memo } from "react";
 
-import { getCoatingWeight, validateCoatingWeight } from "@/lib/blockDefaults";
+import {
+  getCoatingWeight,
+  getPaperBlockRole,
+  validateCoatingWeight,
+} from "@/lib/blockDefaults";
 import {
   DB,
   FIXED_DELIVERY_OPTIONS,
@@ -72,20 +76,15 @@ function PreviewBlockInner({
       );
 
     case "paper": {
-      const isCoverPaper = allBlocks.some(
-        (b) => b.config?.linkedBlocks?.coverPaper === block.id
-      );
-      const isInnerPaper = allBlocks.some(
-        (b) => b.config?.linkedBlocks?.innerPaper === block.id
-      );
-      const paperField = isCoverPaper
+      const role = getPaperBlockRole(block, allBlocks);
+      const paperField = role === "cover"
         ? "coverPaper"
-        : isInnerPaper
+        : role === "inner"
           ? "innerPaper"
           : "paper";
-      const weightField = isCoverPaper
+      const weightField = role === "cover"
         ? "coverWeight"
-        : isInnerPaper
+        : role === "inner"
           ? "innerWeight"
           : "weight";
 

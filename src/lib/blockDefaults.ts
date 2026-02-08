@@ -16,6 +16,7 @@
  * │  getCoatingWeight             │  코팅 기준 용지 평량 결정    │
  * │  getFoldUpdate                │  접지 → 오시 자동 연동      │
  * │  mapPrintOptionsToCustomer    │  인쇄옵션 → 고객값 매핑     │
+ * │  getPaperBlockRole            │  용지 블록 역할 판별 (cover/inner/default) │
  * └─────────────────────────────────────────────────────────────┘
  *
  * [사용처]
@@ -117,6 +118,29 @@ export function getCoatingWeight(
     return customer.coverWeight || customer.weight || 80;
   }
   return customer.weight || 80;
+}
+
+// ============================================================
+// 용지 블록 역할 판별 (블록 자체 role 우선, linkedBlocks 폴백)
+// ============================================================
+export function getPaperBlockRole(
+  block: any,
+  allBlocks: any[]
+): "default" | "cover" | "inner" {
+  // 1. 블록 자체 role 설정 (우선)
+  if (block.config?.role === "cover" || block.config?.role === "inner") {
+    return block.config.role;
+  }
+  // 2. 폴백: 다른 블록의 linkedBlocks 역추적 (하위 호환)
+  if (
+    allBlocks.some((b) => b.config?.linkedBlocks?.coverPaper === block.id)
+  )
+    return "cover";
+  if (
+    allBlocks.some((b) => b.config?.linkedBlocks?.innerPaper === block.id)
+  )
+    return "inner";
+  return "default";
 }
 
 // ============================================================
@@ -292,12 +316,13 @@ export function extractDefaultsFromBlock(
       if (cfg.default) result.size = cfg.default;
       break;
     case "paper": {
-      const isCoverPaper = allBlocks.some(
-        (b) => b.config?.linkedBlocks?.coverPaper === block.id
-      );
-      if (isCoverPaper) {
+      const role = getPaperBlockRole(block, allBlocks);
+      if (role === "cover") {
         if (cfg.default?.paper) result.coverPaper = cfg.default.paper;
         if (cfg.default?.weight) result.coverWeight = cfg.default.weight;
+      } else if (role === "inner") {
+        if (cfg.default?.paper) result.innerPaper = cfg.default.paper;
+        if (cfg.default?.weight) result.innerWeight = cfg.default.weight;
       } else {
         if (cfg.default?.paper) result.paper = cfg.default.paper;
         if (cfg.default?.weight) result.weight = cfg.default.weight;
