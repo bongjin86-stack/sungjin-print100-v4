@@ -1,25 +1,10 @@
 @font-face {
   font-family: "Outfit";
   font-style: normal;
-  font-weight: 400;
+  font-weight: 400 600;
   font-display: swap;
-  src: url("/fonts/Outfit/Outfit-Regular.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: "Outfit";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("/fonts/Outfit/Outfit-Medium.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: "Outfit";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("/fonts/Outfit/Outfit-SemiBold.woff2") format("woff2");
+  src: url("/fonts/Outfit/Outfit-VariableFont_wght.woff2")
+    format("woff2-variations");
 }
 
 @font-face {

@@ -5,7 +5,9 @@
  * 스타일: ProductView.css의 pv-* 클래스 사용
  */
 
-export function PriceBox({ price, customer, isPreview = false, onOrderClick }) {
+import { memo } from "react";
+
+function PriceBoxInner({ price, customer, isPreview = false, onOrderClick }) {
   const totalWithVat = Math.round(price.total * 1.1);
   const vat = Math.round(price.total * 0.1);
 
@@ -74,4 +76,5 @@ export function PriceBox({ price, customer, isPreview = false, onOrderClick }) {
   );
 }
 
+export const PriceBox = memo(PriceBoxInner);
 export default PriceBox;

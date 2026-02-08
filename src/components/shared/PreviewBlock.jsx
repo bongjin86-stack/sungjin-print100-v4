@@ -10,6 +10,8 @@
  * 스타일: ProductView.css의 pv-* 클래스 사용
  */
 
+import { memo } from "react";
+
 import { getCoatingWeight, validateCoatingWeight } from "@/lib/blockDefaults";
 import {
   DB,
@@ -30,7 +32,7 @@ const PAPER_SWATCH_GRADIENTS = {
 const DEFAULT_PAPER_SWATCH =
   "linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)";
 
-export function PreviewBlock({
+function PreviewBlockInner({
   block,
   customer,
   setCustomer,
@@ -117,6 +119,8 @@ export function PreviewBlock({
                       <img
                         src={dbPapers[code].image_url}
                         alt={dbPapers[code]?.name || paper.name}
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <div
@@ -1001,6 +1005,8 @@ export function PreviewBlock({
                         <img
                           src={dbPapers[code].image_url}
                           alt={dbPapers[code]?.name || paper.name}
+                          loading="lazy"
+                          decoding="async"
                         />
                       ) : (
                         <div
@@ -1219,4 +1225,5 @@ export function PreviewBlock({
   }
 }
 
+export const PreviewBlock = memo(PreviewBlockInner);
 export default PreviewBlock;

@@ -6,7 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "dompurify";
 
 import { PreviewBlock } from "@/components/shared/PreviewBlock";
 import { PriceBox } from "@/components/shared/PriceBox";
@@ -200,7 +200,12 @@ export default function ProductView({ product: initialProduct }) {
                   className={`pv-thumb ${selectedImage === idx ? "active" : ""}`}
                   onClick={() => setSelectedImage(idx)}
                 >
-                  <img src={img} alt={`썸네일${idx + 1}`} />
+                  <img
+                    src={img}
+                    alt={`썸네일${idx + 1}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </div>
               ))}
             </div>

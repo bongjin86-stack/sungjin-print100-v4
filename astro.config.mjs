@@ -8,6 +8,10 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
+  prefetch: {
+    prefetchAll: false,
+    defaultStrategy: "viewport",
+  },
   site: "https://nagi-6tu.pages.dev",
   output: "server",
   adapter: vercel(),
