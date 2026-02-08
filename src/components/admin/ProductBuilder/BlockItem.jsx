@@ -16,6 +16,12 @@ import { BLOCK_TYPES, DB } from "@/lib/builderData";
 // ============================================================
 function BlockItem({
   block,
+  index,
+  isDragOver,
+  onBlockDragStart,
+  onBlockDragOver,
+  onBlockDrop,
+  onBlockDragEnd,
   isEditing,
   toggleBlock,
   toggleEdit,
@@ -50,10 +56,22 @@ function BlockItem({
   return (
     <div
       data-block-id={block.id}
-      className={`rounded-lg border transition-all ${isEditing ? "border-gray-300 bg-gray-50/30" : "border-gray-200"} ${!block.on ? "opacity-40" : ""}`}
+      onDragOver={onBlockDragOver}
+      onDrop={onBlockDrop}
+      className={`rounded-lg border transition-all ${isDragOver ? "border-blue-400 border-t-2" : ""} ${isEditing ? "border-gray-300 bg-gray-50/30" : "border-gray-200"} ${!block.on ? "opacity-40" : ""}`}
     >
       <div className="flex items-center gap-3 p-3">
-        <div className="drag-handle cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 text-base select-none px-1 -ml-1 transition-colors">
+        <div
+          className="drag-handle cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 text-base select-none px-1 -ml-1 transition-colors"
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            const blockEl = e.currentTarget.closest('[data-block-id]');
+            if (blockEl) e.dataTransfer.setDragImage(blockEl, 20, 20);
+            onBlockDragStart?.();
+          }}
+          onDragEnd={onBlockDragEnd}
+        >
           ⋮⋮
         </div>
 

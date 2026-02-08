@@ -259,38 +259,31 @@ export default function AdminBuilder() {
     }
   }, []); // 초기 마운트 시 1회만 실행
 
-  // 블록 드래그앤드롭
-  useEffect(() => {
-    let sortableInstance = null;
+  // 블록 드래그 (네이티브 HTML5 Drag & Drop — React 상태로 제어)
+  const dragBlockRef = useRef({ dragIdx: null });
+  const [dragOverIdx, setDragOverIdx] = useState(null);
 
-    if (blockListRef.current) {
-      sortableInstance = Sortable.create(blockListRef.current, {
-        animation: 200,
-        handle: ".drag-handle",
-        ghostClass: "opacity-50",
-        chosenClass: "shadow-lg",
-        dragClass: "rotate-1",
-        forceFallback: true, // 브라우저 기본 드래그 대신 JS 사용
-        onEnd: (evt) => {
-          const { oldIndex, newIndex } = evt;
-          if (oldIndex === newIndex) return;
+  const handleBlockDragStart = (idx) => {
+    dragBlockRef.current.dragIdx = idx;
+  };
 
-          setCurrentProduct((prev) => {
-            const newBlocks = [...prev.blocks];
-            const [movedItem] = newBlocks.splice(oldIndex, 1);
-            newBlocks.splice(newIndex, 0, movedItem);
-            return { ...prev, blocks: newBlocks };
-          });
-        },
-      });
-    }
+  const handleBlockDrop = (dropIdx) => {
+    const dragIdx = dragBlockRef.current.dragIdx;
+    if (dragIdx === null || dragIdx === dropIdx) return;
+    setCurrentProduct((prev) => {
+      const newBlocks = [...prev.blocks];
+      const [moved] = newBlocks.splice(dragIdx, 1);
+      newBlocks.splice(dropIdx, 0, moved);
+      return { ...prev, blocks: newBlocks };
+    });
+    dragBlockRef.current.dragIdx = null;
+    setDragOverIdx(null);
+  };
 
-    return () => {
-      if (sortableInstance) {
-        sortableInstance.destroy();
-      }
-    };
-  }, [currentProduct?.id, currentProduct?.blocks?.length]);
+  const handleBlockDragEnd = () => {
+    dragBlockRef.current.dragIdx = null;
+    setDragOverIdx(null);
+  };
 
   // 템플릿 드래그앤드롭
   useEffect(() => {
@@ -1130,10 +1123,16 @@ export default function AdminBuilder() {
           </div>
 
           <div ref={blockListRef} className="space-y-2">
-            {currentProduct.blocks.map((block) => (
+            {currentProduct.blocks.map((block, idx) => (
               <BlockItem
                 key={block.id}
                 block={block}
+                index={idx}
+                isDragOver={dragOverIdx === idx}
+                onBlockDragStart={() => handleBlockDragStart(idx)}
+                onBlockDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }}
+                onBlockDrop={(e) => { e.preventDefault(); handleBlockDrop(idx); }}
+                onBlockDragEnd={handleBlockDragEnd}
                 isEditing={selectedBlockId === block.id}
                 toggleBlock={toggleBlock}
                 toggleEdit={toggleEdit}
