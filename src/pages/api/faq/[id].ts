@@ -1,6 +1,6 @@
-import type { APIRoute } from 'astro';
+import type { APIRoute } from "astro";
 
-import { supabase } from '../../../lib/supabase';
+import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
@@ -9,21 +9,21 @@ export const GET: APIRoute = async ({ params }) => {
   const { id } = params;
 
   const { data, error } = await supabase
-    .from('faq')
-    .select('*')
-    .eq('id', id)
+    .from("faq")
+    .select("*")
+    .eq("id", id)
     .single();
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 404,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 
   return new Response(JSON.stringify(data), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
   });
 };
 
@@ -35,14 +35,17 @@ export const PUT: APIRoute = async ({ params, request }) => {
   const { question, answer, sort_order, is_active } = body;
 
   if (!question || !answer) {
-    return new Response(JSON.stringify({ message: '질문과 답변은 필수입니다.' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ message: "질문과 답변은 필수입니다." }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const { data, error } = await supabase
-    .from('faq')
+    .from("faq")
     .update({
       question,
       answer,
@@ -50,20 +53,20 @@ export const PUT: APIRoute = async ({ params, request }) => {
       is_active: is_active ?? true,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
   if (error) {
     return new Response(JSON.stringify({ message: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 
   return new Response(JSON.stringify(data), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
   });
 };
 
@@ -71,20 +74,17 @@ export const PUT: APIRoute = async ({ params, request }) => {
 export const DELETE: APIRoute = async ({ params }) => {
   const { id } = params;
 
-  const { error } = await supabase
-    .from('faq')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from("faq").delete().eq("id", id);
 
   if (error) {
     return new Response(JSON.stringify({ message: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 
   return new Response(JSON.stringify({ success: true }), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
   });
 };

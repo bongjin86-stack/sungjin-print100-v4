@@ -6,12 +6,12 @@ import { supabase } from "@/lib/supabase";
 
 // DB에서 연혁 데이터 가져오기
 const { data: historyItems, error } = await supabase
-  .from('history')
-  .select('*')
-  .order('sort_order', { ascending: true });
+  .from("history")
+  .select("*")
+  .order("sort_order", { ascending: true });
 
 if (error) {
-  console.error('Error fetching history:', error);
+  console.error("Error fetching history:", error);
 }
 ---
 
@@ -21,15 +21,16 @@ if (error) {
 
     <div class="history-timeline">
       {
-        historyItems && historyItems.map((item) => (
-          <article class="timeline-item">
-            <div class="item-date">
-              <span class="date-year">{item.year}</span>
-              <span class="date-month">{item.month}</span>
-            </div>
-            <p class="item-event">{item.event}</p>
-          </article>
-        ))
+        historyItems &&
+          historyItems.map((item) => (
+            <article class="timeline-item">
+              <div class="item-date">
+                <span class="date-year">{item.year}</span>
+                <span class="date-month">{item.month}</span>
+              </div>
+              <p class="item-event">{item.event}</p>
+            </article>
+          ))
       }
     </div>
   </Container>

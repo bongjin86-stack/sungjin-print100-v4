@@ -1,6 +1,6 @@
-import React, { useEffect, useRef,useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 
-import { supabase, uploadImage } from '@/lib/supabase';
+import { supabase, uploadImage } from "@/lib/supabase";
 
 interface PartnerLogo {
   id: string;
@@ -15,7 +15,10 @@ export default function PartnerLogosForm() {
   const [logos, setLogos] = useState<PartnerLogo[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
@@ -27,28 +30,28 @@ export default function PartnerLogosForm() {
   const fetchLogos = async () => {
     try {
       const { data, error } = await supabase
-        .from('partner_logos')
-        .select('*')
-        .order('sort_order', { ascending: true });
+        .from("partner_logos")
+        .select("*")
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
       setLogos(data || []);
     } catch (err: any) {
-      console.error('Error fetching logos:', err);
-      setMessage({ type: 'error', text: '로고를 불러오는데 실패했습니다.' });
+      console.error("Error fetching logos:", err);
+      setMessage({ type: "error", text: "로고를 불러오는데 실패했습니다." });
     } finally {
       setLoading(false);
     }
   };
 
   const handleImageUpload = async (logoId: string, file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setMessage({ type: 'error', text: '이미지 파일만 업로드 가능합니다.' });
+    if (!file.type.startsWith("image/")) {
+      setMessage({ type: "error", text: "이미지 파일만 업로드 가능합니다." });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setMessage({ type: 'error', text: '파일 크기는 5MB 이하여야 합니다.' });
+      setMessage({ type: "error", text: "파일 크기는 5MB 이하여야 합니다." });
       return;
     }
 
@@ -56,25 +59,27 @@ export default function PartnerLogosForm() {
     setMessage(null);
 
     try {
-      const publicUrl = await uploadImage(file, 'partners');
+      const publicUrl = await uploadImage(file, "partners");
 
       // Update database
       const { error: updateError } = await supabase
-        .from('partner_logos')
+        .from("partner_logos")
         .update({ logo_url: publicUrl, updated_at: new Date().toISOString() })
-        .eq('id', logoId);
+        .eq("id", logoId);
 
       if (updateError) throw updateError;
 
       // Update local state
-      setLogos(logos.map(logo => 
-        logo.id === logoId ? { ...logo, logo_url: publicUrl } : logo
-      ));
+      setLogos(
+        logos.map((logo) =>
+          logo.id === logoId ? { ...logo, logo_url: publicUrl } : logo
+        )
+      );
 
-      setMessage({ type: 'success', text: '로고가 업데이트되었습니다!' });
+      setMessage({ type: "success", text: "로고가 업데이트되었습니다!" });
     } catch (err: any) {
-      console.error('Upload error:', err);
-      setMessage({ type: 'error', text: '업로드에 실패했습니다.' });
+      console.error("Upload error:", err);
+      setMessage({ type: "error", text: "업로드에 실패했습니다." });
     } finally {
       setUploadingId(null);
     }
@@ -86,22 +91,22 @@ export default function PartnerLogosForm() {
 
     try {
       const { error } = await supabase
-        .from('partner_logos')
+        .from("partner_logos")
         .update({
           name: logo.name,
           link_url: logo.link_url,
           is_active: logo.is_active,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', logo.id);
+        .eq("id", logo.id);
 
       if (error) throw error;
 
       setEditingId(null);
-      setMessage({ type: 'success', text: '저장되었습니다!' });
+      setMessage({ type: "success", text: "저장되었습니다!" });
     } catch (err: any) {
-      console.error('Error updating logo:', err);
-      setMessage({ type: 'error', text: '저장에 실패했습니다.' });
+      console.error("Error updating logo:", err);
+      setMessage({ type: "error", text: "저장에 실패했습니다." });
     } finally {
       setSaving(false);
     }
@@ -112,17 +117,20 @@ export default function PartnerLogosForm() {
     setMessage(null);
 
     try {
-      const newOrder = logos.length > 0 ? Math.max(...logos.map(l => l.sort_order)) + 1 : 1;
-      
+      const newOrder =
+        logos.length > 0 ? Math.max(...logos.map((l) => l.sort_order)) + 1 : 1;
+
       const { data, error } = await supabase
-        .from('partner_logos')
-        .insert([{
-          name: '새 파트너',
-          logo_url: '',
-          link_url: '',
-          sort_order: newOrder,
-          is_active: true
-        }])
+        .from("partner_logos")
+        .insert([
+          {
+            name: "새 파트너",
+            logo_url: "",
+            link_url: "",
+            sort_order: newOrder,
+            is_active: true,
+          },
+        ])
         .select()
         .single();
 
@@ -130,69 +138,87 @@ export default function PartnerLogosForm() {
 
       setLogos([...logos, data]);
       setEditingId(data.id);
-      setMessage({ type: 'success', text: '새 로고가 추가되었습니다.' });
+      setMessage({ type: "success", text: "새 로고가 추가되었습니다." });
     } catch (err: any) {
-      console.error('Error adding logo:', err);
-      setMessage({ type: 'error', text: '추가에 실패했습니다.' });
+      console.error("Error adding logo:", err);
+      setMessage({ type: "error", text: "추가에 실패했습니다." });
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteLogo = async (id: string) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
+    if (!confirm("정말 삭제하시겠습니까?")) return;
 
     try {
       const { error } = await supabase
-        .from('partner_logos')
+        .from("partner_logos")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
-      setLogos(logos.filter(logo => logo.id !== id));
-      setMessage({ type: 'success', text: '삭제되었습니다.' });
+      setLogos(logos.filter((logo) => logo.id !== id));
+      setMessage({ type: "success", text: "삭제되었습니다." });
     } catch (err: any) {
-      console.error('Error deleting logo:', err);
-      setMessage({ type: 'error', text: '삭제에 실패했습니다.' });
+      console.error("Error deleting logo:", err);
+      setMessage({ type: "error", text: "삭제에 실패했습니다." });
     }
   };
 
   const handleMoveUp = async (index: number) => {
     if (index === 0) return;
-    
+
     const newLogos = [...logos];
     const temp = newLogos[index].sort_order;
     newLogos[index].sort_order = newLogos[index - 1].sort_order;
     newLogos[index - 1].sort_order = temp;
-    
-    [newLogos[index], newLogos[index - 1]] = [newLogos[index - 1], newLogos[index]];
-    
+
+    [newLogos[index], newLogos[index - 1]] = [
+      newLogos[index - 1],
+      newLogos[index],
+    ];
+
     setLogos(newLogos);
 
     // Update database
     await Promise.all([
-      supabase.from('partner_logos').update({ sort_order: newLogos[index].sort_order }).eq('id', newLogos[index].id),
-      supabase.from('partner_logos').update({ sort_order: newLogos[index - 1].sort_order }).eq('id', newLogos[index - 1].id)
+      supabase
+        .from("partner_logos")
+        .update({ sort_order: newLogos[index].sort_order })
+        .eq("id", newLogos[index].id),
+      supabase
+        .from("partner_logos")
+        .update({ sort_order: newLogos[index - 1].sort_order })
+        .eq("id", newLogos[index - 1].id),
     ]);
   };
 
   const handleMoveDown = async (index: number) => {
     if (index === logos.length - 1) return;
-    
+
     const newLogos = [...logos];
     const temp = newLogos[index].sort_order;
     newLogos[index].sort_order = newLogos[index + 1].sort_order;
     newLogos[index + 1].sort_order = temp;
-    
-    [newLogos[index], newLogos[index + 1]] = [newLogos[index + 1], newLogos[index]];
-    
+
+    [newLogos[index], newLogos[index + 1]] = [
+      newLogos[index + 1],
+      newLogos[index],
+    ];
+
     setLogos(newLogos);
 
     // Update database
     await Promise.all([
-      supabase.from('partner_logos').update({ sort_order: newLogos[index].sort_order }).eq('id', newLogos[index].id),
-      supabase.from('partner_logos').update({ sort_order: newLogos[index + 1].sort_order }).eq('id', newLogos[index + 1].id)
+      supabase
+        .from("partner_logos")
+        .update({ sort_order: newLogos[index].sort_order })
+        .eq("id", newLogos[index].id),
+      supabase
+        .from("partner_logos")
+        .update({ sort_order: newLogos[index + 1].sort_order })
+        .eq("id", newLogos[index + 1].id),
     ]);
   };
 
@@ -208,32 +234,33 @@ export default function PartnerLogosForm() {
           + 새 로고 추가
         </button>
       </div>
-      
+
       {message && (
-        <div className={`message ${message.type}`}>
-          {message.text}
-        </div>
+        <div className={`message ${message.type}`}>{message.text}</div>
       )}
 
       <p className="description">
-        로고 이미지를 클릭하여 새 이미지로 교체할 수 있습니다. 
-        현재 슬라이더와 동일한 위치, 동일한 속도로 표시됩니다.
+        로고 이미지를 클릭하여 새 이미지로 교체할 수 있습니다. 현재 슬라이더와
+        동일한 위치, 동일한 속도로 표시됩니다.
       </p>
 
       <div className="logos-grid">
         {logos.map((logo, index) => (
-          <div key={logo.id} className={`logo-card ${!logo.is_active ? 'inactive' : ''}`}>
+          <div
+            key={logo.id}
+            className={`logo-card ${!logo.is_active ? "inactive" : ""}`}
+          >
             <div className="logo-order">
-              <button 
-                className="order-btn" 
+              <button
+                className="order-btn"
                 onClick={() => handleMoveUp(index)}
                 disabled={index === 0}
               >
                 ↑
               </button>
               <span>{index + 1}</span>
-              <button 
-                className="order-btn" 
+              <button
+                className="order-btn"
                 onClick={() => handleMoveDown(index)}
                 disabled={index === logos.length - 1}
               >
@@ -241,26 +268,32 @@ export default function PartnerLogosForm() {
               </button>
             </div>
 
-            <div 
+            <div
               className="logo-image-container"
               onClick={() => fileInputRefs.current[logo.id]?.click()}
             >
               {uploadingId === logo.id ? (
                 <div className="uploading">업로드 중...</div>
               ) : logo.logo_url ? (
-                <img src={logo.logo_url} alt={logo.name} className="logo-image" />
+                <img
+                  src={logo.logo_url}
+                  alt={logo.name}
+                  className="logo-image"
+                />
               ) : (
                 <div className="no-image">클릭하여 이미지 업로드</div>
               )}
               <input
                 type="file"
                 accept="image/*"
-                ref={(el) => { fileInputRefs.current[logo.id] = el; }}
+                ref={(el) => {
+                  fileInputRefs.current[logo.id] = el;
+                }}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) handleImageUpload(logo.id, file);
                 }}
-                style={{ display: 'none' }}
+                style={{ display: "none" }}
               />
               <div className="image-overlay">클릭하여 변경</div>
             </div>
@@ -270,39 +303,55 @@ export default function PartnerLogosForm() {
                 <input
                   type="text"
                   value={logo.name}
-                  onChange={(e) => setLogos(logos.map(l => 
-                    l.id === logo.id ? { ...l, name: e.target.value } : l
-                  ))}
+                  onChange={(e) =>
+                    setLogos(
+                      logos.map((l) =>
+                        l.id === logo.id ? { ...l, name: e.target.value } : l
+                      )
+                    )
+                  }
                   placeholder="파트너명"
                 />
                 <input
                   type="text"
-                  value={logo.link_url || ''}
-                  onChange={(e) => setLogos(logos.map(l => 
-                    l.id === logo.id ? { ...l, link_url: e.target.value } : l
-                  ))}
+                  value={logo.link_url || ""}
+                  onChange={(e) =>
+                    setLogos(
+                      logos.map((l) =>
+                        l.id === logo.id
+                          ? { ...l, link_url: e.target.value }
+                          : l
+                      )
+                    )
+                  }
                   placeholder="링크 URL (선택사항)"
                 />
                 <label className="active-toggle">
                   <input
                     type="checkbox"
                     checked={logo.is_active}
-                    onChange={(e) => setLogos(logos.map(l => 
-                      l.id === logo.id ? { ...l, is_active: e.target.checked } : l
-                    ))}
+                    onChange={(e) =>
+                      setLogos(
+                        logos.map((l) =>
+                          l.id === logo.id
+                            ? { ...l, is_active: e.target.checked }
+                            : l
+                        )
+                      )
+                    }
                   />
                   활성화
                 </label>
                 <div className="edit-actions">
-                  <button 
-                    className="save-btn" 
+                  <button
+                    className="save-btn"
                     onClick={() => handleUpdateLogo(logo)}
                     disabled={saving}
                   >
                     저장
                   </button>
-                  <button 
-                    className="cancel-btn" 
+                  <button
+                    className="cancel-btn"
                     onClick={() => {
                       setEditingId(null);
                       fetchLogos();
@@ -316,15 +365,26 @@ export default function PartnerLogosForm() {
               <div className="logo-info">
                 <h3>{logo.name}</h3>
                 {logo.link_url && (
-                  <a href={logo.link_url} target="_blank" rel="noopener noreferrer" className="link-preview">
+                  <a
+                    href={logo.link_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link-preview"
+                  >
                     {logo.link_url}
                   </a>
                 )}
                 <div className="card-actions">
-                  <button className="edit-btn" onClick={() => setEditingId(logo.id)}>
+                  <button
+                    className="edit-btn"
+                    onClick={() => setEditingId(logo.id)}
+                  >
                     수정
                   </button>
-                  <button className="delete-btn" onClick={() => handleDeleteLogo(logo.id)}>
+                  <button
+                    className="delete-btn"
+                    onClick={() => handleDeleteLogo(logo.id)}
+                  >
                     삭제
                   </button>
                 </div>

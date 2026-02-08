@@ -1,9 +1,9 @@
 ---
-import ProductView from '@/components/product/ProductView';
-import Layout from '@/layouts/Layout.astro';
-import { supabase } from '@/lib/supabase';
+import ProductView from "@/components/product/ProductView";
+import Layout from "@/layouts/Layout.astro";
+import { supabase } from "@/lib/supabase";
 
-import '@/components/product/ProductView.css';
+import "@/components/product/ProductView.css";
 
 export const prerender = false;
 
@@ -11,20 +11,24 @@ const { id } = Astro.params;
 
 // Supabase에서 상품 데이터 가져오기
 const { data: product, error } = await supabase
-  .from('products')
-  .select('*')
-  .eq('id', id)
+  .from("products")
+  .select("*")
+  .eq("id", id)
   .single();
 
 if (error || !product) {
-  return Astro.redirect('/404');
+  return Astro.redirect("/404");
 }
 
 // content와 blocks가 문자열이면 파싱
 function parseJson(val: any, fallback: any) {
   if (!val) return fallback;
-  if (typeof val === 'object') return val;
-  try { return JSON.parse(val); } catch { return fallback; }
+  if (typeof val === "object") return val;
+  try {
+    return JSON.parse(val);
+  } catch {
+    return fallback;
+  }
 }
 
 const productData = {
@@ -33,14 +37,14 @@ const productData = {
   blocks: parseJson(product.blocks, []),
 };
 
-const title = productData.content?.title || productData.name || '상품';
-const description = productData.content?.description || productData.description || '성진프린트 인쇄 상품';
+const title = productData.content?.title || productData.name || "상품";
+const description =
+  productData.content?.description ||
+  productData.description ||
+  "성진프린트 인쇄 상품";
 ---
 
-<Layout
-  title={`${title} - 성진프린트`}
-  description={description}
->
+<Layout title={`${title} - 성진프린트`} description={description}>
   <div class="product-page">
     <ProductView client:only="react" product={productData} />
   </div>

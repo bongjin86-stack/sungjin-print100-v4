@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-import BlockNoteEditor from './BlockNoteEditor';
+import BlockNoteEditor from "./BlockNoteEditor";
 
 interface TeamSectionData {
   title: string;
@@ -15,10 +15,13 @@ interface TeamSectionFormProps {
 export default function TeamSectionForm({ initialData }: TeamSectionFormProps) {
   const [formData, setFormData] = useState<TeamSectionData>(initialData);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const handleContentChange = (content: string) => {
-    setFormData(prev => ({ ...prev, description: content }));
+    setFormData((prev) => ({ ...prev, description: content }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,23 +31,23 @@ export default function TeamSectionForm({ initialData }: TeamSectionFormProps) {
 
     try {
       const settings = [
-        { key: 'team_title', value: formData.title },
-        { key: 'team_subtitle', value: formData.subtitle },
-        { key: 'team_description', value: formData.description },
+        { key: "team_title", value: formData.title },
+        { key: "team_subtitle", value: formData.subtitle },
+        { key: "team_description", value: formData.description },
       ];
 
       for (const setting of settings) {
-        const response = await fetch('/api/settings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(setting),
         });
-        if (!response.ok) throw new Error('저장 실패');
+        if (!response.ok) throw new Error("저장 실패");
       }
 
-      setMessage({ type: 'success', text: '저장되었습니다.' });
+      setMessage({ type: "success", text: "저장되었습니다." });
     } catch (error) {
-      setMessage({ type: 'error', text: '저장 중 오류가 발생했습니다.' });
+      setMessage({ type: "error", text: "저장 중 오류가 발생했습니다." });
     } finally {
       setIsSubmitting(false);
     }
@@ -53,18 +56,20 @@ export default function TeamSectionForm({ initialData }: TeamSectionFormProps) {
   return (
     <form onSubmit={handleSubmit} className="team-section-form">
       {message && (
-        <div className={`form-message ${message.type}`}>
-          {message.text}
-        </div>
+        <div className={`form-message ${message.type}`}>{message.text}</div>
       )}
 
       <div className="form-group">
-        <label htmlFor="title" className="form-label">섹션 제목</label>
+        <label htmlFor="title" className="form-label">
+          섹션 제목
+        </label>
         <input
           type="text"
           id="title"
           value={formData.title}
-          onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, title: e.target.value }))
+          }
           className="form-input"
           placeholder="Meet Our Team"
         />
@@ -72,12 +77,16 @@ export default function TeamSectionForm({ initialData }: TeamSectionFormProps) {
       </div>
 
       <div className="form-group">
-        <label htmlFor="subtitle" className="form-label">섹션 부제목</label>
+        <label htmlFor="subtitle" className="form-label">
+          섹션 부제목
+        </label>
         <input
           type="text"
           id="subtitle"
           value={formData.subtitle}
-          onChange={(e) => setFormData(prev => ({ ...prev, subtitle: e.target.value }))}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, subtitle: e.target.value }))
+          }
           className="form-input"
           placeholder="팀 소개"
         />
@@ -86,7 +95,9 @@ export default function TeamSectionForm({ initialData }: TeamSectionFormProps) {
 
       <div className="form-group">
         <label className="form-label">소개 내용</label>
-        <span className="hint">슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.</span>
+        <span className="hint">
+          슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.
+        </span>
         <BlockNoteEditor
           initialContent={formData.description}
           onChange={handleContentChange}
@@ -96,8 +107,12 @@ export default function TeamSectionForm({ initialData }: TeamSectionFormProps) {
       </div>
 
       <div className="form-actions">
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? '저장 중...' : '저장'}
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "저장 중..." : "저장"}
         </button>
       </div>
 

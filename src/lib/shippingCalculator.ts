@@ -1,4 +1,4 @@
-import { getShippingConfig } from './siteConfigService';
+import { getShippingConfig } from "./siteConfigService";
 
 /**
  * 택배비 계산

@@ -1,6 +1,6 @@
 ---
-import AdminLayout from '@/layouts/AdminLayout.astro';
-import { supabase } from '@/lib/supabase';
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { supabase } from "@/lib/supabase";
 
 // 모든 테이블의 데이터 개수 조회
 const [
@@ -13,14 +13,14 @@ const [
   { count: bindingTypes },
   { count: bindingCosts },
 ] = await Promise.all([
-  supabase.from('papers').select('*', { count: 'exact', head: true }),
-  supabase.from('paper_costs').select('*', { count: 'exact', head: true }),
-  supabase.from('sizes').select('*', { count: 'exact', head: true }),
-  supabase.from('print_costs').select('*', { count: 'exact', head: true }),
-  supabase.from('finishing_types').select('*', { count: 'exact', head: true }),
-  supabase.from('finishing_costs').select('*', { count: 'exact', head: true }),
-  supabase.from('binding_types').select('*', { count: 'exact', head: true }),
-  supabase.from('binding_costs').select('*', { count: 'exact', head: true }),
+  supabase.from("papers").select("*", { count: "exact", head: true }),
+  supabase.from("paper_costs").select("*", { count: "exact", head: true }),
+  supabase.from("sizes").select("*", { count: "exact", head: true }),
+  supabase.from("print_costs").select("*", { count: "exact", head: true }),
+  supabase.from("finishing_types").select("*", { count: "exact", head: true }),
+  supabase.from("finishing_costs").select("*", { count: "exact", head: true }),
+  supabase.from("binding_types").select("*", { count: "exact", head: true }),
+  supabase.from("binding_costs").select("*", { count: "exact", head: true }),
 ]);
 
 const stats = {
@@ -36,46 +36,42 @@ const stats = {
 
 const tables = [
   {
-    name: '용지',
-    path: '/admin/db/papers',
-    color: 'blue',
+    name: "용지",
+    path: "/admin/db/papers",
+    color: "blue",
     stats: [
-      { label: '용지 종류', value: stats.papers },
-      { label: '용지 단가', value: stats.paperCosts },
+      { label: "용지 종류", value: stats.papers },
+      { label: "용지 단가", value: stats.paperCosts },
     ],
   },
   {
-    name: '사이즈',
-    path: '/admin/db/sizes',
-    color: 'purple',
+    name: "사이즈",
+    path: "/admin/db/sizes",
+    color: "purple",
+    stats: [{ label: "사이즈", value: stats.sizes }],
+  },
+  {
+    name: "인쇄비",
+    path: "/admin/db/print",
+    color: "green",
+    stats: [{ label: "인쇄비 구간", value: stats.printCosts }],
+  },
+  {
+    name: "후가공",
+    path: "/admin/db/finishing",
+    color: "amber",
     stats: [
-      { label: '사이즈', value: stats.sizes },
+      { label: "후가공 종류", value: stats.finishingTypes },
+      { label: "후가공 비용", value: stats.finishingCosts },
     ],
   },
   {
-    name: '인쇄비',
-    path: '/admin/db/print',
-    color: 'green',
+    name: "제본",
+    path: "/admin/db/binding",
+    color: "cyan",
     stats: [
-      { label: '인쇄비 구간', value: stats.printCosts },
-    ],
-  },
-  {
-    name: '후가공',
-    path: '/admin/db/finishing',
-    color: 'amber',
-    stats: [
-      { label: '후가공 종류', value: stats.finishingTypes },
-      { label: '후가공 비용', value: stats.finishingCosts },
-    ],
-  },
-  {
-    name: '제본',
-    path: '/admin/db/binding',
-    color: 'cyan',
-    stats: [
-      { label: '제본 종류', value: stats.bindingTypes },
-      { label: '제본 비용', value: stats.bindingCosts },
+      { label: "제본 종류", value: stats.bindingTypes },
+      { label: "제본 비용", value: stats.bindingCosts },
     ],
   },
 ];
@@ -87,19 +83,21 @@ const tables = [
 
     <!-- 테이블 카드 그리드 -->
     <div class="table-grid">
-      {tables.map((table) => (
-        <a href={table.path} class={`table-card table-card-${table.color}`}>
-          <h2 class="table-name">{table.name}</h2>
-          <div class="table-stats">
-            {table.stats.map((stat) => (
-              <div class="stat-item">
-                <span class="stat-label">{stat.label}</span>
-                <span class="stat-value">{stat.value}개</span>
-              </div>
-            ))}
-          </div>
-        </a>
-      ))}
+      {
+        tables.map((table) => (
+          <a href={table.path} class={`table-card table-card-${table.color}`}>
+            <h2 class="table-name">{table.name}</h2>
+            <div class="table-stats">
+              {table.stats.map((stat) => (
+                <div class="stat-item">
+                  <span class="stat-label">{stat.label}</span>
+                  <span class="stat-value">{stat.value}개</span>
+                </div>
+              ))}
+            </div>
+          </a>
+        ))
+      }
     </div>
 
     <!-- 전체 통계 -->

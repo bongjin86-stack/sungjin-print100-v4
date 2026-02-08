@@ -1,27 +1,27 @@
 ---
 export const prerender = false;
 
-import NewsForm from '../../../components/admin/NewsForm';
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { supabase } from '../../../lib/supabase';
+import NewsForm from "../../../components/admin/NewsForm";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
 
 const { id } = Astro.params;
 
 // News 데이터 가져오기
 const { data: news, error } = await supabase
-  .from('news')
-  .select('*')
-  .eq('id', id)
+  .from("news")
+  .select("*")
+  .eq("id", id)
   .single();
 
 if (error || !news) {
-  return Astro.redirect('/admin/news');
+  return Astro.redirect("/admin/news");
 }
 
 // pub_date를 YYYY-MM-DD 형식으로 변환
 const formattedNews = {
   ...news,
-  pub_date: new Date(news.pub_date).toISOString().split('T')[0],
+  pub_date: new Date(news.pub_date).toISOString().split("T")[0],
 };
 ---
 
@@ -30,13 +30,9 @@ const formattedNews = {
     <div class="page-header">
       <a href="/admin/news" class="back-link">← 목록으로</a>
     </div>
-    
+
     <div class="form-card">
-      <NewsForm 
-        mode="edit" 
-        initialData={formattedNews}
-        client:load 
-      />
+      <NewsForm mode="edit" initialData={formattedNews} client:load />
     </div>
   </div>
 

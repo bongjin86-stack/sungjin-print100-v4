@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-import { adminFormStyles as styles, mergeStyles } from './adminFormStyles';
-import ImageUploader from './ImageUploader';
+import { adminFormStyles as styles, mergeStyles } from "./adminFormStyles";
+import ImageUploader from "./ImageUploader";
 
 interface Product {
   id: string;
@@ -11,7 +11,7 @@ interface Product {
 }
 
 interface ServicesFormProps {
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   initialData?: {
     id: string;
     slug: string;
@@ -31,33 +31,39 @@ interface ServicesFormProps {
 export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    slug: initialData?.slug || '',
-    title: initialData?.title || '',
-    title_en: initialData?.title_en || '',
-    description: initialData?.description || '',
-    detail_description: initialData?.detail_description || '',
-    image: initialData?.image || '',
+    slug: initialData?.slug || "",
+    title: initialData?.title || "",
+    title_en: initialData?.title_en || "",
+    description: initialData?.description || "",
+    detail_description: initialData?.detail_description || "",
+    image: initialData?.image || "",
     sort_order: initialData?.sort_order || 1,
     is_active: initialData?.is_active ?? true,
-    linked_product_id: initialData?.linked_product_id || '',
-    order_button_text: initialData?.order_button_text || '주문하기',
+    linked_product_id: initialData?.linked_product_id || "",
+    order_button_text: initialData?.order_button_text || "주문하기",
   });
   const [tasks, setTasks] = useState<string[]>(initialData?.tasks || []);
-  const [newTask, setNewTask] = useState('');
+  const [newTask, setNewTask] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    fetch('/api/products')
+    fetch("/api/products")
       .then((res) => res.json())
-      .then((data: Product[]) => setProducts(data.filter((p) => p.is_published !== false)))
+      .then((data: Product[]) =>
+        setProducts(data.filter((p) => p.is_published !== false))
+      )
       .catch(() => setProducts([]));
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? parseInt(value) || 0 : value,
+      [name]: type === "number" ? parseInt(value) || 0 : value,
     }));
   };
 
@@ -68,7 +74,7 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
   const addTask = () => {
     if (newTask.trim()) {
       setTasks([...tasks, newTask.trim()]);
-      setNewTask('');
+      setNewTask("");
     }
   };
 
@@ -83,28 +89,31 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
     const payload = {
       ...formData,
       linked_product_id: formData.linked_product_id || null,
-      order_button_text: formData.order_button_text || '주문하기',
+      order_button_text: formData.order_button_text || "주문하기",
       tasks: JSON.stringify(tasks),
     };
 
     try {
-      const url = mode === 'create' ? '/api/services' : `/api/services/${initialData?.id}`;
-      const method = mode === 'create' ? 'POST' : 'PUT';
+      const url =
+        mode === "create"
+          ? "/api/services"
+          : `/api/services/${initialData?.id}`;
+      const method = mode === "create" ? "POST" : "PUT";
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
-        window.location.href = '/admin/services';
+        window.location.href = "/admin/services";
       } else {
         const error = await res.json();
-        alert(error.message || '저장에 실패했습니다.');
+        alert(error.message || "저장에 실패했습니다.");
       }
     } catch {
-      alert('저장에 실패했습니다.');
+      alert("저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -214,7 +223,11 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
               {tasks.map((task, index) => (
                 <div key={index} style={styles.tagItem}>
                   <span>{task}</span>
-                  <button type="button" onClick={() => removeTask(index)} style={styles.tagRemoveButton}>
+                  <button
+                    type="button"
+                    onClick={() => removeTask(index)}
+                    style={styles.tagRemoveButton}
+                  >
                     ✕
                   </button>
                 </div>
@@ -227,9 +240,15 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
                 onChange={(e) => setNewTask(e.target.value)}
                 placeholder="새 서비스 항목 추가"
                 style={styles.listInput}
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTask())}
+                onKeyPress={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), addTask())
+                }
               />
-              <button type="button" onClick={addTask} style={localStyles.addTaskBtn}>
+              <button
+                type="button"
+                onClick={addTask}
+                style={localStyles.addTaskBtn}
+              >
                 추가
               </button>
             </div>
@@ -244,7 +263,7 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
               name="linked_product_id"
               value={formData.linked_product_id}
               onChange={handleChange}
-              style={mergeStyles(styles.select, { maxWidth: 'none' })}
+              style={mergeStyles(styles.select, { maxWidth: "none" })}
             >
               <option value="">선택 안 함</option>
               {products.map((p) => (
@@ -262,16 +281,24 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
               style={styles.input}
             />
           </div>
-          <p style={styles.hint}>고객이 이 서비스 페이지에서 버튼을 누르면 연결된 상품 페이지로 이동합니다</p>
+          <p style={styles.hint}>
+            고객이 이 서비스 페이지에서 버튼을 누르면 연결된 상품 페이지로
+            이동합니다
+          </p>
         </div>
 
         <div style={styles.formGroup}>
           <label style={styles.label}>공개 여부</label>
           <select
             name="is_active"
-            value={formData.is_active ? 'true' : 'false'}
-            onChange={(e) => setFormData((prev) => ({ ...prev, is_active: e.target.value === 'true' }))}
-            style={mergeStyles(styles.select, { maxWidth: '200px' })}
+            value={formData.is_active ? "true" : "false"}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                is_active: e.target.value === "true",
+              }))
+            }
+            style={mergeStyles(styles.select, { maxWidth: "200px" })}
           >
             <option value="true">공개</option>
             <option value="false">비공개</option>
@@ -280,11 +307,23 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
       </div>
 
       <div style={styles.formActions}>
-        <button type="button" onClick={() => (window.location.href = '/admin/services')} style={styles.cancelButton}>
+        <button
+          type="button"
+          onClick={() => (window.location.href = "/admin/services")}
+          style={styles.cancelButton}
+        >
           취소
         </button>
-        <button type="submit" disabled={isSubmitting} style={styles.submitButton}>
-          {isSubmitting ? '저장 중...' : mode === 'create' ? '추가하기' : '수정하기'}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          style={styles.submitButton}
+        >
+          {isSubmitting
+            ? "저장 중..."
+            : mode === "create"
+              ? "추가하기"
+              : "수정하기"}
         </button>
       </div>
     </form>
@@ -294,19 +333,19 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
 // 이 컴포넌트 전용 스타일
 const localStyles: Record<string, React.CSSProperties> = {
   tasksList: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '0.5rem',
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "0.5rem",
   },
   addTaskBtn: {
-    padding: '0.5rem 1rem',
-    background: '#e5e7eb',
-    color: '#374151',
-    border: 'none',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
+    padding: "0.5rem 1rem",
+    background: "#e5e7eb",
+    color: "#374151",
+    border: "none",
+    borderRadius: "0.375rem",
+    fontSize: "0.875rem",
     fontWeight: 500,
-    cursor: 'pointer',
-    whiteSpace: 'nowrap',
+    cursor: "pointer",
+    whiteSpace: "nowrap",
   },
 };

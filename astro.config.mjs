@@ -17,12 +17,12 @@ export default defineConfig({
       allowedHosts: [
         "localhost",
         "4321-iyocek6w1s4bc62qymi5i-7a02f538.sg1.manus.computer",
-        ".manus.computer"
+        ".manus.computer",
       ],
     },
 
     ssr: {
-      noExternal: ['@toast-ui/editor', '@toast-ui/react-editor']
+      noExternal: ["@toast-ui/editor", "@toast-ui/react-editor"],
     },
 
     plugins: [tailwindcss()],

@@ -1,21 +1,21 @@
 ---
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { supabase } from '../../../lib/supabase';
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
 
 // News 목록 가져오기
 const { data: newsList, error } = await supabase
-  .from('news')
-  .select('*')
-  .order('pub_date', { ascending: false });
+  .from("news")
+  .select("*")
+  .order("pub_date", { ascending: false });
 
 const categories = [
-  { id: 'notice', name: '공지' },
-  { id: 'event', name: '이벤트' },
-  { id: 'update', name: '업데이트' },
+  { id: "notice", name: "공지" },
+  { id: "event", name: "이벤트" },
+  { id: "update", name: "업데이트" },
 ];
 
 function getCategoryName(categoryId: string) {
-  const category = categories.find(c => c.id === categoryId);
+  const category = categories.find((c) => c.id === categoryId);
   return category ? category.name : categoryId;
 }
 ---
@@ -31,51 +31,61 @@ function getCategoryName(categoryId: string) {
 
     <!-- News List -->
     <div class="news-table-wrapper">
-      {error ? (
-        <div class="error-state">
-          <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
-          <p class="error-detail">{error.message}</p>
-        </div>
-      ) : newsList && newsList.length > 0 ? (
-        <table class="news-table">
-          <thead>
-            <tr>
-              <th>제목</th>
-              <th>카테고리</th>
-              <th>발행일</th>
-              <th>작성일</th>
-              <th>관리</th>
-            </tr>
-          </thead>
-          <tbody>
-            {newsList.map((news) => (
+      {
+        error ? (
+          <div class="error-state">
+            <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
+            <p class="error-detail">{error.message}</p>
+          </div>
+        ) : newsList && newsList.length > 0 ? (
+          <table class="news-table">
+            <thead>
               <tr>
-                <td class="news-title-cell">
-                  <a href={`/admin/news/${news.id}`}>{news.title}</a>
-                </td>
-                <td>
-                  <span class={`category-badge category-${news.category}`}>
-                    {getCategoryName(news.category)}
-                  </span>
-                </td>
-                <td>{new Date(news.pub_date).toLocaleDateString('ko-KR')}</td>
-                <td>{new Date(news.created_at).toLocaleDateString('ko-KR')}</td>
-                <td class="actions-cell">
-                  <a href={`/admin/news/${news.id}`} class="btn-edit">수정</a>
-                  <button class="btn-delete" data-id={news.id}>삭제</button>
-                </td>
+                <th>제목</th>
+                <th>카테고리</th>
+                <th>발행일</th>
+                <th>작성일</th>
+                <th>관리</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <div class="empty-state">
-          <div class="empty-icon">📰</div>
-          <h3>등록된 공지사항이 없습니다</h3>
-          <p>새 공지사항을 작성해보세요.</p>
-          <a href="/admin/news/new" class="btn-primary">공지사항 작성하기</a>
-        </div>
-      )}
+            </thead>
+            <tbody>
+              {newsList.map((news) => (
+                <tr>
+                  <td class="news-title-cell">
+                    <a href={`/admin/news/${news.id}`}>{news.title}</a>
+                  </td>
+                  <td>
+                    <span class={`category-badge category-${news.category}`}>
+                      {getCategoryName(news.category)}
+                    </span>
+                  </td>
+                  <td>{new Date(news.pub_date).toLocaleDateString("ko-KR")}</td>
+                  <td>
+                    {new Date(news.created_at).toLocaleDateString("ko-KR")}
+                  </td>
+                  <td class="actions-cell">
+                    <a href={`/admin/news/${news.id}`} class="btn-edit">
+                      수정
+                    </a>
+                    <button class="btn-delete" data-id={news.id}>
+                      삭제
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div class="empty-state">
+            <div class="empty-icon">📰</div>
+            <h3>등록된 공지사항이 없습니다</h3>
+            <p>새 공지사항을 작성해보세요.</p>
+            <a href="/admin/news/new" class="btn-primary">
+              공지사항 작성하기
+            </a>
+          </div>
+        )
+      }
     </div>
   </div>
 
@@ -236,21 +246,21 @@ function getCategoryName(categoryId: string) {
 
   <script>
     // 삭제 버튼 이벤트
-    document.querySelectorAll('.btn-delete').forEach(button => {
-      button.addEventListener('click', async (e) => {
+    document.querySelectorAll(".btn-delete").forEach((button) => {
+      button.addEventListener("click", async (e) => {
         const id = (e.target as HTMLElement).dataset.id;
-        if (confirm('정말 삭제하시겠습니까?')) {
+        if (confirm("정말 삭제하시겠습니까?")) {
           try {
             const response = await fetch(`/api/news/${id}`, {
-              method: 'DELETE',
+              method: "DELETE",
             });
             if (response.ok) {
               window.location.reload();
             } else {
-              alert('삭제에 실패했습니다.');
+              alert("삭제에 실패했습니다.");
             }
           } catch (error) {
-            alert('삭제 중 오류가 발생했습니다.');
+            alert("삭제 중 오류가 발생했습니다.");
           }
         }
       });

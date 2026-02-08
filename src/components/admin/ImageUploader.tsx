@@ -1,6 +1,6 @@
-import React, { useRef,useState } from 'react';
+import React, { useRef, useState } from "react";
 
-import { uploadImage } from '@/lib/supabase';
+import { uploadImage } from "@/lib/supabase";
 
 interface ImageUploaderProps {
   currentImage?: string;
@@ -9,7 +9,12 @@ interface ImageUploaderProps {
   label?: string;
 }
 
-export default function ImageUploader({ currentImage, folder, onUpload, label = '이미지' }: ImageUploaderProps) {
+export default function ImageUploader({
+  currentImage,
+  folder,
+  onUpload,
+  label = "이미지",
+}: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImage || null);
   const [error, setError] = useState<string | null>(null);
@@ -20,14 +25,14 @@ export default function ImageUploader({ currentImage, folder, onUpload, label = 
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('이미지 파일만 업로드 가능합니다.');
+    if (!file.type.startsWith("image/")) {
+      setError("이미지 파일만 업로드 가능합니다.");
       return;
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setError('파일 크기는 10MB 이하여야 합니다.');
+      setError("파일 크기는 10MB 이하여야 합니다.");
       return;
     }
 
@@ -39,8 +44,8 @@ export default function ImageUploader({ currentImage, folder, onUpload, label = 
       setPreview(publicUrl);
       onUpload(publicUrl);
     } catch (err: any) {
-      console.error('Upload error:', err);
-      setError(err.message || '업로드에 실패했습니다.');
+      console.error("Upload error:", err);
+      setError(err.message || "업로드에 실패했습니다.");
     } finally {
       setUploading(false);
     }
@@ -53,40 +58,40 @@ export default function ImageUploader({ currentImage, folder, onUpload, label = 
   return (
     <div className="image-uploader">
       <label className="uploader-label">{label}</label>
-      
+
       <div className="uploader-container">
         {preview ? (
           <div className="preview-container">
             <img src={preview} alt="Preview" className="preview-image" />
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="change-btn"
               onClick={handleClick}
               disabled={uploading}
             >
-              {uploading ? '업로드 중...' : '이미지 변경'}
+              {uploading ? "업로드 중..." : "이미지 변경"}
             </button>
           </div>
         ) : (
           <div className="upload-placeholder" onClick={handleClick}>
             <div className="placeholder-icon">📷</div>
             <div className="placeholder-text">
-              {uploading ? '업로드 중...' : '클릭하여 이미지 업로드'}
+              {uploading ? "업로드 중..." : "클릭하여 이미지 업로드"}
             </div>
           </div>
         )}
-        
+
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
           onChange={handleFileSelect}
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
         />
       </div>
-      
+
       {error && <div className="upload-error">{error}</div>}
-      
+
       {preview && (
         <div className="image-url">
           <small>URL: {preview}</small>

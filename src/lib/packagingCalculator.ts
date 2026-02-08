@@ -75,9 +75,9 @@ export const PAPER_THICKNESS: Record<string, number> = {
 
 export function estimateThickness(
   weight: number,
-  paperType: 'snow' | 'art' = 'snow'
+  paperType: "snow" | "art" = "snow"
 ): number {
-  const ratio = paperType === 'art' ? 0.00095 : 0.00111;
+  const ratio = paperType === "art" ? 0.00095 : 0.00111;
   return weight * ratio;
 }
 
@@ -88,7 +88,12 @@ export function calculateBindingPackaging(
   coverWeight?: number
 ): BindingPackagingResult {
   if (!quantity || !pages) {
-    return { boxCount: 1, totalWeight: 0, weightPerBox: 0, needsFreight: false };
+    return {
+      boxCount: 1,
+      totalWeight: 0,
+      weightPerBox: 0,
+      needsFreight: false,
+    };
   }
 
   const sheetArea = 0.06237; // A4 210x297mm

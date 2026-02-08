@@ -7,15 +7,15 @@ import { getConfig, loadSiteConfig } from "@/lib/siteConfigService";
 // DB에서 설정 로드
 await loadSiteConfig();
 
-const ctaTitle = getConfig('landing_cta_title');
-const ctaSubtitle = getConfig('landing_cta_subtitle');
-const ctaText = getConfig('landing_cta_text');
-const ctaListRaw = getConfig('landing_cta_list');
-const ctaButtonText = getConfig('landing_cta_button_text');
-const ctaButtonLink = getConfig('landing_cta_button_link');
+const ctaTitle = getConfig("landing_cta_title");
+const ctaSubtitle = getConfig("landing_cta_subtitle");
+const ctaText = getConfig("landing_cta_text");
+const ctaListRaw = getConfig("landing_cta_list");
+const ctaButtonText = getConfig("landing_cta_button_text");
+const ctaButtonLink = getConfig("landing_cta_button_link");
 
 // 줄바꿈으로 구분된 문자열을 배열로 변환
-const ctaList = ctaListRaw.split('\n').filter(item => item.trim());
+const ctaList = ctaListRaw.split("\n").filter((item) => item.trim());
 ---
 
 <Section background="inverse">
@@ -25,16 +25,22 @@ const ctaList = ctaListRaw.split('\n').filter(item => item.trim());
       <span class="cta-subtitle">{ctaSubtitle}</span>
     </div>
     <p class="cta-text">{ctaText}</p>
-    {ctaList.length > 0 && (
-      <ul class="cta-list">
-        {ctaList.map((item) => (
-          <li class="cta-list-item">{item}</li>
-        ))}
-      </ul>
-    )}
+    {
+      ctaList.length > 0 && (
+        <ul class="cta-list">
+          {ctaList.map((item) => (
+            <li class="cta-list-item">{item}</li>
+          ))}
+        </ul>
+      )
+    }
     <div class="cta-actions">
-      <LinkButton href={ctaButtonLink || '/contact'} variant="solid-sub" size="large">
-        {ctaButtonText || '문의하기'}
+      <LinkButton
+        href={ctaButtonLink || "/contact"}
+        variant="solid-sub"
+        size="large"
+      >
+        {ctaButtonText || "문의하기"}
       </LinkButton>
     </div>
   </Container>

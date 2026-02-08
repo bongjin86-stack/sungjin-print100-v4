@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-02-08
+
+### Fixed — 버그 수정
+
+- **BlockSettings.jsx 자기참조 변수 버그** — `block.config` 구조분해에서 `block` 변수 충돌 수정
+- **checkLinkRules spring_options 호환성** — spring_options 복합 블록에서 PP/뒷판/표지인쇄 연동 규칙 미작동 수정
+- **용지 블록 label 의존 감지** — cover/inner 용지 판별이 블록 label에 의존하던 문제를 type 기반으로 수정
+
+### Added — 비즈니스 규칙 12종 구현
+
+- **후가공 호환성 규칙** — `checkFinishingCompatibility()`: R-PP01 (코팅+오시 충돌), R-PP02 (코팅+접지 충돌), R-PP03 (오시+접지 상호배제)
+- **제본 제약 규칙** — `validateInnerThickness()`: R003 (중철 두께 제한), R005 (무선 최소 페이지), R006 (스프링 최대 두께), R007 (중철 4p 배수)
+- **스프링 자동화 규칙** — `getSpringOptionRules()`: R-SP01 (PP 투명→뒷판 필수), R-SP02 (표지인쇄→PP 불투명 불가), R-SP03 (뒷판 없음→스프링색상 필수)
+- **페이지 수 제한 규칙** — `getMaxPages()`: R-ST03 (제본 타입별 최대/최소 페이지)
+- `extractDefaultsFromBlock()` — 단일 블록 기본값 추출 함수
+- `getDefaultConfig()` / `getDefaultContent()` — 블록 기본 설정을 builderData.ts로 이동
+- `getSpringOptionsDefaults()` — spring_options 폴백 로직 공유 함수
+- `FIXED_DELIVERY_OPTIONS` — builderData.ts에 출고일 옵션 상수 통합
+
+### Changed — 코드 구조 개선
+
+- **priceEngine.ts 리팩터링** (747→709줄):
+  - `PRICE_CONSTANTS` 객체: 하드코딩 상수 3개 명명 (`MONO_DISCOUNT_RATE`, `CORNER_BATCH_SIZE`, `DEFAULT_PUNCH_HOLES`)
+  - `calculateFinishingCosts()`: 오시/접지/귀도리/타공/미싱 계산 공통 추출
+  - `applyDeliveryAdjustment()`: 출고일 할인/할증 공통 추출
+  - `calculateBindingPrice` → 4개 서브함수 분리 (`calculateCoverCosts`, `calculateInnerCosts`, `calculateBindingSetupCost`, `calculateSpringExtras`)
+- **PaperSelector.jsx** — BlockSettings.jsx에서 용지 선택 UI 컴포넌트 추출
+- **Supabase 저장 통합** — ProductBuilder index.jsx 중복 저장 로직을 `saveProductToServer` 단일 함수로 통합
+- **커스텀 훅 추출** — `useDbData.js`, `usePriceCalculation.js` (ProductBuilder hooks/)
+- **deprecated 블록 타입** — pp, cover_print, back, spring_color, inner_layer_saddle, inner_layer_leaf에 `deprecated: true` 설정, BlockLibraryModal에서 숨김
+
+### Removed
+
+- `USE_PRECALC` 데드 코드 (~64줄) 및 `getSizePaperPrice` 미사용 import 제거
+- ProductBuilder `console.log` 디버깅 로그 10개 제거
+
+### Documentation
+
+- `CLAUDE.md` — Block Rules Control Center 테이블 5→12 함수 반영, ProductBuilder 구조 업데이트, Pricing System 섹션 확장
+- `rules.ts` — 전체 21개 규칙 상태를 `applied`로 업데이트
+
+---
+
 ## [2.2.0] - 2026-02-07
 
 ### Refactored — 빌더 아키텍처 재설계 (5-Phase)

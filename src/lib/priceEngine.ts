@@ -3,7 +3,7 @@
 // MASTER_DOCUMENT v3.6 + DB 스키마 완전 반영
 // 단위: per_copy, per_face, per_hole, per_batch
 
-import type { CustomerSelection } from '@/lib/builderData';
+import type { CustomerSelection } from "@/lib/builderData";
 import {
   getBindingCost,
   getCoatingCost,
@@ -12,15 +12,14 @@ import {
   getPaperCost,
   getPrintCostPerFace,
   getSizeInfo,
-  getSizePaperPrice
-} from '@/lib/dbService';
+} from "@/lib/dbService";
 
-// ============================================================
-// 선계산된 가격 테이블 사용 플래그
-// false: dbService 캐시의 Map 인덱스로 O(1) 실시간 계산 (권장)
-// true: size_paper_price 테이블 사용 (deprecated)
-// ============================================================
-export const USE_PRECALC = false;
+// 가격 계산 상수
+const PRICE_CONSTANTS = {
+  MONO_DISCOUNT_RATE: 0.65, // 흑백 인쇄 할인율 (컬러 대비)
+  CORNER_BATCH_SIZE: 100, // 귀도리 배치 단위
+  DEFAULT_PUNCH_HOLES: 2, // 기본 타공 구멍 수
+} as const;
 
 export interface PriceBreakdown {
   paper?: number;
@@ -79,9 +78,108 @@ export interface BindingResult {
 }
 
 /**
+ * 후가공 비용 공통 계산 (코팅 제외: 오시, 접지, 귀도리, 타공, 미싱)
+ * 코팅은 단일레이어/제본에서 분기가 달라 각 함수에서 직접 처리
+ */
+function calculateFinishingCosts(
+  customer: CustomerSelection,
+  qty: number,
+  breakdown: PriceBreakdown
+): number {
+  let finishingTotal = 0;
+
+  // 오시
+  if (customer.finishing?.osiEnabled && customer.finishing?.osi > 0) {
+    const osiCount = customer.finishing.osi;
+    const osiCost = getFinishingCostByLines("creasing", osiCount, qty);
+
+    if (osiCost) {
+      const osiTotal = osiCost.setup_cost + osiCost.cost_per_unit * qty;
+      breakdown.osi = osiTotal;
+      finishingTotal += osiTotal;
+    }
+  }
+
+  // 접지
+  if (customer.finishing?.foldEnabled && customer.finishing?.fold > 0) {
+    const foldCount = customer.finishing.fold;
+    const foldCost = getFinishingCostByLines("folding", foldCount, qty);
+
+    if (foldCost) {
+      const foldTotal = foldCost.setup_cost + foldCost.cost_per_unit * qty;
+      breakdown.fold = foldTotal;
+      finishingTotal += foldTotal;
+    }
+  }
+
+  // 귀도리
+  if (customer.finishing?.corner) {
+    const cornerCost = getFinishingCost("corner_rounding");
+
+    if (cornerCost) {
+      const batches = Math.ceil(qty / PRICE_CONSTANTS.CORNER_BATCH_SIZE);
+      const cornerTotal =
+        cornerCost.setup_cost + cornerCost.cost_per_unit * batches;
+      breakdown.corner = cornerTotal;
+      finishingTotal += cornerTotal;
+    }
+  }
+
+  // 타공
+  if (customer.finishing?.punch) {
+    const punchCost = getFinishingCost("punching");
+
+    if (punchCost) {
+      const holes = customer.punchHoles || PRICE_CONSTANTS.DEFAULT_PUNCH_HOLES;
+      const punchTotal =
+        punchCost.setup_cost + punchCost.cost_per_unit * holes * qty;
+      breakdown.punch = punchTotal;
+      finishingTotal += punchTotal;
+    }
+  }
+
+  // 미싱
+  if (customer.finishing?.mising) {
+    const misingCost = getFinishingCost("perforating");
+
+    if (misingCost) {
+      const misingTotal =
+        misingCost.setup_cost + misingCost.cost_per_unit * qty;
+      breakdown.mising = misingTotal;
+      finishingTotal += misingTotal;
+    }
+  }
+
+  return finishingTotal;
+}
+
+/**
+ * 출고일 할인/할증 적용
+ * @returns 조정 후 total
+ */
+function applyDeliveryAdjustment(
+  total: number,
+  deliveryPercent: number,
+  breakdown: PriceBreakdown
+): number {
+  const deliveryRate = 1 + deliveryPercent / 100;
+
+  if (deliveryRate !== 1.0) {
+    const deliveryAdjustment = Math.round(total * (deliveryRate - 1));
+    breakdown.delivery = deliveryAdjustment;
+    return Math.round(total * deliveryRate);
+  }
+
+  return total;
+}
+
+/**
  * 단일 레이어 가격 계산 (전단, 리플릿, 엽서)
  */
-export function calculateSingleLayerPrice(customer: CustomerSelection, qty: number): SingleLayerResult {
+export function calculateSingleLayerPrice(
+  customer: CustomerSelection,
+  qty: number
+): SingleLayerResult {
   const breakdown: PriceBreakdown = {};
   let total = 0;
 
@@ -93,31 +191,24 @@ export function calculateSingleLayerPrice(customer: CustomerSelection, qty: numb
   const upCount = sizeInfo.up_count;
   const baseSheet = sizeInfo.base_sheet;
   const sheets = Math.ceil(qty / upCount);
-  const isSingle = customer.side === 'single';
+  const isSingle = customer.side === "single";
   const faces = sheets * (isSingle ? 1 : 2);
-  const isColor = customer.color === 'color';
+  const isColor = customer.color === "color";
 
   // 1. 용지비 계산
-  let paperTotal: number;
-
-  if (USE_PRECALC) {
-    const precalc = getSizePaperPrice(customer.size, customer.paper, customer.weight);
-    if (precalc) {
-      paperTotal = Math.round(precalc.sell_price_per_copy * qty);
-    } else {
-      const paperCostData = getPaperCost(customer.paper, customer.weight, baseSheet);
-      if (!paperCostData) {
-        throw new Error(`용지 단가를 찾을 수 없습니다: ${customer.paper} ${customer.weight}g ${baseSheet}`);
-      }
-      paperTotal = Math.round(paperCostData.cost_per_sheet * paperCostData.margin_rate * sheets);
-    }
-  } else {
-    const paperCostData = getPaperCost(customer.paper, customer.weight, baseSheet);
-    if (!paperCostData) {
-      throw new Error(`용지 단가를 찾을 수 없습니다: ${customer.paper} ${customer.weight}g ${baseSheet}`);
-    }
-    paperTotal = Math.round(paperCostData.cost_per_sheet * paperCostData.margin_rate * sheets);
+  const paperCostData = getPaperCost(
+    customer.paper,
+    customer.weight,
+    baseSheet
+  );
+  if (!paperCostData) {
+    throw new Error(
+      `용지 단가를 찾을 수 없습니다: ${customer.paper} ${customer.weight}g ${baseSheet}`
+    );
   }
+  const paperTotal = Math.round(
+    paperCostData.cost_per_sheet * paperCostData.margin_rate * sheets
+  );
 
   breakdown.paper = paperTotal;
   total += paperTotal;
@@ -126,102 +217,45 @@ export function calculateSingleLayerPrice(customer: CustomerSelection, qty: numb
   const printCostPerFace = getPrintCostPerFace(faces);
   const adjustedPrintCost = isColor
     ? printCostPerFace
-    : Math.round(printCostPerFace * 0.65);
+    : Math.round(printCostPerFace * PRICE_CONSTANTS.MONO_DISCOUNT_RATE);
 
   const printTotal = adjustedPrintCost * faces;
   breakdown.print = printTotal;
   total += printTotal;
 
   // 3. 재단비
-  const cuttingCost = getFinishingCost('cutting');
+  const cuttingCost = getFinishingCost("cutting");
   if (cuttingCost) {
-    const cuttingTotal = cuttingCost.setup_cost + (cuttingCost.cost_per_unit * qty);
+    const cuttingTotal =
+      cuttingCost.setup_cost + cuttingCost.cost_per_unit * qty;
     breakdown.cutting = cuttingTotal;
     total += cuttingTotal;
   }
 
   // 4. 코팅비
   if (customer.finishing?.coating) {
-    const coatingSide = customer.finishing.coatingSide || 'single';
-    const isDouble = coatingSide === 'double';
+    const coatingSide = customer.finishing.coatingSide || "single";
+    const isDouble = coatingSide === "double";
     const coatingFaces = isDouble ? faces : sheets;
     const coatingCost = getCoatingCost(coatingFaces, isDouble);
 
     if (coatingCost) {
-      const coatingTotal = coatingCost.setup_cost + (coatingCost.cost_per_unit * coatingFaces);
+      const coatingTotal =
+        coatingCost.setup_cost + coatingCost.cost_per_unit * coatingFaces;
       breakdown.coating = coatingTotal;
       total += coatingTotal;
     }
   }
 
-  // 5. 오시
-  if (customer.finishing?.osiEnabled && customer.finishing?.osi > 0) {
-    const osiCount = customer.finishing.osi;
-    const osiCost = getFinishingCostByLines('creasing', osiCount, qty);
-
-    if (osiCost) {
-      const osiTotal = osiCost.setup_cost + (osiCost.cost_per_unit * qty);
-      breakdown.osi = osiTotal;
-      total += osiTotal;
-    }
-  }
-
-  // 6. 접지
-  if (customer.finishing?.foldEnabled && customer.finishing?.fold > 0) {
-    const foldCount = customer.finishing.fold;
-    const foldCost = getFinishingCostByLines('folding', foldCount, qty);
-
-    if (foldCost) {
-      const foldTotal = foldCost.setup_cost + (foldCost.cost_per_unit * qty);
-      breakdown.fold = foldTotal;
-      total += foldTotal;
-    }
-  }
-
-  // 7. 귀도리
-  if (customer.finishing?.corner) {
-    const cornerCost = getFinishingCost('corner_rounding');
-
-    if (cornerCost) {
-      const batches = Math.ceil(qty / 100);
-      const cornerTotal = cornerCost.setup_cost + (cornerCost.cost_per_unit * batches);
-      breakdown.corner = cornerTotal;
-      total += cornerTotal;
-    }
-  }
-
-  // 8. 타공
-  if (customer.finishing?.punch) {
-    const punchCost = getFinishingCost('punching');
-
-    if (punchCost) {
-      const holes = customer.punchHoles || 2;
-      const punchTotal = punchCost.setup_cost + (punchCost.cost_per_unit * holes * qty);
-      breakdown.punch = punchTotal;
-      total += punchTotal;
-    }
-  }
-
-  // 9. 미싱
-  if (customer.finishing?.mising) {
-    const misingCost = getFinishingCost('perforating');
-
-    if (misingCost) {
-      const misingTotal = misingCost.setup_cost + (misingCost.cost_per_unit * qty);
-      breakdown.mising = misingTotal;
-      total += misingTotal;
-    }
-  }
+  // 5-9. 후가공 (오시, 접지, 귀도리, 타공, 미싱)
+  total += calculateFinishingCosts(customer, qty, breakdown);
 
   // 10. 출고일 할인/할증
-  const deliveryPercent = customer.deliveryPercent || 0;
-  const deliveryRate = 1 + (deliveryPercent / 100);
-
-  if (deliveryRate !== 1.00) {
-    const deliveryAdjustment = Math.round(total * (deliveryRate - 1));
-    breakdown.delivery = deliveryAdjustment;
-    total = Math.round(total * deliveryRate);
-  }
+  total = applyDeliveryAdjustment(
+    total,
+    customer.deliveryPercent || 0,
+    breakdown
+  );
 
   const perUnit = qty > 0 ? Math.round(total / qty) : 0;
 
@@ -240,8 +274,185 @@ export function calculateSingleLayerPrice(customer: CustomerSelection, qty: numb
     faces,
     upCount,
     baseSheet,
-    estimatedWeight
+    estimatedWeight,
   };
+}
+
+// ============================================================
+// 제본 가격 서브 함수
+// ============================================================
+
+/** 표지 비용 (용지 + 인쇄 + 코팅) */
+function calculateCoverCosts(
+  customer: CustomerSelection,
+  qty: number,
+  baseSheet: string,
+  breakdown: PriceBreakdown
+): { total: number; coverSheets: number; coverFaces: number } {
+  let total = 0;
+  const coverSheets = qty;
+  const coverFaces = coverSheets * 2;
+  const coverIsColor = customer.coverColor === "color";
+
+  // 표지 용지비
+  let coverPaperTotal = 0;
+  const coverPaperCost = getPaperCost(
+    customer.coverPaper,
+    customer.coverWeight,
+    baseSheet
+  );
+  if (coverPaperCost) {
+    coverPaperTotal = Math.round(
+      coverPaperCost.cost_per_sheet * coverPaperCost.margin_rate * coverSheets
+    );
+  }
+  breakdown.coverPaper = coverPaperTotal;
+  total += coverPaperTotal;
+
+  // 표지 인쇄비
+  const coverPrintCost = getPrintCostPerFace(coverFaces);
+  const adjustedCoverPrintCost = coverIsColor
+    ? coverPrintCost
+    : Math.round(coverPrintCost * PRICE_CONSTANTS.MONO_DISCOUNT_RATE);
+  const coverPrintTotal = adjustedCoverPrintCost * coverFaces;
+  breakdown.coverPrint = coverPrintTotal;
+  total += coverPrintTotal;
+
+  // 표지 코팅
+  if (customer.coverCoating && customer.coverCoating !== "none") {
+    const coatingSide = customer.coverCoatingSide || "double";
+    const coatingFaces = coatingSide === "double" ? coverFaces : coverSheets;
+    const coatingCost = getCoatingCost(coatingFaces, coatingSide === "double");
+
+    if (coatingCost) {
+      const coatingTotal =
+        coatingCost.setup_cost + coatingCost.cost_per_unit * coatingFaces;
+      breakdown.coverCoating = coatingTotal;
+      total += coatingTotal;
+    }
+  }
+
+  return { total, coverSheets, coverFaces };
+}
+
+/** 내지 비용 (용지 + 인쇄) */
+function calculateInnerCosts(
+  customer: CustomerSelection,
+  qty: number,
+  baseSheet: string,
+  bindingType: "saddle" | "perfect" | "spring",
+  sizeUpCount: number,
+  breakdown: PriceBreakdown
+): { total: number; innerSheets: number; innerFaces: number; pages: number } {
+  let total = 0;
+  const pages = customer.pages || 16;
+  const innerIsSingle = customer.innerSide === "single";
+  let innerSheets: number;
+
+  if (bindingType === "saddle") {
+    // 중철: 대지 접지 방식 (단면 없음)
+    innerSheets = Math.ceil(Math.max(0, pages - 4) / 4) * qty;
+  } else {
+    // 무선/스프링: 단면은 1페이지/장, 양면은 2페이지/장
+    innerSheets = innerIsSingle ? pages * qty : Math.ceil(pages / 2) * qty;
+  }
+
+  const innerFaces = innerSheets * (innerIsSingle ? 1 : 2);
+  const innerIsColor = customer.innerColor === "color";
+
+  // 내지 용지비
+  let innerPaperTotal = 0;
+  const innerPaperCost = getPaperCost(
+    customer.innerPaper,
+    customer.innerWeight,
+    baseSheet
+  );
+  if (innerPaperCost) {
+    innerPaperTotal = Math.round(
+      innerPaperCost.cost_per_sheet * innerPaperCost.margin_rate * innerSheets
+    );
+  }
+  breakdown.innerPaper = innerPaperTotal;
+  total += innerPaperTotal;
+
+  // 내지 인쇄비 (up_count 적용)
+  const baseSheetFaces = Math.ceil(innerFaces / sizeUpCount);
+  const innerPrintCost = getPrintCostPerFace(baseSheetFaces);
+  const adjustedInnerPrintCost = innerIsColor
+    ? innerPrintCost
+    : Math.round(innerPrintCost * PRICE_CONSTANTS.MONO_DISCOUNT_RATE);
+  const innerPrintTotal = adjustedInnerPrintCost * baseSheetFaces;
+  breakdown.innerPrint = innerPrintTotal;
+  total += innerPrintTotal;
+
+  return { total, innerSheets, innerFaces, pages };
+}
+
+/** 제본비 */
+function calculateBindingSetupCost(
+  bindingType: "saddle" | "perfect" | "spring",
+  qty: number,
+  breakdown: PriceBreakdown
+): number {
+  const bindingCost = getBindingCost(bindingType, qty);
+  if (bindingCost) {
+    const bindingTotal =
+      bindingCost.setup_cost + bindingCost.cost_per_copy * qty;
+    breakdown.binding = bindingTotal;
+    return bindingTotal;
+  }
+  return 0;
+}
+
+/** 스프링제본 추가 옵션 (PP + 표지인쇄) */
+function calculateSpringExtras(
+  customer: CustomerSelection,
+  qty: number,
+  baseSheet: string,
+  breakdown: PriceBreakdown
+): number {
+  let total = 0;
+
+  // PP 커버
+  if (customer.pp && customer.pp !== "none") {
+    const ppCost = getFinishingCost("pp_cover");
+    if (ppCost) {
+      const ppTotal = ppCost.setup_cost + ppCost.cost_per_unit * qty;
+      breakdown.pp = ppTotal;
+      total += ppTotal;
+    }
+  }
+
+  // 표지인쇄
+  if (customer.coverPrint && customer.coverPrint !== "none") {
+    const springCoverSheets = qty;
+    const springCoverFaces =
+      customer.coverPrint === "front_back"
+        ? springCoverSheets * 2
+        : springCoverSheets;
+
+    const springCoverPaperCost = getPaperCost(
+      customer.coverPaper,
+      customer.coverWeight,
+      baseSheet
+    );
+    if (springCoverPaperCost) {
+      const springCoverPaperTotal = Math.round(
+        springCoverPaperCost.cost_per_sheet *
+          springCoverPaperCost.margin_rate *
+          springCoverSheets
+      );
+      breakdown.springCoverPaper = springCoverPaperTotal;
+      total += springCoverPaperTotal;
+    }
+
+    const springCoverPrintCost = getPrintCostPerFace(springCoverFaces);
+    const springCoverPrintTotal = springCoverPrintCost * springCoverFaces;
+    breakdown.springCoverPrint = springCoverPrintTotal;
+    total += springCoverPrintTotal;
+  }
+
+  return total;
 }
 
 /**
@@ -250,7 +461,7 @@ export function calculateSingleLayerPrice(customer: CustomerSelection, qty: numb
 export function calculateBindingPrice(
   customer: CustomerSelection,
   qty: number,
-  bindingType: 'saddle' | 'perfect' | 'spring'
+  bindingType: "saddle" | "perfect" | "spring"
 ): BindingResult {
   const breakdown: PriceBreakdown = {};
   let total = 0;
@@ -262,249 +473,79 @@ export function calculateBindingPrice(
 
   const baseSheet = sizeInfo.base_sheet;
 
-  // 1. 표지 계산
-  const coverSheets = qty;
-  const coverFaces = coverSheets * 2;
-  const coverIsColor = customer.coverColor === 'color';
+  // 1. 표지 비용
+  const cover = calculateCoverCosts(customer, qty, baseSheet, breakdown);
+  total += cover.total;
 
-  let coverPaperTotal = 0;
-  if (USE_PRECALC) {
-    const precalc = getSizePaperPrice(customer.size, customer.coverPaper, customer.coverWeight);
-    if (precalc) {
-      coverPaperTotal = Math.round(precalc.sell_price_per_sheet * coverSheets);
-    } else {
-      const coverPaperCost = getPaperCost(customer.coverPaper, customer.coverWeight, baseSheet);
-      if (coverPaperCost) {
-        coverPaperTotal = Math.round(coverPaperCost.cost_per_sheet * coverPaperCost.margin_rate * coverSheets);
-      }
-    }
-  } else {
-    const coverPaperCost = getPaperCost(customer.coverPaper, customer.coverWeight, baseSheet);
-    if (coverPaperCost) {
-      coverPaperTotal = Math.round(coverPaperCost.cost_per_sheet * coverPaperCost.margin_rate * coverSheets);
-    }
-  }
-  breakdown.coverPaper = coverPaperTotal;
-  total += coverPaperTotal;
-
-  // 표지 인쇄비
-  const coverPrintCost = getPrintCostPerFace(coverFaces);
-  const adjustedCoverPrintCost = coverIsColor
-    ? coverPrintCost
-    : Math.round(coverPrintCost * 0.65);
-  const coverPrintTotal = adjustedCoverPrintCost * coverFaces;
-  breakdown.coverPrint = coverPrintTotal;
-  total += coverPrintTotal;
-
-  // 표지 코팅
-  if (customer.coverCoating && customer.coverCoating !== 'none') {
-    const coatingSide = customer.coverCoatingSide || 'double';
-    const coatingFaces = coatingSide === 'double' ? coverFaces : coverSheets;
-    const coatingCost = getCoatingCost(coatingFaces, coatingSide === 'double');
-
-    if (coatingCost) {
-      const coatingTotal = coatingCost.setup_cost + (coatingCost.cost_per_unit * coatingFaces);
-      breakdown.coverCoating = coatingTotal;
-      total += coatingTotal;
-    }
-  }
-
-  // 2. 내지 계산
-  const pages = customer.pages || 16;
-  const innerIsSingle = customer.innerSide === 'single';
-  let innerSheets: number;
-
-  if (bindingType === 'saddle') {
-    // 중철: 대지 접지 방식 (단면 없음)
-    innerSheets = Math.ceil(Math.max(0, pages - 4) / 4) * qty;
-  } else {
-    // 무선/스프링: 단면은 1페이지/장, 양면은 2페이지/장
-    innerSheets = innerIsSingle
-      ? (pages * qty)
-      : (Math.ceil(pages / 2) * qty);
-  }
-
-  const innerFaces = innerSheets * (innerIsSingle ? 1 : 2);
-  const innerIsColor = customer.innerColor === 'color';
-
-  let innerPaperTotal = 0;
-  if (USE_PRECALC) {
-    const precalc = getSizePaperPrice(customer.size, customer.innerPaper, customer.innerWeight);
-    if (precalc) {
-      innerPaperTotal = Math.round(precalc.sell_price_per_sheet * innerSheets);
-    } else {
-      const innerPaperCost = getPaperCost(customer.innerPaper, customer.innerWeight, baseSheet);
-      if (innerPaperCost) {
-        innerPaperTotal = Math.round(innerPaperCost.cost_per_sheet * innerPaperCost.margin_rate * innerSheets);
-      }
-    }
-  } else {
-    const innerPaperCost = getPaperCost(customer.innerPaper, customer.innerWeight, baseSheet);
-    if (innerPaperCost) {
-      innerPaperTotal = Math.round(innerPaperCost.cost_per_sheet * innerPaperCost.margin_rate * innerSheets);
-    }
-  }
-  breakdown.innerPaper = innerPaperTotal;
-  total += innerPaperTotal;
-
-  // 내지 인쇄비 (up_count 적용: A4면 467x315 대비 2배수이므로 면당 단가 1/2)
-  const sizeUpCount = sizeInfo.up_count;
-  const baseSheetFaces = Math.ceil(innerFaces / sizeUpCount);  // 실제 인쇄 면수 (467x315 기준)
-  const innerPrintCost = getPrintCostPerFace(baseSheetFaces);
-  const adjustedInnerPrintCost = innerIsColor
-    ? innerPrintCost
-    : Math.round(innerPrintCost * 0.65);
-  const innerPrintTotal = adjustedInnerPrintCost * baseSheetFaces;
-  breakdown.innerPrint = innerPrintTotal;
-  total += innerPrintTotal;
+  // 2. 내지 비용
+  const inner = calculateInnerCosts(
+    customer,
+    qty,
+    baseSheet,
+    bindingType,
+    sizeInfo.up_count,
+    breakdown
+  );
+  total += inner.total;
 
   // 3. 제본비
-  const bindingCost = getBindingCost(bindingType, qty);
-  if (bindingCost) {
-    const bindingTotal = bindingCost.setup_cost + (bindingCost.cost_per_copy * qty);
-    breakdown.binding = bindingTotal;
-    total += bindingTotal;
-  }
+  total += calculateBindingSetupCost(bindingType, qty, breakdown);
 
   // 4. 스프링제본 추가 옵션
-  if (bindingType === 'spring') {
-    if (customer.pp && customer.pp !== 'none') {
-      const ppCost = getFinishingCost('pp_cover');
-      if (ppCost) {
-        const ppTotal = ppCost.setup_cost + (ppCost.cost_per_unit * qty);
-        breakdown.pp = ppTotal;
-        total += ppTotal;
-      }
-    }
-
-    if (customer.coverPrint && customer.coverPrint !== 'none') {
-      const springCoverSheets = qty;
-      const springCoverFaces = customer.coverPrint === 'front_back'
-        ? springCoverSheets * 2
-        : springCoverSheets;
-
-      const springCoverPaperCost = getPaperCost(customer.coverPaper, customer.coverWeight, baseSheet);
-      if (springCoverPaperCost) {
-        const springCoverPaperTotal = Math.round(
-          springCoverPaperCost.cost_per_sheet * springCoverPaperCost.margin_rate * springCoverSheets
-        );
-        breakdown.springCoverPaper = springCoverPaperTotal;
-        total += springCoverPaperTotal;
-      }
-
-      const springCoverPrintCost = getPrintCostPerFace(springCoverFaces);
-      const springCoverPrintTotal = springCoverPrintCost * springCoverFaces;
-      breakdown.springCoverPrint = springCoverPrintTotal;
-      total += springCoverPrintTotal;
-    }
+  if (bindingType === "spring") {
+    total += calculateSpringExtras(customer, qty, baseSheet, breakdown);
   }
 
-  // 5. 후가공 (finishing block - 표지 후가공)
-  // 코팅: finishing block에서 설정된 경우 (coverCoating이 이미 처리되지 않은 경우만)
+  // 5. 후가공 코팅 (finishing block에서 설정된 경우, coverCoating이 이미 처리되지 않은 경우만)
   if (customer.finishing?.coating && !breakdown.coverCoating) {
-    const coatingSide = customer.finishing.coatingSide || 'single';
-    const isDouble = coatingSide === 'double';
-    const coatingFaces = isDouble ? coverFaces : coverSheets;
+    const coatingSide = customer.finishing.coatingSide || "single";
+    const isDouble = coatingSide === "double";
+    const coatingFaces = isDouble ? cover.coverFaces : cover.coverSheets;
     const coatingCost = getCoatingCost(coatingFaces, isDouble);
 
     if (coatingCost) {
-      const coatingTotal = coatingCost.setup_cost + (coatingCost.cost_per_unit * coatingFaces);
+      const coatingTotal =
+        coatingCost.setup_cost + coatingCost.cost_per_unit * coatingFaces;
       breakdown.coverCoating = coatingTotal;
       total += coatingTotal;
     }
   }
 
-  // 오시
-  if (customer.finishing?.osiEnabled && customer.finishing?.osi > 0) {
-    const osiCount = customer.finishing.osi;
-    const osiCost = getFinishingCostByLines('creasing', osiCount, qty);
-
-    if (osiCost) {
-      const osiTotal = osiCost.setup_cost + (osiCost.cost_per_unit * qty);
-      breakdown.osi = osiTotal;
-      total += osiTotal;
-    }
-  }
-
-  // 접지
-  if (customer.finishing?.foldEnabled && customer.finishing?.fold > 0) {
-    const foldCount = customer.finishing.fold;
-    const foldCost = getFinishingCostByLines('folding', foldCount, qty);
-
-    if (foldCost) {
-      const foldTotal = foldCost.setup_cost + (foldCost.cost_per_unit * qty);
-      breakdown.fold = foldTotal;
-      total += foldTotal;
-    }
-  }
-
-  // 귀도리
-  if (customer.finishing?.corner) {
-    const cornerCost = getFinishingCost('corner_rounding');
-
-    if (cornerCost) {
-      const batches = Math.ceil(qty / 100);
-      const cornerTotal = cornerCost.setup_cost + (cornerCost.cost_per_unit * batches);
-      breakdown.corner = cornerTotal;
-      total += cornerTotal;
-    }
-  }
-
-  // 타공
-  if (customer.finishing?.punch) {
-    const punchCost = getFinishingCost('punching');
-
-    if (punchCost) {
-      const holes = customer.punchHoles || 2;
-      const punchTotal = punchCost.setup_cost + (punchCost.cost_per_unit * holes * qty);
-      breakdown.punch = punchTotal;
-      total += punchTotal;
-    }
-  }
-
-  // 미싱
-  if (customer.finishing?.mising) {
-    const misingCost = getFinishingCost('perforating');
-
-    if (misingCost) {
-      const misingTotal = misingCost.setup_cost + (misingCost.cost_per_unit * qty);
-      breakdown.mising = misingTotal;
-      total += misingTotal;
-    }
-  }
+  // 후가공 (오시, 접지, 귀도리, 타공, 미싱)
+  total += calculateFinishingCosts(customer, qty, breakdown);
 
   // 6. 출고일 할인/할증
-  const deliveryPercent = customer.deliveryPercent || 0;
-  const deliveryRate = 1 + (deliveryPercent / 100);
-
-  if (deliveryRate !== 1.00) {
-    const deliveryAdjustment = Math.round(total * (deliveryRate - 1));
-    breakdown.delivery = deliveryAdjustment;
-    total = Math.round(total * deliveryRate);
-  }
+  total = applyDeliveryAdjustment(
+    total,
+    customer.deliveryPercent || 0,
+    breakdown
+  );
 
   const perUnit = qty > 0 ? Math.round(total / qty) : 0;
 
   // 7. 두께 계산 및 검증
   const totalThickness = calculateBindingThickness(
     bindingType,
-    pages,
+    inner.pages,
     customer.innerWeight || 80,
     customer.coverWeight || 200,
-    customer.innerPaper || '',
-    customer.coverPaper || '',
-    customer.innerSide || 'double'
+    customer.innerPaper || "",
+    customer.coverPaper || "",
+    customer.innerSide || "double"
   );
 
-  const thicknessValidation = validateBindingThickness(bindingType, totalThickness, customer.maxThickness);
+  const thicknessValidation = validateBindingThickness(
+    bindingType,
+    totalThickness,
+    customer.maxThickness
+  );
 
   // 예상 무게 계산 (kg)
-  // 제본 = 표지 무게 + 내지 무게
   const paperAreaM2 = (sizeInfo.width * sizeInfo.height) / 1_000_000;
   const coverGsm = customer.coverWeight || 200;
   const innerGsm = customer.innerWeight || 80;
-  const coverWeight = (paperAreaM2 * coverGsm * coverSheets) / 1000;
-  const innerWeight = (paperAreaM2 * innerGsm * innerSheets) / 1000;
+  const coverWeight = (paperAreaM2 * coverGsm * cover.coverSheets) / 1000;
+  const innerWeight = (paperAreaM2 * innerGsm * inner.innerSheets) / 1000;
   const estimatedWeight = coverWeight + innerWeight;
 
   return {
@@ -512,14 +553,14 @@ export function calculateBindingPrice(
     breakdown,
     perUnit,
     unitPrice: perUnit,
-    coverSheets,
-    coverFaces,
-    innerSheets,
-    innerFaces,
+    coverSheets: cover.coverSheets,
+    coverFaces: cover.coverFaces,
+    innerSheets: inner.innerSheets,
+    innerFaces: inner.innerFaces,
     totalThickness,
     thicknessValidation,
-    pages,
-    estimatedWeight
+    pages: inner.pages,
+    estimatedWeight,
   };
 }
 
@@ -529,12 +570,24 @@ export function calculateBindingPrice(
 export function calculatePrice(
   customer: CustomerSelection,
   qty: number,
-  productType: string = 'flyer'
+  productType: string = "flyer"
 ): SingleLayerResult | BindingResult {
-  if (productType === 'flyer' || productType === 'leaflet' || productType === 'postcard') {
+  if (
+    productType === "flyer" ||
+    productType === "leaflet" ||
+    productType === "postcard"
+  ) {
     return calculateSingleLayerPrice(customer, qty);
-  } else if (productType === 'saddle' || productType === 'perfect' || productType === 'spring') {
-    return calculateBindingPrice(customer, qty, productType as 'saddle' | 'perfect' | 'spring');
+  } else if (
+    productType === "saddle" ||
+    productType === "perfect" ||
+    productType === "spring"
+  ) {
+    return calculateBindingPrice(
+      customer,
+      qty,
+      productType as "saddle" | "perfect" | "spring"
+    );
   } else {
     throw new Error(`알 수 없는 상품 타입: ${productType}`);
   }
@@ -556,17 +609,20 @@ export function calculatePrice(
  * 참고: DB paper_costs.thickness에 실제값 저장됨
  * 이 함수는 DB 데이터 없을 때 fallback용
  */
-export function estimateThickness(weight: number, paperCode: string = ''): number {
+export function estimateThickness(
+  weight: number,
+  paperCode: string = ""
+): number {
   const thicknessFactors: Record<string, number> = {
-    'art': 0.0009,
-    'snow': 0.0009,
-    'mojo': 0.00115,
-    'inspirer': 0.0012,
-    'rendezvous': 0.0012,
-    'matte': 0.0009,
-    'ivory': 0.0010,
-    'kraft': 0.0012,
-    'default': 0.0010
+    art: 0.0009,
+    snow: 0.0009,
+    mojo: 0.00115,
+    inspirer: 0.0012,
+    rendezvous: 0.0012,
+    matte: 0.0009,
+    ivory: 0.001,
+    kraft: 0.0012,
+    default: 0.001,
   };
 
   const code = paperCode.toLowerCase();
@@ -587,9 +643,9 @@ export function calculateBindingThickness(
   pages: number,
   innerWeight: number,
   coverWeight: number,
-  innerPaperCode: string = '',
-  coverPaperCode: string = '',
-  innerSide: string = 'double' // 단면/양면
+  innerPaperCode: string = "",
+  coverPaperCode: string = "",
+  innerSide: string = "double" // 단면/양면
 ): number {
   const innerThickness = estimateThickness(innerWeight, innerPaperCode);
   const coverThickness = estimateThickness(coverWeight, coverPaperCode);
@@ -597,16 +653,16 @@ export function calculateBindingThickness(
   // 장수 계산: 양면이면 pages/2, 단면이면 pages
   // - 양면: 1장에 앞뒤 2페이지
   // - 단면: 1장에 1페이지
-  const innerSheets = innerSide === 'single' ? pages : pages / 2;
+  const innerSheets = innerSide === "single" ? pages : pages / 2;
   const innerLayerThickness = innerSheets * innerThickness;
 
-  if (bindingType === 'saddle') {
+  if (bindingType === "saddle") {
     // 중철: 내지만 (표지는 접힌 1장이라 무시)
     return innerLayerThickness;
-  } else if (bindingType === 'perfect') {
+  } else if (bindingType === "perfect") {
     // 무선: 내지 + 표지 1장
     return innerLayerThickness + coverThickness;
-  } else if (bindingType === 'spring') {
+  } else if (bindingType === "spring") {
     // 스프링: 내지 + 표지 2장 (앞뒤 분리)
     return innerLayerThickness + coverThickness * 2;
   }
@@ -623,16 +679,17 @@ export function validateBindingThickness(
   const defaultLimits: Record<string, number> = {
     saddle: 2.5,
     perfect: 50,
-    spring: 20
+    spring: 20,
   };
 
   const limit = customLimit || defaultLimits[bindingType];
-  if (!limit) return { valid: true, warning: false, error: false, message: null };
+  if (!limit)
+    return { valid: true, warning: false, error: false, message: null };
 
   const bindingNames: Record<string, string> = {
-    saddle: '중철제본',
-    perfect: '무선제본',
-    spring: '스프링제본'
+    saddle: "중철제본",
+    perfect: "무선제본",
+    spring: "스프링제본",
   };
 
   if (thickness > limit) {
@@ -640,7 +697,7 @@ export function validateBindingThickness(
       valid: false,
       warning: false,
       error: true,
-      message: `${bindingNames[bindingType] || '제본'} 두께 ${limit}mm 초과 (현재: ${thickness.toFixed(1)}mm)`
+      message: `${bindingNames[bindingType] || "제본"} 두께 ${limit}mm 초과 (현재: ${thickness.toFixed(1)}mm)`,
     };
   }
 

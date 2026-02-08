@@ -15,21 +15,21 @@ const { id } = Astro.params;
 
 // DB에서 News 데이터 가져오기
 const { data: news, error: newsError } = await supabase
-  .from('news')
-  .select('*')
-  .eq('id', id)
+  .from("news")
+  .select("*")
+  .eq("id", id)
   .single();
 
 // 데이터가 없으면 404
 if (newsError || !news) {
-  return Astro.redirect('/404');
+  return Astro.redirect("/404");
 }
 
 // News 카테고리 정의
 const categoryList = [
   { id: "information", title: "안내" },
   { id: "event", title: "이벤트" },
-  { id: "update", title: "업데이트" }
+  { id: "update", title: "업데이트" },
 ];
 
 const categoryInfo = categoryList.find((cat) => cat.id === news.category);
@@ -48,7 +48,11 @@ const formattedDate = pubDate
 const contentHtml = renderBlocksToHTML(news.content);
 ---
 
-<Layout title={`${news.title} - News`} description={news.title} articleDate={pubDate}>
+<Layout
+  title={`${news.title} - News`}
+  description={news.title}
+  articleDate={pubDate}
+>
   <Section>
     <Container size="medium">
       <article class="news-detail">
@@ -227,7 +231,8 @@ const contentHtml = renderBlocksToHTML(news.content);
       border-collapse: collapse;
     }
 
-    :global(td), :global(th) {
+    :global(td),
+    :global(th) {
       padding: var(--sp-sm) var(--sp-md);
       border: 1px solid var(--c-border);
     }

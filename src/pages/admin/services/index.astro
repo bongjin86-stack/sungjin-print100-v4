@@ -1,17 +1,17 @@
 ---
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { supabase } from '../../../lib/supabase';
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
 // Services 데이터 가져오기
 const { data: services, error } = await supabase
-  .from('services')
-  .select('*')
-  .order('sort_order', { ascending: true });
+  .from("services")
+  .select("*")
+  .order("sort_order", { ascending: true });
 
 if (error) {
-  console.error('Error fetching services:', error);
+  console.error("Error fetching services:", error);
 }
 
 // tasks가 이미 배열인지 문자열인지 확인하는 헬퍼 함수
@@ -33,47 +33,55 @@ function parseTasks(tasks: any): string[] {
   </div>
 
   <div class="services-list">
-    {services && services.length > 0 ? (
-      <div class="services-grid">
-        {services.map((service) => {
-          const taskList = parseTasks(service.tasks);
-          return (
-            <div class="service-card">
-              <div class="service-image">
-                {service.image ? (
-                  <img src={service.image} alt={service.title} />
-                ) : (
-                  <div class="no-image">이미지 없음</div>
-                )}
-              </div>
-              <div class="service-content">
-                <div class="service-order">0{service.sort_order}</div>
-                <h3>{service.title}</h3>
-                <p class="service-title-en">{service.title_en}</p>
-                <p class="service-desc">{service.description}</p>
-                <div class="service-tasks">
-                  {taskList.slice(0, 3).map((task: string) => (
-                    <span class="task-tag">{task}</span>
-                  ))}
-                  {taskList.length > 3 && (
-                    <span class="task-more">+{taskList.length - 3}</span>
+    {
+      services && services.length > 0 ? (
+        <div class="services-grid">
+          {services.map((service) => {
+            const taskList = parseTasks(service.tasks);
+            return (
+              <div class="service-card">
+                <div class="service-image">
+                  {service.image ? (
+                    <img src={service.image} alt={service.title} />
+                  ) : (
+                    <div class="no-image">이미지 없음</div>
                   )}
                 </div>
+                <div class="service-content">
+                  <div class="service-order">0{service.sort_order}</div>
+                  <h3>{service.title}</h3>
+                  <p class="service-title-en">{service.title_en}</p>
+                  <p class="service-desc">{service.description}</p>
+                  <div class="service-tasks">
+                    {taskList.slice(0, 3).map((task: string) => (
+                      <span class="task-tag">{task}</span>
+                    ))}
+                    {taskList.length > 3 && (
+                      <span class="task-more">+{taskList.length - 3}</span>
+                    )}
+                  </div>
+                </div>
+                <div class="service-actions">
+                  <a href={`/admin/services/${service.id}`} class="btn-edit">
+                    수정
+                  </a>
+                  <button class="btn-delete" data-id={service.id}>
+                    삭제
+                  </button>
+                </div>
               </div>
-              <div class="service-actions">
-                <a href={`/admin/services/${service.id}`} class="btn-edit">수정</a>
-                <button class="btn-delete" data-id={service.id}>삭제</button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    ) : (
-      <div class="empty-state">
-        <p>등록된 서비스가 없습니다.</p>
-        <a href="/admin/services/new" class="btn-primary">첫 서비스 추가하기</a>
-      </div>
-    )}
+            );
+          })}
+        </div>
+      ) : (
+        <div class="empty-state">
+          <p>등록된 서비스가 없습니다.</p>
+          <a href="/admin/services/new" class="btn-primary">
+            첫 서비스 추가하기
+          </a>
+        </div>
+      )
+    }
   </div>
 </AdminLayout>
 
@@ -263,15 +271,15 @@ function parseTasks(tasks: any): string[] {
 </style>
 
 <script>
-  document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+  document.querySelectorAll(".btn-delete").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
       const id = (e.target as HTMLElement).dataset.id;
-      if (confirm('정말 삭제하시겠습니까?')) {
-        const res = await fetch(`/api/services/${id}`, { method: 'DELETE' });
+      if (confirm("정말 삭제하시겠습니까?")) {
+        const res = await fetch(`/api/services/${id}`, { method: "DELETE" });
         if (res.ok) {
           window.location.reload();
         } else {
-          alert('삭제에 실패했습니다.');
+          alert("삭제에 실패했습니다.");
         }
       }
     });

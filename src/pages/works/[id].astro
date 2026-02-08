@@ -16,32 +16,36 @@ const { id } = Astro.params;
 
 // DB에서 Work 데이터 가져오기
 const { data: work, error: workError } = await supabase
-  .from('works')
-  .select('*')
-  .eq('id', id)
+  .from("works")
+  .select("*")
+  .eq("id", id)
   .single();
 
 if (workError || !work) {
-  return Astro.redirect('/404');
+  return Astro.redirect("/404");
 }
 
 // DB에서 카테고리 데이터 가져오기
 const { data: category } = await supabase
-  .from('work_categories')
-  .select('title')
-  .eq('id', work.category_id)
+  .from("work_categories")
+  .select("title")
+  .eq("id", work.category_id)
   .single();
 
-const categoryTitle = category?.title || work.category_id || '';
+const categoryTitle = category?.title || work.category_id || "";
 
 // support와 achievements JSON 파싱
 let supportList: string[] = [];
 let achievementsList: { title: string; description: string }[] = [];
-let testimonial: { text: string; author: string; position: string } | null = null;
+let testimonial: { text: string; author: string; position: string } | null =
+  null;
 
 try {
   if (work.support) {
-    supportList = typeof work.support === 'string' ? JSON.parse(work.support) : work.support;
+    supportList =
+      typeof work.support === "string"
+        ? JSON.parse(work.support)
+        : work.support;
   }
 } catch (e) {
   supportList = [];
@@ -49,7 +53,10 @@ try {
 
 try {
   if (work.achievements) {
-    achievementsList = typeof work.achievements === 'string' ? JSON.parse(work.achievements) : work.achievements;
+    achievementsList =
+      typeof work.achievements === "string"
+        ? JSON.parse(work.achievements)
+        : work.achievements;
   }
 } catch (e) {
   achievementsList = [];
@@ -57,39 +64,50 @@ try {
 
 try {
   if (work.testimonial) {
-    testimonial = typeof work.testimonial === 'string' ? JSON.parse(work.testimonial) : work.testimonial;
+    testimonial =
+      typeof work.testimonial === "string"
+        ? JSON.parse(work.testimonial)
+        : work.testimonial;
   }
 } catch (e) {
   testimonial = null;
 }
 
-const ogImageUrl = work.image || '';
+const ogImageUrl = work.image || "";
 
 // BlockNote JSON 또는 마크다운을 HTML로 변환
-const contentHtml = work.content ? renderBlocksToHTML(work.content) : '';
+const contentHtml = work.content ? renderBlocksToHTML(work.content) : "";
 ---
 
 <Layout
   title={`${work.title} - Works`}
-  description={work.description || work.overview || ''}
+  description={work.description || work.overview || ""}
   ogImage={ogImageUrl}
 >
-  <PageHero title={work.title} subtitle={work.subtitle || ''} />
+  <PageHero title={work.title} subtitle={work.subtitle || ""} />
 
   <Section>
     <Container size="medium">
       <div class="work-detail-image">
-        {work.image ? (
-          <img src={work.image} alt={work.title} width="1200" height="675" loading="eager" />
-        ) : (
-          <div class="work-image-placeholder">No Image</div>
-        )}
+        {
+          work.image ? (
+            <img
+              src={work.image}
+              alt={work.title}
+              width="1200"
+              height="675"
+              loading="eager"
+            />
+          ) : (
+            <div class="work-image-placeholder">No Image</div>
+          )
+        }
       </div>
 
       <div class="work-detail-meta">
         <div class="meta-item">
           <dt class="meta-label">분류</dt>
-          <dd class="meta-value">{work.client || ''}</dd>
+          <dd class="meta-value">{work.client || ""}</dd>
         </div>
         <div class="meta-item">
           <dt class="meta-label">카테고리</dt>
@@ -102,55 +120,69 @@ const contentHtml = work.content ? renderBlocksToHTML(work.content) : '';
       </div>
 
       <div class="work-content">
-        {work.overview && (
-          <div class="work-section">
-            <h2 class="work-section-title">개요</h2>
-            <p class="work-section-text">{work.overview}</p>
-          </div>
-        )}
-
-        {supportList.length > 0 && (
-          <div class="work-section">
-            <h2 class="work-section-title">주요 내용</h2>
-            <ul class="work-support-list">
-              {supportList.map((item) => <li class="support-item">{item}</li>)}
-            </ul>
-          </div>
-        )}
-
-        {achievementsList.length > 0 && (
-          <div class="work-section">
-            <h2 class="work-section-title">상세 정보</h2>
-            <div class="work-achievements">
-              {achievementsList.map((achievement) => (
-                <div class="achievement-item">
-                  <h3 class="achievement-title">{achievement.title}</h3>
-                  <p class="achievement-description">{achievement.description}</p>
-                </div>
-              ))}
+        {
+          work.overview && (
+            <div class="work-section">
+              <h2 class="work-section-title">개요</h2>
+              <p class="work-section-text">{work.overview}</p>
             </div>
-          </div>
-        )}
+          )
+        }
 
-        {testimonial && (
-          <div class="work-section work-testimonial">
-            <h2 class="work-section-title">고객 후기</h2>
-            <blockquote class="testimonial-quote">
-              <p class="testimonial-text">{testimonial.text}</p>
-              <footer class="testimonial-author">
-                <cite class="author-name">{testimonial.author}</cite>
-                <span class="author-position">{testimonial.position}</span>
-              </footer>
-            </blockquote>
-          </div>
-        )}
+        {
+          supportList.length > 0 && (
+            <div class="work-section">
+              <h2 class="work-section-title">주요 내용</h2>
+              <ul class="work-support-list">
+                {supportList.map((item) => (
+                  <li class="support-item">{item}</li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
 
-        {work.content && (
-          <div class="work-section">
-            <h2 class="work-section-title">상세 내용</h2>
-            <div class="work-section-text" set:html={contentHtml} />
-          </div>
-        )}
+        {
+          achievementsList.length > 0 && (
+            <div class="work-section">
+              <h2 class="work-section-title">상세 정보</h2>
+              <div class="work-achievements">
+                {achievementsList.map((achievement) => (
+                  <div class="achievement-item">
+                    <h3 class="achievement-title">{achievement.title}</h3>
+                    <p class="achievement-description">
+                      {achievement.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        }
+
+        {
+          testimonial && (
+            <div class="work-section work-testimonial">
+              <h2 class="work-section-title">고객 후기</h2>
+              <blockquote class="testimonial-quote">
+                <p class="testimonial-text">{testimonial.text}</p>
+                <footer class="testimonial-author">
+                  <cite class="author-name">{testimonial.author}</cite>
+                  <span class="author-position">{testimonial.position}</span>
+                </footer>
+              </blockquote>
+            </div>
+          )
+        }
+
+        {
+          work.content && (
+            <div class="work-section">
+              <h2 class="work-section-title">상세 내용</h2>
+              <div class="work-section-text" set:html={contentHtml} />
+            </div>
+          )
+        }
       </div>
 
       <div class="work-action">

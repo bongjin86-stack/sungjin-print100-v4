@@ -36,22 +36,24 @@ interface Block {
  * 인라인 콘텐츠를 HTML로 변환
  */
 function renderInlineContent(content: BlockContent[] | undefined): string {
-  if (!content || content.length === 0) return '';
-  
-  return content.map(item => {
-    let text = item.text || '';
-    
-    // 스타일 적용
-    if (item.styles) {
-      if (item.styles.bold) text = `<strong>${text}</strong>`;
-      if (item.styles.italic) text = `<em>${text}</em>`;
-      if (item.styles.underline) text = `<u>${text}</u>`;
-      if (item.styles.strike) text = `<s>${text}</s>`;
-      if (item.styles.code) text = `<code>${text}</code>`;
-    }
-    
-    return text;
-  }).join('');
+  if (!content || content.length === 0) return "";
+
+  return content
+    .map((item) => {
+      let text = item.text || "";
+
+      // 스타일 적용
+      if (item.styles) {
+        if (item.styles.bold) text = `<strong>${text}</strong>`;
+        if (item.styles.italic) text = `<em>${text}</em>`;
+        if (item.styles.underline) text = `<u>${text}</u>`;
+        if (item.styles.strike) text = `<s>${text}</s>`;
+        if (item.styles.code) text = `<code>${text}</code>`;
+      }
+
+      return text;
+    })
+    .join("");
 }
 
 /**
@@ -59,38 +61,38 @@ function renderInlineContent(content: BlockContent[] | undefined): string {
  */
 function renderBlock(block: Block): string {
   const content = renderInlineContent(block.content);
-  
+
   switch (block.type) {
-    case 'heading':
+    case "heading":
       const level = block.props?.level || 1;
       return `<h${level}>${content}</h${level}>`;
-      
-    case 'paragraph':
-      return content ? `<p>${content}</p>` : '';
-      
-    case 'bulletListItem':
+
+    case "paragraph":
+      return content ? `<p>${content}</p>` : "";
+
+    case "bulletListItem":
       return `<li>${content}</li>`;
-      
-    case 'numberedListItem':
+
+    case "numberedListItem":
       return `<li>${content}</li>`;
-      
-    case 'checkListItem':
+
+    case "checkListItem":
       return `<li>${content}</li>`;
-      
-    case 'codeBlock':
+
+    case "codeBlock":
       return `<pre><code>${content}</code></pre>`;
-      
-    case 'table':
+
+    case "table":
       // 테이블 처리 (간단한 버전)
       return `<table>${content}</table>`;
-      
-    case 'image':
-      const url = (block.props as any)?.url || '';
-      const alt = (block.props as any)?.caption || '';
-      return url ? `<img src="${url}" alt="${alt}" />` : '';
-      
+
+    case "image":
+      const url = (block.props as any)?.url || "";
+      const alt = (block.props as any)?.caption || "";
+      return url ? `<img src="${url}" alt="${alt}" />` : "";
+
     default:
-      return content ? `<p>${content}</p>` : '';
+      return content ? `<p>${content}</p>` : "";
   }
 }
 
@@ -101,18 +103,18 @@ function groupListItems(blocks: Block[]): string {
   const result: string[] = [];
   let currentListType: string | null = null;
   let currentListItems: string[] = [];
-  
+
   const flushList = () => {
     if (currentListItems.length > 0) {
-      const tag = currentListType === 'numberedListItem' ? 'ol' : 'ul';
-      result.push(`<${tag}>${currentListItems.join('')}</${tag}>`);
+      const tag = currentListType === "numberedListItem" ? "ol" : "ul";
+      result.push(`<${tag}>${currentListItems.join("")}</${tag}>`);
       currentListItems = [];
     }
     currentListType = null;
   };
-  
+
   for (const block of blocks) {
-    if (block.type === 'bulletListItem' || block.type === 'numberedListItem') {
+    if (block.type === "bulletListItem" || block.type === "numberedListItem") {
       if (currentListType && currentListType !== block.type) {
         flushList();
       }
@@ -123,9 +125,9 @@ function groupListItems(blocks: Block[]): string {
       result.push(renderBlock(block));
     }
   }
-  
+
   flushList();
-  return result.join('\n');
+  return result.join("\n");
 }
 
 /**
@@ -134,11 +136,11 @@ function groupListItems(blocks: Block[]): string {
  * @returns HTML 문자열
  */
 export function renderBlocksToHTML(content: string | Block[]): string {
-  if (!content) return '';
-  
+  if (!content) return "";
+
   let blocks: Block[];
-  
-  if (typeof content === 'string') {
+
+  if (typeof content === "string") {
     // JSON 파싱 시도
     try {
       const parsed = JSON.parse(content);
@@ -154,14 +156,14 @@ export function renderBlocksToHTML(content: string | Block[]): string {
   } else {
     blocks = content;
   }
-  
+
   // 빈 블록 필터링
-  const nonEmptyBlocks = blocks.filter(block => {
+  const nonEmptyBlocks = blocks.filter((block) => {
     if (!block.content || block.content.length === 0) return false;
-    return block.content.some(c => c.text && c.text.trim() !== '');
+    return block.content.some((c) => c.text && c.text.trim() !== "");
   });
-  
-  if (nonEmptyBlocks.length === 0) return '';
+
+  if (nonEmptyBlocks.length === 0) return "";
 
   return groupListItems(nonEmptyBlocks);
 }
@@ -170,66 +172,75 @@ export function renderBlocksToHTML(content: string | Block[]): string {
  * 마크다운을 HTML로 변환 (기존 데이터 호환용)
  */
 export function markdownToHTML(markdown: string): string {
-  if (!markdown) return '';
-  
+  if (!markdown) return "";
+
   let html = markdown;
-  
+
   // 헤딩 (순서 중요: ### 먼저)
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-  
+  html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
+  html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
+  html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
+
   // 굵게
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  
+  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+
   // 기울임
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-  
+  html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
+
   // 인라인 코드
-  html = html.replace(/`(.+?)`/g, '<code>$1</code>');
-  
+  html = html.replace(/`(.+?)`/g, "<code>$1</code>");
+
   // 불릿 리스트 처리
-  const lines = html.split('\n');
+  const lines = html.split("\n");
   const processedLines: string[] = [];
   let inList = false;
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const bulletMatch = line.match(/^[-*] (.+)$/);
-    
+
     if (bulletMatch) {
       if (!inList) {
-        processedLines.push('<ul>');
+        processedLines.push("<ul>");
         inList = true;
       }
       processedLines.push(`<li>${bulletMatch[1]}</li>`);
     } else {
       if (inList) {
-        processedLines.push('</ul>');
+        processedLines.push("</ul>");
         inList = false;
       }
       processedLines.push(line);
     }
   }
-  
+
   if (inList) {
-    processedLines.push('</ul>');
+    processedLines.push("</ul>");
   }
-  
-  html = processedLines.join('\n');
-  
+
+  html = processedLines.join("\n");
+
   // 빈 줄로 구분된 단락을 <p> 태그로 감싸기
   const paragraphs = html.split(/\n\n+/);
-  html = paragraphs.map(p => {
-    const trimmed = p.trim();
-    if (!trimmed) return '';
-    // 이미 HTML 태그로 시작하면 그대로 반환
-    if (trimmed.startsWith('<h') || trimmed.startsWith('<ul') || trimmed.startsWith('<ol') || trimmed.startsWith('<li') || trimmed.startsWith('<pre')) {
-      return trimmed;
-    }
-    // 단일 줄바꿈을 <br>로 변환
-    return `<p>${trimmed.replace(/\n/g, '<br>')}</p>`;
-  }).filter(p => p).join('\n');
+  html = paragraphs
+    .map((p) => {
+      const trimmed = p.trim();
+      if (!trimmed) return "";
+      // 이미 HTML 태그로 시작하면 그대로 반환
+      if (
+        trimmed.startsWith("<h") ||
+        trimmed.startsWith("<ul") ||
+        trimmed.startsWith("<ol") ||
+        trimmed.startsWith("<li") ||
+        trimmed.startsWith("<pre")
+      ) {
+        return trimmed;
+      }
+      // 단일 줄바꿈을 <br>로 변환
+      return `<p>${trimmed.replace(/\n/g, "<br>")}</p>`;
+    })
+    .filter((p) => p)
+    .join("\n");
 
   return html;
 }
@@ -241,7 +252,9 @@ export function isBlockNoteJSON(content: string): boolean {
   if (!content) return false;
   try {
     const parsed = JSON.parse(content);
-    return Array.isArray(parsed) && parsed.length > 0 && parsed[0].type !== undefined;
+    return (
+      Array.isArray(parsed) && parsed.length > 0 && parsed[0].type !== undefined
+    );
   } catch {
     return false;
   }

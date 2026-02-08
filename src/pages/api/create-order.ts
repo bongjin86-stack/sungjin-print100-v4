@@ -1,8 +1,8 @@
-import type { APIRoute } from 'astro';
+import type { APIRoute } from "astro";
 
-import { loadPricingData } from '@/lib/dbService';
-import { createOrder } from '@/lib/orderService';
-import { calculatePrice } from '@/lib/priceEngine';
+import { loadPricingData } from "@/lib/dbService";
+import { createOrder } from "@/lib/orderService";
+import { calculatePrice } from "@/lib/priceEngine";
 
 export const prerender = false;
 
@@ -25,8 +25,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!orderData || !priceInput) {
       return new Response(
-        JSON.stringify({ error: 'orderData and priceInput are required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "orderData and priceInput are required" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -34,14 +34,14 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!customer || !qty || qty <= 0) {
       return new Response(
-        JSON.stringify({ error: 'Invalid price input parameters' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Invalid price input parameters" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // --- Server-side price recalculation ---
     await loadPricingData();
-    const serverResult = calculatePrice(customer, qty, productType || 'flyer');
+    const serverResult = calculatePrice(customer, qty, productType || "flyer");
     const serverPrice = serverResult.total;
     const submittedPrice = orderData.productAmount;
 
@@ -54,12 +54,13 @@ export const POST: APIRoute = async ({ request }) => {
       if (discrepancy > MAX_PRICE_DISCREPANCY_PERCENT) {
         return new Response(
           JSON.stringify({
-            error: 'Price verification failed',
+            error: "Price verification failed",
             serverPrice,
             submittedPrice,
-            message: '가격이 서버 계산과 일치하지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.',
+            message:
+              "가격이 서버 계산과 일치하지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.",
           }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
+          { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
     }
@@ -68,7 +69,10 @@ export const POST: APIRoute = async ({ request }) => {
     const verifiedOrderData = {
       ...orderData,
       productAmount: serverPrice,
-      totalAmount: serverPrice + (orderData.shippingCost || 0) + (orderData.quickCost || 0),
+      totalAmount:
+        serverPrice +
+        (orderData.shippingCost || 0) +
+        (orderData.quickCost || 0),
     };
 
     const result = await createOrder(verifiedOrderData);
@@ -80,13 +84,14 @@ export const POST: APIRoute = async ({ request }) => {
         uuid: result.uuid,
         verifiedPrice: serverPrice,
       }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Order creation failed';
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    const message =
+      err instanceof Error ? err.message : "Order creation failed";
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 };

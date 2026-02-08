@@ -170,8 +170,8 @@ export interface BuilderData {
   papers: Paper[];
   paperWeights: {
     [paperCode: string]: {
-      '467x315': number[];
-      '390x270': number[];
+      "467x315": number[];
+      "390x270": number[];
       all: number[];
     };
   };

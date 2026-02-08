@@ -5,13 +5,15 @@ import { supabase } from "@/lib/supabase";
 
 // DB에서 서비스 소개 텍스트 가져오기
 const { data: setting } = await supabase
-  .from('site_settings')
-  .select('value')
-  .eq('key', 'service_intro')
+  .from("site_settings")
+  .select("value")
+  .eq("key", "service_intro")
   .single();
 
 // 기본값 설정
-const introText = setting?.value || `Sungjinprint는 무선제본, 중철제본, 스프링제본 등 다양한 제본 서비스를 제공합니다.
+const introText =
+  setting?.value ||
+  `Sungjinprint는 무선제본, 중철제본, 스프링제본 등 다양한 제본 서비스를 제공합니다.
 50부 이상 대량 주문 시 단가가 낮아지며, 최신 장비로 깔끔한 인쇄 품질을 보장합니다.
 책자, 카탈로그, 브로슈어, 보고서 등 다양한 인쇄물을 제작해 드립니다.
 용지 선택부터 후가공까지 전문 상담을 통해 최적의 솔루션을 제안합니다.

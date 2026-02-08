@@ -1,6 +1,6 @@
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
 /**
  * 사이즈 관리 페이지 컴포넌트
@@ -17,13 +17,13 @@ export default function SizesPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
-    code: '',
-    name: '',
-    width: '',
-    height: '',
-    base_sheet: '467x315',
-    up_count: '',
-    is_active: true
+    code: "",
+    name: "",
+    width: "",
+    height: "",
+    base_sheet: "467x315",
+    up_count: "",
+    is_active: true,
   });
 
   useEffect(() => {
@@ -36,9 +36,9 @@ export default function SizesPage() {
       setError(null);
 
       const { data, error: sizesError } = await supabase
-        .from('sizes')
-        .select('*')
-        .order('id');
+        .from("sizes")
+        .select("*")
+        .order("id");
 
       if (sizesError) throw sizesError;
 
@@ -53,13 +53,13 @@ export default function SizesPage() {
   // 폼 초기화
   const resetForm = () => {
     setFormData({
-      code: '',
-      name: '',
-      width: '',
-      height: '',
-      base_sheet: '467x315',
-      up_count: '',
-      is_active: true
+      code: "",
+      name: "",
+      width: "",
+      height: "",
+      base_sheet: "467x315",
+      up_count: "",
+      is_active: true,
     });
     setShowAddForm(false);
     setEditingId(null);
@@ -69,25 +69,23 @@ export default function SizesPage() {
   const handleAdd = async (e) => {
     e.preventDefault();
     try {
-      const { error } = await supabase
-        .from('sizes')
-        .insert({
-          code: formData.code,
-          name: formData.name,
-          width: parseInt(formData.width),
-          height: parseInt(formData.height),
-          base_sheet: formData.base_sheet,
-          up_count: parseInt(formData.up_count),
-          is_active: formData.is_active
-        });
+      const { error } = await supabase.from("sizes").insert({
+        code: formData.code,
+        name: formData.name,
+        width: parseInt(formData.width),
+        height: parseInt(formData.height),
+        base_sheet: formData.base_sheet,
+        up_count: parseInt(formData.up_count),
+        is_active: formData.is_active,
+      });
 
       if (error) throw error;
 
-      alert('추가 완료!');
+      alert("추가 완료!");
       resetForm();
       loadData();
     } catch (err) {
-      alert('추가 실패: ' + err.message);
+      alert("추가 실패: " + err.message);
     }
   };
 
@@ -99,9 +97,9 @@ export default function SizesPage() {
       name: size.name,
       width: size.width,
       height: size.height,
-      base_sheet: size.base_sheet || '467x315',
+      base_sheet: size.base_sheet || "467x315",
       up_count: size.up_count,
-      is_active: size.is_active
+      is_active: size.is_active,
     });
   };
 
@@ -110,7 +108,7 @@ export default function SizesPage() {
     e.preventDefault();
     try {
       const { error } = await supabase
-        .from('sizes')
+        .from("sizes")
         .update({
           code: formData.code,
           name: formData.name,
@@ -118,36 +116,33 @@ export default function SizesPage() {
           height: parseInt(formData.height),
           base_sheet: formData.base_sheet,
           up_count: parseInt(formData.up_count),
-          is_active: formData.is_active
+          is_active: formData.is_active,
         })
-        .eq('id', editingId);
+        .eq("id", editingId);
 
       if (error) throw error;
 
-      alert('수정 완료!');
+      alert("수정 완료!");
       resetForm();
       loadData();
     } catch (err) {
-      alert('수정 실패: ' + err.message);
+      alert("수정 실패: " + err.message);
     }
   };
 
   // 삭제
   const handleDelete = async (id) => {
-    if (!window.confirm('정말 삭제하시겠습니까?')) return;
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
 
     try {
-      const { error } = await supabase
-        .from('sizes')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("sizes").delete().eq("id", id);
 
       if (error) throw error;
 
-      alert('삭제 완료!');
+      alert("삭제 완료!");
       loadData();
     } catch (err) {
-      alert('삭제 실패: ' + err.message);
+      alert("삭제 실패: " + err.message);
     }
   };
 
@@ -204,57 +199,82 @@ export default function SizesPage() {
       {/* 추가/수정 폼 */}
       {(showAddForm || editingId) && (
         <div className="bg-white rounded-xl border border-gray-200 mb-6 p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">{editingId ? '사이즈 수정' : '새 사이즈 추가'}</h3>
-          <form onSubmit={editingId ? handleUpdate : handleAdd} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <h3 className="font-semibold text-gray-900 mb-4">
+            {editingId ? "사이즈 수정" : "새 사이즈 추가"}
+          </h3>
+          <form
+            onSubmit={editingId ? handleUpdate : handleAdd}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          >
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">코드 *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                코드 *
+              </label>
               <input
                 type="text"
                 value={formData.code}
-                onChange={(e) => setFormData({...formData, code: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, code: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3455DB] focus:border-transparent"
                 placeholder="예: a4"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">이름 *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                이름 *
+              </label>
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3455DB] focus:border-transparent"
                 placeholder="예: A4"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">가로 (mm) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                가로 (mm) *
+              </label>
               <input
                 type="number"
                 value={formData.width}
-                onChange={(e) => setFormData({...formData, width: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, width: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3455DB] focus:border-transparent"
                 placeholder="210"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">세로 (mm) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                세로 (mm) *
+              </label>
               <input
                 type="number"
                 value={formData.height}
-                onChange={(e) => setFormData({...formData, height: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, height: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3455DB] focus:border-transparent"
                 placeholder="297"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">기준 용지</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                기준 용지
+              </label>
               <select
                 value={formData.base_sheet}
-                onChange={(e) => setFormData({...formData, base_sheet: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, base_sheet: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3455DB] focus:border-transparent"
               >
                 <option value="467x315">467x315</option>
@@ -262,11 +282,15 @@ export default function SizesPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">배수 (up) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                배수 (up) *
+              </label>
               <input
                 type="number"
                 value={formData.up_count}
-                onChange={(e) => setFormData({...formData, up_count: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, up_count: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3455DB] focus:border-transparent"
                 placeholder="2"
                 required
@@ -277,7 +301,9 @@ export default function SizesPage() {
                 <input
                   type="checkbox"
                   checked={formData.is_active}
-                  onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, is_active: e.target.checked })
+                  }
                   className="w-4 h-4 rounded border-gray-300 text-[#3455DB] focus:ring-[#3455DB]"
                 />
                 <span className="text-sm text-gray-700">활성화</span>
@@ -288,7 +314,7 @@ export default function SizesPage() {
                 type="submit"
                 className="px-4 py-2 bg-[#3455DB] hover:bg-[#2a44b0] text-white text-sm font-medium rounded-lg transition-colors"
               >
-                {editingId ? '수정' : '추가'}
+                {editingId ? "수정" : "추가"}
               </button>
               <button
                 type="button"
@@ -307,29 +333,55 @@ export default function SizesPage() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">코드</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">사이즈명</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">가로 (mm)</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">세로 (mm)</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">기준 용지</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">배수 (up)</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">상태</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">작업</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                코드
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                사이즈명
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                가로 (mm)
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                세로 (mm)
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                기준 용지
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                배수 (up)
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                상태
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                작업
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {sizes.map((size) => (
               <tr key={size.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono text-sm text-gray-900">{size.code}</td>
-                <td className="px-4 py-3 font-medium text-gray-900">{size.name}</td>
-                <td className="px-4 py-3 text-center text-gray-900">{size.width}</td>
-                <td className="px-4 py-3 text-center text-gray-900">{size.height}</td>
+                <td className="px-4 py-3 font-mono text-sm text-gray-900">
+                  {size.code}
+                </td>
+                <td className="px-4 py-3 font-medium text-gray-900">
+                  {size.name}
+                </td>
+                <td className="px-4 py-3 text-center text-gray-900">
+                  {size.width}
+                </td>
+                <td className="px-4 py-3 text-center text-gray-900">
+                  {size.height}
+                </td>
                 <td className="px-4 py-3 text-center">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    size.base_sheet === '467x315'
-                      ? 'bg-gray-100 text-gray-700'
-                      : 'bg-green-100 text-green-700'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      size.base_sheet === "467x315"
+                        ? "bg-gray-100 text-gray-700"
+                        : "bg-green-100 text-green-700"
+                    }`}
+                  >
                     {size.base_sheet}
                   </span>
                 </td>
@@ -337,12 +389,14 @@ export default function SizesPage() {
                   {size.up_count}개
                 </td>
                 <td className="px-4 py-3 text-center">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    size.is_active
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {size.is_active ? '활성' : '비활성'}
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      size.is_active
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {size.is_active ? "활성" : "비활성"}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center">
@@ -369,18 +423,24 @@ export default function SizesPage() {
 
       {/* 요약 정보 */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-base font-semibold text-gray-900 mb-4">사이즈 데이터 요약</h3>
+        <h3 className="text-base font-semibold text-gray-900 mb-4">
+          사이즈 데이터 요약
+        </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
           <div className="text-center">
             <p className="text-2xl font-bold text-[#3455DB]">{sizes.length}</p>
             <p className="text-sm text-gray-500 mt-1">총 사이즈</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-[#3455DB]">{sizes.filter(s => s.base_sheet === '467x315').length}</p>
+            <p className="text-2xl font-bold text-[#3455DB]">
+              {sizes.filter((s) => s.base_sheet === "467x315").length}
+            </p>
             <p className="text-sm text-gray-500 mt-1">467x315 사용</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-[#3455DB]">{sizes.filter(s => s.base_sheet === '390x270').length}</p>
+            <p className="text-2xl font-bold text-[#3455DB]">
+              {sizes.filter((s) => s.base_sheet === "390x270").length}
+            </p>
             <p className="text-sm text-gray-500 mt-1">390x270 사용</p>
           </div>
         </div>

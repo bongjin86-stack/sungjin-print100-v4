@@ -4,10 +4,10 @@ import { supabase } from "@/lib/supabase";
 
 // Fetch partner logos from database
 const { data: partners } = await supabase
-  .from('partner_logos')
-  .select('*')
-  .eq('is_active', true)
-  .order('sort_order', { ascending: true });
+  .from("partner_logos")
+  .select("*")
+  .eq("is_active", true)
+  .order("sort_order", { ascending: true });
 
 // Use fetched data or empty array
 const partnerLogos = partners || [];
@@ -15,9 +15,7 @@ const partnerLogos = partners || [];
 
 <section class="partners">
   <Container>
-    <h2 class="partners-title">
-      다양한 업종의 고객사와 함께하고 있습니다
-    </h2>
+    <h2 class="partners-title">다양한 업종의 고객사와 함께하고 있습니다</h2>
   </Container>
   <div class="partners-slider">
     <div class="slider-track">

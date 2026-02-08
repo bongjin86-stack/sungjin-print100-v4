@@ -1,7 +1,7 @@
 ---
-import FAQForm from '../../../components/admin/FAQForm';
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { supabase } from '../../../lib/supabase';
+import FAQForm from "../../../components/admin/FAQForm";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
@@ -9,13 +9,13 @@ const { id } = Astro.params;
 
 // FAQ 데이터 가져오기
 const { data: faq, error } = await supabase
-  .from('faq')
-  .select('*')
-  .eq('id', id)
+  .from("faq")
+  .select("*")
+  .eq("id", id)
   .single();
 
 if (error || !faq) {
-  return Astro.redirect('/admin/faq');
+  return Astro.redirect("/admin/faq");
 }
 ---
 

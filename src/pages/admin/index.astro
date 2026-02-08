@@ -1,13 +1,21 @@
 ---
-import AdminLayout from '../../layouts/AdminLayout.astro';
-import { supabase } from '../../lib/supabase';
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { supabase } from "../../lib/supabase";
 
 // 오늘 날짜 (KST 기준)
 const now = new Date();
 const kstOffset = 9 * 60 * 60 * 1000;
 const kstNow = new Date(now.getTime() + kstOffset);
-const todayStart = new Date(kstNow.getFullYear(), kstNow.getMonth(), kstNow.getDate()).toISOString();
-const monthStart = new Date(kstNow.getFullYear(), kstNow.getMonth(), 1).toISOString();
+const todayStart = new Date(
+  kstNow.getFullYear(),
+  kstNow.getMonth(),
+  kstNow.getDate()
+).toISOString();
+const monthStart = new Date(
+  kstNow.getFullYear(),
+  kstNow.getMonth(),
+  1
+).toISOString();
 
 // 통계 및 주문 데이터 병렬 로딩
 const [
@@ -20,67 +28,71 @@ const [
 ] = await Promise.all([
   // 오늘 주문
   supabase
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .gte('created_at', todayStart),
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", todayStart),
   // 처리 대기 (pending, confirmed)
   supabase
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .in('status', ['pending', 'confirmed']),
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .in("status", ["pending", "confirmed"]),
   // 이번 달 주문
   supabase
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .gte('created_at', monthStart),
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", monthStart),
   // 최근 주문 5건
   supabase
-    .from('orders')
-    .select('id, order_number, status, customer_email, total_amount, items, created_at')
-    .order('created_at', { ascending: false })
+    .from("orders")
+    .select(
+      "id, order_number, status, customer_email, total_amount, items, created_at"
+    )
+    .order("created_at", { ascending: false })
     .limit(5),
   // 오늘 매출 (취소 제외)
   supabase
-    .from('orders')
-    .select('total_amount')
-    .gte('created_at', todayStart)
-    .neq('status', 'canceled'),
+    .from("orders")
+    .select("total_amount")
+    .gte("created_at", todayStart)
+    .neq("status", "canceled"),
   // 이번 달 매출 (취소 제외)
   supabase
-    .from('orders')
-    .select('total_amount')
-    .gte('created_at', monthStart)
-    .neq('status', 'canceled'),
+    .from("orders")
+    .select("total_amount")
+    .gte("created_at", monthStart)
+    .neq("status", "canceled"),
 ]);
 
 // 매출 합계 계산
-const todayRevenue = todaySales?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
-const monthRevenue = monthSales?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
+const todayRevenue =
+  todaySales?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
+const monthRevenue =
+  monthSales?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
 
 // 주문 상태 한글 변환
 const statusLabels: Record<string, string> = {
-  pending: '입금대기',
-  confirmed: '입금확인',
-  in_production: '제작중',
-  shipped: '배송중',
-  completed: '완료',
-  canceled: '취소',
+  pending: "입금대기",
+  confirmed: "입금확인",
+  in_production: "제작중",
+  shipped: "배송중",
+  completed: "완료",
+  canceled: "취소",
 };
 
 const statusColors: Record<string, string> = {
-  pending: '#f59e0b',
-  confirmed: '#3b82f6',
-  in_production: '#8b5cf6',
-  shipped: '#06b6d4',
-  completed: '#10b981',
-  canceled: '#ef4444',
+  pending: "#f59e0b",
+  confirmed: "#3b82f6",
+  in_production: "#8b5cf6",
+  shipped: "#06b6d4",
+  completed: "#10b981",
+  canceled: "#ef4444",
 };
 
 // 상품명 추출
 function getProductName(items: any[]): string {
-  if (!items || items.length === 0) return '-';
+  if (!items || items.length === 0) return "-";
   const first = items[0];
-  const name = first.productName || '상품';
+  const name = first.productName || "상품";
   if (items.length > 1) {
     return `${name} 외 ${items.length - 1}건`;
   }
@@ -90,8 +102,8 @@ function getProductName(items: any[]): string {
 // 시간 포맷
 function formatTime(dateStr: string): string {
   const date = new Date(dateStr);
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
 }
 
@@ -102,7 +114,6 @@ function formatDate(dateStr: string): string {
   const day = date.getDate().toString();
   return `${month}.${day}`;
 }
-
 ---
 
 <AdminLayout title="대시보드">
@@ -117,7 +128,10 @@ function formatDate(dateStr: string): string {
             <span class="stat-value">{todayCount || 0}</span>
             <span class="stat-unit">건</span>
           </a>
-          <a href="/admin/orders?status=pending,confirmed" class="stat-card highlight">
+          <a
+            href="/admin/orders?status=pending,confirmed"
+            class="stat-card highlight"
+          >
             <span class="stat-label">처리 대기</span>
             <span class="stat-value">{pendingCount || 0}</span>
             <span class="stat-unit">건</span>
@@ -154,29 +168,34 @@ function formatDate(dateStr: string): string {
         <a href="/admin/orders" class="view-all">전체보기 →</a>
       </div>
       <div class="orders-list">
-        {recentOrders && recentOrders.length > 0 ? (
-          recentOrders.map((order) => (
-            <a href={`/admin/orders/${order.id}`} class="order-item">
-              <span class="order-number">#{order.order_number}</span>
-              <span class="order-product">{getProductName(order.items)}</span>
-              <span
-                class="order-status"
-                style={`background-color: ${statusColors[order.status]}20; color: ${statusColors[order.status]}`}
-              >
-                {statusLabels[order.status] || order.status}
-              </span>
-              <span class="order-amount">{order.total_amount?.toLocaleString()}원</span>
-              <span class="order-time">{formatDate(order.created_at)} {formatTime(order.created_at)}</span>
-            </a>
-          ))
-        ) : (
-          <div class="empty-state">
-            <p>아직 주문이 없습니다.</p>
-          </div>
-        )}
+        {
+          recentOrders && recentOrders.length > 0 ? (
+            recentOrders.map((order) => (
+              <a href={`/admin/orders/${order.id}`} class="order-item">
+                <span class="order-number">#{order.order_number}</span>
+                <span class="order-product">{getProductName(order.items)}</span>
+                <span
+                  class="order-status"
+                  style={`background-color: ${statusColors[order.status]}20; color: ${statusColors[order.status]}`}
+                >
+                  {statusLabels[order.status] || order.status}
+                </span>
+                <span class="order-amount">
+                  {order.total_amount?.toLocaleString()}원
+                </span>
+                <span class="order-time">
+                  {formatDate(order.created_at)} {formatTime(order.created_at)}
+                </span>
+              </a>
+            ))
+          ) : (
+            <div class="empty-state">
+              <p>아직 주문이 없습니다.</p>
+            </div>
+          )
+        }
       </div>
     </div>
-
   </div>
 
   <style>
@@ -238,7 +257,9 @@ function formatDate(dateStr: string): string {
       gap: 0.25rem;
       box-shadow: var(--shadow-base);
       border: 1px solid var(--c-border-light);
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition:
+        transform 0.2s,
+        box-shadow 0.2s;
     }
 
     .stat-card:hover {
@@ -398,6 +419,5 @@ function formatDate(dateStr: string): string {
       margin: 0;
       font-size: var(--fs-sm);
     }
-
   </style>
 </AdminLayout>

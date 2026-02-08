@@ -19,36 +19,37 @@ const pageSize = siteConfig.settings.pagination || 9;
 
 // DB에서 카테고리 데이터 가져오기
 const { data: categories, error: catError } = await supabase
-  .from('work_categories')
-  .select('*')
-  .order('sort_order', { ascending: true });
+  .from("work_categories")
+  .select("*")
+  .order("sort_order", { ascending: true });
 
 if (catError) {
-  console.error('Error fetching categories:', catError);
+  console.error("Error fetching categories:", catError);
 }
 
 // 카테고리 데이터를 CategoryNavigation 형식으로 변환
-const categoryList = categories?.map(cat => ({
-  id: cat.id,
-  title: cat.title
-})) || [];
+const categoryList =
+  categories?.map((cat) => ({
+    id: cat.id,
+    title: cat.title,
+  })) || [];
 
 // DB에서 Works 전체 개수 가져오기
 const { count: totalCount } = await supabase
-  .from('works')
-  .select('*', { count: 'exact', head: true })
-  .eq('is_published', true);
+  .from("works")
+  .select("*", { count: "exact", head: true })
+  .eq("is_published", true);
 
 // DB에서 Works 데이터 가져오기 (페이지네이션)
 const { data: works, error: worksError } = await supabase
-  .from('works')
-  .select('*')
-  .eq('is_published', true)
-  .order('sort_order', { ascending: true })
+  .from("works")
+  .select("*")
+  .eq("is_published", true)
+  .order("sort_order", { ascending: true })
   .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
 if (worksError) {
-  console.error('Error fetching works:', worksError);
+  console.error("Error fetching works:", worksError);
 }
 
 const worksList = works || [];
@@ -61,7 +62,7 @@ const pageTitle =
 
 // 카테고리 ID로 카테고리 제목 찾기
 function getCategoryTitle(categoryId: string): string {
-  const cat = categoryList.find(c => c.id === categoryId);
+  const cat = categoryList.find((c) => c.id === categoryId);
   return cat?.title || categoryId;
 }
 ---
@@ -77,33 +78,45 @@ function getCategoryTitle(categoryId: string): string {
       <CategoryNavigation categories={categoryList} basePath="/works" />
 
       <div class="works-grid">
-        {worksList.map((work) => (
-          <article class="work-card">
-            <a href={`/works/${work.id}`} class="work-card-link">
-              <div class="work-card-image">
-                {work.image ? (
-                  <img src={work.image} alt={work.title} width="600" height="400" loading="lazy" />
-                ) : (
-                  <div class="work-card-placeholder">No Image</div>
-                )}
-              </div>
-              <div class="work-card-content">
-                <h3 class="work-card-title">{work.title}</h3>
-                <p class="work-card-client">{work.client || work.subtitle}</p>
-                <span class="work-card-category">{getCategoryTitle(work.category_id)}</span>
-              </div>
-            </a>
-          </article>
-        ))}
+        {
+          worksList.map((work) => (
+            <article class="work-card">
+              <a href={`/works/${work.id}`} class="work-card-link">
+                <div class="work-card-image">
+                  {work.image ? (
+                    <img
+                      src={work.image}
+                      alt={work.title}
+                      width="600"
+                      height="400"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div class="work-card-placeholder">No Image</div>
+                  )}
+                </div>
+                <div class="work-card-content">
+                  <h3 class="work-card-title">{work.title}</h3>
+                  <p class="work-card-client">{work.client || work.subtitle}</p>
+                  <span class="work-card-category">
+                    {getCategoryTitle(work.category_id)}
+                  </span>
+                </div>
+              </a>
+            </article>
+          ))
+        }
       </div>
 
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          basePath="/works"
-        />
-      )}
+      {
+        totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath="/works"
+          />
+        )
+      }
     </Container>
   </Section>
 

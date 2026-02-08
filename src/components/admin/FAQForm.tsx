@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-import { adminFormStyles as styles } from './adminFormStyles';
+import { adminFormStyles as styles } from "./adminFormStyles";
 
 interface FAQFormProps {
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   initialData?: {
     id: string;
     question: string;
@@ -16,17 +16,21 @@ interface FAQFormProps {
 export default function FAQForm({ mode, initialData }: FAQFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    question: initialData?.question || '',
-    answer: initialData?.answer || '',
+    question: initialData?.question || "",
+    answer: initialData?.answer || "",
     sort_order: initialData?.sort_order || 0,
     is_active: initialData?.is_active ?? true,
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? parseInt(value) || 0 : value,
+      [name]: type === "number" ? parseInt(value) || 0 : value,
     }));
   };
 
@@ -35,23 +39,24 @@ export default function FAQForm({ mode, initialData }: FAQFormProps) {
     setIsSubmitting(true);
 
     try {
-      const url = mode === 'create' ? '/api/faq' : `/api/faq/${initialData?.id}`;
-      const method = mode === 'create' ? 'POST' : 'PUT';
+      const url =
+        mode === "create" ? "/api/faq" : `/api/faq/${initialData?.id}`;
+      const method = mode === "create" ? "POST" : "PUT";
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       if (res.ok) {
-        window.location.href = '/admin/faq';
+        window.location.href = "/admin/faq";
       } else {
         const error = await res.json();
-        alert(error.message || '저장에 실패했습니다.');
+        alert(error.message || "저장에 실패했습니다.");
       }
     } catch {
-      alert('저장에 실패했습니다.');
+      alert("저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -109,8 +114,13 @@ export default function FAQForm({ mode, initialData }: FAQFormProps) {
             <label style={styles.label}>공개 여부</label>
             <select
               name="is_active"
-              value={formData.is_active ? 'true' : 'false'}
-              onChange={(e) => setFormData((prev) => ({ ...prev, is_active: e.target.value === 'true' }))}
+              value={formData.is_active ? "true" : "false"}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  is_active: e.target.value === "true",
+                }))
+              }
               style={styles.select}
             >
               <option value="true">공개</option>
@@ -121,11 +131,23 @@ export default function FAQForm({ mode, initialData }: FAQFormProps) {
       </div>
 
       <div style={styles.formActions}>
-        <button type="button" onClick={() => (window.location.href = '/admin/faq')} style={styles.cancelButton}>
+        <button
+          type="button"
+          onClick={() => (window.location.href = "/admin/faq")}
+          style={styles.cancelButton}
+        >
           취소
         </button>
-        <button type="submit" disabled={isSubmitting} style={styles.submitButton}>
-          {isSubmitting ? '저장 중...' : mode === 'create' ? '작성하기' : '수정하기'}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          style={styles.submitButton}
+        >
+          {isSubmitting
+            ? "저장 중..."
+            : mode === "create"
+              ? "작성하기"
+              : "수정하기"}
         </button>
       </div>
     </form>

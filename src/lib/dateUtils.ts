@@ -16,10 +16,10 @@ export function calculateReleaseDate(businessDays: number): string {
     }
   }
 
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
   const year = result.getFullYear();
-  const month = String(result.getMonth() + 1).padStart(2, '0');
-  const day = String(result.getDate()).padStart(2, '0');
+  const month = String(result.getMonth() + 1).padStart(2, "0");
+  const day = String(result.getDate()).padStart(2, "0");
   const weekday = weekdays[result.getDay()];
 
   return `${year}.${month}.${day} (${weekday})`;
@@ -47,10 +47,10 @@ export function calculateReleaseDateFrom(
     }
   }
 
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
   const year = result.getFullYear();
-  const month = String(result.getMonth() + 1).padStart(2, '0');
-  const day = String(result.getDate()).padStart(2, '0');
+  const month = String(result.getMonth() + 1).padStart(2, "0");
+  const day = String(result.getDate()).padStart(2, "0");
   const weekday = weekdays[result.getDay()];
 
   return `${year}.${month}.${day} (${weekday})`;

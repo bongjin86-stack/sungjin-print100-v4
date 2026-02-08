@@ -9,36 +9,38 @@ import { supabase } from "@/lib/supabase";
 const categoryList = [
   { id: "information", title: "안내" },
   { id: "event", title: "이벤트" },
-  { id: "update", title: "업데이트" }
+  { id: "update", title: "업데이트" },
 ];
 
 // DB에서 최신 News 4개 가져오기
 const { data: latestNews, error } = await supabase
-  .from('news')
-  .select('*')
-  .order('pub_date', { ascending: false })
+  .from("news")
+  .select("*")
+  .order("pub_date", { ascending: false })
   .limit(4);
 
 if (error) {
-  console.error('Error fetching news:', error);
+  console.error("Error fetching news:", error);
 }
 
 const newsData = latestNews || [];
 
 // 카테고리 ID로 카테고리 제목 찾기
 function getCategoryTitle(categoryId: string): string {
-  const cat = categoryList.find(c => c.id === categoryId);
+  const cat = categoryList.find((c) => c.id === categoryId);
   return cat?.title || categoryId;
 }
 
 // 날짜 포맷팅
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-  }).replace(/\//g, ".");
+  return date
+    .toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    })
+    .replace(/\//g, ".");
 }
 ---
 
@@ -47,21 +49,27 @@ function formatDate(dateStr: string): string {
     <div class="news-inner">
       <div class="news-header">
         <SectionTitle title="News" subtitle="공지사항" />
-        <LinkText href="/news/" ariaLabel="공지사항 전체보기"> 전체보기 </LinkText>
+        <LinkText href="/news/" ariaLabel="공지사항 전체보기">
+          전체보기
+        </LinkText>
       </div>
 
       <div class="news-list">
-        {newsData.map((news) => (
-          <article class="news-item">
-            <a href={`/news/${news.id}`} class="news-link">
-              <time class="news-date" datetime={news.pub_date}>
-                {formatDate(news.pub_date)}
-              </time>
-              <span class="news-category">{getCategoryTitle(news.category)}</span>
-              <h3 class="news-item-title">{news.title}</h3>
-            </a>
-          </article>
-        ))}
+        {
+          newsData.map((news) => (
+            <article class="news-item">
+              <a href={`/news/${news.id}`} class="news-link">
+                <time class="news-date" datetime={news.pub_date}>
+                  {formatDate(news.pub_date)}
+                </time>
+                <span class="news-category">
+                  {getCategoryTitle(news.category)}
+                </span>
+                <h3 class="news-item-title">{news.title}</h3>
+              </a>
+            </article>
+          ))
+        }
       </div>
     </div>
   </Container>

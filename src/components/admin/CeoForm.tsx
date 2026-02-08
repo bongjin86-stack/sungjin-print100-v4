@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-import { supabase, uploadImage } from '@/lib/supabase';
+import { supabase, uploadImage } from "@/lib/supabase";
 
-import BlockNoteEditor from './BlockNoteEditor';
+import BlockNoteEditor from "./BlockNoteEditor";
 
 interface CeoData {
   subtitle: string;
@@ -18,36 +18,39 @@ interface CeoFormProps {
 export default function CeoForm({ initialData }: CeoFormProps) {
   const [formData, setFormData] = useState<CeoData>(initialData);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [uploadStatus, setUploadStatus] = useState('');
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [uploadStatus, setUploadStatus] = useState("");
 
   const handleContentChange = (content: string) => {
-    setFormData(prev => ({ ...prev, message: content }));
+    setFormData((prev) => ({ ...prev, message: content }));
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      alert('이미지 파일만 업로드 가능합니다.');
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 업로드 가능합니다.");
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      alert('파일 크기는 10MB 이하여야 합니다.');
+      alert("파일 크기는 10MB 이하여야 합니다.");
       return;
     }
 
-    setUploadStatus('업로드 중...');
+    setUploadStatus("업로드 중...");
 
     try {
-      const publicUrl = await uploadImage(file, 'ceo');
-      setFormData(prev => ({ ...prev, image: publicUrl }));
-      setUploadStatus('업로드 완료!');
+      const publicUrl = await uploadImage(file, "ceo");
+      setFormData((prev) => ({ ...prev, image: publicUrl }));
+      setUploadStatus("업로드 완료!");
     } catch (err: any) {
-      console.error('Upload error:', err);
-      setUploadStatus('업로드 실패: ' + (err.message || '알 수 없는 오류'));
+      console.error("Upload error:", err);
+      setUploadStatus("업로드 실패: " + (err.message || "알 수 없는 오류"));
     }
   };
 
@@ -58,24 +61,24 @@ export default function CeoForm({ initialData }: CeoFormProps) {
 
     try {
       const settings = [
-        { key: 'ceo_subtitle', value: formData.subtitle },
-        { key: 'ceo_catchphrase', value: formData.catchphrase },
-        { key: 'ceo_message', value: formData.message },
-        { key: 'ceo_image', value: formData.image },
+        { key: "ceo_subtitle", value: formData.subtitle },
+        { key: "ceo_catchphrase", value: formData.catchphrase },
+        { key: "ceo_message", value: formData.message },
+        { key: "ceo_image", value: formData.image },
       ];
 
       for (const setting of settings) {
-        const response = await fetch('/api/settings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(setting),
         });
-        if (!response.ok) throw new Error('저장 실패');
+        if (!response.ok) throw new Error("저장 실패");
       }
 
-      setMessage({ type: 'success', text: '저장되었습니다.' });
+      setMessage({ type: "success", text: "저장되었습니다." });
     } catch (error) {
-      setMessage({ type: 'error', text: '저장 중 오류가 발생했습니다.' });
+      setMessage({ type: "error", text: "저장 중 오류가 발생했습니다." });
     } finally {
       setIsSubmitting(false);
     }
@@ -84,18 +87,20 @@ export default function CeoForm({ initialData }: CeoFormProps) {
   return (
     <form onSubmit={handleSubmit} className="ceo-form">
       {message && (
-        <div className={`form-message ${message.type}`}>
-          {message.text}
-        </div>
+        <div className={`form-message ${message.type}`}>{message.text}</div>
       )}
 
       <div className="form-group">
-        <label htmlFor="subtitle" className="form-label">섹션 부제목</label>
+        <label htmlFor="subtitle" className="form-label">
+          섹션 부제목
+        </label>
         <input
           type="text"
           id="subtitle"
           value={formData.subtitle}
-          onChange={(e) => setFormData(prev => ({ ...prev, subtitle: e.target.value }))}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, subtitle: e.target.value }))
+          }
           className="form-input"
           placeholder="대표 메시지"
         />
@@ -103,12 +108,16 @@ export default function CeoForm({ initialData }: CeoFormProps) {
       </div>
 
       <div className="form-group">
-        <label htmlFor="catchphrase" className="form-label">캐치프레이즈</label>
+        <label htmlFor="catchphrase" className="form-label">
+          캐치프레이즈
+        </label>
         <input
           type="text"
           id="catchphrase"
           value={formData.catchphrase}
-          onChange={(e) => setFormData(prev => ({ ...prev, catchphrase: e.target.value }))}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, catchphrase: e.target.value }))
+          }
           className="form-input"
           placeholder="미래의 당연함을, 조용히 대담하게."
         />
@@ -117,7 +126,9 @@ export default function CeoForm({ initialData }: CeoFormProps) {
 
       <div className="form-group">
         <label className="form-label">메시지 내용</label>
-        <span className="hint">슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.</span>
+        <span className="hint">
+          슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.
+        </span>
         <BlockNoteEditor
           initialContent={formData.message}
           onChange={handleContentChange}
@@ -141,24 +152,30 @@ export default function CeoForm({ initialData }: CeoFormProps) {
             id="imageFile"
             accept="image/*"
             onChange={handleImageUpload}
-            style={{ display: 'none' }}
+            style={{ display: "none" }}
           />
           <div className="upload-buttons">
             <button
               type="button"
-              onClick={() => document.getElementById('imageFile')?.click()}
+              onClick={() => document.getElementById("imageFile")?.click()}
               className="btn"
             >
               이미지 선택
             </button>
-            {uploadStatus && <span className="upload-status">{uploadStatus}</span>}
+            {uploadStatus && (
+              <span className="upload-status">{uploadStatus}</span>
+            )}
           </div>
         </div>
       </div>
 
       <div className="form-actions">
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? '저장 중...' : '저장'}
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "저장 중..." : "저장"}
         </button>
       </div>
 

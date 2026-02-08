@@ -6,21 +6,21 @@ import { supabase } from "@/lib/supabase";
 
 // DB에서 서비스 데이터 가져오기
 const { data: services, error } = await supabase
-  .from('services')
-  .select('*')
-  .eq('is_active', true)
-  .order('sort_order', { ascending: true });
+  .from("services")
+  .select("*")
+  .eq("is_active", true)
+  .order("sort_order", { ascending: true });
 
 if (error) {
-  console.error('Error fetching services:', error);
+  console.error("Error fetching services:", error);
 }
 
 const serviceList = services || [];
 
 // tasks 데이터 정규화 (문자열이면 JSON 파싱)
-const normalizedServices = serviceList.map(service => {
+const normalizedServices = serviceList.map((service) => {
   let tasks = service.tasks;
-  if (typeof tasks === 'string') {
+  if (typeof tasks === "string") {
     try {
       tasks = JSON.parse(tasks);
     } catch (e) {
@@ -45,8 +45,8 @@ const normalizedServices = serviceList.map(service => {
 
             <div class="item-image">
               {service.image ? (
-                <img 
-                  src={service.image} 
+                <img
+                  src={service.image}
                   alt={service.title}
                   width="800"
                   height="500"
@@ -63,14 +63,26 @@ const normalizedServices = serviceList.map(service => {
             <div class="item-tasks">
               <h3 class="tasks-title">제공 서비스</h3>
               <ul class="tasks-list">
-                {(Array.isArray(service.tasks) ? service.tasks : []).map((task: string) => (
-                  <li class="tasks-item">{task}</li>
-                ))}
+                {(Array.isArray(service.tasks) ? service.tasks : []).map(
+                  (task: string) => (
+                    <li class="tasks-item">{task}</li>
+                  )
+                )}
               </ul>
             </div>
             <div class="item-actions">
-              <LinkButton href={service.linked_product_id ? `/product/${service.linked_product_id}` : '/contact'} variant="solid" size="large">
-                {service.linked_product_id ? (service.order_button_text || '주문하기') : '문의하기'}
+              <LinkButton
+                href={
+                  service.linked_product_id
+                    ? `/product/${service.linked_product_id}`
+                    : "/contact"
+                }
+                variant="solid"
+                size="large"
+              >
+                {service.linked_product_id
+                  ? service.order_button_text || "주문하기"
+                  : "문의하기"}
               </LinkButton>
             </div>
           </div>

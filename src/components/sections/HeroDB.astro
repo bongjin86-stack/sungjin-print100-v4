@@ -6,14 +6,14 @@ import { supabase } from "@/lib/supabase";
 
 // Fetch hero settings from database
 const { data: heroSettings } = await supabase
-  .from('hero_settings')
-  .select('*')
+  .from("hero_settings")
+  .select("*")
   .limit(1)
   .single();
 
 // Fallback values
-const titleLine1 = heroSettings?.title_line1 || '안녕하세요';
-const titleLine2 = heroSettings?.title_line2 || 'Sungjinprint 입니다.';
+const titleLine1 = heroSettings?.title_line1 || "안녕하세요";
+const titleLine2 = heroSettings?.title_line2 || "Sungjinprint 입니다.";
 const imageUrl = heroSettings?.image_url;
 
 // lines 데이터 (줄 단위 관리)
@@ -36,49 +36,61 @@ import heroImage from "@/assets/hero.jpg";
 <section class="hero">
   <Container>
     <div class="hero-content">
-      {hasLines ? (
-        <h1 class="hero-title hero-title-lines">
-          {lines.map((line: HeroLine, index: number) => (
-            <span 
-              class="hero-title-line fade" 
-              data-animate 
-              data-animate-delay={String(index * 100)}
-              style={`font-size: ${line.fontSize}px; letter-spacing: ${line.letterSpacing}px; font-weight: ${line.fontWeight}; margin-bottom: ${line.marginBottom}px; display: block;`}
-            >
-              {line.text}
-            </span>
-          ))}
-        </h1>
-      ) : (
-        <h1 class="hero-title">
-          <span class="hero-title-line fade" data-animate data-animate-delay="0"
-            >{titleLine1}</span
-          >
-          <br />
-          <span class="hero-title-line fade" data-animate data-animate-delay="200"
-            >{titleLine2}</span
-          >
-        </h1>
-      )}
-      <div class="hero-image fade" data-animate data-animate-delay="400">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt="성진인쇄 작업 현장"
-            width="1200"
-            height="675"
-            loading="eager"
-          />
+      {
+        hasLines ? (
+          <h1 class="hero-title hero-title-lines">
+            {lines.map((line: HeroLine, index: number) => (
+              <span
+                class="hero-title-line fade"
+                data-animate
+                data-animate-delay={String(index * 100)}
+                style={`font-size: ${line.fontSize}px; letter-spacing: ${line.letterSpacing}px; font-weight: ${line.fontWeight}; margin-bottom: ${line.marginBottom}px; display: block;`}
+              >
+                {line.text}
+              </span>
+            ))}
+          </h1>
         ) : (
-          <Image
-            src={heroImage}
-            alt="성진인쇄 작업 현장"
-            width={1200}
-            height={675}
-            fetchpriority="high"
-            loading="lazy"
-          />
-        )}
+          <h1 class="hero-title">
+            <span
+              class="hero-title-line fade"
+              data-animate
+              data-animate-delay="0"
+            >
+              {titleLine1}
+            </span>
+            <br />
+            <span
+              class="hero-title-line fade"
+              data-animate
+              data-animate-delay="200"
+            >
+              {titleLine2}
+            </span>
+          </h1>
+        )
+      }
+      <div class="hero-image fade" data-animate data-animate-delay="400">
+        {
+          imageUrl ? (
+            <img
+              src={imageUrl}
+              alt="성진인쇄 작업 현장"
+              width="1200"
+              height="675"
+              loading="eager"
+            />
+          ) : (
+            <Image
+              src={heroImage}
+              alt="성진인쇄 작업 현장"
+              width={1200}
+              height={675}
+              fetchpriority="high"
+              loading="lazy"
+            />
+          )
+        }
       </div>
     </div>
   </Container>

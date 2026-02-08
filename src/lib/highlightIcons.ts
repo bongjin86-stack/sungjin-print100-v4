@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from "lucide-react";
 import {
   Award,
   BookOpen,
@@ -15,7 +15,7 @@ import {
   Star,
   Truck,
   Zap,
-} from 'lucide-react';
+} from "lucide-react";
 
 export interface IconEntry {
   component: LucideIcon;
@@ -29,21 +29,21 @@ export interface IconListItem {
 }
 
 export const ICON_MAP: Record<string, IconEntry> = {
-  Printer: { component: Printer, label: '인쇄' },
-  Truck: { component: Truck, label: '배송' },
-  BookOpen: { component: BookOpen, label: '제본' },
-  Sparkles: { component: Sparkles, label: '마감' },
-  Paperclip: { component: Paperclip, label: '클립' },
-  Shield: { component: Shield, label: '내구성' },
-  Link2: { component: Link2, label: '연결' },
-  CircleDollarSign: { component: CircleDollarSign, label: '경제적' },
-  Clock: { component: Clock, label: '시간' },
-  Palette: { component: Palette, label: '컬러' },
-  FileText: { component: FileText, label: '문서' },
-  Star: { component: Star, label: '특징' },
-  Zap: { component: Zap, label: '빠른' },
-  Award: { component: Award, label: '품질' },
-  Package: { component: Package, label: '포장' },
+  Printer: { component: Printer, label: "인쇄" },
+  Truck: { component: Truck, label: "배송" },
+  BookOpen: { component: BookOpen, label: "제본" },
+  Sparkles: { component: Sparkles, label: "마감" },
+  Paperclip: { component: Paperclip, label: "클립" },
+  Shield: { component: Shield, label: "내구성" },
+  Link2: { component: Link2, label: "연결" },
+  CircleDollarSign: { component: CircleDollarSign, label: "경제적" },
+  Clock: { component: Clock, label: "시간" },
+  Palette: { component: Palette, label: "컬러" },
+  FileText: { component: FileText, label: "문서" },
+  Star: { component: Star, label: "특징" },
+  Zap: { component: Zap, label: "빠른" },
+  Award: { component: Award, label: "품질" },
+  Package: { component: Package, label: "포장" },
 };
 
 export const ICON_LIST: IconListItem[] = Object.entries(ICON_MAP).map(

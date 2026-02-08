@@ -20,29 +20,29 @@ const footerMenus = typedMenuData.footer;
 
 // DB에서 사업장 정보 가져오기
 const { data: siteSettings } = await supabase
-  .from('site_settings')
-  .select('key, value')
-  .in('key', [
-    'company_name',
-    'ceo_name',
-    'business_number',
-    'ecommerce_license',
-    'privacy_officer',
-    'phone',
-    'email',
-    'address',
-    'google_maps_url',
-    'business_hours',
-    'business_hours_weekend',
-    'bank_name',
-    'bank_account',
-    'bank_account_holder'
+  .from("site_settings")
+  .select("key, value")
+  .in("key", [
+    "company_name",
+    "ceo_name",
+    "business_number",
+    "ecommerce_license",
+    "privacy_officer",
+    "phone",
+    "email",
+    "address",
+    "google_maps_url",
+    "business_hours",
+    "business_hours_weekend",
+    "bank_name",
+    "bank_account",
+    "bank_account_holder",
   ]);
 
 // 설정을 객체로 변환
 const settings: Record<string, string> = {};
-siteSettings?.forEach(item => {
-  settings[item.key] = item.value || '';
+siteSettings?.forEach((item) => {
+  settings[item.key] = item.value || "";
 });
 
 type IconComponent = typeof GithubIcon;
@@ -61,75 +61,113 @@ const iconMap: Record<string, IconComponent> = {
     <div class="footer-inner">
       <div class="footer-info">
         <SiteLogo class="footer-logo" inverse />
-        
+
         <!-- 회사 정보 -->
         <div class="company-info">
-          {settings.company_name && (
-            <p class="info-item">
-              <strong>{settings.company_name}</strong>
-            </p>
-          )}
-          {settings.ceo_name && (
-            <p class="info-item">대표: {settings.ceo_name}</p>
-          )}
-          {settings.business_number && (
-            <p class="info-item">사업자등록번호: {settings.business_number}</p>
-          )}
-          {settings.ecommerce_license && (
-            <p class="info-item">통신판매업신고: {settings.ecommerce_license}</p>
-          )}
-          {settings.privacy_officer && (
-            <p class="info-item">개인정보관리책임자: {settings.privacy_officer}</p>
-          )}
-          {settings.phone && (
-            <p class="info-item">
-              <a href={`tel:${settings.phone.replace(/-/g, '')}`} class="info-link">
-                전화: {settings.phone}
-              </a>
-            </p>
-          )}
-          {settings.email && (
-            <p class="info-item">
-              <a href={`mailto:${settings.email}`} class="info-link">
-                이메일: {settings.email}
-              </a>
-            </p>
-          )}
-          {settings.address && (
-            <p class="info-item">
-              {settings.google_maps_url ? (
-                <a href={settings.google_maps_url} target="_blank" rel="noopener noreferrer" class="info-link">
-                  주소: {settings.address}
+          {
+            settings.company_name && (
+              <p class="info-item">
+                <strong>{settings.company_name}</strong>
+              </p>
+            )
+          }
+          {
+            settings.ceo_name && (
+              <p class="info-item">대표: {settings.ceo_name}</p>
+            )
+          }
+          {
+            settings.business_number && (
+              <p class="info-item">
+                사업자등록번호: {settings.business_number}
+              </p>
+            )
+          }
+          {
+            settings.ecommerce_license && (
+              <p class="info-item">
+                통신판매업신고: {settings.ecommerce_license}
+              </p>
+            )
+          }
+          {
+            settings.privacy_officer && (
+              <p class="info-item">
+                개인정보관리책임자: {settings.privacy_officer}
+              </p>
+            )
+          }
+          {
+            settings.phone && (
+              <p class="info-item">
+                <a
+                  href={`tel:${settings.phone.replace(/-/g, "")}`}
+                  class="info-link"
+                >
+                  전화: {settings.phone}
                 </a>
-              ) : (
-                `주소: ${settings.address}`
-              )}
-            </p>
-          )}
+              </p>
+            )
+          }
+          {
+            settings.email && (
+              <p class="info-item">
+                <a href={`mailto:${settings.email}`} class="info-link">
+                  이메일: {settings.email}
+                </a>
+              </p>
+            )
+          }
+          {
+            settings.address && (
+              <p class="info-item">
+                {settings.google_maps_url ? (
+                  <a
+                    href={settings.google_maps_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="info-link"
+                  >
+                    주소: {settings.address}
+                  </a>
+                ) : (
+                  `주소: ${settings.address}`
+                )}
+              </p>
+            )
+          }
         </div>
 
         <!-- 운영시간 -->
-        {(settings.business_hours || settings.business_hours_weekend) && (
-          <div class="business-hours">
-            <p class="footer-business-hours">
-              영업시간: {settings.business_hours}
-              {settings.business_hours_weekend && (
-                <span class="business-hours-note"> ({settings.business_hours_weekend})</span>
-              )}
-            </p>
-          </div>
-        )}
+        {
+          (settings.business_hours || settings.business_hours_weekend) && (
+            <div class="business-hours">
+              <p class="footer-business-hours">
+                영업시간: {settings.business_hours}
+                {settings.business_hours_weekend && (
+                  <span class="business-hours-note">
+                    {" "}
+                    ({settings.business_hours_weekend})
+                  </span>
+                )}
+              </p>
+            </div>
+          )
+        }
 
         <!-- 계좌 정보 -->
-        {settings.bank_account && (
-          <div class="bank-info">
-            <p class="info-item">
-              {settings.bank_name && `${settings.bank_name} `}
-              {settings.bank_account}
-              {settings.bank_account_holder && ` (${settings.bank_account_holder})`}
-            </p>
-          </div>
-        )}
+        {
+          settings.bank_account && (
+            <div class="bank-info">
+              <p class="info-item">
+                {settings.bank_name && `${settings.bank_name} `}
+                {settings.bank_account}
+                {settings.bank_account_holder &&
+                  ` (${settings.bank_account_holder})`}
+              </p>
+            </div>
+          )
+        }
 
         <!-- 소셜 미디어 -->
         <ul class="footer-social">

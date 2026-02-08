@@ -17,11 +17,13 @@ sungjin-print100의 가격 DB 관리 시스템을 sungjin-print100-nagi(Astro) �
 ### 1. DB 서비스 레이어 이식
 
 **파일:**
+
 - `src/lib/types/database.ts` - TypeScript 타입 정의
 - `src/lib/dbService.ts` - 가격 데이터 로딩 서비스
 - `src/lib/supabase.ts` - 이미지 업로드/삭제 함수 추가
 
 **기능:**
+
 - `loadPricingData()` - 모든 가격 데이터 로드 (캐싱)
 - `getPaperWeights()` - 용지별 평량 목록
 - `getPaperCost()` - 용지 단가 조회
@@ -37,10 +39,12 @@ sungjin-print100의 가격 DB 관리 시스템을 sungjin-print100-nagi(Astro) �
 ### 2. Tailwind CSS 통합
 
 **설치:**
+
 - `@tailwindcss/vite` 4.1.18
 - `tailwindcss` 4.1.18
 
 **설정:**
+
 - `astro.config.mjs` - Tailwind Vite 플러그인 추가
 - `src/styles/global.css` - Tailwind CSS import
 - `src/layouts/Layout.astro` - 메인 레이아웃에 global.css import
@@ -49,6 +53,7 @@ sungjin-print100의 가격 DB 관리 시스템을 sungjin-print100-nagi(Astro) �
 ### 3. DB 관리 Admin UI 이식
 
 **페이지:**
+
 1. **DB Dashboard** (`/admin/db`)
    - 전체 데이터 요약
    - 각 관리 페이지로 빠른 이동
@@ -76,6 +81,7 @@ sungjin-print100의 가격 DB 관리 시스템을 sungjin-print100-nagi(Astro) �
    - 제본 비용 CRUD (수량별)
 
 **컴포넌트:**
+
 - `src/components/admin/PapersManager.tsx`
 - `src/components/admin/SizesManager.tsx`
 - `src/components/admin/PrintManager.tsx`
@@ -85,6 +91,7 @@ sungjin-print100의 가격 DB 관리 시스템을 sungjin-print100-nagi(Astro) �
 ### 4. UI 개선
 
 **문제 해결:**
+
 - ✅ 이미지 크기 제한 (48px x 48px, 인라인 스타일)
 - ✅ Tailwind CSS 클래스 적용
 - ✅ Nagi 디자인 시스템과 조화
@@ -95,30 +102,30 @@ sungjin-print100의 가격 DB 관리 시스템을 sungjin-print100-nagi(Astro) �
 
 ## 데이터 현황
 
-| 항목 | 개수 |
-|------|------|
-| 용지 종류 | 3개 |
-| 용지 단가 | 34개 |
-| 사이즈 | 5개 |
+| 항목        | 개수 |
+| ----------- | ---- |
+| 용지 종류   | 3개  |
+| 용지 단가   | 34개 |
+| 사이즈      | 5개  |
 | 인쇄비 구간 | 19개 |
-| 후가공 종류 | 8개 |
+| 후가공 종류 | 8개  |
 | 후가공 비용 | 48개 |
-| 제본 종류 | 3개 |
-| 제본 비용 | 18개 |
+| 제본 종류   | 3개  |
+| 제본 비용   | 18개 |
 
 ---
 
 ## 기술 스택
 
-| 항목 | 기술 |
-|------|------|
-| 프레임워크 | Astro 5.1.3 |
-| UI 라이브러리 | React 19.0.0 |
-| 스타일링 | Tailwind CSS 4.1.18 |
-| 데이터베이스 | Supabase (PostgreSQL) |
-| 스토리지 | Supabase Storage |
-| 배포 | Vercel |
-| 타입 | TypeScript |
+| 항목          | 기술                  |
+| ------------- | --------------------- |
+| 프레임워크    | Astro 5.1.3           |
+| UI 라이브러리 | React 19.0.0          |
+| 스타일링      | Tailwind CSS 4.1.18   |
+| 데이터베이스  | Supabase (PostgreSQL) |
+| 스토리지      | Supabase Storage      |
+| 배포          | Vercel                |
+| 타입          | TypeScript            |
 
 ---
 
@@ -146,6 +153,7 @@ sungjin-print100의 가격 DB 관리 시스템을 sungjin-print100-nagi(Astro) �
 ## 테스트 결과
 
 ### 기능 테스트
+
 - ✅ 데이터 로딩 (Supabase 연동)
 - ✅ CRUD 작업 (생성, 읽기, 수정, 삭제)
 - ✅ 이미지 업로드 (Supabase Storage)
@@ -153,6 +161,7 @@ sungjin-print100의 가격 DB 관리 시스템을 sungjin-print100-nagi(Astro) �
 - ✅ 캐싱 (dbService)
 
 ### UI 테스트
+
 - ✅ Tailwind CSS 적용
 - ✅ 반응형 레이아웃
 - ✅ 테이블 스타일
@@ -161,6 +170,7 @@ sungjin-print100의 가격 DB 관리 시스템을 sungjin-print100-nagi(Astro) �
 - ✅ 이미지 크기 제한
 
 ### 브라우저 테스트
+
 - ✅ Chrome (Vercel 배포)
 - ✅ 데이터 표시 정상
 - ✅ 상호작용 정상

@@ -3,7 +3,7 @@
  * 현재는 콘솔 로그만 출력 (서버 측 구현 필요)
  */
 
-import { getBankInfo, getConfig } from './siteConfigService';
+import { getBankInfo, getConfig } from "./siteConfigService";
 
 export interface OrderItem {
   productName: string;
@@ -41,7 +41,7 @@ interface EmailData {
 }
 
 function getFromEmail(): string {
-  return getConfig('from_email') || 'onboarding@resend.dev';
+  return getConfig("from_email") || "onboarding@resend.dev";
 }
 
 function formatPrice(price: number | undefined): string {
@@ -50,34 +50,36 @@ function formatPrice(price: number | undefined): string {
 
 function getPaymentMethodLabel(method: string): string {
   const labels: Record<string, string> = {
-    bank_transfer: '무통장입금',
-    card: '신용카드',
-    toss: '토스페이',
-    kakao: '카카오페이',
+    bank_transfer: "무통장입금",
+    card: "신용카드",
+    toss: "토스페이",
+    kakao: "카카오페이",
   };
   return labels[method] || method;
 }
 
 async function sendEmail(emailData: EmailData): Promise<boolean> {
-  const apiKey = getConfig('resend_api_key');
+  const apiKey = getConfig("resend_api_key");
 
   if (!apiKey) {
-    console.log('[Email Service] API 키 미설정 - 이메일 발송 건너뜀');
-    console.log('[Email Data]', emailData);
+    console.log("[Email Service] API 키 미설정 - 이메일 발송 건너뜀");
+    console.log("[Email Data]", emailData);
     return false;
   }
 
-  console.log('[Email Service] 이메일 발송 요청');
-  console.log('[To]', emailData.to);
-  console.log('[Subject]', emailData.subject);
+  console.log("[Email Service] 이메일 발송 요청");
+  console.log("[To]", emailData.to);
+  console.log("[Subject]", emailData.subject);
   console.log(
-    '[Note] 실제 발송은 서버 측 구현 필요 (Supabase Edge Function 권장)'
+    "[Note] 실제 발송은 서버 측 구현 필요 (Supabase Edge Function 권장)"
   );
 
   return true;
 }
 
-export async function sendOrderConfirmationEmail(order: Order): Promise<boolean> {
+export async function sendOrderConfirmationEmail(
+  order: Order
+): Promise<boolean> {
   const {
     customer_email,
     order_number,
@@ -95,9 +97,9 @@ export async function sendOrderConfirmationEmail(order: Order): Promise<boolean>
 
   const bankInfo = getBankInfo();
   const baseUrl =
-    typeof window !== 'undefined'
+    typeof window !== "undefined"
       ? window.location.origin
-      : 'https://sungjin-print100-nagi.vercel.app';
+      : "https://sungjin-print100-nagi.vercel.app";
   const orderUrl = `${baseUrl}/order/${uuid}`;
 
   const itemsHtml = items
@@ -107,8 +109,8 @@ export async function sendOrderConfirmationEmail(order: Order): Promise<boolean>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
         <strong>${item.productName}</strong><br>
         <span style="color: #6b7280; font-size: 13px;">
-          ${item.spec?.size || ''} · ${item.spec?.quantity || 0}부
-          ${item.spec?.pages ? ` · ${item.spec.pages}p` : ''}
+          ${item.spec?.size || ""} · ${item.spec?.quantity || 0}부
+          ${item.spec?.pages ? ` · ${item.spec.pages}p` : ""}
         </span>
       </td>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">
@@ -117,14 +119,14 @@ export async function sendOrderConfirmationEmail(order: Order): Promise<boolean>
     </tr>
   `
     )
-    .join('');
+    .join("");
 
   const deliveryInfo =
-    delivery_type === 'pickup'
-      ? '방문 수령'
-      : delivery_type === 'quick'
-        ? '퀵 배송'
-        : `${recipient}<br>${address} ${address_detail || ''}`;
+    delivery_type === "pickup"
+      ? "방문 수령"
+      : delivery_type === "quick"
+        ? "퀵 배송"
+        : `${recipient}<br>${address} ${address_detail || ""}`;
 
   const emailData: EmailData = {
     from: getFromEmail(),
@@ -147,12 +149,12 @@ export async function sendOrderConfirmationEmail(order: Order): Promise<boolean>
 <h2 style="margin:0 0 16px;font-size:16px;">주문 상품</h2>
 <table style="width:100%;font-size:14px;">${itemsHtml}
 <tr><td style="padding:12px 0;color:#6b7280;">상품금액</td><td style="text-align:right;">${formatPrice(product_amount)}</td></tr>
-<tr><td style="padding:8px 0;color:#6b7280;">배송비</td><td style="text-align:right;">${shipping_cost > 0 ? formatPrice(shipping_cost) : '무료'}</td></tr>
+<tr><td style="padding:8px 0;color:#6b7280;">배송비</td><td style="text-align:right;">${shipping_cost > 0 ? formatPrice(shipping_cost) : "무료"}</td></tr>
 <tr style="border-top:2px solid #111827;"><td style="padding:16px 0;font-weight:600;font-size:16px;">총 결제금액</td>
 <td style="text-align:right;font-weight:600;font-size:18px;color:#3455DB;">${formatPrice(total_amount)}</td></tr>
 </table></div>
 ${
-  payment_method === 'bank_transfer'
+  payment_method === "bank_transfer"
     ? `<div style="background:#fef3c7;border-radius:12px;padding:24px;margin-bottom:16px;">
 <h2 style="margin:0 0 16px;font-size:16px;color:#92400e;">입금 안내</h2>
 <p style="font-size:14px;color:#78350f;">아래 계좌로 입금해주시면 제작이 시작됩니다.</p>
@@ -161,13 +163,13 @@ ${
 <tr><td style="color:#92400e;">계좌번호</td><td style="text-align:right;font-weight:600;">${bankInfo.bankAccount}</td></tr>
 <tr><td style="color:#92400e;">예금주</td><td style="text-align:right;font-weight:600;">${bankInfo.bankHolder}</td></tr>
 </table></div>`
-    : ''
+    : ""
 }
 <div style="text-align:center;margin-bottom:32px;">
 <a href="${orderUrl}" style="display:inline-block;padding:14px 32px;background:#3455DB;color:white;text-decoration:none;border-radius:8px;font-weight:600;">주문 상태 확인하기</a></div>
 <div style="text-align:center;color:#9ca3af;font-size:12px;">
-<p style="margin:0;">문의: ${getConfig('phone')} | ${getConfig('email')}</p>
-<p style="margin:8px 0 0;">${getConfig('company_name')}</p></div>
+<p style="margin:0;">문의: ${getConfig("phone")} | ${getConfig("email")}</p>
+<p style="margin:8px 0 0;">${getConfig("company_name")}</p></div>
 </div></body></html>`,
   };
 
@@ -178,19 +180,24 @@ export async function sendShippingNotificationEmail(
   order: Order,
   trackingUrl: string
 ): Promise<boolean> {
-  const { customer_email, order_number, uuid, tracking_company, tracking_number } =
-    order;
+  const {
+    customer_email,
+    order_number,
+    uuid,
+    tracking_company,
+    tracking_number,
+  } = order;
   const baseUrl =
-    typeof window !== 'undefined'
+    typeof window !== "undefined"
       ? window.location.origin
-      : 'https://sungjin-print100-nagi.vercel.app';
+      : "https://sungjin-print100-nagi.vercel.app";
   const orderUrl = `${baseUrl}/order/${uuid}`;
 
   const carrierLabels: Record<string, string> = {
-    cj: 'CJ대한통운',
-    hanjin: '한진택배',
-    lotte: '롯데택배',
-    epost: '우체국택배',
+    cj: "CJ대한통운",
+    hanjin: "한진택배",
+    lotte: "롯데택배",
+    epost: "우체국택배",
   };
 
   const emailData: EmailData = {
@@ -206,7 +213,7 @@ export async function sendShippingNotificationEmail(
 <div style="background:white;border-radius:12px;padding:24px;margin-bottom:16px;">
 <h2 style="margin:0 0 16px;font-size:16px;">배송 정보</h2>
 <table style="width:100%;font-size:14px;">
-<tr><td style="color:#6b7280;">택배사</td><td style="text-align:right;font-weight:600;">${carrierLabels[tracking_company || ''] || tracking_company}</td></tr>
+<tr><td style="color:#6b7280;">택배사</td><td style="text-align:right;font-weight:600;">${carrierLabels[tracking_company || ""] || tracking_company}</td></tr>
 <tr><td style="color:#6b7280;">송장번호</td><td style="text-align:right;font-weight:600;font-family:monospace;">${tracking_number}</td></tr>
 </table></div>
 <div style="text-align:center;margin-bottom:16px;">

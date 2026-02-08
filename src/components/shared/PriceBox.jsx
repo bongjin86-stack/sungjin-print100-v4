@@ -16,22 +16,28 @@ export function PriceBox({ price, customer, isPreview = false, onOrderClick }) {
         <div className="pv-price-row">
           <div className="pv-price-left">
             <p className="pv-price-label">출고일</p>
-            <p className="pv-price-date">{customer.deliveryDate || '-'}</p>
+            <p className="pv-price-date">{customer.deliveryDate || "-"}</p>
           </div>
           <div className="pv-price-right">
             <p className="pv-price-label">결제금액</p>
             <p className="pv-price-total">
-              {totalWithVat.toLocaleString()}<span className="pv-price-unit">원</span>
+              {totalWithVat.toLocaleString()}
+              <span className="pv-price-unit">원</span>
             </p>
           </div>
         </div>
         <div className="pv-price-row-sub">
           <p className="pv-price-weight">
-            예상 무게 약 {price.estimatedWeight ? `${price.estimatedWeight.toFixed(1)}kg` : '-'}
-            {price.totalThickness > 0 && ` · 1부당 두께 약 ${price.totalThickness.toFixed(1)}mm`}
+            예상 무게 약{" "}
+            {price.estimatedWeight
+              ? `${price.estimatedWeight.toFixed(1)}kg`
+              : "-"}
+            {price.totalThickness > 0 &&
+              ` · 1부당 두께 약 ${price.totalThickness.toFixed(1)}mm`}
           </p>
           <p className="pv-price-breakdown">
-            (공급가: {price.total.toLocaleString()}원 + 부가세: {vat.toLocaleString()}원)
+            (공급가: {price.total.toLocaleString()}원 + 부가세:{" "}
+            {vat.toLocaleString()}원)
           </p>
         </div>
 
@@ -43,11 +49,12 @@ export function PriceBox({ price, customer, isPreview = false, onOrderClick }) {
         )}
 
         {/* 두께 경고 */}
-        {price.thicknessValidation?.warning && !price.thicknessValidation?.error && (
-          <div className="pv-thickness-warning">
-            <p>&#9888; {price.thicknessValidation.message}</p>
-          </div>
-        )}
+        {price.thicknessValidation?.warning &&
+          !price.thicknessValidation?.error && (
+            <div className="pv-thickness-warning">
+              <p>&#9888; {price.thicknessValidation.message}</p>
+            </div>
+          )}
       </div>
 
       {/* 다음으로 버튼 */}
@@ -55,13 +62,13 @@ export function PriceBox({ price, customer, isPreview = false, onOrderClick }) {
         disabled={price.thicknessValidation?.error || isPreview}
         onClick={onOrderClick}
         className="pv-order-btn"
-        style={isPreview ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+        style={isPreview ? { opacity: 0.5, cursor: "not-allowed" } : {}}
       >
         {price.thicknessValidation?.error
-          ? '주문 불가 (두께 초과)'
+          ? "주문 불가 (두께 초과)"
           : isPreview
-            ? '다음으로 (미리보기)'
-            : '다음으로'}
+            ? "다음으로 (미리보기)"
+            : "다음으로"}
       </button>
     </>
   );

@@ -12,9 +12,9 @@
 
 .admin-content {
   /* 배경 */
-  --bg-page: #FFFFFF;
-  --bg-card: #FFFFFF;
-  --bg-button: #FFFFFF;
+  --bg-page: #ffffff;
+  --bg-card: #ffffff;
+  --bg-button: #ffffff;
   --bg-button-hover: #f5f7f7;
   --bg-summary: #f5f7f7;
   --bg-input: #f5f7f7;
@@ -51,7 +51,12 @@
 
   /* 빌더 전용 기본값 (v1 기준) */
   line-height: 1.5;
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 /* ============================================ */
@@ -348,7 +353,7 @@
 }
 
 .layer-inner {
-  background: #F7FAF7;
+  background: #f7faf7;
   border: 1.5px solid var(--border-default);
 }
 
@@ -470,9 +475,9 @@
 }
 
 .action-btn.delete:hover {
-  background: #FEF2F2;
-  color: #DC2626;
-  border-color: #FECACA;
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
 }
 
 /* ============================================ */
@@ -653,7 +658,7 @@
   width: 100%;
   font-size: 16px;
   font-weight: var(--font-weight-medium);
-  color: #FFFFFF;
+  color: #ffffff;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -731,7 +736,7 @@
   font-size: 14px;
   color: var(--text-primary);
   padding: 14px;
-  border-bottom: 1px solid #E5E5E5;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .qty-table tbody tr:last-child td {
@@ -773,7 +778,7 @@
 }
 
 .checkbox:checked::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 5px;
   top: 1px;

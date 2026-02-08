@@ -8,14 +8,14 @@ import { supabase } from "../../lib/supabase";
 
 // DB에서 works 가져오기
 const { data: works, error } = await supabase
-  .from('works')
-  .select('*')
-  .eq('is_published', true)
-  .order('created_at', { ascending: false })
+  .from("works")
+  .select("*")
+  .eq("is_published", true)
+  .order("created_at", { ascending: false })
   .limit(4);
 
 if (error) {
-  console.error('Error fetching works:', error);
+  console.error("Error fetching works:", error);
 }
 ---
 
@@ -30,27 +30,33 @@ if (error) {
       </div>
 
       <div class="works-grid">
-        {works && works.map((work) => (
-          <article class="work-item fade" data-animate>
-            <a class="item-link" href={`/works/${work.id}`}>
-              <div class="item-image">
-                <img
-                  src={work.image || 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=800&h=600&fit=crop'}
-                  alt={work.title}
-                  width="800"
-                  height="500"
-                  loading="lazy"
-                />
-                <span class="item-category">{work.tag || '가이드'}</span>
-              </div>
-              <div class="item-content">
-                <h3 class="item-title">{work.title}</h3>
-                <p class="item-description">{work.description}</p>
-                <span class="item-view">자세히 보기</span>
-              </div>
-            </a>
-          </article>
-        ))}
+        {
+          works &&
+            works.map((work) => (
+              <article class="work-item fade" data-animate>
+                <a class="item-link" href={`/works/${work.id}`}>
+                  <div class="item-image">
+                    <img
+                      src={
+                        work.image ||
+                        "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=800&h=600&fit=crop"
+                      }
+                      alt={work.title}
+                      width="800"
+                      height="500"
+                      loading="lazy"
+                    />
+                    <span class="item-category">{work.tag || "가이드"}</span>
+                  </div>
+                  <div class="item-content">
+                    <h3 class="item-title">{work.title}</h3>
+                    <p class="item-description">{work.description}</p>
+                    <span class="item-view">자세히 보기</span>
+                  </div>
+                </a>
+              </article>
+            ))
+        }
       </div>
     </div>
   </Container>

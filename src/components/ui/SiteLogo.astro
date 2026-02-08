@@ -18,9 +18,9 @@ const siteTitle = typedSiteConfig.site.title as string;
 let logoUrl: string | null = null;
 try {
   const { data } = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', 'logo_url')
+    .from("site_settings")
+    .select("value")
+    .eq("key", "logo_url")
     .single();
   if (data?.value) {
     logoUrl = data.value;

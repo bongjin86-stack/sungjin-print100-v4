@@ -19,9 +19,9 @@ const currentPath = Astro.url.pathname;
 let logoUrl: string | null = null;
 try {
   const { data } = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', 'logo_url')
+    .from("site_settings")
+    .select("value")
+    .eq("key", "logo_url")
     .single();
   if (data?.value) {
     logoUrl = data.value;
@@ -32,38 +32,38 @@ try {
 
 // 단독 메뉴 항목 (비즈니스)
 const businessItems = [
-  { href: '/admin/orders', label: '주문 관리' },
-  { href: '/admin/products', label: '상품 관리' },
+  { href: "/admin/orders", label: "주문 관리" },
+  { href: "/admin/products", label: "상품 관리" },
 ];
 
 // 페이지별 메뉴 (홈페이지 구조대로)
 const pageItems = [
-  { href: '/admin/landing', label: '랜딩 페이지' },
-  { href: '/admin/about', label: '회사소개' },
-  { href: '/admin/services', label: '서비스' },
-  { href: '/admin/works', label: 'Works' },
-  { href: '/admin/news', label: '공지사항' },
-  { href: '/admin/faq', label: 'FAQ' },
+  { href: "/admin/landing", label: "랜딩 페이지" },
+  { href: "/admin/about", label: "회사소개" },
+  { href: "/admin/services", label: "서비스" },
+  { href: "/admin/works", label: "Works" },
+  { href: "/admin/news", label: "공지사항" },
+  { href: "/admin/faq", label: "FAQ" },
 ];
 
 // 시스템 그룹
 const systemGroup = {
-  title: '시스템',
+  title: "시스템",
   items: [
-    { href: '/admin/db', label: 'DB 관리' },
-    { href: '/admin/settings', label: '설정' },
+    { href: "/admin/db", label: "DB 관리" },
+    { href: "/admin/settings", label: "설정" },
   ],
 };
 
 function isActive(href: string) {
-  if (href === '/admin') {
-    return currentPath === '/admin' || currentPath === '/admin/';
+  if (href === "/admin") {
+    return currentPath === "/admin" || currentPath === "/admin/";
   }
   return currentPath.startsWith(href);
 }
 
 // 대시보드 단독 항목
-const dashboardItem = { href: '/admin', label: '대시보드' };
+const dashboardItem = { href: "/admin", label: "대시보드" };
 ---
 
 <!doctype html>
@@ -80,11 +80,13 @@ const dashboardItem = { href: '/admin', label: '대시보드' };
       <aside class="admin-sidebar">
         <div class="admin-logo">
           <a href="/admin">
-            {logoUrl ? (
-              <img src={logoUrl} alt="Logo" class="admin-logo-img" />
-            ) : (
-              "Sungjinprint"
-            )}
+            {
+              logoUrl ? (
+                <img src={logoUrl} alt="Logo" class="admin-logo-img" />
+              ) : (
+                "Sungjinprint"
+              )
+            }
           </a>
           <span class="admin-badge">Admin</span>
         </div>
@@ -92,47 +94,59 @@ const dashboardItem = { href: '/admin', label: '대시보드' };
           {/* 대시보드 */}
           <a
             href={dashboardItem.href}
-            class:list={['admin-nav-item', { active: isActive(dashboardItem.href) }]}
+            class:list={[
+              "admin-nav-item",
+              { active: isActive(dashboardItem.href) },
+            ]}
           >
             {dashboardItem.label}
           </a>
 
           {/* 비즈니스 메뉴 (주문관리, 상품관리) */}
-          {businessItems.map((item) => (
-            <a
-              href={item.href}
-              class:list={['admin-nav-item', { active: isActive(item.href) }]}
-            >
-              {item.label}
-            </a>
-          ))}
+          {
+            businessItems.map((item) => (
+              <a
+                href={item.href}
+                class:list={["admin-nav-item", { active: isActive(item.href) }]}
+              >
+                {item.label}
+              </a>
+            ))
+          }
 
           <div class="nav-divider"></div>
 
           {/* 페이지별 메뉴 (홈페이지 구조대로) */}
-          {pageItems.map((item) => (
-            <a
-              href={item.href}
-              class:list={['admin-nav-item', { active: isActive(item.href) }]}
-            >
-              {item.label}
-            </a>
-          ))}
+          {
+            pageItems.map((item) => (
+              <a
+                href={item.href}
+                class:list={["admin-nav-item", { active: isActive(item.href) }]}
+              >
+                {item.label}
+              </a>
+            ))
+          }
 
           {/* 시스템 그룹 */}
           <div class="nav-group">
             <span class="nav-group-title">{systemGroup.title}</span>
             <ul>
-              {systemGroup.items.map((item) => (
-                <li>
-                  <a
-                    href={item.href}
-                    class:list={['admin-nav-item', { active: isActive(item.href) }]}
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
+              {
+                systemGroup.items.map((item) => (
+                  <li>
+                    <a
+                      href={item.href}
+                      class:list={[
+                        "admin-nav-item",
+                        { active: isActive(item.href) },
+                      ]}
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ))
+              }
             </ul>
           </div>
         </nav>
@@ -140,29 +154,27 @@ const dashboardItem = { href: '/admin', label: '대시보드' };
           <div class="admin-user-info">
             <span class="user-email" id="userEmail">로딩중...</span>
           </div>
-          <a href="/" class="admin-nav-item" target="_blank">
-            사이트 보기
-          </a>
+          <a href="/" class="admin-nav-item" target="_blank"> 사이트 보기 </a>
           <button id="logoutButton" class="admin-nav-item logout-btn">
             로그아웃
           </button>
         </div>
 
         <script>
-          import { supabase } from '@/lib/supabase';
+          import { supabase } from "@/lib/supabase";
 
           // 쿠키 설정 헬퍼
           function setAuthCookies(session) {
             if (!session) return;
-            const secure = window.location.protocol === 'https:';
-            const cookieOpts = `path=/; max-age=${session.expires_in}; SameSite=Lax${secure ? '; Secure' : ''}`;
+            const secure = window.location.protocol === "https:";
+            const cookieOpts = `path=/; max-age=${session.expires_in}; SameSite=Lax${secure ? "; Secure" : ""}`;
             document.cookie = `sb-access-token=${session.access_token}; ${cookieOpts}`;
-            document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? '; Secure' : ''}`;
+            document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? "; Secure" : ""}`;
           }
 
           function clearAuthCookies() {
-            document.cookie = 'sb-access-token=; path=/; max-age=0';
-            document.cookie = 'sb-refresh-token=; path=/; max-age=0';
+            document.cookie = "sb-access-token=; path=/; max-age=0";
+            document.cookie = "sb-refresh-token=; path=/; max-age=0";
           }
 
           // 클라이언트 사이드 인증 체크 (서버 미들웨어가 1차 보호, 이건 2차)
@@ -171,7 +183,7 @@ const dashboardItem = { href: '/admin', label: '대시보드' };
 
             if (!data.session) {
               clearAuthCookies();
-              window.location.href = '/admin/login';
+              window.location.href = "/admin/login";
               return;
             }
 
@@ -179,39 +191,48 @@ const dashboardItem = { href: '/admin', label: '대시보드' };
             setAuthCookies(data.session);
 
             // 사용자 이메일 표시
-            const userEmailEl = document.getElementById('userEmail');
+            const userEmailEl = document.getElementById("userEmail");
             if (userEmailEl) {
-              userEmailEl.textContent = data.session.user.email || '';
+              userEmailEl.textContent = data.session.user.email || "";
             }
           })();
 
           // 토큰 자동 갱신 시 쿠키도 업데이트
           supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'TOKEN_REFRESHED' && session) {
+            if (event === "TOKEN_REFRESHED" && session) {
               setAuthCookies(session);
             }
-            if (event === 'SIGNED_OUT') {
+            if (event === "SIGNED_OUT") {
               clearAuthCookies();
             }
           });
 
           // 로그아웃 버튼
-          document.getElementById('logoutButton')?.addEventListener('click', async () => {
-            await supabase.auth.signOut();
-            clearAuthCookies();
-            window.location.href = '/admin/login';
-          });
+          document
+            .getElementById("logoutButton")
+            ?.addEventListener("click", async () => {
+              await supabase.auth.signOut();
+              clearAuthCookies();
+              window.location.href = "/admin/login";
+            });
         </script>
       </aside>
 
       <!-- Main Content -->
       <main class="admin-main">
-        {!fullBleed && (
-          <header class="admin-header">
-            <h1 class="admin-title">{title}</h1>
-          </header>
-        )}
-        <div class:list={['admin-content', { 'admin-content--full-bleed': fullBleed }]}>
+        {
+          !fullBleed && (
+            <header class="admin-header">
+              <h1 class="admin-title">{title}</h1>
+            </header>
+          )
+        }
+        <div
+          class:list={[
+            "admin-content",
+            { "admin-content--full-bleed": fullBleed },
+          ]}
+        >
           <slot />
         </div>
       </main>
@@ -264,7 +285,7 @@ const dashboardItem = { href: '/admin', label: '대시보드' };
         height: 28px;
         width: auto;
         object-fit: contain;
-        filter: brightness(0) invert(1);  /* 흰색으로 변환 */
+        filter: brightness(0) invert(1); /* 흰색으로 변환 */
       }
 
       .admin-badge {

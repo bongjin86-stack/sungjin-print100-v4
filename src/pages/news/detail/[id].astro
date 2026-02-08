@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import { marked } from 'marked';
+import { marked } from "marked";
 
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
@@ -16,13 +16,13 @@ const { id } = Astro.params;
 
 // DB에서 News 데이터 가져오기
 const { data: news, error } = await supabase
-  .from('news')
-  .select('*')
-  .eq('id', id)
+  .from("news")
+  .select("*")
+  .eq("id", id)
   .single();
 
 if (error || !news) {
-  return Astro.redirect('/news');
+  return Astro.redirect("/news");
 }
 
 const { title, category, pub_date, content } = news;
@@ -230,7 +230,8 @@ const htmlContent = await marked(content);
       border-collapse: collapse;
     }
 
-    :global(td), :global(th) {
+    :global(td),
+    :global(th) {
       padding: var(--sp-sm) var(--sp-md);
       border: 1px solid var(--c-border);
       text-align: left;

@@ -1,7 +1,7 @@
 ---
-import WorksForm from '../../../components/admin/WorksForm';
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { supabase } from '../../../lib/supabase';
+import WorksForm from "../../../components/admin/WorksForm";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
@@ -9,13 +9,13 @@ const { id } = Astro.params;
 
 // Works 데이터 가져오기
 const { data: work, error } = await supabase
-  .from('works')
-  .select('*')
-  .eq('id', id)
+  .from("works")
+  .select("*")
+  .eq("id", id)
   .single();
 
 if (error || !work) {
-  return Astro.redirect('/admin/works');
+  return Astro.redirect("/admin/works");
 }
 ---
 

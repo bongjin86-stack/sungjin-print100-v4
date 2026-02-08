@@ -1,16 +1,16 @@
 ---
 export const prerender = false;
 
-import AdminLayout from '@/layouts/AdminLayout.astro';
-import { supabase } from '@/lib/supabase';
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { supabase } from "@/lib/supabase";
 
 const { data: historyItems, error } = await supabase
-  .from('history')
-  .select('*')
-  .order('sort_order', { ascending: true });
+  .from("history")
+  .select("*")
+  .order("sort_order", { ascending: true });
 
 if (error) {
-  console.error('Error fetching history:', error);
+  console.error("Error fetching history:", error);
 }
 ---
 
@@ -22,16 +22,35 @@ if (error) {
     </div>
 
     <div class="history-list">
-      {historyItems && historyItems.map((item) => (
-        <div class="history-item" data-id={item.id}>
-          <div class="history-year">{item.year}.{item.month}</div>
-          <div class="history-event">{item.event}</div>
-          <div class="history-actions">
-            <button class="btn btn-sm edit-btn" data-id={item.id} data-year={item.year} data-month={item.month} data-event={item.event} data-sort={item.sort_order}>수정</button>
-            <button class="btn btn-sm btn-danger delete-btn" data-id={item.id}>삭제</button>
-          </div>
-        </div>
-      ))}
+      {
+        historyItems &&
+          historyItems.map((item) => (
+            <div class="history-item" data-id={item.id}>
+              <div class="history-year">
+                {item.year}.{item.month}
+              </div>
+              <div class="history-event">{item.event}</div>
+              <div class="history-actions">
+                <button
+                  class="btn btn-sm edit-btn"
+                  data-id={item.id}
+                  data-year={item.year}
+                  data-month={item.month}
+                  data-event={item.event}
+                  data-sort={item.sort_order}
+                >
+                  수정
+                </button>
+                <button
+                  class="btn btn-sm btn-danger delete-btn"
+                  data-id={item.id}
+                >
+                  삭제
+                </button>
+              </div>
+            </div>
+          ))
+      }
     </div>
   </div>
 
@@ -51,7 +70,11 @@ if (error) {
         </div>
         <div class="form-group">
           <label for="event">내용</label>
-          <textarea id="event" rows="3" placeholder="연혁 내용을 입력하세요" required></textarea>
+          <textarea
+            id="event"
+            rows="3"
+            placeholder="연혁 내용을 입력하세요"
+            required></textarea>
         </div>
         <div class="form-group">
           <label for="sortOrder">정렬 순서</label>
@@ -66,92 +89,196 @@ if (error) {
   </div>
 
   <style>
-    .admin-page { padding: 2rem; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-    .page-header h1 { font-size: 1.5rem; font-weight: 600; }
-    .btn { padding: 0.5rem 1rem; border: 1px solid #ddd; border-radius: 4px; background: white; cursor: pointer; }
-    .btn-primary { background: #333; color: white; border-color: #333; }
-    .btn-danger { background: #dc3545; color: white; border-color: #dc3545; }
-    .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
-    .history-list { display: flex; flex-direction: column; gap: 1rem; }
-    .history-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: white; border: 1px solid #eee; border-radius: 8px; }
-    .history-year { font-weight: 600; min-width: 80px; color: #333; }
-    .history-event { flex: 1; color: #666; }
-    .history-actions { display: flex; gap: 0.5rem; }
-    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .modal.hidden { display: none; }
-    .modal-content { background: white; padding: 2rem; border-radius: 8px; width: 100%; max-width: 500px; }
-    .modal-content h2 { margin-bottom: 1.5rem; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
-    .form-group input, .form-group textarea { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
+    .admin-page {
+      padding: 2rem;
+    }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .page-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #333;
+      color: white;
+      border-color: #333;
+    }
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+      border-color: #dc3545;
+    }
+    .btn-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+    }
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: white;
+      border: 1px solid #eee;
+      border-radius: 8px;
+    }
+    .history-year {
+      font-weight: 600;
+      min-width: 80px;
+      color: #333;
+    }
+    .history-event {
+      flex: 1;
+      color: #666;
+    }
+    .history-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal.hidden {
+      display: none;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+    }
+    .modal-content h2 {
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
   </style>
 
   <script>
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modalTitle');
-    const form = document.getElementById('historyForm');
-    const historyId = document.getElementById('historyId') as HTMLInputElement;
-    const yearInput = document.getElementById('year') as HTMLInputElement;
-    const monthInput = document.getElementById('month') as HTMLInputElement;
-    const eventInput = document.getElementById('event') as HTMLTextAreaElement;
-    const sortOrderInput = document.getElementById('sortOrder') as HTMLInputElement;
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modalTitle");
+    const form = document.getElementById("historyForm");
+    const historyId = document.getElementById("historyId") as HTMLInputElement;
+    const yearInput = document.getElementById("year") as HTMLInputElement;
+    const monthInput = document.getElementById("month") as HTMLInputElement;
+    const eventInput = document.getElementById("event") as HTMLTextAreaElement;
+    const sortOrderInput = document.getElementById(
+      "sortOrder"
+    ) as HTMLInputElement;
 
-    document.getElementById('addBtn')?.addEventListener('click', () => {
-      modalTitle!.textContent = '연혁 추가';
-      historyId.value = '';
-      yearInput.value = '';
-      monthInput.value = '';
-      eventInput.value = '';
-      sortOrderInput.value = '0';
-      modal?.classList.remove('hidden');
+    document.getElementById("addBtn")?.addEventListener("click", () => {
+      modalTitle!.textContent = "연혁 추가";
+      historyId.value = "";
+      yearInput.value = "";
+      monthInput.value = "";
+      eventInput.value = "";
+      sortOrderInput.value = "0";
+      modal?.classList.remove("hidden");
     });
 
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    document.querySelectorAll(".edit-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
         const target = e.target as HTMLElement;
-        modalTitle!.textContent = '연혁 수정';
-        historyId.value = target.dataset.id || '';
-        yearInput.value = target.dataset.year || '';
-        monthInput.value = target.dataset.month || '';
-        eventInput.value = target.dataset.event || '';
-        sortOrderInput.value = target.dataset.sort || '0';
-        modal?.classList.remove('hidden');
+        modalTitle!.textContent = "연혁 수정";
+        historyId.value = target.dataset.id || "";
+        yearInput.value = target.dataset.year || "";
+        monthInput.value = target.dataset.month || "";
+        eventInput.value = target.dataset.event || "";
+        sortOrderInput.value = target.dataset.sort || "0";
+        modal?.classList.remove("hidden");
       });
     });
 
-    document.getElementById('cancelBtn')?.addEventListener('click', () => {
-      modal?.classList.add('hidden');
+    document.getElementById("cancelBtn")?.addEventListener("click", () => {
+      modal?.classList.add("hidden");
     });
 
-    form?.addEventListener('submit', async (e) => {
+    form?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const id = historyId.value;
-      const data = { year: yearInput.value, month: monthInput.value, event: eventInput.value, sort_order: parseInt(sortOrderInput.value) };
+      const data = {
+        year: yearInput.value,
+        month: monthInput.value,
+        event: eventInput.value,
+        sort_order: parseInt(sortOrderInput.value),
+      };
       try {
         if (id) {
-          await fetch(`/api/history/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+          await fetch(`/api/history/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
         } else {
-          await fetch('/api/history', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+          await fetch("/api/history", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
         }
         window.location.reload();
       } catch (error) {
-        console.error('Error:', error);
-        alert('저장 중 오류가 발생했습니다.');
+        console.error("Error:", error);
+        alert("저장 중 오류가 발생했습니다.");
       }
     });
 
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        if (!confirm('정말 삭제하시겠습니까?')) return;
+    document.querySelectorAll(".delete-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        if (!confirm("정말 삭제하시겠습니까?")) return;
         const target = e.target as HTMLElement;
         try {
-          await fetch(`/api/history/${target.dataset.id}`, { method: 'DELETE' });
+          await fetch(`/api/history/${target.dataset.id}`, {
+            method: "DELETE",
+          });
           window.location.reload();
         } catch (error) {
-          console.error('Error:', error);
-          alert('삭제 중 오류가 발생했습니다.');
+          console.error("Error:", error);
+          alert("삭제 중 오류가 발생했습니다.");
         }
       });
     });

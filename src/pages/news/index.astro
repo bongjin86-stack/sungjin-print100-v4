@@ -15,15 +15,15 @@ import { supabase } from "@/lib/supabase";
 
 // URL에서 페이지 번호 가져오기
 const url = new URL(Astro.request.url);
-const currentPage = parseInt(url.searchParams.get('page') || '1');
+const currentPage = parseInt(url.searchParams.get("page") || "1");
 const pageSize = siteConfig.settings.pagination || 10;
 const offset = (currentPage - 1) * pageSize;
 
 // DB에서 News 데이터 가져오기
 const { data: allNews, count } = await supabase
-  .from('news')
-  .select('*', { count: 'exact' })
-  .order('pub_date', { ascending: false })
+  .from("news")
+  .select("*", { count: "exact" })
+  .order("pub_date", { ascending: false })
   .range(offset, offset + pageSize - 1);
 
 const totalPages = Math.ceil((count || 0) / pageSize);

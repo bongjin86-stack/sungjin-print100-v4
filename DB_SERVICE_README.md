@@ -34,7 +34,7 @@ src/lib/
 ### 데이터 로딩
 
 ```typescript
-import { loadPricingData } from './lib/dbService';
+import { loadPricingData } from "./lib/dbService";
 
 // 모든 가격 데이터 로드 (캐싱됨)
 const data = await loadPricingData();
@@ -46,11 +46,11 @@ const data = await loadPricingData();
 
 ```typescript
 // 용지별 평량 목록
-const weights = getPaperWeights('snow', '467x315');
+const weights = getPaperWeights("snow", "467x315");
 // => [100, 120, 150, 180, 200, 250, 300]
 
 // 용지 단가 조회
-const cost = getPaperCost('snow', 120, '467x315');
+const cost = getPaperCost("snow", 120, "467x315");
 // => { cost_per_sheet: 28, margin_rate: 1.5 }
 ```
 
@@ -66,7 +66,7 @@ const costPerFace = getPrintCostPerFace(500);
 
 ```typescript
 // 후가공 비용 조회
-const finishing = getFinishingCost('coating');
+const finishing = getFinishingCost("coating");
 // => { setup_cost: 5000, cost_per_unit: 10, unit_type: 'sheet' }
 
 // 코팅 비용 (양면 지원)
@@ -74,7 +74,7 @@ const coating = getCoatingCost(1000, true);
 // => { setup_cost: 10000, cost_per_unit: 10, unit_type: 'sheet' }
 
 // 오시/접지 비용 (줄 수 기반)
-const creasing = getFinishingCostByLines('creasing', 2, 500);
+const creasing = getFinishingCostByLines("creasing", 2, 500);
 // => { setup_cost: 3000, cost_per_unit: 5, unit_type: 'sheet' }
 ```
 
@@ -82,7 +82,7 @@ const creasing = getFinishingCostByLines('creasing', 2, 500);
 
 ```typescript
 // 제본 비용 조회
-const binding = getBindingCost('perfect', 100);
+const binding = getBindingCost("perfect", 100);
 // => { setup_cost: 5000, cost_per_copy: 500 }
 ```
 
@@ -90,7 +90,7 @@ const binding = getBindingCost('perfect', 100);
 
 ```typescript
 // 사이즈 정보 조회
-const size = getSizeInfo('a4');
+const size = getSizeInfo("a4");
 // => { name: 'A4', width: 210, height: 297, base_sheet: '467x315', up_count: 2 }
 ```
 
@@ -113,16 +113,16 @@ clearCache();
 
 ### 로드된 데이터 (2026-02-04)
 
-| 데이터 | 개수 |
-|--------|------|
-| 용지 종류 | 3개 (스노우지, 인스퍼, 모조지) |
-| 용지 단가 | 34개 |
-| 사이즈 | 5개 (엽서, A5, A4, B5, A3) |
-| 인쇄비 구간 | 19개 |
-| 후가공 종류 | 8개 |
-| 후가공 비용 | 48개 |
-| 제본 종류 | 3개 |
-| 제본 비용 | 18개 |
+| 데이터      | 개수                           |
+| ----------- | ------------------------------ |
+| 용지 종류   | 3개 (스노우지, 인스퍼, 모조지) |
+| 용지 단가   | 34개                           |
+| 사이즈      | 5개 (엽서, A5, A4, B5, A3)     |
+| 인쇄비 구간 | 19개                           |
+| 후가공 종류 | 8개                            |
+| 후가공 비용 | 48개                           |
+| 제본 종류   | 3개                            |
+| 제본 비용   | 18개                           |
 
 ### 테스트 스크립트
 

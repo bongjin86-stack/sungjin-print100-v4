@@ -1,6 +1,7 @@
 # Supabase 테이블 구조 정보
 
 ## site_settings 테이블
+
 ```sql
 CREATE TABLE public.site_settings (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -13,11 +14,13 @@ CREATE TABLE public.site_settings (
   CONSTRAINT site_settings_key_key UNIQUE (key)
 )
 ```
+
 **구조:** key-value 방식
 
 ---
 
 ## works 테이블
+
 ```sql
 CREATE TABLE public.works (
   id text NOT NULL DEFAULT gen_random_uuid()::text,
@@ -32,7 +35,9 @@ CREATE TABLE public.works (
   CONSTRAINT works_pkey PRIMARY KEY (id)
 )
 ```
+
 **컬럼:**
+
 - id: 고유 ID
 - title: 제목
 - description: 짧은 설명
@@ -44,6 +49,7 @@ CREATE TABLE public.works (
 ---
 
 ## faq 테이블
+
 ```sql
 CREATE TABLE public.faq (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -56,7 +62,9 @@ CREATE TABLE public.faq (
   CONSTRAINT faq_pkey PRIMARY KEY (id)
 )
 ```
+
 **컬럼:**
+
 - id: 고유 ID
 - question: 질문
 - answer: 답변
@@ -66,6 +74,7 @@ CREATE TABLE public.faq (
 ---
 
 ## services 테이블
+
 ```sql
 CREATE TABLE public.services (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -84,7 +93,9 @@ CREATE TABLE public.services (
   CONSTRAINT services_slug_key UNIQUE (slug)
 )
 ```
+
 **컬럼:**
+
 - id: 고유 ID
 - slug: URL 슬러그 (예: wireless-binding)
 - title: 제목 (한국어)

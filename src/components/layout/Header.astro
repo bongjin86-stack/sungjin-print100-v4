@@ -14,19 +14,19 @@ const contactMenu = typedMenuData.contact;
 
 // DB에서 활성 서비스 목록을 가져와 "서비스" 드롭다운을 동적으로 구성
 const { data: services } = await supabase
-  .from('services')
-  .select('title, slug')
-  .eq('is_active', true)
-  .order('sort_order', { ascending: true });
+  .from("services")
+  .select("title, slug")
+  .eq("is_active", true)
+  .order("sort_order", { ascending: true });
 
-const mainMenu: MenuItem[] = typedMenuData.main.map(item => {
-  if (item.path === '/services/' && services && services.length > 0) {
+const mainMenu: MenuItem[] = typedMenuData.main.map((item) => {
+  if (item.path === "/services/" && services && services.length > 0) {
     return {
       ...item,
-      children: services.map(s => ({
+      children: services.map((s) => ({
         title: s.title,
-        path: `/services/#${s.slug}`
-      }))
+        path: `/services/#${s.slug}`,
+      })),
     };
   }
   return item;

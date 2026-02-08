@@ -3,7 +3,7 @@
  * Supabase 연동 주문 관리
  */
 
-import { supabase } from './supabase';
+import { supabase } from "./supabase";
 
 // 타입 정의
 export interface OrderItem {
@@ -87,12 +87,12 @@ export interface Order {
 }
 
 export type OrderStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'in_production'
-  | 'shipped'
-  | 'completed'
-  | 'canceled';
+  | "pending"
+  | "confirmed"
+  | "in_production"
+  | "shipped"
+  | "completed"
+  | "canceled";
 
 export interface OrdersResult {
   orders: Order[];
@@ -116,7 +116,7 @@ export interface GetOrdersOptions {
   page?: number;
   limit?: number;
   sortBy?: string;
-  order?: 'asc' | 'desc';
+  order?: "asc" | "desc";
 }
 
 export interface TrackingCompany {
@@ -129,53 +129,53 @@ export interface TrackingCompany {
 function generateOrderNumber(): string {
   const now = new Date();
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const random = String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0');
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const random = String(Math.floor(Math.random() * 9999) + 1).padStart(4, "0");
   return `SJP-${year}${month}${day}-${random}`;
 }
 
 // 상태 라벨 맵
 export const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: '입금대기',
-  confirmed: '입금확인',
-  in_production: '제작중',
-  shipped: '배송중',
-  completed: '완료',
-  canceled: '취소',
+  pending: "입금대기",
+  confirmed: "입금확인",
+  in_production: "제작중",
+  shipped: "배송중",
+  completed: "완료",
+  canceled: "취소",
 };
 
 // 상태 색상 맵
 export const STATUS_COLORS: Record<OrderStatus, string> = {
-  pending: 'bg-orange-100 text-orange-700',
-  confirmed: 'bg-blue-100 text-blue-700',
-  in_production: 'bg-purple-100 text-purple-700',
-  shipped: 'bg-cyan-100 text-cyan-700',
-  completed: 'bg-green-100 text-green-700',
-  canceled: 'bg-gray-100 text-gray-500',
+  pending: "bg-orange-100 text-orange-700",
+  confirmed: "bg-blue-100 text-blue-700",
+  in_production: "bg-purple-100 text-purple-700",
+  shipped: "bg-cyan-100 text-cyan-700",
+  completed: "bg-green-100 text-green-700",
+  canceled: "bg-gray-100 text-gray-500",
 };
 
 // 택배사 목록
 export const TRACKING_COMPANIES: TrackingCompany[] = [
   {
-    value: 'cj',
-    label: 'CJ대한통운',
-    url: 'https://www.cjlogistics.com/ko/tool/parcel/tracking?gnbInvcNo=',
+    value: "cj",
+    label: "CJ대한통운",
+    url: "https://www.cjlogistics.com/ko/tool/parcel/tracking?gnbInvcNo=",
   },
   {
-    value: 'hanjin',
-    label: '한진택배',
-    url: 'https://www.hanjin.co.kr/kor/CMS/DeliveryMgr/WaybillResult.do?mession=&wblnumText2=',
+    value: "hanjin",
+    label: "한진택배",
+    url: "https://www.hanjin.co.kr/kor/CMS/DeliveryMgr/WaybillResult.do?mession=&wblnumText2=",
   },
   {
-    value: 'lotte',
-    label: '롯데택배',
-    url: 'https://www.lotteglogis.com/home/reservation/tracking/linkView?InvNo=',
+    value: "lotte",
+    label: "롯데택배",
+    url: "https://www.lotteglogis.com/home/reservation/tracking/linkView?InvNo=",
   },
   {
-    value: 'epost',
-    label: '우체국택배',
-    url: 'https://service.epost.go.kr/trace.RetrieveDomRi498.postal?sid1=',
+    value: "epost",
+    label: "우체국택배",
+    url: "https://service.epost.go.kr/trace.RetrieveDomRi498.postal?sid1=",
   },
 ];
 
@@ -189,7 +189,8 @@ export async function createOrder(
 
   const dbOrder = {
     order_number: orderNumber,
-    status: orderData.paymentMethod === 'bank_transfer' ? 'pending' : 'confirmed',
+    status:
+      orderData.paymentMethod === "bank_transfer" ? "pending" : "confirmed",
 
     customer_email: orderData.email,
     customer_phone: orderData.phone,
@@ -204,7 +205,7 @@ export async function createOrder(
     quick_payment_type: orderData.quickPaymentType || null,
     quick_cost: orderData.quickCost || 0,
 
-    tax_document_type: orderData.taxDocumentType || 'none',
+    tax_document_type: orderData.taxDocumentType || "none",
     tax_business_number: orderData.taxBusinessNumber || null,
     tax_company_name: orderData.taxCompanyName || null,
     tax_ceo_name: orderData.taxCeoName || null,
@@ -212,16 +213,17 @@ export async function createOrder(
     tax_phone: orderData.taxPhone || null,
 
     payment_method: orderData.paymentMethod,
-    payment_status: orderData.paymentMethod === 'bank_transfer' ? 'pending' : 'paid',
+    payment_status:
+      orderData.paymentMethod === "bank_transfer" ? "pending" : "paid",
     product_amount: orderData.productAmount,
     shipping_cost: orderData.shippingCost || 0,
     total_amount: orderData.totalAmount,
 
     file_status: orderData.file
-      ? 'uploaded'
+      ? "uploaded"
       : orderData.fileSkipped
-        ? 'skipped'
-        : 'pending',
+        ? "skipped"
+        : "pending",
     file_url: orderData.file?.url || null,
     file_path: orderData.file?.path || null,
     file_name: orderData.file?.fileName || null,
@@ -232,14 +234,14 @@ export async function createOrder(
   };
 
   const { data, error } = await supabase
-    .from('orders')
+    .from("orders")
     .insert(dbOrder)
-    .select('order_number, uuid')
+    .select("order_number, uuid")
     .single();
 
   if (error) {
-    console.error('주문 생성 실패:', error);
-    throw new Error('주문 생성에 실패했습니다.');
+    console.error("주문 생성 실패:", error);
+    throw new Error("주문 생성에 실패했습니다.");
   }
 
   return {
@@ -251,30 +253,32 @@ export async function createOrder(
 /**
  * 주문 목록 조회 (관리자용)
  */
-export async function getOrders(options: GetOrdersOptions = {}): Promise<OrdersResult> {
+export async function getOrders(
+  options: GetOrdersOptions = {}
+): Promise<OrdersResult> {
   const {
     status = null,
-    search = '',
+    search = "",
     page = 1,
     limit = 20,
-    sortBy = 'created_at',
-    order = 'desc',
+    sortBy = "created_at",
+    order = "desc",
   } = options;
 
-  let query = supabase.from('orders').select('*', { count: 'exact' });
+  let query = supabase.from("orders").select("*", { count: "exact" });
 
-  if (status && status !== 'all') {
-    query = query.eq('status', status);
+  if (status && status !== "all") {
+    query = query.eq("status", status);
   }
 
   if (search) {
-    const sanitized = search.replace(/[,.()"'\\]/g, '');
+    const sanitized = search.replace(/[,.()"'\\]/g, "");
     query = query.or(
       `order_number.ilike.%${sanitized}%,recipient.ilike.%${sanitized}%,customer_phone.ilike.%${sanitized}%`
     );
   }
 
-  query = query.order(sortBy, { ascending: order === 'asc' });
+  query = query.order(sortBy, { ascending: order === "asc" });
 
   const from = (page - 1) * limit;
   const to = from + limit - 1;
@@ -283,8 +287,8 @@ export async function getOrders(options: GetOrdersOptions = {}): Promise<OrdersR
   const { data, error, count } = await query;
 
   if (error) {
-    console.error('주문 목록 조회 실패:', error);
-    throw new Error('주문 목록을 불러오는데 실패했습니다.');
+    console.error("주문 목록 조회 실패:", error);
+    throw new Error("주문 목록을 불러오는데 실패했습니다.");
   }
 
   const statusCounts = await getOrderStatusCounts();
@@ -298,12 +302,12 @@ export async function getOrders(options: GetOrdersOptions = {}): Promise<OrdersR
 
 async function getOrderStatusCounts(): Promise<StatusCounts> {
   const statuses: OrderStatus[] = [
-    'pending',
-    'confirmed',
-    'in_production',
-    'shipped',
-    'completed',
-    'canceled',
+    "pending",
+    "confirmed",
+    "in_production",
+    "shipped",
+    "completed",
+    "canceled",
   ];
   const counts: StatusCounts = {
     all: 0,
@@ -318,9 +322,9 @@ async function getOrderStatusCounts(): Promise<StatusCounts> {
   const results = await Promise.all(
     statuses.map((status) =>
       supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', status)
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("status", status)
     )
   );
 
@@ -335,14 +339,14 @@ async function getOrderStatusCounts(): Promise<StatusCounts> {
 
 export async function getOrderById(id: number): Promise<Order> {
   const { data, error } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('id', id)
+    .from("orders")
+    .select("*")
+    .eq("id", id)
     .single();
 
   if (error) {
-    console.error('주문 조회 실패:', error);
-    throw new Error('주문을 찾을 수 없습니다.');
+    console.error("주문 조회 실패:", error);
+    throw new Error("주문을 찾을 수 없습니다.");
   }
 
   return data as Order;
@@ -360,16 +364,16 @@ export interface OrderByUuidResult {
 
 export async function getOrderByUuid(uuid: string): Promise<OrderByUuidResult> {
   const { data, error } = await supabase
-    .from('orders')
+    .from("orders")
     .select(
-      'order_number, status, items, tracking_company, tracking_number, created_at, delivery_type'
+      "order_number, status, items, tracking_company, tracking_number, created_at, delivery_type"
     )
-    .eq('uuid', uuid)
+    .eq("uuid", uuid)
     .single();
 
   if (error) {
-    console.error('주문 조회 실패:', error);
-    throw new Error('주문을 찾을 수 없습니다.');
+    console.error("주문 조회 실패:", error);
+    throw new Error("주문을 찾을 수 없습니다.");
   }
 
   return data as OrderByUuidResult;
@@ -380,15 +384,15 @@ export async function updateOrder(
   updates: Partial<Order>
 ): Promise<Order> {
   const { data, error } = await supabase
-    .from('orders')
+    .from("orders")
     .update(updates)
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
   if (error) {
-    console.error('주문 수정 실패:', error);
-    throw new Error('주문 수정에 실패했습니다.');
+    console.error("주문 수정 실패:", error);
+    throw new Error("주문 수정에 실패했습니다.");
   }
 
   return data as Order;
@@ -407,18 +411,18 @@ export async function startShipping(
   trackingNumber: string
 ): Promise<Order> {
   return updateOrder(id, {
-    status: 'shipped',
+    status: "shipped",
     tracking_company: trackingCompany,
     tracking_number: trackingNumber,
   });
 }
 
 export async function deleteOrder(id: number): Promise<boolean> {
-  const { error } = await supabase.from('orders').delete().eq('id', id);
+  const { error } = await supabase.from("orders").delete().eq("id", id);
 
   if (error) {
-    console.error('주문 삭제 실패:', error);
-    throw new Error('주문 삭제에 실패했습니다.');
+    console.error("주문 삭제 실패:", error);
+    throw new Error("주문 삭제에 실패했습니다.");
   }
 
   return true;

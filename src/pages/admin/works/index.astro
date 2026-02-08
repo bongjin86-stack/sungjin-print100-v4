@@ -1,17 +1,17 @@
 ---
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { supabase } from '../../../lib/supabase';
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
 // Works 데이터 가져오기
 const { data: works, error } = await supabase
-  .from('works')
-  .select('*')
-  .order('created_at', { ascending: false });
+  .from("works")
+  .select("*")
+  .order("created_at", { ascending: false });
 
 if (error) {
-  console.error('Error fetching works:', error);
+  console.error("Error fetching works:", error);
 }
 ---
 
@@ -22,42 +22,54 @@ if (error) {
   </div>
 
   <div class="works-list">
-    {works && works.length > 0 ? (
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>제목</th>
-            <th>태그</th>
-            <th>상태</th>
-            <th>작성일</th>
-            <th>관리</th>
-          </tr>
-        </thead>
-        <tbody>
-          {works.map((work) => (
+    {
+      works && works.length > 0 ? (
+        <table class="admin-table">
+          <thead>
             <tr>
-              <td>{work.title}</td>
-              <td><code>{work.tag || '-'}</code></td>
-              <td>
-                <span class={`status ${work.is_published ? 'active' : 'inactive'}`}>
-                  {work.is_published ? '공개' : '비공개'}
-                </span>
-              </td>
-              <td>{new Date(work.created_at).toLocaleDateString('ko-KR')}</td>
-              <td class="actions">
-                <a href={`/admin/works/${work.id}`} class="btn-edit">수정</a>
-                <button class="btn-delete" data-id={work.id}>삭제</button>
-              </td>
+              <th>제목</th>
+              <th>태그</th>
+              <th>상태</th>
+              <th>작성일</th>
+              <th>관리</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    ) : (
-      <div class="empty-state">
-        <p>등록된 Works가 없습니다.</p>
-        <a href="/admin/works/new" class="btn-primary">첫 Works 작성하기</a>
-      </div>
-    )}
+          </thead>
+          <tbody>
+            {works.map((work) => (
+              <tr>
+                <td>{work.title}</td>
+                <td>
+                  <code>{work.tag || "-"}</code>
+                </td>
+                <td>
+                  <span
+                    class={`status ${work.is_published ? "active" : "inactive"}`}
+                  >
+                    {work.is_published ? "공개" : "비공개"}
+                  </span>
+                </td>
+                <td>{new Date(work.created_at).toLocaleDateString("ko-KR")}</td>
+                <td class="actions">
+                  <a href={`/admin/works/${work.id}`} class="btn-edit">
+                    수정
+                  </a>
+                  <button class="btn-delete" data-id={work.id}>
+                    삭제
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div class="empty-state">
+          <p>등록된 Works가 없습니다.</p>
+          <a href="/admin/works/new" class="btn-primary">
+            첫 Works 작성하기
+          </a>
+        </div>
+      )
+    }
   </div>
 </AdminLayout>
 
@@ -190,15 +202,15 @@ if (error) {
 </style>
 
 <script>
-  document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+  document.querySelectorAll(".btn-delete").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
       const id = (e.target as HTMLElement).dataset.id;
-      if (confirm('정말 삭제하시겠습니까?')) {
-        const res = await fetch(`/api/works/${id}`, { method: 'DELETE' });
+      if (confirm("정말 삭제하시겠습니까?")) {
+        const res = await fetch(`/api/works/${id}`, { method: "DELETE" });
         if (res.ok) {
           window.location.reload();
         } else {
-          alert('삭제에 실패했습니다.');
+          alert("삭제에 실패했습니다.");
         }
       }
     });

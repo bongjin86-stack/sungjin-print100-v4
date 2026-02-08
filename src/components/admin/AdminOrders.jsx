@@ -1,15 +1,15 @@
-import { useCallback,useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
-import { getOrders, STATUS_COLORS,STATUS_LABELS } from '@/lib/orderService';
+import { getOrders, STATUS_COLORS, STATUS_LABELS } from "@/lib/orderService";
 
-import OrderDetailModal from './OrderDetailModal';
+import OrderDetailModal from "./OrderDetailModal";
 
 // 정렬 옵션
 const SORT_OPTIONS = [
-  { value: 'created_at:desc', label: '최신순' },
-  { value: 'created_at:asc', label: '오래된순' },
-  { value: 'total_amount:desc', label: '금액높은순' },
-  { value: 'total_amount:asc', label: '금액낮은순' },
+  { value: "created_at:desc", label: "최신순" },
+  { value: "created_at:asc", label: "오래된순" },
+  { value: "total_amount:desc", label: "금액높은순" },
+  { value: "total_amount:asc", label: "금액낮은순" },
 ];
 
 export default function AdminOrders() {
@@ -20,9 +20,9 @@ export default function AdminOrders() {
   const [error, setError] = useState(null);
 
   // 필터 상태
-  const [status, setStatus] = useState('all');
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState('created_at:desc');
+  const [status, setStatus] = useState("all");
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("created_at:desc");
   const [page, setPage] = useState(1);
   const limit = 20;
 
@@ -35,9 +35,9 @@ export default function AdminOrders() {
     setError(null);
 
     try {
-      const [sortBy, order] = sort.split(':');
+      const [sortBy, order] = sort.split(":");
       const result = await getOrders({
-        status: status === 'all' ? null : status,
+        status: status === "all" ? null : status,
         search,
         page,
         limit,
@@ -60,7 +60,7 @@ export default function AdminOrders() {
   }, [loadOrders]);
 
   // 검색 디바운스
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput);
@@ -90,18 +90,18 @@ export default function AdminOrders() {
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}.${month}.${day}`;
   };
 
   // 상품 요약
   const getItemSummary = (items) => {
-    if (!items || items.length === 0) return '-';
+    if (!items || items.length === 0) return "-";
     const first = items[0];
     return {
-      name: first.productName || '-',
-      spec: `${first.spec?.size || ''} · ${first.spec?.quantity || 0}부${first.spec?.pages ? ` · ${first.spec.pages}p` : ''}`,
+      name: first.productName || "-",
+      spec: `${first.spec?.size || ""} · ${first.spec?.quantity || 0}부${first.spec?.pages ? ` · ${first.spec.pages}p` : ""}`,
     };
   };
 
@@ -110,12 +110,12 @@ export default function AdminOrders() {
 
   // 상태 탭 목록
   const statusTabs = [
-    { key: 'all', label: '전체' },
-    { key: 'pending', label: '입금대기' },
-    { key: 'confirmed', label: '입금확인' },
-    { key: 'in_production', label: '제작중' },
-    { key: 'shipped', label: '배송중' },
-    { key: 'completed', label: '완료' },
+    { key: "all", label: "전체" },
+    { key: "pending", label: "입금대기" },
+    { key: "confirmed", label: "입금확인" },
+    { key: "in_production", label: "제작중" },
+    { key: "shipped", label: "배송중" },
+    { key: "completed", label: "완료" },
   ];
 
   return (
@@ -123,7 +123,9 @@ export default function AdminOrders() {
       {/* 페이지 타이틀 */}
       <div className="mb-8">
         <h2 className="text-2xl font-semibold text-gray-900">주문관리</h2>
-        <p className="text-gray-500 mt-1">총 {statusCounts.all || 0}건의 주문</p>
+        <p className="text-gray-500 mt-1">
+          총 {statusCounts.all || 0}건의 주문
+        </p>
       </div>
 
       {/* 상태 탭 */}
@@ -134,18 +136,20 @@ export default function AdminOrders() {
             onClick={() => handleStatusChange(tab.key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               status === tab.key
-                ? 'bg-[#222828] text-white'
-                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                ? "bg-[#222828] text-white"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
             }`}
           >
             {tab.label}
-            <span className={`ml-1 px-2 py-0.5 rounded text-xs ${
-              status === tab.key
-                ? 'bg-white/20'
-                : tab.key === 'all'
-                  ? 'bg-gray-100 text-gray-600'
-                  : STATUS_COLORS[tab.key]
-            }`}>
+            <span
+              className={`ml-1 px-2 py-0.5 rounded text-xs ${
+                status === tab.key
+                  ? "bg-white/20"
+                  : tab.key === "all"
+                    ? "bg-gray-100 text-gray-600"
+                    : STATUS_COLORS[tab.key]
+              }`}
+            >
               {statusCounts[tab.key] || 0}
             </span>
           </button>
@@ -162,8 +166,18 @@ export default function AdminOrders() {
             placeholder="주문번호, 고객명, 전화번호로 검색"
             className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#222828]/20 focus:border-[#222828]"
           />
-          <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          <svg
+            className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
           </svg>
         </div>
         <select
@@ -172,7 +186,9 @@ export default function AdminOrders() {
           className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#222828]/20"
         >
           {SORT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
           ))}
         </select>
       </div>
@@ -200,12 +216,24 @@ export default function AdminOrders() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">주문번호</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">고객정보</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">상품</th>
-                  <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">금액</th>
-                  <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
-                  <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">주문일</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    주문번호
+                  </th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    고객정보
+                  </th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    상품
+                  </th>
+                  <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    금액
+                  </th>
+                  <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    상태
+                  </th>
+                  <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    주문일
+                  </th>
                   <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                 </tr>
               </thead>
@@ -219,21 +247,35 @@ export default function AdminOrders() {
                       className="hover:bg-gray-50 cursor-pointer"
                     >
                       <td className="px-6 py-4">
-                        <span className="font-mono text-sm font-medium text-gray-900">{order.order_number}</span>
+                        <span className="font-mono text-sm font-medium text-gray-900">
+                          {order.order_number}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">{order.recipient || '-'}</div>
-                        <div className="text-xs text-gray-500">{order.customer_phone}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {order.recipient || "-"}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {order.customer_phone}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">{itemSummary.name}</div>
-                        <div className="text-xs text-gray-500">{itemSummary.spec}</div>
+                        <div className="text-sm text-gray-900">
+                          {itemSummary.name}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {itemSummary.spec}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="text-sm font-semibold text-gray-900">{formatPrice(order.total_amount)}</div>
+                        <div className="text-sm font-semibold text-gray-900">
+                          {formatPrice(order.total_amount)}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[order.status]}`}>
+                        <span
+                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[order.status]}`}
+                        >
                           {STATUS_LABELS[order.status]}
                         </span>
                       </td>
@@ -242,8 +284,18 @@ export default function AdminOrders() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button className="text-gray-400 hover:text-gray-600">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M9 5l7 7-7 7"
+                            />
                           </svg>
                         </button>
                       </td>
@@ -257,11 +309,12 @@ export default function AdminOrders() {
           {/* 페이지네이션 */}
           <div className="flex items-center justify-between mt-6">
             <p className="text-sm text-gray-500">
-              {((page - 1) * limit) + 1}-{Math.min(page * limit, total)} / {total}건
+              {(page - 1) * limit + 1}-{Math.min(page * limit, total)} / {total}
+              건
             </p>
             <div className="flex gap-2">
               <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
               >
@@ -284,8 +337,8 @@ export default function AdminOrders() {
                     onClick={() => setPage(pageNum)}
                     className={`px-3 py-1.5 rounded-lg text-sm ${
                       page === pageNum
-                        ? 'bg-[#222828] text-white'
-                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                        ? "bg-[#222828] text-white"
+                        : "border border-gray-200 text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     {pageNum}
@@ -293,7 +346,7 @@ export default function AdminOrders() {
                 );
               })}
               <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
               >

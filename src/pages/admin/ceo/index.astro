@@ -1,27 +1,27 @@
 ---
 export const prerender = false;
 
-import CeoForm from '@/components/admin/CeoForm';
-import AdminLayout from '@/layouts/AdminLayout.astro';
-import { supabase } from '@/lib/supabase';
+import CeoForm from "@/components/admin/CeoForm";
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { supabase } from "@/lib/supabase";
 
 // CEO 메시지 데이터 가져오기 (site_settings에서)
 const { data: settings } = await supabase
-  .from('site_settings')
-  .select('*')
-  .like('key', 'ceo_%');
+  .from("site_settings")
+  .select("*")
+  .like("key", "ceo_%");
 
 // 설정값을 객체로 변환
 const settingsMap: Record<string, string> = {};
-settings?.forEach(s => {
+settings?.forEach((s) => {
   settingsMap[s.key] = s.value;
 });
 
 const ceoData = {
-  subtitle: settingsMap['ceo_subtitle'] || '대표 메시지',
-  catchphrase: settingsMap['ceo_catchphrase'] || '',
-  message: settingsMap['ceo_message'] || '',
-  image: settingsMap['ceo_image'] || '',
+  subtitle: settingsMap["ceo_subtitle"] || "대표 메시지",
+  catchphrase: settingsMap["ceo_catchphrase"] || "",
+  message: settingsMap["ceo_message"] || "",
+  image: settingsMap["ceo_image"] || "",
 };
 ---
 
@@ -37,15 +37,23 @@ const ceoData = {
   </div>
 
   <style>
-    .admin-page { padding: 2rem; max-width: 900px; }
-    .page-header { margin-bottom: 2rem; }
-    .page-header h1 { font-size: 1.5rem; font-weight: 600; }
-    
+    .admin-page {
+      padding: 2rem;
+      max-width: 900px;
+    }
+    .page-header {
+      margin-bottom: 2rem;
+    }
+    .page-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
     .form-card {
       background: white;
       border-radius: 12px;
       padding: 32px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
   </style>
 </AdminLayout>

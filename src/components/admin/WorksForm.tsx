@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-import { adminFormStyles as baseStyles } from './adminFormStyles';
-import BlockNoteEditor from './BlockNoteEditor';
-import ImageUploader from './ImageUploader';
+import { adminFormStyles as baseStyles } from "./adminFormStyles";
+import BlockNoteEditor from "./BlockNoteEditor";
+import ImageUploader from "./ImageUploader";
 
 interface WorksFormProps {
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   initialData?: {
     id: string;
     title: string;
@@ -28,7 +28,7 @@ interface WorksFormProps {
 function parseStringArray(value: unknown): string[] {
   if (!value) return [];
   if (Array.isArray(value)) return value;
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     try {
       const parsed = JSON.parse(value);
       return Array.isArray(parsed) ? parsed : [];
@@ -40,10 +40,12 @@ function parseStringArray(value: unknown): string[] {
 }
 
 // achievements 배열을 안전하게 파싱
-function parseAchievements(value: unknown): { title: string; description: string }[] {
+function parseAchievements(
+  value: unknown
+): { title: string; description: string }[] {
   if (!value) return [];
   if (Array.isArray(value)) return value;
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     try {
       const parsed = JSON.parse(value);
       return Array.isArray(parsed) ? parsed : [];
@@ -57,30 +59,37 @@ function parseAchievements(value: unknown): { title: string; description: string
 export default function WorksForm({ mode, initialData }: WorksFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    title: initialData?.title || '',
-    subtitle: initialData?.subtitle || '',
-    description: initialData?.description || '',
-    client: initialData?.client || '',
-    category_id: initialData?.category_id || '',
+    title: initialData?.title || "",
+    subtitle: initialData?.subtitle || "",
+    description: initialData?.description || "",
+    client: initialData?.client || "",
+    category_id: initialData?.category_id || "",
     year: initialData?.year || new Date().getFullYear().toString(),
-    tag: initialData?.tag || '',
-    image: initialData?.image || '',
-    overview: initialData?.overview || '',
-    content: initialData?.content || '',
+    tag: initialData?.tag || "",
+    image: initialData?.image || "",
+    overview: initialData?.overview || "",
+    content: initialData?.content || "",
     is_published: initialData?.is_published ?? true,
   });
 
   // 리스트 형태로 관리
-  const [supportList, setSupportList] = useState<string[]>(parseStringArray(initialData?.support));
-  const [achievementsList, setAchievementsList] = useState<{ title: string; description: string }[]>(
-    parseAchievements(initialData?.achievements)
+  const [supportList, setSupportList] = useState<string[]>(
+    parseStringArray(initialData?.support)
   );
+  const [achievementsList, setAchievementsList] = useState<
+    { title: string; description: string }[]
+  >(parseAchievements(initialData?.achievements));
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      [name]:
+        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }));
   };
 
@@ -94,11 +103,13 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
 
   // Support 리스트 관리
   const addSupportItem = () => {
-    setSupportList((prev) => [...prev, '']);
+    setSupportList((prev) => [...prev, ""]);
   };
 
   const updateSupportItem = (index: number, value: string) => {
-    setSupportList((prev) => prev.map((item, i) => (i === index ? value : item)));
+    setSupportList((prev) =>
+      prev.map((item, i) => (i === index ? value : item))
+    );
   };
 
   const removeSupportItem = (index: number) => {
@@ -107,10 +118,14 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
 
   // Achievements 리스트 관리
   const addAchievementItem = () => {
-    setAchievementsList((prev) => [...prev, { title: '', description: '' }]);
+    setAchievementsList((prev) => [...prev, { title: "", description: "" }]);
   };
 
-  const updateAchievementItem = (index: number, field: 'title' | 'description', value: string) => {
+  const updateAchievementItem = (
+    index: number,
+    field: "title" | "description",
+    value: string
+  ) => {
     setAchievementsList((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
     );
@@ -125,9 +140,9 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
     setIsSubmitting(true);
 
     // 빈 항목 필터링
-    const filteredSupport = supportList.filter((item) => item.trim() !== '');
+    const filteredSupport = supportList.filter((item) => item.trim() !== "");
     const filteredAchievements = achievementsList.filter(
-      (item) => item.title.trim() !== '' || item.description.trim() !== ''
+      (item) => item.title.trim() !== "" || item.description.trim() !== ""
     );
 
     const payload = {
@@ -137,23 +152,24 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
     };
 
     try {
-      const url = mode === 'create' ? '/api/works' : `/api/works/${initialData?.id}`;
-      const method = mode === 'create' ? 'POST' : 'PUT';
+      const url =
+        mode === "create" ? "/api/works" : `/api/works/${initialData?.id}`;
+      const method = mode === "create" ? "POST" : "PUT";
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
-        window.location.href = '/admin/works';
+        window.location.href = "/admin/works";
       } else {
         const error = await res.json();
-        alert(error.message || '저장에 실패했습니다.');
+        alert(error.message || "저장에 실패했습니다.");
       }
     } catch {
-      alert('저장에 실패했습니다.');
+      alert("저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -262,7 +278,9 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
         {/* Support 리스트 에디터 */}
         <div style={styles.formGroup}>
           <label style={styles.label}>주요 내용 (Support)</label>
-          <p style={styles.hint}>프로젝트에서 제공한 서비스나 지원 내용을 항목별로 입력하세요.</p>
+          <p style={styles.hint}>
+            프로젝트에서 제공한 서비스나 지원 내용을 항목별로 입력하세요.
+          </p>
           <div style={styles.listEditor}>
             {supportList.map((item, index) => (
               <div key={index} style={styles.listItem}>
@@ -273,12 +291,20 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
                   placeholder={`항목 ${index + 1}`}
                   style={styles.listInput}
                 />
-                <button type="button" onClick={() => removeSupportItem(index)} style={styles.removeButton}>
+                <button
+                  type="button"
+                  onClick={() => removeSupportItem(index)}
+                  style={styles.removeButton}
+                >
                   삭제
                 </button>
               </div>
             ))}
-            <button type="button" onClick={addSupportItem} style={styles.addButton}>
+            <button
+              type="button"
+              onClick={addSupportItem}
+              style={styles.addButton}
+            >
               + 항목 추가
             </button>
           </div>
@@ -287,7 +313,9 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
         {/* Achievements 리스트 에디터 */}
         <div style={styles.formGroup}>
           <label style={styles.label}>상세 정보 (Achievements)</label>
-          <p style={styles.hint}>프로젝트 성과나 특징을 제목/설명 형태로 입력하세요.</p>
+          <p style={styles.hint}>
+            프로젝트 성과나 특징을 제목/설명 형태로 입력하세요.
+          </p>
           <div style={styles.listEditor}>
             {achievementsList.map((item, index) => (
               <div key={index} style={styles.achievementItem}>
@@ -295,24 +323,40 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
                   <input
                     type="text"
                     value={item.title}
-                    onChange={(e) => updateAchievementItem(index, 'title', e.target.value)}
+                    onChange={(e) =>
+                      updateAchievementItem(index, "title", e.target.value)
+                    }
                     placeholder="제목"
                     style={styles.achievementTitle}
                   />
                   <textarea
                     value={item.description}
-                    onChange={(e) => updateAchievementItem(index, 'description', e.target.value)}
+                    onChange={(e) =>
+                      updateAchievementItem(
+                        index,
+                        "description",
+                        e.target.value
+                      )
+                    }
                     placeholder="설명"
                     rows={2}
                     style={styles.achievementDesc}
                   />
                 </div>
-                <button type="button" onClick={() => removeAchievementItem(index)} style={styles.removeButton}>
+                <button
+                  type="button"
+                  onClick={() => removeAchievementItem(index)}
+                  style={styles.removeButton}
+                >
                   삭제
                 </button>
               </div>
             ))}
-            <button type="button" onClick={addAchievementItem} style={styles.addButton}>
+            <button
+              type="button"
+              onClick={addAchievementItem}
+              style={styles.addButton}
+            >
               + 항목 추가
             </button>
           </div>
@@ -322,8 +366,13 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
           <label style={styles.label}>공개 여부</label>
           <select
             name="is_published"
-            value={formData.is_published ? 'true' : 'false'}
-            onChange={(e) => setFormData((prev) => ({ ...prev, is_published: e.target.value === 'true' }))}
+            value={formData.is_published ? "true" : "false"}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                is_published: e.target.value === "true",
+              }))
+            }
             style={styles.select}
           >
             <option value="true">공개</option>
@@ -334,7 +383,9 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
 
       <div style={styles.editorSection}>
         <label style={styles.label}>상세 내용</label>
-        <p style={styles.hint}>슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.</p>
+        <p style={styles.hint}>
+          슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.
+        </p>
         <BlockNoteEditor
           initialContent={formData.content}
           onChange={handleContentChange}
@@ -344,11 +395,23 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
       </div>
 
       <div style={styles.formActions}>
-        <button type="button" onClick={() => (window.location.href = '/admin/works')} style={styles.cancelButton}>
+        <button
+          type="button"
+          onClick={() => (window.location.href = "/admin/works")}
+          style={styles.cancelButton}
+        >
           취소
         </button>
-        <button type="submit" disabled={isSubmitting} style={styles.submitButton}>
-          {isSubmitting ? '저장 중...' : mode === 'create' ? '작성하기' : '수정하기'}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          style={styles.submitButton}
+        >
+          {isSubmitting
+            ? "저장 중..."
+            : mode === "create"
+              ? "작성하기"
+              : "수정하기"}
         </button>
       </div>
     </form>
@@ -360,35 +423,35 @@ const styles: Record<string, React.CSSProperties> = {
   ...baseStyles,
   // WorksForm 전용 스타일
   achievementItem: {
-    display: 'flex',
-    gap: '0.5rem',
-    alignItems: 'flex-start',
-    padding: '0.75rem',
-    background: 'white',
-    borderRadius: '0.375rem',
-    border: '1px solid #e5e7eb',
+    display: "flex",
+    gap: "0.5rem",
+    alignItems: "flex-start",
+    padding: "0.75rem",
+    background: "white",
+    borderRadius: "0.375rem",
+    border: "1px solid #e5e7eb",
   },
   achievementFields: {
     flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.5rem",
   },
   achievementTitle: {
-    padding: '0.5rem 0.75rem',
-    border: '1px solid #e5e7eb',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
+    padding: "0.5rem 0.75rem",
+    border: "1px solid #e5e7eb",
+    borderRadius: "0.375rem",
+    fontSize: "0.875rem",
     fontWeight: 500,
-    outline: 'none',
+    outline: "none",
   },
   achievementDesc: {
-    padding: '0.5rem 0.75rem',
-    border: '1px solid #e5e7eb',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
-    outline: 'none',
-    resize: 'vertical',
-    fontFamily: 'inherit',
+    padding: "0.5rem 0.75rem",
+    border: "1px solid #e5e7eb",
+    borderRadius: "0.375rem",
+    fontSize: "0.875rem",
+    outline: "none",
+    resize: "vertical",
+    fontFamily: "inherit",
   },
 };

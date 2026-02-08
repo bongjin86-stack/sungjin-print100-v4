@@ -7,20 +7,19 @@ import { getConfig, loadSiteConfig } from "@/lib/siteConfigService";
 
 // DB에서 설정 로드
 await loadSiteConfig();
-const aboutText = getConfig('landing_about_text');
+const aboutText = getConfig("landing_about_text");
 
 // 줄바꿈을 <br />로 변환
-const formattedText = aboutText.split('\n').map(line => line || '<br />').join('<br />');
+const formattedText = aboutText
+  .split("\n")
+  .map((line) => line || "<br />")
+  .join("<br />");
 ---
 
 <Section background="secondary">
   <Container>
     <div class="about-inner">
-      <SectionTitle
-        title="About"
-        subtitle="회사소개"
-        class="about-header"
-      />
+      <SectionTitle title="About" subtitle="회사소개" class="about-header" />
 
       <div class="about-content">
         <p class="about-text" set:html={formattedText} />

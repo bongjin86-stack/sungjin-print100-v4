@@ -3,7 +3,7 @@
 // v2: Promise.all 병렬 쿼리 + Map 인덱스 O(1) 조회
 // sungjin-print100 v1의 최적화를 TypeScript로 적용
 
-import { supabase } from './supabase';
+import { supabase } from "./supabase";
 import type {
   BindingCost,
   BindingType,
@@ -16,7 +16,7 @@ import type {
   PrintCost,
   Size,
   SizePaperPrice,
-} from './types/database';
+} from "./types/database";
 
 // 전역 캐시
 let cachedData: PricingData | null = null;
@@ -53,31 +53,31 @@ function buildIndexMaps(data: PricingData): IndexMaps {
   };
 
   // 사이즈: code → size
-  data.sizes.forEach(s => maps.size.set(s.code, s));
+  data.sizes.forEach((s) => maps.size.set(s.code, s));
 
   // 용지: code → paper
-  data.papers.forEach(p => maps.paper.set(p.code, p));
+  data.papers.forEach((p) => maps.paper.set(p.code, p));
 
   // 용지 단가: "paperId:weight:baseSheet" → paperCost
-  data.paperCosts.forEach(pc => {
+  data.paperCosts.forEach((pc) => {
     maps.paperCost.set(`${pc.paper_id}:${pc.weight}:${pc.base_sheet}`, pc);
   });
 
   // 용지 평량: "paperCode:baseSheet" → [weight, ...]
-  data.paperCosts.forEach(pc => {
-    const paper = data.papers.find(p => p.id === pc.paper_id);
+  data.paperCosts.forEach((pc) => {
+    const paper = data.papers.find((p) => p.id === pc.paper_id);
     if (!paper) return;
     const key = `${paper.code}:${pc.base_sheet}`;
     if (!maps.paperWeights.has(key)) maps.paperWeights.set(key, []);
     maps.paperWeights.get(key)!.push(pc.weight);
   });
-  maps.paperWeights.forEach(weights => weights.sort((a, b) => a - b));
+  maps.paperWeights.forEach((weights) => weights.sort((a, b) => a - b));
 
   // 후가공 타입: code → finishingType
-  data.finishingTypes.forEach(ft => maps.finishingType.set(ft.code, ft));
+  data.finishingTypes.forEach((ft) => maps.finishingType.set(ft.code, ft));
 
   // 후가공 비용: finishingTypeId → [finishingCost, ...]
-  data.finishingCosts.forEach(fc => {
+  data.finishingCosts.forEach((fc) => {
     if (!maps.finishingCostByTypeId.has(fc.finishing_type_id)) {
       maps.finishingCostByTypeId.set(fc.finishing_type_id, []);
     }
@@ -85,10 +85,10 @@ function buildIndexMaps(data: PricingData): IndexMaps {
   });
 
   // 제본 타입: code → bindingType
-  data.bindingTypes.forEach(bt => maps.bindingType.set(bt.code, bt));
+  data.bindingTypes.forEach((bt) => maps.bindingType.set(bt.code, bt));
 
   // 제본 비용: bindingTypeId → [bindingCost, ...]
-  data.bindingCosts.forEach(bc => {
+  data.bindingCosts.forEach((bc) => {
     if (!maps.bindingCostByTypeId.has(bc.binding_type_id)) {
       maps.bindingCostByTypeId.set(bc.binding_type_id, []);
     }
@@ -96,7 +96,7 @@ function buildIndexMaps(data: PricingData): IndexMaps {
   });
 
   // 선계산 가격: "sizeCode:paperCode:weight" → precalcRow
-  (data.sizePaperPrice || []).forEach(spp => {
+  (data.sizePaperPrice || []).forEach((spp) => {
     const sizeCode = spp.size?.code;
     const paperCode = spp.paper_cost?.paper?.code;
     const weight = spp.paper_cost?.weight;
@@ -129,37 +129,48 @@ export async function loadPricingData(): Promise<PricingData> {
       { data: bindingCosts, error: e8 },
     ] = await Promise.all([
       supabase
-        .from('papers').select('*')
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true }).order('id'),
+        .from("papers")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+        .order("id"),
       supabase
-        .from('paper_costs').select('*, paper:papers(id, code, name)')
-        .eq('is_active', true)
-        .order('paper_id').order('weight'),
+        .from("paper_costs")
+        .select("*, paper:papers(id, code, name)")
+        .eq("is_active", true)
+        .order("paper_id")
+        .order("weight"),
       supabase
-        .from('sizes').select('*')
-        .eq('is_active', true)
-        .order('up_count', { ascending: false }),
+        .from("sizes")
+        .select("*")
+        .eq("is_active", true)
+        .order("up_count", { ascending: false }),
       supabase
-        .from('print_costs').select('*')
-        .eq('is_active', true)
-        .order('min_faces'),
+        .from("print_costs")
+        .select("*")
+        .eq("is_active", true)
+        .order("min_faces"),
       supabase
-        .from('finishing_types').select('*')
-        .eq('is_active', true)
-        .order('id'),
+        .from("finishing_types")
+        .select("*")
+        .eq("is_active", true)
+        .order("id"),
       supabase
-        .from('finishing_costs').select('*, finishing_type:finishing_types(id, code, name)')
-        .eq('is_active', true)
-        .order('finishing_type_id'),
+        .from("finishing_costs")
+        .select("*, finishing_type:finishing_types(id, code, name)")
+        .eq("is_active", true)
+        .order("finishing_type_id"),
       supabase
-        .from('binding_types').select('*')
-        .eq('is_active', true)
-        .order('id'),
+        .from("binding_types")
+        .select("*")
+        .eq("is_active", true)
+        .order("id"),
       supabase
-        .from('binding_costs').select('*, binding_type:binding_types(id, code, name)')
-        .eq('is_active', true)
-        .order('binding_type_id').order('min_qty'),
+        .from("binding_costs")
+        .select("*, binding_type:binding_types(id, code, name)")
+        .eq("is_active", true)
+        .order("binding_type_id")
+        .order("min_qty"),
     ]);
 
     if (e1) throw e1;
@@ -180,16 +191,15 @@ export async function loadPricingData(): Promise<PricingData> {
       finishingCosts: finishingCosts as FinishingCost[],
       bindingTypes: bindingTypes as BindingType[],
       bindingCosts: bindingCosts as BindingCost[],
-      sizePaperPrice: [],  // deprecated - 실시간 계산 사용
+      sizePaperPrice: [], // deprecated - 실시간 계산 사용
     };
 
     // Map 인덱스 빌드 (O(1) 조회용)
     indexMaps = buildIndexMaps(cachedData);
 
     return cachedData;
-
   } catch (error) {
-    console.error('DB 데이터 로드 실패:', error);
+    console.error("DB 데이터 로드 실패:", error);
     throw error;
   }
 }
@@ -201,7 +211,10 @@ export async function loadPricingData(): Promise<PricingData> {
 /**
  * 용지별 평량 목록 반환
  */
-export function getPaperWeights(paperCode: string, baseSheet: string = '467x315'): number[] {
+export function getPaperWeights(
+  paperCode: string,
+  baseSheet: string = "467x315"
+): number[] {
   if (!indexMaps) return [];
   return indexMaps.paperWeights.get(`${paperCode}:${baseSheet}`) || [];
 }
@@ -212,13 +225,15 @@ export function getPaperWeights(paperCode: string, baseSheet: string = '467x315'
 export function getPaperCost(
   paperCode: string,
   weight: number,
-  baseSheet: string = '467x315'
+  baseSheet: string = "467x315"
 ): { cost_per_sheet: number; margin_rate: number } | null {
   if (!indexMaps) return null;
   const paper = indexMaps.paper.get(paperCode);
   if (!paper) return null;
   const pc = indexMaps.paperCost.get(`${paper.id}:${weight}:${baseSheet}`);
-  return pc ? { cost_per_sheet: pc.cost_per_sheet, margin_rate: pc.margin_rate } : null;
+  return pc
+    ? { cost_per_sheet: pc.cost_per_sheet, margin_rate: pc.margin_rate }
+    : null;
 }
 
 /**
@@ -227,7 +242,7 @@ export function getPaperCost(
 export function getPrintCostPerFace(faces: number): number {
   if (!cachedData) return 0;
   const tier = cachedData.printCosts.find(
-    pc => faces >= pc.min_faces && faces <= pc.max_faces
+    (pc) => faces >= pc.min_faces && faces <= pc.max_faces
   );
   return tier ? tier.cost_per_face : 85;
 }
@@ -246,7 +261,11 @@ export function getFinishingCost(finishingCode: string): {
   const costs = indexMaps.finishingCostByTypeId.get(ft.id);
   if (!costs || costs.length === 0) return null;
   const fc = costs[0];
-  return { setup_cost: fc.setup_cost, cost_per_unit: fc.cost_per_unit, unit_type: fc.unit_type };
+  return {
+    setup_cost: fc.setup_cost,
+    cost_per_unit: fc.cost_per_unit,
+    unit_type: fc.unit_type,
+  };
 }
 
 /**
@@ -267,43 +286,62 @@ export function getFinishingCostByLines(
   const costs = indexMaps.finishingCostByTypeId.get(ft.id);
   if (!costs) return null;
 
-  const pattern = finishingCode === 'creasing' ? `${lines}줄` : `${lines}단`;
+  const pattern = finishingCode === "creasing" ? `${lines}줄` : `${lines}단`;
   const fc = costs.find(
-    c => c.notes && c.notes.includes(pattern) &&
-         qty >= c.min_qty && qty <= c.max_qty
+    (c) =>
+      c.notes &&
+      c.notes.includes(pattern) &&
+      qty >= c.min_qty &&
+      qty <= c.max_qty
   );
-  return fc ? { setup_cost: fc.setup_cost, cost_per_unit: fc.cost_per_unit, unit_type: fc.unit_type } : null;
+  return fc
+    ? {
+        setup_cost: fc.setup_cost,
+        cost_per_unit: fc.cost_per_unit,
+        unit_type: fc.unit_type,
+      }
+    : null;
 }
 
 /**
  * 코팅 비용 조회 (수량 구간 + 양면 세팅비)
  */
-export function getCoatingCost(qty: number, isDouble: boolean = false): {
+export function getCoatingCost(
+  qty: number,
+  isDouble: boolean = false
+): {
   setup_cost: number;
   cost_per_unit: number;
   unit_type: string;
 } | null {
   if (!indexMaps) return null;
-  const ft = indexMaps.finishingType.get('coating');
+  const ft = indexMaps.finishingType.get("coating");
   if (!ft) return null;
   const costs = indexMaps.finishingCostByTypeId.get(ft.id);
   if (!costs) return null;
 
   const fc = costs.find(
-    c => qty >= c.min_qty && (c.max_qty === 0 || c.max_qty === null || qty <= c.max_qty)
+    (c) =>
+      qty >= c.min_qty &&
+      (c.max_qty === 0 || c.max_qty === null || qty <= c.max_qty)
   );
   if (!fc) return null;
   return {
-    setup_cost: isDouble ? (fc.setup_cost_double || fc.setup_cost) : fc.setup_cost,
+    setup_cost: isDouble
+      ? fc.setup_cost_double || fc.setup_cost
+      : fc.setup_cost,
     cost_per_unit: fc.cost_per_unit,
-    unit_type: fc.unit_type
+    unit_type: fc.unit_type,
   };
 }
 
 /**
  * 제본 비용 조회 (수량 구간)
  */
-export function getBindingCost(bindingCode: string, qty: number): {
+export function getBindingCost(
+  bindingCode: string,
+  qty: number
+): {
   setup_cost: number;
   cost_per_copy: number;
 } | null {
@@ -313,8 +351,10 @@ export function getBindingCost(bindingCode: string, qty: number): {
   const costs = indexMaps.bindingCostByTypeId.get(bt.id);
   if (!costs) return null;
 
-  const bc = costs.find(c => qty >= c.min_qty && qty <= c.max_qty);
-  return bc ? { setup_cost: bc.setup_cost, cost_per_copy: bc.cost_per_copy } : null;
+  const bc = costs.find((c) => qty >= c.min_qty && qty <= c.max_qty);
+  return bc
+    ? { setup_cost: bc.setup_cost, cost_per_copy: bc.cost_per_copy }
+    : null;
 }
 
 /**
@@ -329,13 +369,15 @@ export function getSizeInfo(sizeCode: string): {
 } | null {
   if (!indexMaps) return null;
   const size = indexMaps.size.get(sizeCode);
-  return size ? {
-    name: size.name,
-    width: size.width,
-    height: size.height,
-    base_sheet: size.base_sheet,
-    up_count: size.up_count
-  } : null;
+  return size
+    ? {
+        name: size.name,
+        width: size.width,
+        height: size.height,
+        base_sheet: size.base_sheet,
+        up_count: size.up_count,
+      }
+    : null;
 }
 
 /**
@@ -363,12 +405,14 @@ export function getSizePaperPrice(
   up_count: number;
 } | null {
   if (!indexMaps) return null;
-  const found = indexMaps.sizePaperPrice.get(`${sizeCode}:${paperCode}:${weight}`);
+  const found = indexMaps.sizePaperPrice.get(
+    `${sizeCode}:${paperCode}:${weight}`
+  );
   if (!found) return null;
   return {
     sell_price_per_copy: Number(found.sell_price_per_copy),
     sell_price_per_sheet: Number(found.sell_price_per_sheet),
-    up_count: found.up_count
+    up_count: found.up_count,
   };
 }
 
@@ -378,23 +422,25 @@ export function getSizePaperPrice(
 export function getBuilderData(): BuilderData | null {
   if (!cachedData || !indexMaps) return null;
 
-  const paperWeightsMap: BuilderData['paperWeights'] = {};
-  cachedData.papers.forEach(paper => {
-    const weights467 = indexMaps!.paperWeights.get(`${paper.code}:467x315`) || [];
-    const weights390 = indexMaps!.paperWeights.get(`${paper.code}:390x270`) || [];
+  const paperWeightsMap: BuilderData["paperWeights"] = {};
+  cachedData.papers.forEach((paper) => {
+    const weights467 =
+      indexMaps!.paperWeights.get(`${paper.code}:467x315`) || [];
+    const weights390 =
+      indexMaps!.paperWeights.get(`${paper.code}:390x270`) || [];
     paperWeightsMap[paper.code] = {
-      '467x315': weights467,
-      '390x270': weights390,
-      all: [...new Set([...weights467, ...weights390])].sort((a, b) => a - b)
+      "467x315": weights467,
+      "390x270": weights390,
+      all: [...new Set([...weights467, ...weights390])].sort((a, b) => a - b),
     };
   });
 
-  const sizesMap: BuilderData['sizes'] = {};
-  cachedData.sizes.forEach(size => {
+  const sizesMap: BuilderData["sizes"] = {};
+  cachedData.sizes.forEach((size) => {
     sizesMap[size.code] = {
       name: size.name,
       multiplier: size.up_count,
-      base_sheet: size.base_sheet
+      base_sheet: size.base_sheet,
     };
   });
 
@@ -403,6 +449,6 @@ export function getBuilderData(): BuilderData | null {
     paperWeights: paperWeightsMap,
     sizes: sizesMap,
     finishingTypes: cachedData.finishingTypes,
-    bindingTypes: cachedData.bindingTypes
+    bindingTypes: cachedData.bindingTypes,
   };
 }

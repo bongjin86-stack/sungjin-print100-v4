@@ -14,20 +14,23 @@ const ceoName = String(siteConfig.company.ceo_name);
 
 // DB에서 CEO 메시지 데이터 가져오기
 const { data: settings } = await supabase
-  .from('site_settings')
-  .select('*')
-  .like('key', 'ceo_%');
+  .from("site_settings")
+  .select("*")
+  .like("key", "ceo_%");
 
 // 설정값을 객체로 변환
 const settingsMap: Record<string, string> = {};
-settings?.forEach(s => {
+settings?.forEach((s) => {
   settingsMap[s.key] = s.value;
 });
 
-const ceoSubtitle = settingsMap['ceo_subtitle'] || '대표 메시지';
-const ceoCatchphrase = settingsMap['ceo_catchphrase'] || '미래의 당연함을, 조용히 대담하게.';
-const ceoMessage = settingsMap['ceo_message'] || '저희의 사명은 기업과 고객 사이에 있는 "경험의 벽"을 허물고, 더 직관적이고, 더 편안한 커뮤니케이션을 실현하는 것입니다.\n\n기술이 빠르게 진화하는 가운데, 요구되는 것은 화려함이 아니라 사용자의 관점에서 바라본 "확실한 아름다움"과 "진실된 기능"입니다. 그 둘 모두를 실현할 수 있는 디자인이야말로 미래에 오래 남을 것이라 믿습니다.\n\n고객과 같은 눈높이에서 과제에 임하며, 작은 개선부터 큰 변혁까지 함께 걸어가는 파트너이고 싶습니다. 그런 마음을 품고, 앞으로도 가치 있는 경험 만들기에 힘쓰겠습니다.';
-const ceoImageUrl = settingsMap['ceo_image'] || '';
+const ceoSubtitle = settingsMap["ceo_subtitle"] || "대표 메시지";
+const ceoCatchphrase =
+  settingsMap["ceo_catchphrase"] || "미래의 당연함을, 조용히 대담하게.";
+const ceoMessage =
+  settingsMap["ceo_message"] ||
+  '저희의 사명은 기업과 고객 사이에 있는 "경험의 벽"을 허물고, 더 직관적이고, 더 편안한 커뮤니케이션을 실현하는 것입니다.\n\n기술이 빠르게 진화하는 가운데, 요구되는 것은 화려함이 아니라 사용자의 관점에서 바라본 "확실한 아름다움"과 "진실된 기능"입니다. 그 둘 모두를 실현할 수 있는 디자인이야말로 미래에 오래 남을 것이라 믿습니다.\n\n고객과 같은 눈높이에서 과제에 임하며, 작은 개선부터 큰 변혁까지 함께 걸어가는 파트너이고 싶습니다. 그런 마음을 품고, 앞으로도 가치 있는 경험 만들기에 힘쓰겠습니다.';
+const ceoImageUrl = settingsMap["ceo_image"] || "";
 
 // BlockNote JSON 또는 마크다운을 HTML로 변환
 const messageHtml = renderBlocksToHTML(ceoMessage);
@@ -43,16 +46,18 @@ const messageHtml = renderBlocksToHTML(ceoMessage);
 
     <div class="top-message-content">
       <div class="message-image">
-        {ceoImageUrl ? (
-          <img src={ceoImageUrl} alt={`${ceoTitle} ${ceoName}`} />
-        ) : (
-          <Image
-            src={ceoImage}
-            alt={`${ceoTitle} ${ceoName}`}
-            width={400}
-            height={400}
-          />
-        )}
+        {
+          ceoImageUrl ? (
+            <img src={ceoImageUrl} alt={`${ceoTitle} ${ceoName}`} />
+          ) : (
+            <Image
+              src={ceoImage}
+              alt={`${ceoTitle} ${ceoName}`}
+              width={400}
+              height={400}
+            />
+          )
+        }
       </div>
 
       <div class="message-text-container">

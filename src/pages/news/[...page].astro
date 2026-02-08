@@ -21,23 +21,23 @@ const pageSize = siteConfig.settings.pagination || 9;
 const categoryList = [
   { id: "information", title: "안내" },
   { id: "event", title: "이벤트" },
-  { id: "update", title: "업데이트" }
+  { id: "update", title: "업데이트" },
 ];
 
 // DB에서 News 전체 개수 가져오기
 const { count: totalCount } = await supabase
-  .from('news')
-  .select('*', { count: 'exact', head: true });
+  .from("news")
+  .select("*", { count: "exact", head: true });
 
 // DB에서 News 데이터 가져오기 (페이지네이션)
 const { data: newsList, error: newsError } = await supabase
-  .from('news')
-  .select('*')
-  .order('pub_date', { ascending: false })
+  .from("news")
+  .select("*")
+  .order("pub_date", { ascending: false })
   .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
 if (newsError) {
-  console.error('Error fetching news:', newsError);
+  console.error("Error fetching news:", newsError);
 }
 
 const newsData = newsList || [];
@@ -50,18 +50,20 @@ const pageTitle =
 
 // 카테고리 ID로 카테고리 제목 찾기
 function getCategoryTitle(categoryId: string): string {
-  const cat = categoryList.find(c => c.id === categoryId);
+  const cat = categoryList.find((c) => c.id === categoryId);
   return cat?.title || categoryId;
 }
 
 // 날짜 포맷팅
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-  }).replace(/\//g, ".");
+  return date
+    .toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    })
+    .replace(/\//g, ".");
 }
 ---
 
@@ -76,26 +78,32 @@ function formatDate(dateStr: string): string {
       <CategoryNavigation categories={categoryList} basePath="/news" />
 
       <div class="news-list">
-        {newsData.map((news) => (
-          <article class="news-item">
-            <a href={`/news/${news.id}`} class="news-link">
-              <time class="news-date" datetime={news.pub_date}>
-                {formatDate(news.pub_date)}
-              </time>
-              <span class="news-category">{getCategoryTitle(news.category)}</span>
-              <h3 class="news-item-title">{news.title}</h3>
-            </a>
-          </article>
-        ))}
+        {
+          newsData.map((news) => (
+            <article class="news-item">
+              <a href={`/news/${news.id}`} class="news-link">
+                <time class="news-date" datetime={news.pub_date}>
+                  {formatDate(news.pub_date)}
+                </time>
+                <span class="news-category">
+                  {getCategoryTitle(news.category)}
+                </span>
+                <h3 class="news-item-title">{news.title}</h3>
+              </a>
+            </article>
+          ))
+        }
       </div>
 
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          basePath="/news"
-        />
-      )}
+      {
+        totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath="/news"
+          />
+        )
+      }
     </Container>
   </Section>
 

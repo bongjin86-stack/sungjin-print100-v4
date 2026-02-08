@@ -1,8 +1,8 @@
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
-import ImageUploader from './ImageUploader';
+import ImageUploader from "./ImageUploader";
 
 interface HeroLine {
   id: string;
@@ -23,21 +23,21 @@ interface HeroSettings {
 
 const defaultLines: HeroLine[] = [
   {
-    id: '1',
-    text: '안녕하세요',
+    id: "1",
+    text: "안녕하세요",
     fontSize: 48,
     letterSpacing: 0,
     fontWeight: 500,
-    marginBottom: 8
+    marginBottom: 8,
   },
   {
-    id: '2',
-    text: 'Sungjinprint 입니다.',
+    id: "2",
+    text: "Sungjinprint 입니다.",
     fontSize: 48,
     letterSpacing: 0,
     fontWeight: 700,
-    marginBottom: 0
-  }
+    marginBottom: 0,
+  },
 ];
 
 export default function HeroForm() {
@@ -45,7 +45,10 @@ export default function HeroForm() {
   const [lines, setLines] = useState<HeroLine[]>(defaultLines);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchSettings();
@@ -54,12 +57,12 @@ export default function HeroForm() {
   const fetchSettings = async () => {
     try {
       const { data, error } = await supabase
-        .from('hero_settings')
-        .select('*')
+        .from("hero_settings")
+        .select("*")
         .limit(1)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code !== "PGRST116") {
         throw error;
       }
 
@@ -70,33 +73,35 @@ export default function HeroForm() {
         } else {
           const initialLines: HeroLine[] = [
             {
-              id: '1',
-              text: data.title_line1 || '안녕하세요',
+              id: "1",
+              text: data.title_line1 || "안녕하세요",
               fontSize: 48,
               letterSpacing: 0,
               fontWeight: 500,
-              marginBottom: 8
+              marginBottom: 8,
             },
             {
-              id: '2',
-              text: data.title_line2 || 'Sungjinprint 입니다.',
+              id: "2",
+              text: data.title_line2 || "Sungjinprint 입니다.",
               fontSize: 48,
               letterSpacing: 0,
               fontWeight: 700,
-              marginBottom: 0
-            }
+              marginBottom: 0,
+            },
           ];
           setLines(initialLines);
         }
       } else {
         const { data: newData, error: insertError } = await supabase
-          .from('hero_settings')
-          .insert([{
-            title_line1: '안녕하세요',
-            title_line2: 'Sungjinprint 입니다.',
-            lines: defaultLines,
-            image_url: null
-          }])
+          .from("hero_settings")
+          .insert([
+            {
+              title_line1: "안녕하세요",
+              title_line2: "Sungjinprint 입니다.",
+              lines: defaultLines,
+              image_url: null,
+            },
+          ])
           .select()
           .single();
 
@@ -105,8 +110,8 @@ export default function HeroForm() {
         setLines(defaultLines);
       }
     } catch (err: any) {
-      console.error('Error fetching hero settings:', err);
-      setMessage({ type: 'error', text: '설정을 불러오는데 실패했습니다.' });
+      console.error("Error fetching hero settings:", err);
+      setMessage({ type: "error", text: "설정을 불러오는데 실패했습니다." });
     } finally {
       setLoading(false);
     }
@@ -120,60 +125,70 @@ export default function HeroForm() {
 
     try {
       const { error } = await supabase
-        .from('hero_settings')
+        .from("hero_settings")
         .update({
           lines: lines,
           image_url: settings.image_url,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', settings.id);
+        .eq("id", settings.id);
 
       if (error) throw error;
 
-      setMessage({ type: 'success', text: '저장되었습니다!' });
+      setMessage({ type: "success", text: "저장되었습니다!" });
     } catch (err: any) {
-      console.error('Error saving hero settings:', err);
-      setMessage({ type: 'error', text: '저장에 실패했습니다.' });
+      console.error("Error saving hero settings:", err);
+      setMessage({ type: "error", text: "저장에 실패했습니다." });
     } finally {
       setSaving(false);
     }
   };
 
-  const updateLine = (id: string, field: keyof HeroLine, value: string | number) => {
-    setLines(prev => prev.map(line => 
-      line.id === id ? { ...line, [field]: value } : line
-    ));
+  const updateLine = (
+    id: string,
+    field: keyof HeroLine,
+    value: string | number
+  ) => {
+    setLines((prev) =>
+      prev.map((line) => (line.id === id ? { ...line, [field]: value } : line))
+    );
   };
 
   const addLine = () => {
     const newLine: HeroLine = {
       id: Date.now().toString(),
-      text: '새 텍스트',
+      text: "새 텍스트",
       fontSize: 36,
       letterSpacing: 0,
       fontWeight: 500,
-      marginBottom: 8
+      marginBottom: 8,
     };
-    setLines(prev => [...prev, newLine]);
+    setLines((prev) => [...prev, newLine]);
   };
 
   const removeLine = (id: string) => {
     if (lines.length <= 1) {
-      setMessage({ type: 'error', text: '최소 1개의 줄이 필요합니다.' });
+      setMessage({ type: "error", text: "최소 1개의 줄이 필요합니다." });
       return;
     }
-    setLines(prev => prev.filter(line => line.id !== id));
+    setLines((prev) => prev.filter((line) => line.id !== id));
   };
 
-  const moveLine = (id: string, direction: 'up' | 'down') => {
-    const index = lines.findIndex(line => line.id === id);
-    if (direction === 'up' && index > 0) {
+  const moveLine = (id: string, direction: "up" | "down") => {
+    const index = lines.findIndex((line) => line.id === id);
+    if (direction === "up" && index > 0) {
       const newLines = [...lines];
-      [newLines[index - 1], newLines[index]] = [newLines[index], newLines[index - 1]];
+      [newLines[index - 1], newLines[index]] = [
+        newLines[index],
+        newLines[index - 1],
+      ];
       setLines(newLines);
-    } else if (direction === 'down' && index < lines.length - 1) {
+    } else if (direction === "down" && index < lines.length - 1) {
       const newLines = [...lines];
-      [newLines[index], newLines[index + 1]] = [newLines[index + 1], newLines[index]];
+      [newLines[index], newLines[index + 1]] = [
+        newLines[index + 1],
+        newLines[index],
+      ];
       setLines(newLines);
     }
   };
@@ -189,17 +204,17 @@ export default function HeroForm() {
   return (
     <div className="hero-form">
       <h2>Hero 섹션 관리</h2>
-      
+
       {message && (
-        <div className={`message ${message.type}`}>
-          {message.text}
-        </div>
+        <div className={`message ${message.type}`}>{message.text}</div>
       )}
 
       <div className="lines-section">
         <div className="section-header">
           <label>텍스트 줄 관리</label>
-          <button className="add-line-btn" onClick={addLine}>+ 줄 추가</button>
+          <button className="add-line-btn" onClick={addLine}>
+            + 줄 추가
+          </button>
         </div>
         <p className="help-text">
           각 줄의 텍스트와 스타일을 개별적으로 조절할 수 있습니다.
@@ -210,22 +225,22 @@ export default function HeroForm() {
             <div className="line-header">
               <span className="line-number">줄 {index + 1}</span>
               <div className="line-actions">
-                <button 
-                  className="move-btn" 
-                  onClick={() => moveLine(line.id, 'up')}
+                <button
+                  className="move-btn"
+                  onClick={() => moveLine(line.id, "up")}
                   disabled={index === 0}
                 >
                   ↑
                 </button>
-                <button 
-                  className="move-btn" 
-                  onClick={() => moveLine(line.id, 'down')}
+                <button
+                  className="move-btn"
+                  onClick={() => moveLine(line.id, "down")}
                   disabled={index === lines.length - 1}
                 >
                   ↓
                 </button>
-                <button 
-                  className="delete-btn" 
+                <button
+                  className="delete-btn"
                   onClick={() => removeLine(line.id)}
                 >
                   삭제
@@ -238,7 +253,7 @@ export default function HeroForm() {
                 type="text"
                 className="text-input"
                 value={line.text}
-                onChange={(e) => updateLine(line.id, 'text', e.target.value)}
+                onChange={(e) => updateLine(line.id, "text", e.target.value)}
                 placeholder="텍스트 입력"
               />
 
@@ -251,7 +266,13 @@ export default function HeroForm() {
                       min="16"
                       max="120"
                       value={line.fontSize}
-                      onChange={(e) => updateLine(line.id, 'fontSize', parseInt(e.target.value))}
+                      onChange={(e) =>
+                        updateLine(
+                          line.id,
+                          "fontSize",
+                          parseInt(e.target.value)
+                        )
+                      }
                     />
                     <span className="slider-value">{line.fontSize}px</span>
                   </div>
@@ -265,7 +286,13 @@ export default function HeroForm() {
                       min="-10"
                       max="30"
                       value={line.letterSpacing}
-                      onChange={(e) => updateLine(line.id, 'letterSpacing', parseInt(e.target.value))}
+                      onChange={(e) =>
+                        updateLine(
+                          line.id,
+                          "letterSpacing",
+                          parseInt(e.target.value)
+                        )
+                      }
                     />
                     <span className="slider-value">{line.letterSpacing}px</span>
                   </div>
@@ -280,7 +307,13 @@ export default function HeroForm() {
                       max="900"
                       step="100"
                       value={line.fontWeight}
-                      onChange={(e) => updateLine(line.id, 'fontWeight', parseInt(e.target.value))}
+                      onChange={(e) =>
+                        updateLine(
+                          line.id,
+                          "fontWeight",
+                          parseInt(e.target.value)
+                        )
+                      }
                     />
                     <span className="slider-value">{line.fontWeight}</span>
                   </div>
@@ -294,7 +327,13 @@ export default function HeroForm() {
                       min="0"
                       max="100"
                       value={line.marginBottom}
-                      onChange={(e) => updateLine(line.id, 'marginBottom', parseInt(e.target.value))}
+                      onChange={(e) =>
+                        updateLine(
+                          line.id,
+                          "marginBottom",
+                          parseInt(e.target.value)
+                        )
+                      }
                     />
                     <span className="slider-value">{line.marginBottom}px</span>
                   </div>
@@ -314,12 +353,8 @@ export default function HeroForm() {
 
       {/* 저장 버튼 */}
       <div className="save-section">
-        <button
-          className="save-btn"
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? '저장 중...' : '저장하기'}
+        <button className="save-btn" onClick={handleSave} disabled={saving}>
+          {saving ? "저장 중..." : "저장하기"}
         </button>
       </div>
 
@@ -342,8 +377,8 @@ export default function HeroForm() {
                       letterSpacing: `${line.letterSpacing}px`,
                       fontWeight: line.fontWeight,
                       marginBottom: `${line.marginBottom}px`,
-                      display: 'block',
-                      lineHeight: 1.2
+                      display: "block",
+                      lineHeight: 1.2,
                     }}
                   >
                     {line.text}

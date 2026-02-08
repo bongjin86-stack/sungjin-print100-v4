@@ -1,16 +1,16 @@
 ---
 export const prerender = false;
 
-import AdminLayout from '@/layouts/AdminLayout.astro';
-import { supabase } from '@/lib/supabase';
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { supabase } from "@/lib/supabase";
 
 const { data: teamMembers, error } = await supabase
-  .from('team')
-  .select('*')
-  .order('sort_order', { ascending: true });
+  .from("team")
+  .select("*")
+  .order("sort_order", { ascending: true });
 
 if (error) {
-  console.error('Error fetching team:', error);
+  console.error("Error fetching team:", error);
 }
 ---
 
@@ -22,31 +22,43 @@ if (error) {
     </div>
 
     <div class="team-grid">
-      {teamMembers && teamMembers.map((member) => (
-        <div class="team-card" data-id={member.id}>
-          <div class="team-image">
-            {member.image_path ? (
-              <img src={member.image_path} alt={member.name} />
-            ) : (
-              <div class="placeholder">이미지 없음</div>
-            )}
-          </div>
-          <div class="team-info">
-            <h3>{member.name}</h3>
-            <p>{member.position}</p>
-          </div>
-          <div class="team-actions">
-            <button class="btn btn-sm edit-btn" 
-              data-id={member.id} 
-              data-name={member.name} 
-              data-position={member.position} 
-              data-image={member.image_path || ''} 
-              data-pet={member.is_pet}
-              data-sort={member.sort_order}>수정</button>
-            <button class="btn btn-sm btn-danger delete-btn" data-id={member.id}>삭제</button>
-          </div>
-        </div>
-      ))}
+      {
+        teamMembers &&
+          teamMembers.map((member) => (
+            <div class="team-card" data-id={member.id}>
+              <div class="team-image">
+                {member.image_path ? (
+                  <img src={member.image_path} alt={member.name} />
+                ) : (
+                  <div class="placeholder">이미지 없음</div>
+                )}
+              </div>
+              <div class="team-info">
+                <h3>{member.name}</h3>
+                <p>{member.position}</p>
+              </div>
+              <div class="team-actions">
+                <button
+                  class="btn btn-sm edit-btn"
+                  data-id={member.id}
+                  data-name={member.name}
+                  data-position={member.position}
+                  data-image={member.image_path || ""}
+                  data-pet={member.is_pet}
+                  data-sort={member.sort_order}
+                >
+                  수정
+                </button>
+                <button
+                  class="btn btn-sm btn-danger delete-btn"
+                  data-id={member.id}
+                >
+                  삭제
+                </button>
+              </div>
+            </div>
+          ))
+      }
     </div>
   </div>
 
@@ -64,7 +76,7 @@ if (error) {
           <label for="position">직책</label>
           <input type="text" id="position" placeholder="대표이사" required />
         </div>
-        
+
         <!-- 이미지 업로드 섹션 -->
         <div class="form-group">
           <label>프로필 이미지</label>
@@ -72,10 +84,17 @@ if (error) {
             <div id="imagePreview" class="image-preview">
               <span class="preview-placeholder">이미지를 선택하세요</span>
             </div>
-            <input type="file" id="imageFile" accept="image/*" style="display: none;" />
+            <input
+              type="file"
+              id="imageFile"
+              accept="image/*"
+              style="display: none;"
+            />
             <input type="hidden" id="imagePath" />
             <div class="upload-buttons">
-              <button type="button" id="selectImageBtn" class="btn">이미지 선택</button>
+              <button type="button" id="selectImageBtn" class="btn"
+                >이미지 선택</button
+              >
               <span id="uploadStatus" class="upload-status"></span>
             </div>
           </div>
@@ -94,206 +113,358 @@ if (error) {
   </div>
 
   <style>
-    .admin-page { padding: 2rem; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-    .page-header h1 { font-size: 1.5rem; font-weight: 600; }
-    .btn { padding: 0.5rem 1rem; border: 1px solid #ddd; border-radius: 4px; background: white; cursor: pointer; }
-    .btn-primary { background: #333; color: white; border-color: #333; }
-    .btn-danger { background: #dc3545; color: white; border-color: #dc3545; }
-    .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
-    .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
-    .team-card { background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
-    .team-image { height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; }
-    .team-image img { width: 100%; height: 100%; object-fit: cover; }
-    .team-image .placeholder { color: #999; }
-    .team-info { padding: 1rem; }
-    .team-info h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
-    .team-info p { color: #666; font-size: 0.9rem; }
-    .team-actions { padding: 0 1rem 1rem; display: flex; gap: 0.5rem; }
-    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .modal.hidden { display: none; }
-    .modal-content { background: white; padding: 2rem; border-radius: 8px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-    .modal-content h2 { margin-bottom: 1.5rem; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+    .admin-page {
+      padding: 2rem;
+    }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .page-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #333;
+      color: white;
+      border-color: #333;
+    }
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+      border-color: #dc3545;
+    }
+    .btn-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+    }
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+    .team-card {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .team-image {
+      height: 200px;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .team-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .team-image .placeholder {
+      color: #999;
+    }
+    .team-info {
+      padding: 1rem;
+    }
+    .team-info h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .team-info p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .team-actions {
+      padding: 0 1rem 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal.hidden {
+      display: none;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-content h2 {
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
     .form-group input[type="text"],
-    .form-group input[type="number"] { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
-    
+    .form-group input[type="number"] {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
     /* 이미지 업로드 스타일 */
-    .image-upload-area { border: 2px dashed #ddd; border-radius: 8px; padding: 1rem; }
-    .image-preview { width: 100%; height: 150px; background: #f9f9f9; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; overflow: hidden; }
-    .image-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
-    .preview-placeholder { color: #999; font-size: 0.875rem; }
-    .upload-buttons { display: flex; align-items: center; gap: 0.75rem; }
-    .upload-status { font-size: 0.75rem; color: #666; }
-    .upload-status.uploading { color: #007bff; }
-    .upload-status.success { color: #28a745; }
-    .upload-status.error { color: #dc3545; }
+    .image-upload-area {
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .image-preview {
+      width: 100%;
+      height: 150px;
+      background: #f9f9f9;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
+    .image-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .preview-placeholder {
+      color: #999;
+      font-size: 0.875rem;
+    }
+    .upload-buttons {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .upload-status {
+      font-size: 0.75rem;
+      color: #666;
+    }
+    .upload-status.uploading {
+      color: #007bff;
+    }
+    .upload-status.success {
+      color: #28a745;
+    }
+    .upload-status.error {
+      color: #dc3545;
+    }
   </style>
 
   <script>
-    import { supabase } from '@/lib/supabase';
+    import { supabase } from "@/lib/supabase";
 
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modalTitle');
-    const form = document.getElementById('teamForm');
-    const teamId = document.getElementById('teamId') as HTMLInputElement;
-    const nameInput = document.getElementById('name') as HTMLInputElement;
-    const positionInput = document.getElementById('position') as HTMLInputElement;
-    const imagePathInput = document.getElementById('imagePath') as HTMLInputElement;
-    const sortOrderInput = document.getElementById('sortOrder') as HTMLInputElement;
-    const imageFileInput = document.getElementById('imageFile') as HTMLInputElement;
-    const imagePreview = document.getElementById('imagePreview');
-    const selectImageBtn = document.getElementById('selectImageBtn');
-    const uploadStatus = document.getElementById('uploadStatus');
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modalTitle");
+    const form = document.getElementById("teamForm");
+    const teamId = document.getElementById("teamId") as HTMLInputElement;
+    const nameInput = document.getElementById("name") as HTMLInputElement;
+    const positionInput = document.getElementById(
+      "position"
+    ) as HTMLInputElement;
+    const imagePathInput = document.getElementById(
+      "imagePath"
+    ) as HTMLInputElement;
+    const sortOrderInput = document.getElementById(
+      "sortOrder"
+    ) as HTMLInputElement;
+    const imageFileInput = document.getElementById(
+      "imageFile"
+    ) as HTMLInputElement;
+    const imagePreview = document.getElementById("imagePreview");
+    const selectImageBtn = document.getElementById("selectImageBtn");
+    const uploadStatus = document.getElementById("uploadStatus");
 
     // 이미지 선택 버튼
-    selectImageBtn?.addEventListener('click', () => {
+    selectImageBtn?.addEventListener("click", () => {
       imageFileInput?.click();
     });
 
     // 이미지 파일 선택 시 업로드
-    imageFileInput?.addEventListener('change', async (e) => {
+    imageFileInput?.addEventListener("change", async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
       // 파일 타입 검증
-      if (!file.type.startsWith('image/')) {
-        alert('이미지 파일만 업로드 가능합니다.');
+      if (!file.type.startsWith("image/")) {
+        alert("이미지 파일만 업로드 가능합니다.");
         return;
       }
 
       // 파일 크기 검증 (10MB)
       if (file.size > 10 * 1024 * 1024) {
-        alert('파일 크기는 10MB 이하여야 합니다.');
+        alert("파일 크기는 10MB 이하여야 합니다.");
         return;
       }
 
-      uploadStatus!.textContent = '업로드 중...';
-      uploadStatus!.className = 'upload-status uploading';
+      uploadStatus!.textContent = "업로드 중...";
+      uploadStatus!.className = "upload-status uploading";
 
       try {
         // 고유 파일명 생성
         const timestamp = Date.now();
         const randomStr = Math.random().toString(36).substring(2, 8);
-        const ext = file.name.split('.').pop();
+        const ext = file.name.split(".").pop();
         const fileName = `team/${timestamp}-${randomStr}.${ext}`;
 
         // Supabase Storage 업로드
         const { data, error } = await supabase.storage
-          .from('images')
+          .from("images")
           .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false
+            cacheControl: "3600",
+            upsert: false,
           });
 
         if (error) throw error;
 
         // Public URL 가져오기
         const { data: urlData } = supabase.storage
-          .from('images')
+          .from("images")
           .getPublicUrl(fileName);
 
         const publicUrl = urlData.publicUrl;
-        
+
         // 미리보기 업데이트
-        imagePreview!.textContent = '';
-        const img = document.createElement('img');
+        imagePreview!.textContent = "";
+        const img = document.createElement("img");
         img.src = publicUrl;
-        img.alt = 'Preview';
+        img.alt = "Preview";
         imagePreview!.appendChild(img);
         imagePathInput.value = publicUrl;
-        
-        uploadStatus!.textContent = '업로드 완료!';
-        uploadStatus!.className = 'upload-status success';
+
+        uploadStatus!.textContent = "업로드 완료!";
+        uploadStatus!.className = "upload-status success";
       } catch (err: any) {
-        console.error('Upload error:', err);
-        uploadStatus!.textContent = '업로드 실패: ' + (err.message || '알 수 없는 오류');
-        uploadStatus!.className = 'upload-status error';
+        console.error("Upload error:", err);
+        uploadStatus!.textContent =
+          "업로드 실패: " + (err.message || "알 수 없는 오류");
+        uploadStatus!.className = "upload-status error";
       }
     });
 
     // 미리보기 업데이트 함수
     function updatePreview(imageUrl: string) {
-      imagePreview!.textContent = '';
+      imagePreview!.textContent = "";
       if (imageUrl) {
-        const img = document.createElement('img');
+        const img = document.createElement("img");
         img.src = imageUrl;
-        img.alt = 'Preview';
+        img.alt = "Preview";
         imagePreview!.appendChild(img);
       } else {
-        const span = document.createElement('span');
-        span.className = 'preview-placeholder';
-        span.textContent = '이미지를 선택하세요';
+        const span = document.createElement("span");
+        span.className = "preview-placeholder";
+        span.textContent = "이미지를 선택하세요";
         imagePreview!.appendChild(span);
       }
     }
 
-    document.getElementById('addBtn')?.addEventListener('click', () => {
-      modalTitle!.textContent = '팀원 추가';
-      teamId.value = '';
-      nameInput.value = '';
-      positionInput.value = '';
-      imagePathInput.value = '';
-      sortOrderInput.value = '0';
-      updatePreview('');
-      uploadStatus!.textContent = '';
-      modal?.classList.remove('hidden');
+    document.getElementById("addBtn")?.addEventListener("click", () => {
+      modalTitle!.textContent = "팀원 추가";
+      teamId.value = "";
+      nameInput.value = "";
+      positionInput.value = "";
+      imagePathInput.value = "";
+      sortOrderInput.value = "0";
+      updatePreview("");
+      uploadStatus!.textContent = "";
+      modal?.classList.remove("hidden");
     });
 
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    document.querySelectorAll(".edit-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
         const target = e.target as HTMLElement;
-        modalTitle!.textContent = '팀원 수정';
-        teamId.value = target.dataset.id || '';
-        nameInput.value = target.dataset.name || '';
-        positionInput.value = target.dataset.position || '';
-        imagePathInput.value = target.dataset.image || '';
-        sortOrderInput.value = target.dataset.sort || '0';
-        updatePreview(target.dataset.image || '');
-        uploadStatus!.textContent = '';
-        modal?.classList.remove('hidden');
+        modalTitle!.textContent = "팀원 수정";
+        teamId.value = target.dataset.id || "";
+        nameInput.value = target.dataset.name || "";
+        positionInput.value = target.dataset.position || "";
+        imagePathInput.value = target.dataset.image || "";
+        sortOrderInput.value = target.dataset.sort || "0";
+        updatePreview(target.dataset.image || "");
+        uploadStatus!.textContent = "";
+        modal?.classList.remove("hidden");
       });
     });
 
-    document.getElementById('cancelBtn')?.addEventListener('click', () => {
-      modal?.classList.add('hidden');
+    document.getElementById("cancelBtn")?.addEventListener("click", () => {
+      modal?.classList.add("hidden");
     });
 
-    form?.addEventListener('submit', async (e) => {
+    form?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const id = teamId.value;
-      const data = { 
-        name: nameInput.value, 
-        position: positionInput.value, 
-        image_path: imagePathInput.value, 
-        sort_order: parseInt(sortOrderInput.value), 
-        is_pet: false 
+      const data = {
+        name: nameInput.value,
+        position: positionInput.value,
+        image_path: imagePathInput.value,
+        sort_order: parseInt(sortOrderInput.value),
+        is_pet: false,
       };
       try {
         if (id) {
-          await fetch(`/api/team/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+          await fetch(`/api/team/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
         } else {
-          await fetch('/api/team', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+          await fetch("/api/team", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
         }
         window.location.reload();
       } catch (error) {
-        console.error('Error:', error);
-        alert('저장 중 오류가 발생했습니다.');
+        console.error("Error:", error);
+        alert("저장 중 오류가 발생했습니다.");
       }
     });
 
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        if (!confirm('정말 삭제하시겠습니까?')) return;
+    document.querySelectorAll(".delete-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        if (!confirm("정말 삭제하시겠습니까?")) return;
         const target = e.target as HTMLElement;
         try {
-          await fetch(`/api/team/${target.dataset.id}`, { method: 'DELETE' });
+          await fetch(`/api/team/${target.dataset.id}`, { method: "DELETE" });
           window.location.reload();
         } catch (error) {
-          console.error('Error:', error);
-          alert('삭제 중 오류가 발생했습니다.');
+          console.error("Error:", error);
+          alert("삭제 중 오류가 발생했습니다.");
         }
       });
     });

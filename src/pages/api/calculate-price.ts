@@ -1,7 +1,7 @@
-import type { APIRoute } from 'astro';
+import type { APIRoute } from "astro";
 
-import { loadPricingData } from '@/lib/dbService';
-import { calculatePrice } from '@/lib/priceEngine';
+import { loadPricingData } from "@/lib/dbService";
+import { calculatePrice } from "@/lib/priceEngine";
 
 export const prerender = false;
 
@@ -21,15 +21,15 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!customer || !qty || qty <= 0) {
       return new Response(
-        JSON.stringify({ error: 'customer and qty are required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "customer and qty are required" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // Ensure pricing data is loaded (cached after first call)
     await loadPricingData();
 
-    const selected = calculatePrice(customer, qty, productType || 'flyer');
+    const selected = calculatePrice(customer, qty, productType || "flyer");
 
     // Calculate prices for all quantity options (for quantity table display)
     let byQty: Record<number, unknown> | undefined;
@@ -37,7 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
       byQty = {};
       for (const q of allQtys) {
         try {
-          byQty[q] = calculatePrice(customer, q, productType || 'flyer');
+          byQty[q] = calculatePrice(customer, q, productType || "flyer");
         } catch {
           byQty[q] = null;
         }
@@ -46,13 +46,14 @@ export const POST: APIRoute = async ({ request }) => {
 
     return new Response(JSON.stringify({ selected, byQty }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Price calculation failed';
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    const message =
+      err instanceof Error ? err.message : "Price calculation failed";
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 };

@@ -1,6 +1,6 @@
-import type { Session, User } from '@supabase/supabase-js';
+import type { Session, User } from "@supabase/supabase-js";
 
-import { supabase } from './supabase';
+import { supabase } from "./supabase";
 
 // ============================================================
 // 관리자 인증 서비스

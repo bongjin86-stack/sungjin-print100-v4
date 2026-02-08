@@ -1,7 +1,7 @@
 ---
-import ServicesForm from '../../../components/admin/ServicesForm';
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { supabase } from '../../../lib/supabase';
+import ServicesForm from "../../../components/admin/ServicesForm";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
@@ -9,13 +9,13 @@ const { id } = Astro.params;
 
 // Service 데이터 가져오기
 const { data: service, error } = await supabase
-  .from('services')
-  .select('*')
-  .eq('id', id)
+  .from("services")
+  .select("*")
+  .eq("id", id)
   .single();
 
 if (error || !service) {
-  return Astro.redirect('/admin/services');
+  return Astro.redirect("/admin/services");
 }
 
 // tasks가 이미 배열인지 문자열인지 확인
@@ -34,7 +34,7 @@ const serviceData = {
   ...service,
   tasks: parseTasks(service.tasks),
   linked_product_id: service.linked_product_id || null,
-  order_button_text: service.order_button_text || '주문하기',
+  order_button_text: service.order_button_text || "주문하기",
 };
 ---
 

@@ -1,17 +1,17 @@
 ---
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { supabase } from '../../../lib/supabase';
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
 // Products 데이터 가져오기
 const { data: products, error } = await supabase
-  .from('products')
-  .select('*')
-  .order('sort_order', { ascending: true });
+  .from("products")
+  .select("*")
+  .order("sort_order", { ascending: true });
 
 if (error) {
-  console.error('Error fetching products:', error);
+  console.error("Error fetching products:", error);
 }
 ---
 
@@ -22,46 +22,63 @@ if (error) {
   </div>
 
   <div class="products-list">
-    {products && products.length > 0 ? (
-      <div class="products-grid">
-        {products.map((product) => (
-          <div class="product-card">
-            <div class="product-image">
-              {product.main_image ? (
-                <img src={product.main_image} alt={product.name} />
-              ) : (
-                <div class="no-image">
-                  <span class="product-icon">{product.icon || '📄'}</span>
+    {
+      products && products.length > 0 ? (
+        <div class="products-grid">
+          {products.map((product) => (
+            <div class="product-card">
+              <div class="product-image">
+                {product.main_image ? (
+                  <img src={product.main_image} alt={product.name} />
+                ) : (
+                  <div class="no-image">
+                    <span class="product-icon">{product.icon || "📄"}</span>
+                  </div>
+                )}
+              </div>
+              <div class="product-content">
+                <h3>{product.name}</h3>
+                {product.description && (
+                  <p class="product-desc">{product.description}</p>
+                )}
+                <div class="product-meta">
+                  <span
+                    class={`status ${product.is_published ? "active" : "inactive"}`}
+                  >
+                    {product.is_published ? "공개" : "비공개"}
+                  </span>
                 </div>
-              )}
-            </div>
-            <div class="product-content">
-              <h3>{product.name}</h3>
-              {product.description && (
-                <p class="product-desc">{product.description}</p>
-              )}
-              <div class="product-meta">
-                <span class={`status ${product.is_published ? 'active' : 'inactive'}`}>
-                  {product.is_published ? '공개' : '비공개'}
-                </span>
+              </div>
+              <div class="product-actions">
+                <a
+                  href={`/product/${product.id}`}
+                  target="_blank"
+                  rel="noopener"
+                  class="btn-preview"
+                >
+                  미리보기
+                </a>
+                <a href={`/admin/builder?id=${product.id}`} class="btn-edit">
+                  수정
+                </a>
+                <button class="btn-delete" data-id={product.id}>
+                  삭제
+                </button>
               </div>
             </div>
-            <div class="product-actions">
-              <a href={`/product/${product.id}`} target="_blank" rel="noopener" class="btn-preview">미리보기</a>
-              <a href={`/admin/builder?id=${product.id}`} class="btn-edit">수정</a>
-              <button class="btn-delete" data-id={product.id}>삭제</button>
-            </div>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div class="empty-state">
-        <div class="empty-icon">📦</div>
-        <h3>등록된 상품이 없습니다</h3>
-        <p>빌더에서 상품을 만들고 저장하면 여기에 표시됩니다.</p>
-        <a href="/admin/builder?new=true" class="btn-primary">첫 상품 만들기</a>
-      </div>
-    )}
+          ))}
+        </div>
+      ) : (
+        <div class="empty-state">
+          <div class="empty-icon">📦</div>
+          <h3>등록된 상품이 없습니다</h3>
+          <p>빌더에서 상품을 만들고 저장하면 여기에 표시됩니다.</p>
+          <a href="/admin/builder?new=true" class="btn-primary">
+            첫 상품 만들기
+          </a>
+        </div>
+      )
+    }
   </div>
 </AdminLayout>
 
@@ -263,15 +280,15 @@ if (error) {
 </style>
 
 <script>
-  document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+  document.querySelectorAll(".btn-delete").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
       const id = (e.target as HTMLElement).dataset.id;
-      if (confirm('정말 삭제하시겠습니까?')) {
-        const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      if (confirm("정말 삭제하시겠습니까?")) {
+        const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
         if (res.ok) {
           window.location.reload();
         } else {
-          alert('삭제에 실패했습니다.');
+          alert("삭제에 실패했습니다.");
         }
       }
     });

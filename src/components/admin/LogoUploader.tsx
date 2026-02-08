@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 
-import { supabase, uploadImage } from '@/lib/supabase';
+import { supabase, uploadImage } from "@/lib/supabase";
 
 export default function LogoUploader() {
-  const [logoUrl, setLogoUrl] = useState<string>('');
+  const [logoUrl, setLogoUrl] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,9 +18,9 @@ export default function LogoUploader() {
   const loadCurrentLogo = async () => {
     try {
       const { data } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'logo_url')
+        .from("site_settings")
+        .select("value")
+        .eq("key", "logo_url")
         .single();
 
       if (data?.value) {
@@ -36,15 +36,15 @@ export default function LogoUploader() {
     if (!file) return;
 
     // Validate file type (SVG, PNG만 허용)
-    const allowedTypes = ['image/png', 'image/svg+xml'];
+    const allowedTypes = ["image/png", "image/svg+xml"];
     if (!allowedTypes.includes(file.type)) {
-      setError('SVG 또는 PNG 파일만 업로드 가능합니다.');
+      setError("SVG 또는 PNG 파일만 업로드 가능합니다.");
       return;
     }
 
     // Validate file size (max 5MB for logo)
     if (file.size > 5 * 1024 * 1024) {
-      setError('파일 크기는 5MB 이하여야 합니다.');
+      setError("파일 크기는 5MB 이하여야 합니다.");
       return;
     }
 
@@ -52,11 +52,11 @@ export default function LogoUploader() {
     setUploading(true);
 
     try {
-      const publicUrl = await uploadImage(file, 'general');
+      const publicUrl = await uploadImage(file, "general");
       setLogoUrl(publicUrl);
     } catch (err: any) {
-      console.error('Upload error:', err);
-      setError(err.message || '업로드에 실패했습니다.');
+      console.error("Upload error:", err);
+      setError(err.message || "업로드에 실패했습니다.");
     } finally {
       setUploading(false);
     }
@@ -70,42 +70,41 @@ export default function LogoUploader() {
     setSuccess(false);
 
     try {
-      const { error } = await supabase
-        .from('site_settings')
-        .upsert({
-          key: 'logo_url',
+      const { error } = await supabase.from("site_settings").upsert(
+        {
+          key: "logo_url",
           value: logoUrl,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'key'
-        });
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "key",
+        }
+      );
 
       if (error) throw error;
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || '저장에 실패했습니다.');
+      setError(err.message || "저장에 실패했습니다.");
     } finally {
       setSaving(false);
     }
   };
 
   const handleRemove = async () => {
-    if (!confirm('로고를 삭제하시겠습니까? 기본 텍스트 로고로 표시됩니다.')) return;
+    if (!confirm("로고를 삭제하시겠습니까? 기본 텍스트 로고로 표시됩니다."))
+      return;
 
     setSaving(true);
     try {
-      await supabase
-        .from('site_settings')
-        .delete()
-        .eq('key', 'logo_url');
+      await supabase.from("site_settings").delete().eq("key", "logo_url");
 
-      setLogoUrl('');
+      setLogoUrl("");
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || '삭제에 실패했습니다.');
+      setError(err.message || "삭제에 실패했습니다.");
     } finally {
       setSaving(false);
     }
@@ -139,7 +138,7 @@ export default function LogoUploader() {
           type="file"
           accept="image/png,image/svg+xml"
           onChange={handleFileSelect}
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
         />
 
         <button
@@ -148,7 +147,11 @@ export default function LogoUploader() {
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
         >
-          {uploading ? '업로드 중...' : logoUrl ? '이미지 변경' : '이미지 업로드'}
+          {uploading
+            ? "업로드 중..."
+            : logoUrl
+              ? "이미지 변경"
+              : "이미지 업로드"}
         </button>
 
         {logoUrl && (
@@ -159,7 +162,7 @@ export default function LogoUploader() {
               onClick={handleSave}
               disabled={saving}
             >
-              {saving ? '저장 중...' : '저장'}
+              {saving ? "저장 중..." : "저장"}
             </button>
             <button
               type="button"
@@ -176,9 +179,7 @@ export default function LogoUploader() {
       {error && <div className="message error">{error}</div>}
       {success && <div className="message success">저장되었습니다!</div>}
 
-      <p className="hint">
-        허용 형식: SVG, PNG (투명 배경 권장)
-      </p>
+      <p className="hint">허용 형식: SVG, PNG (투명 배경 권장)</p>
       <p className="hint recommend">
         추천: SVG (벡터, 무한 확대 가능, 용량 작음)
       </p>

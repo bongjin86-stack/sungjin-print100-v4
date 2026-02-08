@@ -6,13 +6,13 @@ import { supabase } from "@/lib/supabase";
 
 // DB에서 FAQ 데이터 가져오기
 const { data: faqItems, error } = await supabase
-  .from('faq')
-  .select('*')
-  .eq('is_active', true)
-  .order('sort_order', { ascending: true });
+  .from("faq")
+  .select("*")
+  .eq("is_active", true)
+  .order("sort_order", { ascending: true });
 
 if (error) {
-  console.error('Error fetching FAQ:', error);
+  console.error("Error fetching FAQ:", error);
 }
 
 const faqList = faqItems || [];

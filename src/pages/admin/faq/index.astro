@@ -1,17 +1,17 @@
 ---
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { supabase } from '../../../lib/supabase';
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
 // FAQ 데이터 가져오기
 const { data: faqs, error } = await supabase
-  .from('faq')
-  .select('*')
-  .order('sort_order', { ascending: true });
+  .from("faq")
+  .select("*")
+  .order("sort_order", { ascending: true });
 
 if (error) {
-  console.error('Error fetching faqs:', error);
+  console.error("Error fetching faqs:", error);
 }
 ---
 
@@ -22,42 +22,52 @@ if (error) {
   </div>
 
   <div class="faq-list">
-    {faqs && faqs.length > 0 ? (
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>순서</th>
-            <th>질문</th>
-            <th>상태</th>
-            <th>작성일</th>
-            <th>관리</th>
-          </tr>
-        </thead>
-        <tbody>
-          {faqs.map((faq) => (
+    {
+      faqs && faqs.length > 0 ? (
+        <table class="admin-table">
+          <thead>
             <tr>
-              <td>{faq.sort_order}</td>
-              <td class="question-cell">{faq.question}</td>
-              <td>
-                <span class={`status ${faq.is_active ? 'active' : 'inactive'}`}>
-                  {faq.is_active ? '공개' : '비공개'}
-                </span>
-              </td>
-              <td>{new Date(faq.created_at).toLocaleDateString('ko-KR')}</td>
-              <td class="actions">
-                <a href={`/admin/faq/${faq.id}`} class="btn-edit">수정</a>
-                <button class="btn-delete" data-id={faq.id}>삭제</button>
-              </td>
+              <th>순서</th>
+              <th>질문</th>
+              <th>상태</th>
+              <th>작성일</th>
+              <th>관리</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    ) : (
-      <div class="empty-state">
-        <p>등록된 FAQ가 없습니다.</p>
-        <a href="/admin/faq/new" class="btn-primary">첫 FAQ 작성하기</a>
-      </div>
-    )}
+          </thead>
+          <tbody>
+            {faqs.map((faq) => (
+              <tr>
+                <td>{faq.sort_order}</td>
+                <td class="question-cell">{faq.question}</td>
+                <td>
+                  <span
+                    class={`status ${faq.is_active ? "active" : "inactive"}`}
+                  >
+                    {faq.is_active ? "공개" : "비공개"}
+                  </span>
+                </td>
+                <td>{new Date(faq.created_at).toLocaleDateString("ko-KR")}</td>
+                <td class="actions">
+                  <a href={`/admin/faq/${faq.id}`} class="btn-edit">
+                    수정
+                  </a>
+                  <button class="btn-delete" data-id={faq.id}>
+                    삭제
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div class="empty-state">
+          <p>등록된 FAQ가 없습니다.</p>
+          <a href="/admin/faq/new" class="btn-primary">
+            첫 FAQ 작성하기
+          </a>
+        </div>
+      )
+    }
   </div>
 </AdminLayout>
 
@@ -190,15 +200,15 @@ if (error) {
 </style>
 
 <script>
-  document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+  document.querySelectorAll(".btn-delete").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
       const id = (e.target as HTMLElement).dataset.id;
-      if (confirm('정말 삭제하시겠습니까?')) {
-        const res = await fetch(`/api/faq/${id}`, { method: 'DELETE' });
+      if (confirm("정말 삭제하시겠습니까?")) {
+        const res = await fetch(`/api/faq/${id}`, { method: "DELETE" });
         if (res.ok) {
           window.location.reload();
         } else {
-          alert('삭제에 실패했습니다.');
+          alert("삭제에 실패했습니다.");
         }
       }
     });

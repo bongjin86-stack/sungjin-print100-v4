@@ -66,39 +66,50 @@ import "@/styles/global.css";
     </div>
 
     <script>
-      import { supabase } from '@/lib/supabase';
+      import { supabase } from "@/lib/supabase";
 
       // 이미 로그인된 경우 admin으로 이동
       // getUser()로 서버 검증 (getSession()은 localStorage 캐시만 확인 → 만료 토큰도 true 반환 → 리다이렉트 루프 발생)
       (async () => {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) return; // 미인증 또는 만료 → 로그인 폼 표시
 
         // 유효한 세션 → 쿠키 동기화 후 리다이렉트
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (session) {
-          const secure = window.location.protocol === 'https:';
-          const cookieOpts = `path=/; max-age=${session.expires_in}; SameSite=Lax${secure ? '; Secure' : ''}`;
+          const secure = window.location.protocol === "https:";
+          const cookieOpts = `path=/; max-age=${session.expires_in}; SameSite=Lax${secure ? "; Secure" : ""}`;
           document.cookie = `sb-access-token=${session.access_token}; ${cookieOpts}`;
-          document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? '; Secure' : ''}`;
-          window.location.href = '/admin';
+          document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? "; Secure" : ""}`;
+          window.location.href = "/admin";
         }
       })();
 
-      const form = document.getElementById('loginForm') as HTMLFormElement;
-      const errorMessage = document.getElementById('errorMessage') as HTMLDivElement;
-      const submitButton = document.getElementById('submitButton') as HTMLButtonElement;
+      const form = document.getElementById("loginForm") as HTMLFormElement;
+      const errorMessage = document.getElementById(
+        "errorMessage"
+      ) as HTMLDivElement;
+      const submitButton = document.getElementById(
+        "submitButton"
+      ) as HTMLButtonElement;
 
-      form.addEventListener('submit', async (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const email = (document.getElementById('email') as HTMLInputElement).value;
-        const password = (document.getElementById('password') as HTMLInputElement).value;
+        const email = (document.getElementById("email") as HTMLInputElement)
+          .value;
+        const password = (
+          document.getElementById("password") as HTMLInputElement
+        ).value;
 
         // 로딩 상태
         submitButton.disabled = true;
-        submitButton.classList.add('loading');
-        errorMessage.classList.remove('show');
+        submitButton.classList.add("loading");
+        errorMessage.classList.remove("show");
 
         try {
           const { data, error } = await supabase.auth.signInWithPassword({
@@ -112,22 +123,23 @@ import "@/styles/global.css";
 
           // 로그인 성공 - 쿠키 설정 후 대시보드로 이동
           if (data.session) {
-            const secure = window.location.protocol === 'https:';
-            const cookieOpts = `path=/; max-age=${data.session.expires_in}; SameSite=Lax${secure ? '; Secure' : ''}`;
+            const secure = window.location.protocol === "https:";
+            const cookieOpts = `path=/; max-age=${data.session.expires_in}; SameSite=Lax${secure ? "; Secure" : ""}`;
             document.cookie = `sb-access-token=${data.session.access_token}; ${cookieOpts}`;
-            document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? '; Secure' : ''}`;
+            document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? "; Secure" : ""}`;
           }
-          window.location.href = '/admin';
+          window.location.href = "/admin";
         } catch (err: any) {
           // 에러 메시지 표시
-          errorMessage.textContent = err.message === 'Invalid login credentials'
-            ? '이메일 또는 비밀번호가 올바르지 않습니다.'
-            : err.message;
-          errorMessage.classList.add('show');
+          errorMessage.textContent =
+            err.message === "Invalid login credentials"
+              ? "이메일 또는 비밀번호가 올바르지 않습니다."
+              : err.message;
+          errorMessage.classList.add("show");
 
           // 버튼 복구
           submitButton.disabled = false;
-          submitButton.classList.remove('loading');
+          submitButton.classList.remove("loading");
         }
       });
     </script>

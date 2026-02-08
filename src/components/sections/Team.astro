@@ -13,18 +13,20 @@ const { settings = {} } = Astro.props;
 
 // DB에서 팀 데이터 가져오기
 const { data: teamMembers, error } = await supabase
-  .from('team')
-  .select('*')
-  .order('sort_order', { ascending: true });
+  .from("team")
+  .select("*")
+  .order("sort_order", { ascending: true });
 
 if (error) {
-  console.error('Error fetching team:', error);
+  console.error("Error fetching team:", error);
 }
 
 // 섹션 제목/부제목/설명
-const sectionTitle = settings['team_title'] || 'Meet Our Team';
-const sectionSubtitle = settings['team_subtitle'] || '팀 소개';
-const teamDescriptionRaw = settings['team_description'] || '성진인쇄는 전문 인력과 최신 장비를 갖추고 고객 만족을 위해 최선을 다하고 있습니다. 다양한 배경을 가진 팀원들이 각자의 전문성을 살려 혁신적인 인쇄 경험을 만들어가고 있습니다. 고객의 비전을 실현하기 위해 항상 배우고 도전하는 팀입니다.';
+const sectionTitle = settings["team_title"] || "Meet Our Team";
+const sectionSubtitle = settings["team_subtitle"] || "팀 소개";
+const teamDescriptionRaw =
+  settings["team_description"] ||
+  "성진인쇄는 전문 인력과 최신 장비를 갖추고 고객 만족을 위해 최선을 다하고 있습니다. 다양한 배경을 가진 팀원들이 각자의 전문성을 살려 혁신적인 인쇄 경험을 만들어가고 있습니다. 고객의 비전을 실현하기 위해 항상 배우고 도전하는 팀입니다.";
 
 // BlockNote JSON 또는 마크다운을 HTML로 변환
 const teamDescription = renderBlocksToHTML(teamDescriptionRaw);
@@ -39,21 +41,26 @@ const teamDescription = renderBlocksToHTML(teamDescriptionRaw);
 
     <div class="team-grid">
       {
-        teamMembers && teamMembers.map((member) => (
-          <article class:list={["team-member", { "-pet": member.is_pet }]}>
-            <div class="team-member-image">
-              {member.image_path ? (
-                <img src={member.image_path} alt={member.name} class="team-image" />
-              ) : (
-                <div class="team-image-placeholder"></div>
-              )}
-            </div>
-            <div class="team-member-info">
-              <h3 class="team-member-name">{member.name}</h3>
-              <p class="team-member-position">{member.position}</p>
-            </div>
-          </article>
-        ))
+        teamMembers &&
+          teamMembers.map((member) => (
+            <article class:list={["team-member", { "-pet": member.is_pet }]}>
+              <div class="team-member-image">
+                {member.image_path ? (
+                  <img
+                    src={member.image_path}
+                    alt={member.name}
+                    class="team-image"
+                  />
+                ) : (
+                  <div class="team-image-placeholder" />
+                )}
+              </div>
+              <div class="team-member-info">
+                <h3 class="team-member-name">{member.name}</h3>
+                <p class="team-member-position">{member.position}</p>
+              </div>
+            </article>
+          ))
       }
     </div>
   </Container>
@@ -82,11 +89,11 @@ const teamDescription = renderBlocksToHTML(teamDescriptionRaw);
     @media (min-width: 900px) {
       font-size: var(--fs-md);
     }
-    
+
     :global(p) {
       margin: 0 0 1em;
     }
-    
+
     :global(p:last-child) {
       margin-bottom: 0;
     }

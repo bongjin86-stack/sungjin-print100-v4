@@ -74,10 +74,7 @@
       "mcp__context7__resolve-library-id",
       "mcp__sequential-thinking__*"
     ],
-    "ask": [
-      "Bash(rm:*)",
-      "Read(./.env*)"
-    ],
+    "ask": ["Bash(rm:*)", "Read(./.env*)"],
     "deny": [
       "Read(./secrets/**)",
       "Read(~/.ssh/**)",

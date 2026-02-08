@@ -1,6 +1,12 @@
-import { useEffect,useState } from 'react';
+import { useEffect, useState } from "react";
 
-import { getOrderByUuid, getTrackingUrl, STATUS_COLORS, STATUS_LABELS, TRACKING_COMPANIES } from '@/lib/orderService';
+import {
+  getOrderByUuid,
+  getTrackingUrl,
+  STATUS_COLORS,
+  STATUS_LABELS,
+  TRACKING_COMPANIES,
+} from "@/lib/orderService";
 
 export default function CustomerOrderStatus({ uuid }) {
   const [order, setOrder] = useState(null);
@@ -13,7 +19,7 @@ export default function CustomerOrderStatus({ uuid }) {
         const data = await getOrderByUuid(uuid);
         setOrder(data);
       } catch (err) {
-        setError('주문을 찾을 수 없습니다.');
+        setError("주문을 찾을 수 없습니다.");
       } finally {
         setIsLoading(false);
       }
@@ -23,16 +29,16 @@ export default function CustomerOrderStatus({ uuid }) {
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
   };
 
   const getDeliveryTypeLabel = (type) => {
-    const labels = { delivery: '택배', quick: '퀵 배송', pickup: '직접 수령' };
+    const labels = { delivery: "택배", quick: "퀵 배송", pickup: "직접 수령" };
     return labels[type] || type;
   };
 
   const getTrackingCompanyLabel = (company) => {
-    const carrier = TRACKING_COMPANIES.find(c => c.value === company);
+    const carrier = TRACKING_COMPANIES.find((c) => c.value === company);
     return carrier ? carrier.label : company;
   };
 
@@ -49,13 +55,30 @@ export default function CustomerOrderStatus({ uuid }) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-md text-center">
           <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+            <svg
+              className="w-8 h-8 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">주문을 찾을 수 없습니다</h2>
-          <p className="text-gray-500 mb-6">올바른 주문 조회 링크인지 확인해 주세요.</p>
-          <a href="/" className="inline-flex px-6 py-2.5 bg-[#222828] text-white rounded-lg font-medium hover:bg-[#4a5050] transition-colors">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            주문을 찾을 수 없습니다
+          </h2>
+          <p className="text-gray-500 mb-6">
+            올바른 주문 조회 링크인지 확인해 주세요.
+          </p>
+          <a
+            href="/"
+            className="inline-flex px-6 py-2.5 bg-[#222828] text-white rounded-lg font-medium hover:bg-[#4a5050] transition-colors"
+          >
             홈으로 돌아가기
           </a>
         </div>
@@ -73,26 +96,41 @@ export default function CustomerOrderStatus({ uuid }) {
 
         <div className="bg-white rounded-xl border border-gray-200 p-8 mb-6 text-center">
           <p className="text-sm text-gray-500 mb-3">현재 상태</p>
-          <span className={`inline-flex px-6 py-2 rounded-full text-lg font-semibold ${STATUS_COLORS[order.status]}`}>
+          <span
+            className={`inline-flex px-6 py-2 rounded-full text-lg font-semibold ${STATUS_COLORS[order.status]}`}
+          >
             {STATUS_LABELS[order.status]}
           </span>
-          <p className="text-sm text-gray-400 mt-4">주문일시: {formatDate(order.created_at)}</p>
+          <p className="text-sm text-gray-400 mt-4">
+            주문일시: {formatDate(order.created_at)}
+          </p>
         </div>
 
-        {order.status === 'shipped' && order.tracking_number && (
+        {order.status === "shipped" && order.tracking_number && (
           <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
             <h3 className="font-semibold text-gray-900 mb-4">배송 정보</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">택배사</span>
-                <span className="font-medium">{getTrackingCompanyLabel(order.tracking_company)}</span>
+                <span className="font-medium">
+                  {getTrackingCompanyLabel(order.tracking_company)}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">송장번호</span>
-                <span className="font-mono font-medium">{order.tracking_number}</span>
+                <span className="font-mono font-medium">
+                  {order.tracking_number}
+                </span>
               </div>
-              <a href={getTrackingUrl(order.tracking_company, order.tracking_number)} target="_blank" rel="noopener noreferrer"
-                className="block w-full mt-4 px-4 py-3 bg-[#222828] text-white text-center rounded-lg font-medium hover:bg-[#4a5050] transition-colors">
+              <a
+                href={getTrackingUrl(
+                  order.tracking_company,
+                  order.tracking_number
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full mt-4 px-4 py-3 bg-[#222828] text-white text-center rounded-lg font-medium hover:bg-[#4a5050] transition-colors"
+              >
                 배송 조회하기
               </a>
             </div>
@@ -101,10 +139,15 @@ export default function CustomerOrderStatus({ uuid }) {
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
           <h3 className="font-semibold text-gray-900 mb-4">수령 방법</h3>
-          <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-            order.delivery_type === 'delivery' ? 'bg-blue-100 text-blue-700' :
-            order.delivery_type === 'quick' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'
-          }`}>
+          <span
+            className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
+              order.delivery_type === "delivery"
+                ? "bg-blue-100 text-blue-700"
+                : order.delivery_type === "quick"
+                  ? "bg-purple-100 text-purple-700"
+                  : "bg-gray-100 text-gray-700"
+            }`}
+          >
             {getDeliveryTypeLabel(order.delivery_type)}
           </span>
         </div>
@@ -113,9 +156,14 @@ export default function CustomerOrderStatus({ uuid }) {
           <h3 className="font-semibold text-gray-900 mb-4">주문 상품</h3>
           <div className="space-y-4">
             {order.items?.map((item, index) => (
-              <div key={index} className="flex justify-between items-start pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+              <div
+                key={index}
+                className="flex justify-between items-start pb-4 border-b border-gray-100 last:border-0 last:pb-0"
+              >
                 <div>
-                  <p className="font-medium text-gray-900">{item.productName}</p>
+                  <p className="font-medium text-gray-900">
+                    {item.productName}
+                  </p>
                   <p className="text-sm text-gray-500 mt-1">
                     {item.spec?.size} · {item.spec?.quantity}부
                     {item.spec?.pages && ` · ${item.spec.pages}p`}
@@ -128,7 +176,12 @@ export default function CustomerOrderStatus({ uuid }) {
         </div>
 
         <div className="mt-8 text-center">
-          <a href="/" className="text-gray-500 hover:text-gray-700 text-sm font-medium">홈으로 돌아가기</a>
+          <a
+            href="/"
+            className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+          >
+            홈으로 돌아가기
+          </a>
         </div>
       </div>
     </div>

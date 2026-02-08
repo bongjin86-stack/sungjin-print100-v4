@@ -1,43 +1,44 @@
 ---
-import LogoUploader from '../../../components/admin/LogoUploader';
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { supabase } from '../../../lib/supabase';
+import LogoUploader from "../../../components/admin/LogoUploader";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
 // site_settings 테이블에서 설정 가져오기 (key/value 구조)
 const { data: settingsData, error } = await supabase
-  .from('site_settings')
-  .select('key, value');
+  .from("site_settings")
+  .select("key, value");
 
 // key/value 배열을 객체로 변환
 const siteSettings: Record<string, string> = {};
 if (settingsData) {
   for (const item of settingsData) {
-    siteSettings[item.key] = item.value || '';
+    siteSettings[item.key] = item.value || "";
   }
 }
 
 // 기본값 설정
 const settings = {
-  site_name: siteSettings.site_name || 'Sungjinprint',
-  site_description: siteSettings.site_description || '성진프린트 - 고품질 인쇄 서비스',
-  service_intro: siteSettings.service_intro || '',
+  site_name: siteSettings.site_name || "Sungjinprint",
+  site_description:
+    siteSettings.site_description || "성진프린트 - 고품질 인쇄 서비스",
+  service_intro: siteSettings.service_intro || "",
   // 사업장 정보
-  company_name: siteSettings.company_name || '',
-  ceo_name: siteSettings.ceo_name || '',
-  business_number: siteSettings.business_number || '',
-  ecommerce_license: siteSettings.ecommerce_license || '',
-  privacy_officer: siteSettings.privacy_officer || '',
-  phone: siteSettings.phone || '',
-  email: siteSettings.email || '',
-  address: siteSettings.address || '',
-  google_maps_url: siteSettings.google_maps_url || '',
-  business_hours: siteSettings.business_hours || '',
-  business_hours_weekend: siteSettings.business_hours_weekend || '',
-  bank_name: siteSettings.bank_name || '',
-  bank_account: siteSettings.bank_account || '',
-  bank_account_holder: siteSettings.bank_account_holder || ''
+  company_name: siteSettings.company_name || "",
+  ceo_name: siteSettings.ceo_name || "",
+  business_number: siteSettings.business_number || "",
+  ecommerce_license: siteSettings.ecommerce_license || "",
+  privacy_officer: siteSettings.privacy_officer || "",
+  phone: siteSettings.phone || "",
+  email: siteSettings.email || "",
+  address: siteSettings.address || "",
+  google_maps_url: siteSettings.google_maps_url || "",
+  business_hours: siteSettings.business_hours || "",
+  business_hours_weekend: siteSettings.business_hours_weekend || "",
+  bank_name: siteSettings.bank_name || "",
+  bank_account: siteSettings.bank_account || "",
+  bank_account_holder: siteSettings.bank_account_holder || "",
 };
 ---
 
@@ -58,108 +59,198 @@ const settings = {
   <form id="settings-form" class="settings-form">
     <div class="form-section">
       <h2>기본 정보</h2>
-      
+
       <div class="form-group">
         <label for="site_name">사이트 이름</label>
-        <input type="text" id="site_name" name="site_name" value={settings.site_name} />
+        <input
+          type="text"
+          id="site_name"
+          name="site_name"
+          value={settings.site_name}
+        />
       </div>
 
       <div class="form-group">
         <label for="site_description">사이트 설명</label>
-        <textarea id="site_description" name="site_description" rows="3">{settings.site_description}</textarea>
+        <textarea id="site_description" name="site_description" rows="3"
+          >{settings.site_description}</textarea
+        >
       </div>
     </div>
 
     <div class="form-section">
       <h2>사업장 정보 (Footer 표시)</h2>
-      
+
       <div class="form-group">
         <label for="company_name">회사명</label>
-        <input type="text" id="company_name" name="company_name" value={settings.company_name} />
+        <input
+          type="text"
+          id="company_name"
+          name="company_name"
+          value={settings.company_name}
+        />
       </div>
 
       <div class="form-group">
         <label for="ceo_name">대표자명</label>
-        <input type="text" id="ceo_name" name="ceo_name" value={settings.ceo_name} />
+        <input
+          type="text"
+          id="ceo_name"
+          name="ceo_name"
+          value={settings.ceo_name}
+        />
       </div>
 
       <div class="form-group">
         <label for="business_number">사업자등록번호</label>
-        <input type="text" id="business_number" name="business_number" value={settings.business_number} placeholder="123-45-67890" />
+        <input
+          type="text"
+          id="business_number"
+          name="business_number"
+          value={settings.business_number}
+          placeholder="123-45-67890"
+        />
       </div>
 
       <div class="form-group">
         <label for="ecommerce_license">통신판매업신고번호</label>
-        <input type="text" id="ecommerce_license" name="ecommerce_license" value={settings.ecommerce_license} placeholder="2024-서울송파-0000" />
+        <input
+          type="text"
+          id="ecommerce_license"
+          name="ecommerce_license"
+          value={settings.ecommerce_license}
+          placeholder="2024-서울송파-0000"
+        />
         <p class="form-hint">전자상거래 시 필수 표시 항목</p>
       </div>
 
       <div class="form-group">
         <label for="privacy_officer">개인정보관리책임자</label>
-        <input type="text" id="privacy_officer" name="privacy_officer" value={settings.privacy_officer} placeholder="홍길동" />
+        <input
+          type="text"
+          id="privacy_officer"
+          name="privacy_officer"
+          value={settings.privacy_officer}
+          placeholder="홍길동"
+        />
       </div>
 
       <div class="form-group">
         <label for="phone">전화번호</label>
-        <input type="tel" id="phone" name="phone" value={settings.phone} placeholder="02-448-3601" />
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          value={settings.phone}
+          placeholder="02-448-3601"
+        />
       </div>
 
       <div class="form-group">
         <label for="email">이메일</label>
-        <input type="email" id="email" name="email" value={settings.email} placeholder="info@sungjinprint.com" />
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value={settings.email}
+          placeholder="info@sungjinprint.com"
+        />
       </div>
 
       <div class="form-group">
         <label for="address">주소</label>
-        <input type="text" id="address" name="address" value={settings.address} />
+        <input
+          type="text"
+          id="address"
+          name="address"
+          value={settings.address}
+        />
       </div>
 
       <div class="form-group">
         <label for="google_maps_url">구글맵 URL</label>
-        <input type="url" id="google_maps_url" name="google_maps_url" value={settings.google_maps_url} placeholder="https://maps.app.goo.gl/..." />
+        <input
+          type="url"
+          id="google_maps_url"
+          name="google_maps_url"
+          value={settings.google_maps_url}
+          placeholder="https://maps.app.goo.gl/..."
+        />
         <p class="form-hint">주소 클릭 시 연결될 구글맵 링크</p>
       </div>
     </div>
 
     <div class="form-section">
       <h2>운영시간</h2>
-      
+
       <div class="form-group">
         <label for="business_hours">평일 운영시간</label>
-        <input type="text" id="business_hours" name="business_hours" value={settings.business_hours} placeholder="평일 09:00 - 18:00" />
+        <input
+          type="text"
+          id="business_hours"
+          name="business_hours"
+          value={settings.business_hours}
+          placeholder="평일 09:00 - 18:00"
+        />
       </div>
 
       <div class="form-group">
         <label for="business_hours_weekend">주말 운영시간</label>
-        <input type="text" id="business_hours_weekend" name="business_hours_weekend" value={settings.business_hours_weekend} placeholder="주말 및 공휴일 휴무" />
+        <input
+          type="text"
+          id="business_hours_weekend"
+          name="business_hours_weekend"
+          value={settings.business_hours_weekend}
+          placeholder="주말 및 공휴일 휴무"
+        />
       </div>
     </div>
 
     <div class="form-section">
       <h2>결제 정보</h2>
-      
+
       <div class="form-group">
         <label for="bank_name">은행명</label>
-        <input type="text" id="bank_name" name="bank_name" value={settings.bank_name} placeholder="하나은행" />
+        <input
+          type="text"
+          id="bank_name"
+          name="bank_name"
+          value={settings.bank_name}
+          placeholder="하나은행"
+        />
       </div>
 
       <div class="form-group">
         <label for="bank_account">계좌번호</label>
-        <input type="text" id="bank_account" name="bank_account" value={settings.bank_account} placeholder="585-910026-36407" />
+        <input
+          type="text"
+          id="bank_account"
+          name="bank_account"
+          value={settings.bank_account}
+          placeholder="585-910026-36407"
+        />
       </div>
 
       <div class="form-group">
         <label for="bank_account_holder">예금주</label>
-        <input type="text" id="bank_account_holder" name="bank_account_holder" value={settings.bank_account_holder} placeholder="(주)성진삼점오" />
+        <input
+          type="text"
+          id="bank_account_holder"
+          name="bank_account_holder"
+          value={settings.bank_account_holder}
+          placeholder="(주)성진삼점오"
+        />
       </div>
     </div>
 
     <div class="form-section">
       <h2>서비스 페이지</h2>
-      
+
       <div class="form-group">
         <label for="service_intro">서비스 소개 (상단 텍스트)</label>
-        <textarea id="service_intro" name="service_intro" rows="4">{settings.service_intro}</textarea>
+        <textarea id="service_intro" name="service_intro" rows="4"
+          >{settings.service_intro}</textarea
+        >
         <p class="form-hint">서비스 페이지 상단에 표시되는 소개 문구입니다.</p>
       </div>
     </div>
@@ -277,55 +368,57 @@ const settings = {
 </style>
 
 <script>
-  const form = document.getElementById('settings-form') as HTMLFormElement;
-  
-  form?.addEventListener('submit', async (e) => {
+  const form = document.getElementById("settings-form") as HTMLFormElement;
+
+  form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
+
     const formData = new FormData(form);
     const data = {
-      site_name: formData.get('site_name'),
-      site_description: formData.get('site_description'),
-      service_intro: formData.get('service_intro'),
+      site_name: formData.get("site_name"),
+      site_description: formData.get("site_description"),
+      service_intro: formData.get("service_intro"),
       // 사업장 정보
-      company_name: formData.get('company_name'),
-      ceo_name: formData.get('ceo_name'),
-      business_number: formData.get('business_number'),
-      ecommerce_license: formData.get('ecommerce_license'),
-      privacy_officer: formData.get('privacy_officer'),
-      phone: formData.get('phone'),
-      email: formData.get('email'),
-      address: formData.get('address'),
-      google_maps_url: formData.get('google_maps_url'),
-      business_hours: formData.get('business_hours'),
-      business_hours_weekend: formData.get('business_hours_weekend'),
-      bank_name: formData.get('bank_name'),
-      bank_account: formData.get('bank_account'),
-      bank_account_holder: formData.get('bank_account_holder')
+      company_name: formData.get("company_name"),
+      ceo_name: formData.get("ceo_name"),
+      business_number: formData.get("business_number"),
+      ecommerce_license: formData.get("ecommerce_license"),
+      privacy_officer: formData.get("privacy_officer"),
+      phone: formData.get("phone"),
+      email: formData.get("email"),
+      address: formData.get("address"),
+      google_maps_url: formData.get("google_maps_url"),
+      business_hours: formData.get("business_hours"),
+      business_hours_weekend: formData.get("business_hours_weekend"),
+      bank_name: formData.get("bank_name"),
+      bank_account: formData.get("bank_account"),
+      bank_account_holder: formData.get("bank_account_holder"),
     };
 
-    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const submitBtn = form.querySelector(
+      'button[type="submit"]'
+    ) as HTMLButtonElement;
     submitBtn.disabled = true;
-    submitBtn.textContent = '저장 중...';
+    submitBtn.textContent = "저장 중...";
 
     try {
-      const res = await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
 
       if (res.ok) {
-        alert('설정이 저장되었습니다.');
+        alert("설정이 저장되었습니다.");
         window.location.reload();
       } else {
-        throw new Error('저장 실패');
+        throw new Error("저장 실패");
       }
     } catch (err) {
-      alert('저장에 실패했습니다.');
+      alert("저장에 실패했습니다.");
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = '저장';
+      submitBtn.textContent = "저장";
     }
   });
 </script>
