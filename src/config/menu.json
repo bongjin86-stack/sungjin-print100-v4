@@ -31,6 +31,10 @@
       "path": "/works/"
     },
     {
+      "title": "Prints",
+      "path": "/prints/"
+    },
+    {
       "title": "공지사항",
       "path": "/news/"
     }

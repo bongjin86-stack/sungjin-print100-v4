@@ -1,0 +1,246 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import CTA from "@/components/sections/CTA.astro";
+import CategoryNavigation from "@/components/ui/CategoryNavigation.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Pagination from "@/components/ui/Pagination.astro";
+import siteConfig from "@/config/site.config.json";
+import Layout from "@/layouts/Layout.astro";
+import { supabase } from "@/lib/supabase";
+
+// SSR 모드로 전환
+export const prerender = false;
+
+// URL에서 카테고리와 페이지 번호 추출
+const { category: categoryId, page: pageParam } = Astro.params;
+const currentPage = pageParam ? parseInt(pageParam) : 1;
+const pageSize = siteConfig.settings.pagination || 9;
+
+// DB에서 모든 카테고리 데이터 가져오기
+const { data: categories, error: catError } = await supabase
+  .from("print_categories")
+  .select("*")
+  .order("sort_order", { ascending: true });
+
+if (catError) {
+  console.error("Error fetching print categories:", catError);
+}
+
+// 카테고리 데이터를 CategoryNavigation 형식으로 변환
+const categoryList =
+  categories?.map((cat) => ({
+    id: cat.id,
+    title: cat.title,
+  })) || [];
+
+// 현재 카테고리 정보 찾기
+const currentCategory = categoryList.find((cat) => cat.id === categoryId);
+
+if (!currentCategory) {
+  return Astro.redirect("/prints");
+}
+
+// DB에서 해당 카테고리의 Prints 전체 개수 가져오기
+const { count: totalCount } = await supabase
+  .from("prints")
+  .select("*", { count: "exact", head: true })
+  .eq("is_published", true)
+  .eq("category_id", categoryId);
+
+// DB에서 해당 카테고리의 Prints 데이터 가져오기 (페이지네이션)
+const { data: prints, error: printsError } = await supabase
+  .from("prints")
+  .select("*")
+  .eq("is_published", true)
+  .eq("category_id", categoryId)
+  .order("sort_order", { ascending: true })
+  .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
+
+if (printsError) {
+  console.error("Error fetching prints:", printsError);
+}
+
+const printsList = prints || [];
+const totalPages = Math.ceil((totalCount || 0) / pageSize);
+
+const pageTitle =
+  currentPage === 1
+    ? `Prints - ${currentCategory.title}`
+    : `Prints - ${currentCategory.title} (${currentPage}페이지)`;
+
+// 카테고리 ID로 카테고리 제목 찾기
+function getCategoryTitle(catId: string): string {
+  const cat = categoryList.find((c) => c.id === catId);
+  return cat?.title || catId;
+}
+---
+
+<Layout
+  title={pageTitle}
+  description={`${currentCategory.title} 카테고리의 인쇄물을 소개합니다.`}
+>
+  <PageHero title="Prints" subtitle={currentCategory.title} />
+
+  <Section class="prints-section">
+    <Container>
+      <CategoryNavigation
+        categories={categoryList}
+        currentCategory={categoryId}
+        basePath="/prints"
+      />
+
+      <div class="prints-grid">
+        {
+          printsList.length > 0 ? (
+            printsList.map((item) => (
+              <article class="print-card">
+                <a href={`/prints/${item.id}`} class="print-card-link">
+                  <div class="print-card-image">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        width="600"
+                        height="400"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div class="print-card-placeholder">No Image</div>
+                    )}
+                  </div>
+                  <div class="print-card-content">
+                    <h3 class="print-card-title">{item.title}</h3>
+                    <p class="print-card-client">
+                      {item.client || item.subtitle}
+                    </p>
+                    <span class="print-card-category">
+                      {getCategoryTitle(item.category_id)}
+                    </span>
+                  </div>
+                </a>
+              </article>
+            ))
+          ) : (
+            <p class="no-prints">이 카테고리에 등록된 콘텐츠가 없습니다.</p>
+          )
+        }
+      </div>
+
+      {
+        totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath={`/prints/category/${categoryId}`}
+          />
+        )
+      }
+    </Container>
+  </Section>
+
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  .prints-section {
+    padding-top: var(--sp-md);
+  }
+
+  .prints-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-2xl);
+    margin-top: var(--sp-3xl);
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sp-xl);
+    }
+
+    @media (min-width: 900px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-2xl);
+    }
+  }
+
+  .print-card-link {
+    display: block;
+  }
+
+  .print-card-image {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-4xl);
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      aspect-ratio: 3 / 2;
+      transition: transform var(--transition-slow);
+    }
+
+    .print-card:hover & img {
+      transform: scale(1.05);
+    }
+  }
+
+  .print-card-placeholder {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    background-color: var(--c-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--c-text-sub);
+  }
+
+  .print-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+    margin: var(--sp-md) 0 0;
+  }
+
+  .print-card-title {
+    color: var(--c-text);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    line-height: var(--lh-snug);
+
+    @media (min-width: 600px) {
+      font-size: var(--fs-lg);
+    }
+  }
+
+  .print-card-client {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+  }
+
+  .print-card-category {
+    display: inline-block;
+    align-self: self-start;
+    margin-top: var(--sp-xs);
+    padding: var(--sp-xs) var(--sp-md);
+    background-color: var(--c-bg-secondary);
+    color: var(--c-text-sub);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    line-height: var(--lh-tight);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius-full);
+  }
+
+  .no-prints {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--c-text-sub);
+    font-size: var(--fs-md);
+    padding: var(--sp-3xl) 0;
+  }
+</style>
