@@ -7,8 +7,8 @@
 
 import { PriceBox } from "@/components/shared/PriceBox";
 
-function PriceDisplay({ price, customer, productName }) {
-  return <PriceBox price={price} customer={customer} isPreview={true} />;
+function PriceDisplay({ productName, ...rest }) {
+  return <PriceBox {...rest} isPreview={true} />;
 }
 
 export default PriceDisplay;
