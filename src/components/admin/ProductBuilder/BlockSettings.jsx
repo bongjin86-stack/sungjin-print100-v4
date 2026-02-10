@@ -1427,6 +1427,53 @@ function BlockSettings({
               />
             </label>
           )}
+          <div className="divider my-3" />
+          <label className="text-xs text-gray-500 block mb-2">가격 절삭</label>
+          <div className="flex items-center gap-3 mb-3">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={cfg.roundEnabled ?? false}
+                onChange={(e) =>
+                  updateCfg(block.id, "roundEnabled", e.target.checked)
+                }
+                className="checkbox checkbox-sm"
+              />
+              <span>절삭 사용</span>
+            </label>
+          </div>
+          {cfg.roundEnabled && (
+            <div className="flex gap-3">
+              <label className="flex-1">
+                <span className="text-xs text-gray-500">절삭 단위 (원)</span>
+                <select
+                  className="select select-bordered select-sm w-full"
+                  value={cfg.roundUnit ?? 100}
+                  onChange={(e) =>
+                    updateCfg(block.id, "roundUnit", parseInt(e.target.value))
+                  }
+                >
+                  <option value={10}>10원</option>
+                  <option value={100}>100원</option>
+                  <option value={1000}>1,000원</option>
+                </select>
+              </label>
+              <label className="flex-1">
+                <span className="text-xs text-gray-500">절삭 방식</span>
+                <select
+                  className="select select-bordered select-sm w-full"
+                  value={cfg.roundMethod ?? "floor"}
+                  onChange={(e) =>
+                    updateCfg(block.id, "roundMethod", e.target.value)
+                  }
+                >
+                  <option value="floor">내림</option>
+                  <option value="round">반올림</option>
+                  <option value="ceil">올림</option>
+                </select>
+              </label>
+            </div>
+          )}
         </div>
       );
 

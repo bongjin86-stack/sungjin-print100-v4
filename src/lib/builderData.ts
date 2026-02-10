@@ -1057,6 +1057,9 @@ export function getDefaultConfig(type: string): BlockConfig {
         showUnitPrice: true,
         contactThreshold: 0,
         contactMessage: "",
+        roundEnabled: false,
+        roundUnit: 100,
+        roundMethod: "floor",
       };
     case "inner_layer_saddle":
       return {
