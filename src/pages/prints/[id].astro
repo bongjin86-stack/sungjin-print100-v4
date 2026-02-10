@@ -25,14 +25,7 @@ if (printError || !print) {
   return Astro.redirect("/404");
 }
 
-// DB에서 카테고리 데이터 가져오기
-const { data: category } = await supabase
-  .from("print_categories")
-  .select("title")
-  .eq("id", print.category_id)
-  .single();
-
-const categoryTitle = category?.title || print.category_id || "";
+const categoryTitle = print.tag || "";
 
 // field_labels 파싱 (커스텀 라벨)
 let labels = {

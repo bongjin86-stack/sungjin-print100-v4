@@ -95,6 +95,7 @@ function parseFieldLabels(
 export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [existingTags, setExistingTags] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
     subtitle: initialData?.subtitle || "",
@@ -123,13 +124,25 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
     { title: string; description: string }[]
   >(parseAchievements(initialData?.achievements));
 
-  // 상품 목록 가져오기
+  // 상품 목록 + 기존 태그 가져오기
   useEffect(() => {
     fetch("/api/products")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
           setProducts(data);
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/prints")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const tags = [...new Set(
+            data.map((p: { tag?: string }) => p.tag).filter(Boolean)
+          )].sort() as string[];
+          setExistingTags(tags);
         }
       })
       .catch(() => {});
@@ -295,13 +308,25 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
 
           <div style={styles.formGroup}>
             <label style={styles.label}>태그</label>
+            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              <select
+                value={existingTags.includes(formData.tag) ? formData.tag : ""}
+                onChange={(e) => setFormData((prev) => ({ ...prev, tag: e.target.value }))}
+                style={{ ...(styles.select || styles.input), flex: 1 }}
+              >
+                <option value="">태그 선택</option>
+                {existingTags.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <span style={{ color: "#999", fontSize: "0.75rem" }}>또는</span>
+            </div>
             <input
               type="text"
-              name="tag"
               value={formData.tag}
-              onChange={handleChange}
-              placeholder="태그"
-              style={styles.input}
+              onChange={(e) => setFormData((prev) => ({ ...prev, tag: e.target.value }))}
+              placeholder="직접 입력 (새 태그 가능)"
+              style={{ ...styles.input, marginTop: "0.5rem" }}
             />
           </div>
         </div>

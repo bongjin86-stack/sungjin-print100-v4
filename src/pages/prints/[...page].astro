@@ -17,22 +17,21 @@ const { page: pageParam } = Astro.params;
 const currentPage = pageParam ? parseInt(pageParam) : 1;
 const pageSize = siteConfig.settings.pagination || 9;
 
-// DB에서 카테고리 데이터 가져오기
-const { data: categories, error: catError } = await supabase
-  .from("print_categories")
-  .select("*")
-  .order("sort_order", { ascending: true });
+// 공개 prints에서 고유 태그 목록 추출 (카테고리 네비게이션용)
+const { data: allPublished } = await supabase
+  .from("prints")
+  .select("tag")
+  .eq("is_published", true)
+  .neq("tag", "");
 
-if (catError) {
-  console.error("Error fetching print categories:", catError);
-}
+const uniqueTags = [...new Set(
+  (allPublished || []).map((p) => p.tag).filter(Boolean)
+)].sort();
 
-// 카테고리 데이터를 CategoryNavigation 형식으로 변환
-const categoryList =
-  categories?.map((cat) => ({
-    id: cat.id,
-    title: cat.title,
-  })) || [];
+const categoryList = uniqueTags.map((tag) => ({
+  id: tag,
+  title: tag,
+}));
 
 // DB에서 Prints 전체 개수 가져오기
 const { count: totalCount } = await supabase
@@ -59,12 +58,6 @@ const pageTitle =
   currentPage === 1
     ? "Prints - 인쇄물"
     : `Prints - 인쇄물 (${currentPage}페이지)`;
-
-// 카테고리 ID로 카테고리 제목 찾기
-function getCategoryTitle(categoryId: string): string {
-  const cat = categoryList.find((c) => c.id === categoryId);
-  return cat?.title || categoryId;
-}
 ---
 
 <Layout
@@ -98,9 +91,9 @@ function getCategoryTitle(categoryId: string): string {
                 <div class="print-card-content">
                   <h3 class="print-card-title">{item.title}</h3>
                   <p class="print-card-client">{item.client || item.subtitle}</p>
-                  <span class="print-card-category">
-                    {getCategoryTitle(item.category_id)}
-                  </span>
+                  {item.tag && (
+                    <span class="print-card-category">{item.tag}</span>
+                  )}
                 </div>
               </a>
             </article>
