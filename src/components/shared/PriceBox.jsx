@@ -17,8 +17,10 @@ function applyRound(value, cfg) {
 }
 
 function PriceBoxInner({ price, customer, isPreview = false, onOrderClick, roundConfig }) {
+  console.log("[PriceBox] roundConfig:", roundConfig, "roundEnabled:", roundConfig?.roundEnabled);
   const rawTotalWithVat = Math.round(price.total * 1.1);
   const totalWithVat = applyRound(rawTotalWithVat, roundConfig);
+  console.log("[PriceBox] raw:", rawTotalWithVat, "rounded:", totalWithVat);
   const vat = totalWithVat - price.total;
 
   return (
