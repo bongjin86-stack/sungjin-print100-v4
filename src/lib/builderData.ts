@@ -1040,7 +1040,7 @@ export function getDefaultConfig(type: string): BlockConfig {
     case "delivery":
       return {
         options: [
-          { id: "same", label: "당일", enabled: false, percent: 30 },
+          { id: "same", label: "당일", enabled: true, percent: 30 },
           { id: "next1", label: "1영업일", enabled: true, percent: 15 },
           { id: "next2", label: "2영업일", enabled: true, percent: 0 },
           { id: "next3", label: "3영업일", enabled: true, percent: -5 },

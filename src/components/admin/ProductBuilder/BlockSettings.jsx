@@ -1131,7 +1131,7 @@ function BlockSettings({
         const fixedOpt = FIXED_DELIVERY_OPTIONS.find((o) => o.id === id);
         return {
           id,
-          enabled: id !== "same",
+          enabled: true,
           percent: fixedOpt?.defaultPercent || 0,
         };
       };
@@ -1156,7 +1156,7 @@ function BlockSettings({
       const resetToDefault = () => {
         const defaultOptions = FIXED_DELIVERY_OPTIONS.map((o) => ({
           id: o.id,
-          enabled: o.id !== "same",
+          enabled: true,
           percent: o.defaultPercent,
         }));
         updateCfg(block.id, "options", defaultOptions);
