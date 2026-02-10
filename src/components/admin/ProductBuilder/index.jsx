@@ -43,10 +43,12 @@ import TemplateSelector from "./TemplateSelector";
 import "@/components/product/ProductView.css";
 
 export default function AdminBuilder() {
-  const urlProductId =
+  const urlParams =
     typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).get("id")
+      ? new URLSearchParams(window.location.search)
       : null;
+  const urlProductId = urlParams?.get("id") || null;
+  const isNewProduct = urlParams?.get("new") === "true";
 
   // 템플릿 목록 상태
   const [templates, setTemplates] = useState(() => {
@@ -74,8 +76,24 @@ export default function AdminBuilder() {
     }));
   });
 
-  // URL에서 id가 있으면 해당 템플릿으로, 없으면 첫 번째 템플릿
+  // 새 상품 생성 헬퍼
+  const createNewProduct = () => {
+    const newId = `product_${Date.now()}`;
+    return {
+      id: newId,
+      order: templates.length,
+      icon: "📄",
+      name: "새 상품",
+      blocks: [],
+      content: getDefaultContent("새 상품"),
+    };
+  };
+
+  // URL에서 id가 있으면 해당 템플릿으로, new=true면 새 상품, 없으면 첫 번째
   const [currentTemplateId, setCurrentTemplateId] = useState(() => {
+    if (isNewProduct) {
+      return null; // 새 상품은 아직 템플릿 목록에 없음
+    }
     if (urlProductId) {
       const saved = localStorage.getItem("sungjin_templates_v4");
       if (saved) {
@@ -88,6 +106,11 @@ export default function AdminBuilder() {
   });
 
   const [currentProduct, setCurrentProduct] = useState(() => {
+    // new=true → 빈 새 상품 생성
+    if (isNewProduct) {
+      const newProd = createNewProduct();
+      return newProd;
+    }
     // URL에서 id가 있으면 해당 템플릿 로드
     if (urlProductId) {
       const saved = localStorage.getItem("sungjin_templates_v4");
@@ -452,12 +475,13 @@ export default function AdminBuilder() {
 
   // Supabase 상품 저장 공통 함수
   const saveProductToServer = (successMessage) => {
+    const displayName = currentProduct.content?.title || currentProduct.name;
     fetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id: currentProduct.id,
-        name: currentProduct.name,
+        name: displayName,
         description: currentProduct.content?.description || "",
         main_image: currentProduct.content?.mainImage || null,
         icon: currentProduct.icon || "📄",
@@ -480,9 +504,14 @@ export default function AdminBuilder() {
 
   // 현재 템플릿 업데이트
   const updateCurrentTemplate = () => {
-    setTemplates((prev) =>
-      prev.map((t) => (t.id === currentTemplateId ? { ...currentProduct } : t))
-    );
+    setTemplates((prev) => {
+      const exists = prev.some((t) => t.id === currentProduct.id);
+      if (exists) {
+        return prev.map((t) => (t.id === currentProduct.id ? { ...currentProduct } : t));
+      }
+      return [...prev, { ...currentProduct }];
+    });
+    setCurrentTemplateId(currentProduct.id);
     saveProductToServer("변경사항이 적용되었습니다.");
   };
 
@@ -690,10 +719,19 @@ export default function AdminBuilder() {
 
   // 상품보관소에 저장 (템플릿 업데이트 + 저장 완료 알림)
   const saveToStorage = () => {
-    setTemplates((prev) =>
-      prev.map((t) => (t.id === currentTemplateId ? { ...currentProduct } : t))
-    );
-    saveProductToServer(`"${currentProduct.name}" 저장 완료!`);
+    setTemplates((prev) => {
+      const exists = prev.some((t) => t.id === currentProduct.id);
+      if (exists) {
+        return prev.map((t) => (t.id === currentProduct.id ? { ...currentProduct } : t));
+      }
+      // 새 상품이면 목록에 추가
+      return [...prev, { ...currentProduct }];
+    });
+    setCurrentTemplateId(currentProduct.id);
+    // URL 업데이트 (new=true → id=xxx)
+    history.replaceState(null, "", `?id=${currentProduct.id}`);
+    const displayName = currentProduct.content?.title || currentProduct.name;
+    saveProductToServer(`"${displayName}" 저장 완료!`);
   };
 
   // JSON 파일로 내보내기 (백업용)
