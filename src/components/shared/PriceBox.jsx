@@ -2,6 +2,7 @@
  * PriceBox.jsx
  *
  * 공유 가격 표시 컴포넌트 - ProductView와 ProductBuilder에서 동일하게 사용
+ * blocks를 직접 받아서 필요한 config(절삭 등)을 내부에서 추출
  * 스타일: ProductView.css의 pv-* 클래스 사용
  */
 
@@ -16,11 +17,10 @@ function applyRound(value, cfg) {
   return Math.round(value / unit) * unit;
 }
 
-function PriceBoxInner({ price, customer, isPreview = false, onOrderClick, roundConfig }) {
-  console.log("[PriceBox] roundConfig:", roundConfig, "roundEnabled:", roundConfig?.roundEnabled);
+function PriceBoxInner({ price, customer, blocks, isPreview = false, onOrderClick }) {
+  const roundConfig = blocks?.find((b) => b.type === "quantity")?.config;
   const rawTotalWithVat = Math.round(price.total * 1.1);
   const totalWithVat = applyRound(rawTotalWithVat, roundConfig);
-  console.log("[PriceBox] raw:", rawTotalWithVat, "rounded:", totalWithVat);
   const vat = totalWithVat - price.total;
 
   return (

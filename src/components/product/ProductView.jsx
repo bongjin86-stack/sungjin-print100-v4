@@ -270,7 +270,7 @@ export default function ProductView({ product: initialProduct }) {
             price={price}
             customer={customer}
             isPreview={false}
-            roundConfig={product?.blocks?.find((b) => b.type === "quantity")?.config}
+            blocks={product?.blocks}
             onOrderClick={() => {
               const finishingList = [];
               if (customer.finishing?.foldEnabled)

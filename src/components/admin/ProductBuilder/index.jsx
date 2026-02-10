@@ -1178,7 +1178,7 @@ export default function AdminBuilder() {
                 price={price}
                 customer={customer}
                 productName={currentProduct.name}
-                roundConfig={currentProduct?.blocks?.find((b) => b.type === "quantity")?.config}
+                blocks={currentProduct?.blocks}
               />
             </div>
           </div>
