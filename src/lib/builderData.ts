@@ -1055,6 +1055,8 @@ export function getDefaultConfig(type: string): BlockConfig {
         max: 5000,
         allowCustom: false,
         showUnitPrice: true,
+        contactThreshold: 0,
+        contactMessage: "",
       };
     case "inner_layer_saddle":
       return {

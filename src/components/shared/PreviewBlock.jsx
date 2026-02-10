@@ -119,6 +119,11 @@ function QuantityTable({
           }}
         />
       )}
+      {cfg.contactThreshold > 0 && (customer.qty >= cfg.contactThreshold || customer.delivery === "same") && (
+        <p className="pv-delivery-warning">
+          {cfg.contactMessage || "주문 전 고객센터로 문의해주세요."}
+        </p>
+      )}
     </>
   );
 }
@@ -981,9 +986,6 @@ function PreviewBlockInner({
         };
       }).filter((opt) => opt.enabled);
 
-      // 당일 선택 여부
-      const isSameDaySelected = customer.delivery === "same";
-
       return (
         <div className="pv-block">
           <p className="pv-block-label">출고일</p>
@@ -1020,16 +1022,6 @@ function PreviewBlockInner({
               );
             })}
           </div>
-          {/* 당일 또는 200부 이상 경고 */}
-          {(isSameDaySelected || customer.qty >= 200) && (
-            <p className="pv-delivery-warning">
-              {isSameDaySelected && customer.qty >= 200
-                ? "당일 제작 혹은 200부 이상의 책자 주문은 주문 전 고객센터로 문의해주세요."
-                : isSameDaySelected
-                  ? "당일 제작은 주문 전 고객센터로 문의해주세요."
-                  : "200부 이상의 책자 주문은 주문 전 고객센터로 문의해주세요."}
-            </p>
-          )}
         </div>
       );
     }

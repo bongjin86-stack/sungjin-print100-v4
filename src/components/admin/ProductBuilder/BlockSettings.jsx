@@ -1378,6 +1378,35 @@ function BlockSettings({
               </label>
             </div>
           )}
+          <div className="divider my-3" />
+          <label className="text-xs text-gray-500 block mb-2">고객센터 문의 안내</label>
+          <div className="flex gap-3 mb-3">
+            <label className="flex-1">
+              <span className="text-xs text-gray-500">문의 기준 수량 (0=사용안함)</span>
+              <input
+                type="number"
+                className="input input-bordered input-sm w-full"
+                value={cfg.contactThreshold ?? 0}
+                onChange={(e) =>
+                  updateCfg(block.id, "contactThreshold", parseInt(e.target.value) || 0)
+                }
+              />
+            </label>
+          </div>
+          {(cfg.contactThreshold > 0) && (
+            <label className="flex-1">
+              <span className="text-xs text-gray-500">안내 문구</span>
+              <input
+                type="text"
+                className="input input-bordered input-sm w-full"
+                value={cfg.contactMessage ?? ""}
+                placeholder="주문 전 고객센터로 문의해주세요."
+                onChange={(e) =>
+                  updateCfg(block.id, "contactMessage", e.target.value)
+                }
+              />
+            </label>
+          )}
         </div>
       );
 
