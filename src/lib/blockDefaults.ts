@@ -94,28 +94,43 @@ export function getCoatingWeight(
     productType
   );
 
-  // 1) linkedPaper가 설정된 경우: 해당 블록 기준으로 평량 결정
+  // 1) linkedPaper가 설정된 경우: 해당 블록의 역할(role)에 따라 평량 결정
   if (cfg?.coating?.linkedPaper) {
-    const linkedBlock = blocks?.find((b) => b.id === cfg.coating.linkedPaper);
+    const linkedId = cfg.coating.linkedPaper;
+    // ID 타입 불일치 방지 (select value는 string, block.id는 number일 수 있음)
+    const linkedBlock = blocks?.find(
+      (b) => String(b.id) === String(linkedId)
+    );
     if (linkedBlock) {
-      const isInner =
+      if (
         linkedBlock.type === "inner_layer_saddle" ||
-        linkedBlock.type === "inner_layer_leaf" ||
-        linkedBlock.label?.includes("내지");
-      const isCover =
-        linkedBlock.type === "cover_print" ||
-        linkedBlock.label?.includes("표지");
-
-      if (isInner) return customer.innerWeight || 80;
-      if (isCover) return customer.coverWeight || 80;
+        linkedBlock.type === "inner_layer_leaf"
+      ) {
+        return customer.innerWeight || 80;
+      }
+      // paper 블록: getPaperBlockRole로 역할 판별 (하드코딩 제거)
+      const role = getPaperBlockRole(linkedBlock, blocks);
+      if (role === "cover") return customer.coverWeight || 80;
+      if (role === "inner") return customer.innerWeight || 80;
       return customer.weight || 80;
     }
     // linkedPaper가 설정됐지만 블록을 찾을 수 없음 → 아래 자동 감지로 폴백
   }
 
-  // 2) 자동 감지: 제본 상품은 coverWeight 우선, 단층 상품은 weight
+  // 2) 자동 감지: 제본 상품은 실제 cover 역할 블록 기준, 단층 상품은 weight
   if (isBindingProduct) {
-    return customer.coverWeight || customer.weight || 80;
+    // cover 역할 블록이 실제로 존재하는지 확인
+    const hasCoverBlock = blocks?.some(
+      (b) =>
+        b.on &&
+        b.type === "paper" &&
+        getPaperBlockRole(b, blocks) === "cover"
+    );
+    if (hasCoverBlock) {
+      return customer.coverWeight || 80;
+    }
+    // cover 역할 블록 없음 → 일반 weight 사용 (role 미설정 상품 호환)
+    return customer.weight || 80;
   }
   return customer.weight || 80;
 }
