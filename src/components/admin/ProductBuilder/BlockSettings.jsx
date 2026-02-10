@@ -1205,100 +1205,101 @@ function BlockSettings({
                 const percent = cfgOpt.percent ?? fixedOpt.defaultPercent;
                 const isDefault = cfg.default === fixedOpt.id;
 
+                const optMessage = cfgOpt.message || "";
+
                 return (
-                  <div
-                    key={fixedOpt.id}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${isEnabled ? "bg-white" : "bg-gray-50"}`}
-                    onDoubleClick={() =>
-                      updateCfg(block.id, "default", fixedOpt.id)
-                    }
-                  >
-                    {/* 활성화 체크박스 */}
-                    <input
-                      type="checkbox"
-                      checked={isEnabled}
-                      onChange={(e) =>
-                        updateDeliveryOption(
-                          fixedOpt.id,
-                          "enabled",
-                          e.target.checked
-                        )
+                  <div key={fixedOpt.id} className="space-y-1">
+                    <div
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${isEnabled ? "bg-white" : "bg-gray-50"}`}
+                      onDoubleClick={() =>
+                        updateCfg(block.id, "default", fixedOpt.id)
                       }
-                      className="checkbox checkbox-sm"
-                    />
-
-                    {/* 라벨 (고정) */}
-                    <span
-                      className={`w-20 text-sm ${isEnabled ? "text-gray-700" : "text-gray-400"}`}
                     >
-                      {fixedOpt.label}
-                    </span>
-
-                    {/* 영업일 수 표시 */}
-                    <span className="text-xs text-gray-400 w-16">
-                      {fixedOpt.days === 0
-                        ? "출고 당일"
-                        : `+${fixedOpt.days}영업일`}
-                    </span>
-
-                    {/* 기본값 표시 */}
-                    {isDefault && (
-                      <span className="text-warning text-sm">★</span>
-                    )}
-
-                    {/* percent 입력 */}
-                    <div className="flex items-center gap-1 ml-auto">
+                      {/* 활성화 체크박스 */}
                       <input
-                        type="number"
-                        value={percent}
+                        type="checkbox"
+                        checked={isEnabled}
                         onChange={(e) =>
                           updateDeliveryOption(
                             fixedOpt.id,
-                            "percent",
-                            parseInt(e.target.value) || 0
+                            "enabled",
+                            e.target.checked
                           )
                         }
-                        className="w-16 px-2 py-1 border rounded text-sm text-center"
-                        disabled={!isEnabled}
+                        className="checkbox checkbox-sm"
                       />
-                      <span className="text-xs text-gray-400">%</span>
-                    </div>
 
-                    {/* percent 표시 */}
-                    <span
-                      className={`text-xs w-14 text-right ${percent > 0 ? "text-red-500" : percent < 0 ? "text-blue-500" : "text-gray-500"}`}
-                    >
-                      {percent > 0
-                        ? `+${percent}%`
-                        : percent === 0
-                          ? "기준가"
-                          : `${percent}%`}
-                    </span>
+                      {/* 라벨 (고정) */}
+                      <span
+                        className={`w-20 text-sm ${isEnabled ? "text-gray-700" : "text-gray-400"}`}
+                      >
+                        {fixedOpt.label}
+                      </span>
+
+                      {/* 영업일 수 표시 */}
+                      <span className="text-xs text-gray-400 w-16">
+                        {fixedOpt.days === 0
+                          ? "출고 당일"
+                          : `+${fixedOpt.days}영업일`}
+                      </span>
+
+                      {/* 기본값 표시 */}
+                      {isDefault && (
+                        <span className="text-warning text-sm">★</span>
+                      )}
+
+                      {/* percent 입력 */}
+                      <div className="flex items-center gap-1 ml-auto">
+                        <input
+                          type="number"
+                          value={percent}
+                          onChange={(e) =>
+                            updateDeliveryOption(
+                              fixedOpt.id,
+                              "percent",
+                              parseInt(e.target.value) || 0
+                            )
+                          }
+                          className="w-16 px-2 py-1 border rounded text-sm text-center"
+                          disabled={!isEnabled}
+                        />
+                        <span className="text-xs text-gray-400">%</span>
+                      </div>
+
+                      {/* percent 표시 */}
+                      <span
+                        className={`text-xs w-14 text-right ${percent > 0 ? "text-red-500" : percent < 0 ? "text-blue-500" : "text-gray-500"}`}
+                      >
+                        {percent > 0
+                          ? `+${percent}%`
+                          : percent === 0
+                            ? "기준가"
+                            : `${percent}%`}
+                      </span>
+                    </div>
+                    {/* 옵션별 안내 메시지 */}
+                    {isEnabled && (
+                      <input
+                        type="text"
+                        value={optMessage}
+                        onChange={(e) =>
+                          updateDeliveryOption(
+                            fixedOpt.id,
+                            "message",
+                            e.target.value
+                          )
+                        }
+                        placeholder="안내 메시지 (비워두면 미표시)"
+                        className="input input-bordered input-xs w-full ml-7 text-orange-600 placeholder:text-gray-300"
+                        style={{ maxWidth: "calc(100% - 1.75rem)" }}
+                      />
+                    )}
                   </div>
                 );
               })}
             </div>
             <p className="text-xs text-gray-400 mt-2">
               더블클릭으로 기본값 설정 (★)
-            </p>
-          </div>
-
-          {/* 당일 출고 안내 메시지 */}
-          <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
-            <label className="text-xs text-orange-700 font-medium block mb-2">
-              당일 출고 안내 메시지
-            </label>
-            <input
-              type="text"
-              value={cfg.sameDayMessage || ""}
-              onChange={(e) =>
-                updateCfg(block.id, "sameDayMessage", e.target.value)
-              }
-              placeholder="내용을 입력하면 당일 선택 시 표시됩니다"
-              className="input input-bordered input-sm w-full"
-            />
-            <p className="text-xs text-orange-500 mt-1">
-              비워두면 당일 선택 시 안내가 표시되지 않습니다
             </p>
           </div>
         </div>

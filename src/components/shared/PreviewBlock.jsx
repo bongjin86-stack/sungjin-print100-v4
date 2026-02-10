@@ -1022,11 +1022,12 @@ function PreviewBlockInner({
               );
             })}
           </div>
-          {cfg.sameDayMessage && customer.delivery === "same" && (
-            <p className="pv-delivery-warning">
-              {cfg.sameDayMessage}
-            </p>
-          )}
+          {(() => {
+            const selectedOpt = cfg.options?.find((o) => o.id === customer.delivery);
+            return selectedOpt?.message ? (
+              <p className="pv-delivery-warning">{selectedOpt.message}</p>
+            ) : null;
+          })()}
         </div>
       );
     }
