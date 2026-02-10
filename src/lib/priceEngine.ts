@@ -16,7 +16,7 @@ import {
 
 // 가격 계산 상수
 const PRICE_CONSTANTS = {
-  MONO_DISCOUNT_RATE: 0.65, // 흑백 인쇄 할인율 (컬러 대비)
+  MONO_DISCOUNT_RATE: 0.45, // 흑백 인쇄 할인율 (컬러 대비)
   CORNER_BATCH_SIZE: 100, // 귀도리 배치 단위
   DEFAULT_PUNCH_HOLES: 2, // 기본 타공 구멍 수
 } as const;

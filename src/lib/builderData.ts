@@ -864,8 +864,11 @@ export const DB = {
     { min: 201, max: 300, cost: 140 },
     { min: 301, max: 500, cost: 120 },
     { min: 501, max: 1000, cost: 105 },
-    { min: 1001, max: 3000, cost: 95 },
-    { min: 3001, max: 10000, cost: 90 },
+    { min: 1001, max: 2000, cost: 98 },
+    { min: 2001, max: 3000, cost: 95 },
+    { min: 3001, max: 5000, cost: 92 },
+    { min: 5001, max: 7000, cost: 90 },
+    { min: 7001, max: 10000, cost: 88 },
     { min: 10001, max: 999999, cost: 85 },
   ],
   coatingCosts: {
