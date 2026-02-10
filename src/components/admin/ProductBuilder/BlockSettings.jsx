@@ -1334,6 +1334,17 @@ function BlockSettings({
             <input
               type="checkbox"
               className="checkbox checkbox-sm"
+              checked={cfg.showUnitPrice !== false}
+              onChange={(e) =>
+                updateCfg(block.id, "showUnitPrice", e.target.checked)
+              }
+            />
+            1부당 단가 표시
+          </label>
+          <label className="flex items-center gap-2 text-sm cursor-pointer mb-3">
+            <input
+              type="checkbox"
+              className="checkbox checkbox-sm"
               checked={cfg.allowCustom || false}
               onChange={(e) =>
                 updateCfg(block.id, "allowCustom", e.target.checked)

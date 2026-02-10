@@ -72,7 +72,7 @@ function QuantityTable({
           <thead>
             <tr>
               <th>부수</th>
-              <th>단가</th>
+              {cfg.showUnitPrice !== false && <th>단가</th>}
               <th>총 가격</th>
             </tr>
           </thead>
@@ -94,9 +94,11 @@ function QuantityTable({
                   }
                 >
                   <td>{q}부{isCustom && " ✎"}</td>
-                  <td className="unit-price">
-                    1부당 {unitPrice.toLocaleString()}원
-                  </td>
+                  {cfg.showUnitPrice !== false && (
+                    <td className="unit-price">
+                      1부당 {unitPrice.toLocaleString()}원
+                    </td>
+                  )}
                   <td>{total.toLocaleString()}원</td>
                 </tr>
               );

@@ -1050,6 +1050,7 @@ export function getDefaultConfig(type: string): BlockConfig {
         min: 10,
         max: 5000,
         allowCustom: false,
+        showUnitPrice: true,
       };
     case "inner_layer_saddle":
       return {
