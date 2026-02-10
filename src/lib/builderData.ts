@@ -1041,7 +1041,13 @@ export function getDefaultConfig(type: string): BlockConfig {
         default: "next2",
       } as any;
     case "quantity":
-      return { options: [50, 100, 200, 500, 1000], default: 100 };
+      return {
+        options: [50, 100, 200, 500, 1000],
+        default: 100,
+        min: 10,
+        max: 5000,
+        allowCustom: false,
+      };
     case "inner_layer_saddle":
       return {
         papers: {

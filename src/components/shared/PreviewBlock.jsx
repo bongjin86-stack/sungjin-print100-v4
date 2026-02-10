@@ -10,11 +10,12 @@
  * 스타일: ProductView.css의 pv-* 클래스 사용
  */
 
-import { memo } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 
 import {
   getCoatingWeight,
   getPaperBlockRole,
+  mapPrintOptionsToCustomer,
   validateCoatingWeight,
 } from "@/lib/blockDefaults";
 import {
@@ -35,6 +36,155 @@ const PAPER_SWATCH_GRADIENTS = {
 };
 const DEFAULT_PAPER_SWATCH =
   "linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)";
+
+function QuantityTable({
+  displayQtys, isCustomQty, customer, setCustomer,
+  qtyPrices, qtyMin, qtyMax, cfg, productType, allBlocks,
+}) {
+  const [customPrice, setCustomPrice] = useState(null);
+
+  const fetchCustomPrice = async (qty) => {
+    try {
+      const mapped = mapPrintOptionsToCustomer(customer, allBlocks);
+      const res = await fetch("/api/calculate-price", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: mapped,
+          qty,
+          productType: productType || "flyer",
+          allQtys: [qty],
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.selected) setCustomPrice(data.selected);
+      }
+    } catch (e) {
+      console.warn("Custom qty price error:", e);
+    }
+  };
+
+  return (
+    <>
+      <div className="pv-qty-table-wrap">
+        <table className="pv-qty-table">
+          <thead>
+            <tr>
+              <th>부수</th>
+              <th>단가</th>
+              <th>총 가격</th>
+            </tr>
+          </thead>
+          <tbody>
+            {displayQtys.map((q) => {
+              const isCustom = isCustomQty && q === customer.qty;
+              const p = isCustom
+                ? customPrice || qtyPrices?.[q] || qtyPrices?.[String(q)] || {}
+                : qtyPrices?.[q] || qtyPrices?.[String(q)] || {};
+              const unitPrice = p.unitPrice || p.perUnit || 0;
+              const total = p.total || 0;
+              const isSelected = customer.qty === q;
+              return (
+                <tr
+                  key={q}
+                  className={`${isSelected ? "selected" : ""} ${isCustom ? "custom" : ""}`}
+                  onClick={() =>
+                    setCustomer((prev) => ({ ...prev, qty: q }))
+                  }
+                >
+                  <td>{q}부{isCustom && " ✎"}</td>
+                  <td className="unit-price">
+                    1부당 {unitPrice.toLocaleString()}원
+                  </td>
+                  <td>{total.toLocaleString()}원</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {cfg.allowCustom && (
+        <CustomQtyInput
+          qtyMin={qtyMin}
+          qtyMax={qtyMax}
+          isCustomQty={isCustomQty}
+          customerQty={customer.qty}
+          setCustomer={setCustomer}
+          onCustomPrice={(qty) => {
+            setCustomPrice(null);
+            fetchCustomPrice(qty);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+function CustomQtyInput({ qtyMin, qtyMax, isCustomQty, customerQty, setCustomer, onCustomPrice }) {
+  const [inputVal, setInputVal] = useState(isCustomQty ? String(customerQty) : "");
+  const debounceRef = useRef(null);
+
+  // 블러/엔터 시 min/max 클램핑 적용
+  const applyQty = (val) => {
+    const raw = val !== undefined ? val : inputVal;
+    const v = parseInt(raw);
+    if (!v || isNaN(v)) return;
+    const clamped = Math.min(Math.max(v, qtyMin), qtyMax);
+    setInputVal(String(clamped));
+    setCustomer((prev) => ({ ...prev, qty: clamped }));
+    if (onCustomPrice) onCustomPrice(clamped);
+  };
+
+  // 타이핑 중 유효 범위면 자동 적용 (400ms 디바운스)
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setInputVal(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const v = parseInt(val);
+    if (v && !isNaN(v) && v >= qtyMin && v <= qtyMax) {
+      debounceRef.current = setTimeout(() => {
+        setCustomer((prev) => ({ ...prev, qty: v }));
+        if (onCustomPrice) onCustomPrice(v);
+      }, 400);
+    }
+  };
+
+  useEffect(() => {
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, []);
+
+  return (
+    <div className="pv-custom-qty">
+      <label className="pv-custom-qty-label">직접입력</label>
+      <div className="pv-custom-qty-input-wrap">
+        <input
+          type="number"
+          className="pv-custom-qty-input"
+          placeholder={`${qtyMin}~${qtyMax}`}
+          min={qtyMin}
+          max={qtyMax}
+          value={inputVal}
+          onChange={handleChange}
+          onBlur={() => applyQty()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (debounceRef.current) clearTimeout(debounceRef.current);
+              applyQty();
+            }
+          }}
+        />
+        <span className="pv-custom-qty-unit">부</span>
+      </div>
+      {inputVal && parseInt(inputVal) > 0 && (parseInt(inputVal) < qtyMin || parseInt(inputVal) > qtyMax) && (
+        <p className="pv-custom-qty-error">
+          {qtyMin}~{qtyMax}부 사이로 입력해주세요
+        </p>
+      )}
+    </div>
+  );
+}
 
 function PreviewBlockInner({
   block,
@@ -1175,49 +1325,35 @@ function PreviewBlockInner({
       );
     }
 
-    case "quantity":
+    case "quantity": {
+      const isCustomQty =
+        cfg.allowCustom && customer.qty > 0 && !cfg.options?.includes(customer.qty);
+      const qtyMin = cfg.min ?? 10;
+      const qtyMax = cfg.max ?? 5000;
+
+      // 프리셋 + 커스텀 수량을 정렬 병합
+      const displayQtys = isCustomQty
+        ? [...(cfg.options || []), customer.qty].sort((a, b) => a - b)
+        : [...(cfg.options || [])];
+
       return (
         <div className="pv-block">
           <p className="pv-block-label">{block.label || "수량"}</p>
-          <div className="pv-qty-table-wrap">
-            <table className="pv-qty-table">
-              <thead>
-                <tr>
-                  <th>부수</th>
-                  <th>단가</th>
-                  <th>총 가격</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cfg.options?.map((q) => {
-                  let p = { unitPrice: 0, total: 0 };
-                  if (qtyPrices && qtyPrices[q]) {
-                    p = qtyPrices[q];
-                  }
-                  const unitPrice = p.unitPrice || p.perUnit || 0;
-                  const total = p.total || 0;
-                  const isSelected = customer.qty === q;
-                  return (
-                    <tr
-                      key={q}
-                      className={isSelected ? "selected" : ""}
-                      onClick={() =>
-                        setCustomer((prev) => ({ ...prev, qty: q }))
-                      }
-                    >
-                      <td>{q}부</td>
-                      <td className="unit-price">
-                        1부당 {unitPrice.toLocaleString()}원
-                      </td>
-                      <td>{total.toLocaleString()}원</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <QuantityTable
+            displayQtys={displayQtys}
+            isCustomQty={isCustomQty}
+            customer={customer}
+            setCustomer={setCustomer}
+            qtyPrices={qtyPrices}
+            qtyMin={qtyMin}
+            qtyMax={qtyMax}
+            cfg={cfg}
+            productType={productType}
+            allBlocks={allBlocks}
+          />
         </div>
       );
+    }
 
     default:
       return null;

@@ -1329,6 +1329,44 @@ function BlockSettings({
               추가
             </button>
           </div>
+          <div className="divider my-3" />
+          <label className="flex items-center gap-2 text-sm cursor-pointer mb-3">
+            <input
+              type="checkbox"
+              className="checkbox checkbox-sm"
+              checked={cfg.allowCustom || false}
+              onChange={(e) =>
+                updateCfg(block.id, "allowCustom", e.target.checked)
+              }
+            />
+            직접입력 허용
+          </label>
+          {cfg.allowCustom && (
+            <div className="flex gap-3">
+              <label className="flex-1">
+                <span className="text-xs text-gray-500">최소 수량</span>
+                <input
+                  type="number"
+                  className="input input-bordered input-sm w-full"
+                  value={cfg.min ?? 10}
+                  onChange={(e) =>
+                    updateCfg(block.id, "min", parseInt(e.target.value) || 10)
+                  }
+                />
+              </label>
+              <label className="flex-1">
+                <span className="text-xs text-gray-500">최대 수량</span>
+                <input
+                  type="number"
+                  className="input input-bordered input-sm w-full"
+                  value={cfg.max ?? 5000}
+                  onChange={(e) =>
+                    updateCfg(block.id, "max", parseInt(e.target.value) || 5000)
+                  }
+                />
+              </label>
+            </div>
+          )}
         </div>
       );
 

@@ -81,7 +81,10 @@ export default function ProductView({ product: initialProduct }) {
       const qtyBlock = product?.blocks?.find(
         (b) => b.on && b.type === "quantity"
       );
-      const allQtys = qtyBlock?.config?.options || [];
+      const presetQtys = qtyBlock?.config?.options || [];
+      const allQtys = presetQtys.includes(customer.qty)
+        ? presetQtys
+        : [...presetQtys, customer.qty];
 
       try {
         const res = await fetch("/api/calculate-price", {
