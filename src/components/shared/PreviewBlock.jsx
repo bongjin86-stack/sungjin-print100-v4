@@ -981,7 +981,7 @@ function PreviewBlockInner({
           id: fixed.id,
           label: fixed.label,
           days: fixed.days,
-          enabled: cfgOpt?.enabled ?? fixed.id !== "same", // 당일은 기본 비활성화
+          enabled: cfgOpt?.enabled ?? true,
           percent: cfgOpt?.percent ?? fixed.defaultPercent,
         };
       }).filter((opt) => opt.enabled);
