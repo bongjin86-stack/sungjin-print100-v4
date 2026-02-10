@@ -37,15 +37,6 @@ const PAPER_SWATCH_GRADIENTS = {
 const DEFAULT_PAPER_SWATCH =
   "linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)";
 
-function applyRound(value, cfg) {
-  if (!cfg?.roundEnabled || !value) return value;
-  const unit = cfg.roundUnit || 100;
-  const method = cfg.roundMethod || "floor";
-  if (method === "floor") return Math.floor(value / unit) * unit;
-  if (method === "ceil") return Math.ceil(value / unit) * unit;
-  return Math.round(value / unit) * unit;
-}
-
 function QuantityTable({
   displayQtys, isCustomQty, customer, setCustomer,
   qtyPrices, qtyMin, qtyMax, cfg, productType, allBlocks,
@@ -91,10 +82,8 @@ function QuantityTable({
               const p = isCustom
                 ? customPrice || qtyPrices?.[q] || qtyPrices?.[String(q)] || {}
                 : qtyPrices?.[q] || qtyPrices?.[String(q)] || {};
-              const rawUnit = p.unitPrice || p.perUnit || 0;
-              const rawTotal = p.total || 0;
-              const total = applyRound(rawTotal, cfg);
-              const unitPrice = cfg?.roundEnabled ? Math.round(total / q) : rawUnit;
+              const unitPrice = p.unitPrice || p.perUnit || 0;
+              const total = p.total || 0;
               const isSelected = customer.qty === q;
               return (
                 <tr

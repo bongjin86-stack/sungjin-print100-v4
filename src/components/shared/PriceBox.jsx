@@ -7,9 +7,19 @@
 
 import { memo } from "react";
 
-function PriceBoxInner({ price, customer, isPreview = false, onOrderClick }) {
-  const totalWithVat = Math.round(price.total * 1.1);
-  const vat = Math.round(price.total * 0.1);
+function applyRound(value, cfg) {
+  if (!cfg?.roundEnabled || !value) return value;
+  const unit = cfg.roundUnit || 100;
+  const method = cfg.roundMethod || "floor";
+  if (method === "floor") return Math.floor(value / unit) * unit;
+  if (method === "ceil") return Math.ceil(value / unit) * unit;
+  return Math.round(value / unit) * unit;
+}
+
+function PriceBoxInner({ price, customer, isPreview = false, onOrderClick, roundConfig }) {
+  const rawTotalWithVat = Math.round(price.total * 1.1);
+  const totalWithVat = applyRound(rawTotalWithVat, roundConfig);
+  const vat = totalWithVat - price.total;
 
   return (
     <>
