@@ -474,21 +474,22 @@ export default function AdminBuilder() {
   };
 
   // Supabase 상품 저장 공통 함수
-  const saveProductToServer = (successMessage) => {
-    const displayName = currentProduct.content?.title || currentProduct.name;
+  const saveProductToServer = (successMessage, productSnapshot) => {
+    const prod = productSnapshot || currentProduct;
+    const displayName = prod.content?.title || prod.name;
     fetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        id: currentProduct.id,
+        id: prod.id,
         name: displayName,
-        description: currentProduct.content?.description || "",
-        main_image: currentProduct.content?.mainImage || null,
-        icon: currentProduct.icon || "📄",
-        sort_order: currentProduct.order ?? 0,
-        content: currentProduct.content || {},
-        blocks: currentProduct.blocks || [],
-        product_type: currentProduct.productType || null,
+        description: prod.content?.description || "",
+        main_image: prod.content?.mainImage || null,
+        icon: prod.icon || "📄",
+        sort_order: prod.order ?? 0,
+        content: prod.content || {},
+        blocks: prod.blocks || [],
+        product_type: prod.productType || null,
         is_published: true,
       }),
     })
@@ -1067,12 +1068,14 @@ export default function AdminBuilder() {
               <input
                 type="text"
                 value={content.title}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const val = e.target.value;
                   setCurrentProduct((prev) => ({
                     ...prev,
-                    content: { ...prev.content, title: e.target.value },
-                  }))
-                }
+                    name: val || prev.name,
+                    content: { ...prev.content, title: val },
+                  }));
+                }}
                 className="text-2xl font-bold mb-2 bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-primary outline-none w-full"
                 placeholder="상품명"
               />
