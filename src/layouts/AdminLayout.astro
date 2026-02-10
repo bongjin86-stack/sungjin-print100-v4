@@ -363,12 +363,12 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
         align-items: center;
         gap: var(--sp-xs);
         width: 100%;
-        padding: var(--sp-sm) var(--sp-lg);
+        padding: var(--sp-md) var(--sp-lg);
         background: none;
         border: none;
         cursor: pointer;
         font-family: inherit;
-        font-size: var(--fs-xs);
+        font-size: var(--fs-sm);
         font-weight: 600;
         color: var(--c-text-inverse-sub);
         letter-spacing: 0.03em;
@@ -398,6 +398,11 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
 
       .nav-group-list.open {
         max-height: 300px;
+      }
+
+      .nav-group-list .admin-nav-item {
+        padding-left: calc(var(--sp-lg) + 14px);
+        font-size: var(--fs-xs);
       }
 
       .admin-nav-item {
