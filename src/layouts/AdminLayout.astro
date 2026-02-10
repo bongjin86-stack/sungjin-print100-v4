@@ -30,30 +30,37 @@ try {
   // 없으면 기본 텍스트 사용
 }
 
-// 단독 메뉴 항목 (비즈니스)
-const businessItems = [
+// 상시 노출 메뉴 (매일 사용)
+const mainItems = [
   { href: "/admin/orders", label: "주문 관리" },
   { href: "/admin/products", label: "상품 관리" },
-];
-
-// 페이지별 메뉴 (홈페이지 구조대로)
-const pageItems = [
-  { href: "/admin/landing", label: "랜딩 페이지" },
-  { href: "/admin/about", label: "회사소개" },
-  { href: "/admin/services", label: "서비스" },
-  { href: "/admin/works", label: "Works" },
   { href: "/admin/news", label: "공지사항" },
-  { href: "/admin/faq", label: "FAQ" },
 ];
 
-// 시스템 그룹
+// 접히는 그룹: 페이지 관리
+const pageGroup = {
+  key: "pages",
+  title: "페이지 관리",
+  items: [
+    { href: "/admin/landing", label: "랜딩 페이지" },
+    { href: "/admin/about", label: "회사소개" },
+    { href: "/admin/services", label: "서비스" },
+    { href: "/admin/works", label: "Works" },
+    { href: "/admin/faq", label: "FAQ" },
+  ],
+};
+
+// 접히는 그룹: 시스템
 const systemGroup = {
+  key: "system",
   title: "시스템",
   items: [
     { href: "/admin/db", label: "DB 관리" },
     { href: "/admin/settings", label: "설정" },
   ],
 };
+
+const collapsibleGroups = [pageGroup, systemGroup];
 
 function isActive(href: string) {
   if (href === "/admin") {
@@ -102,9 +109,9 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
             {dashboardItem.label}
           </a>
 
-          {/* 비즈니스 메뉴 (주문관리, 상품관리) */}
+          {/* 상시 노출 메뉴 */}
           {
-            businessItems.map((item) => (
+            mainItems.map((item) => (
               <a
                 href={item.href}
                 class:list={["admin-nav-item", { active: isActive(item.href) }]}
@@ -116,39 +123,35 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
 
           <div class="nav-divider"></div>
 
-          {/* 페이지별 메뉴 (홈페이지 구조대로) */}
+          {/* 접히는 그룹들 */}
           {
-            pageItems.map((item) => (
-              <a
-                href={item.href}
-                class:list={["admin-nav-item", { active: isActive(item.href) }]}
-              >
-                {item.label}
-              </a>
-            ))
+            collapsibleGroups.map((group) => {
+              const hasActive = group.items.some((item) => isActive(item.href));
+              return (
+                <div class="nav-group" data-group={group.key} data-has-active={hasActive ? "true" : "false"}>
+                  <button class="nav-group-toggle" type="button">
+                    <span class="nav-group-arrow">&#9656;</span>
+                    <span>{group.title}</span>
+                  </button>
+                  <ul class="nav-group-list">
+                    {group.items.map((item) => (
+                      <li>
+                        <a
+                          href={item.href}
+                          class:list={[
+                            "admin-nav-item",
+                            { active: isActive(item.href) },
+                          ]}
+                        >
+                          {item.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })
           }
-
-          {/* 시스템 그룹 */}
-          <div class="nav-group">
-            <span class="nav-group-title">{systemGroup.title}</span>
-            <ul>
-              {
-                systemGroup.items.map((item) => (
-                  <li>
-                    <a
-                      href={item.href}
-                      class:list={[
-                        "admin-nav-item",
-                        { active: isActive(item.href) },
-                      ]}
-                    >
-                      {item.label}
-                    </a>
-                  </li>
-                ))
-              }
-            </ul>
-          </div>
         </nav>
         <div class="admin-sidebar-footer">
           <div class="admin-user-info">
@@ -215,6 +218,39 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
               clearAuthCookies();
               window.location.href = "/admin/login";
             });
+
+          // 접히는 메뉴 그룹 토글
+          const STORAGE_KEY = "admin-nav-collapsed";
+          function getCollapsed() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; }
+          }
+          function saveCollapsed(state) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          }
+
+          document.querySelectorAll(".nav-group[data-group]").forEach((group) => {
+            const key = group.dataset.group;
+            const hasActive = group.dataset.hasActive === "true";
+            const toggle = group.querySelector(".nav-group-toggle");
+            const list = group.querySelector(".nav-group-list");
+            const arrow = group.querySelector(".nav-group-arrow");
+            const collapsed = getCollapsed();
+
+            // 초기 상태: 활성 페이지 포함 시 열림, 아니면 저장된 상태 (기본 닫힘)
+            const isOpen = hasActive || collapsed[key] === false;
+            if (isOpen) {
+              list.classList.add("open");
+              arrow.classList.add("open");
+            }
+
+            toggle.addEventListener("click", () => {
+              const nowOpen = list.classList.toggle("open");
+              arrow.classList.toggle("open");
+              const state = getCollapsed();
+              state[key] = !nowOpen;
+              saveCollapsed(state);
+            });
+          });
         </script>
       </aside>
 
@@ -319,18 +355,49 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
       }
 
       .nav-group {
-        margin-top: var(--sp-sm);
+        margin-top: var(--sp-xs);
       }
 
-      .nav-group-title {
-        display: block;
-        padding: var(--sp-xs) var(--sp-lg);
+      .nav-group-toggle {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-xs);
+        width: 100%;
+        padding: var(--sp-sm) var(--sp-lg);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
         font-size: var(--fs-xs);
         font-weight: 600;
         color: var(--c-text-inverse-sub);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        opacity: 0.6;
+        letter-spacing: 0.03em;
+        opacity: 0.7;
+        transition: opacity var(--transition-fast);
+      }
+
+      .nav-group-toggle:hover {
+        opacity: 1;
+      }
+
+      .nav-group-arrow {
+        font-size: 10px;
+        transition: transform 0.2s ease;
+        display: inline-block;
+      }
+
+      .nav-group-arrow.open {
+        transform: rotate(90deg);
+      }
+
+      .nav-group-list {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.25s ease;
+      }
+
+      .nav-group-list.open {
+        max-height: 300px;
       }
 
       .admin-nav-item {
