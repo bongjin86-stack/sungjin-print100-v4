@@ -119,7 +119,7 @@ function QuantityTable({
           }}
         />
       )}
-      {cfg.contactThreshold > 0 && (customer.qty >= cfg.contactThreshold || customer.delivery === "same") && (
+      {cfg.contactThreshold > 0 && customer.qty >= cfg.contactThreshold && (
         <p className="pv-delivery-warning">
           {cfg.contactMessage || "주문 전 고객센터로 문의해주세요."}
         </p>
@@ -1022,6 +1022,11 @@ function PreviewBlockInner({
               );
             })}
           </div>
+          {customer.delivery === "same" && (
+            <p className="pv-delivery-warning">
+              당일 제작은 주문 전 고객센터로 문의해주세요.
+            </p>
+          )}
         </div>
       );
     }
