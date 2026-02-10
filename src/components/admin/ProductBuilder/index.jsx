@@ -76,9 +76,19 @@ export default function AdminBuilder() {
     }));
   });
 
-  // 새 상품 생성 헬퍼
-  const createNewProduct = () => {
+  // 새 상품 생성 헬퍼 (기반 템플릿 블록 복사, id는 새로)
+  const createNewProduct = (baseTemplate) => {
     const newId = `product_${Date.now()}`;
+    if (baseTemplate) {
+      return {
+        ...baseTemplate,
+        id: newId,
+        order: templates.length,
+        name: "새 상품",
+        content: { ...baseTemplate.content, title: "" },
+        blocks: baseTemplate.blocks.map((b) => ({ ...b, config: { ...b.config } })),
+      };
+    }
     return {
       id: newId,
       order: templates.length,
@@ -92,7 +102,7 @@ export default function AdminBuilder() {
   // URL에서 id가 있으면 해당 템플릿으로, new=true면 새 상품, 없으면 첫 번째
   const [currentTemplateId, setCurrentTemplateId] = useState(() => {
     if (isNewProduct) {
-      return null; // 새 상품은 아직 템플릿 목록에 없음
+      return templates[0]?.id || null; // 첫 템플릿을 기반으로 선택
     }
     if (urlProductId) {
       const saved = localStorage.getItem("sungjin_templates_v4");
@@ -106,10 +116,9 @@ export default function AdminBuilder() {
   });
 
   const [currentProduct, setCurrentProduct] = useState(() => {
-    // new=true → 빈 새 상품 생성
+    // new=true → 첫 번째 템플릿 기반 새 상품 (id는 새로 생성)
     if (isNewProduct) {
-      const newProd = createNewProduct();
-      return newProd;
+      return createNewProduct(templates[0]);
     }
     // URL에서 id가 있으면 해당 템플릿 로드
     if (urlProductId) {
@@ -389,12 +398,25 @@ export default function AdminBuilder() {
     const template = updatedTemplates.find((t) => t.id === id);
     if (template) {
       setCurrentTemplateId(id);
-      setCurrentProduct({
-        ...template,
-        blocks: template.blocks.map((b) => ({ ...b, config: { ...b.config } })),
-      });
+
+      if (isNewProduct) {
+        // 새 상품 모드: 템플릿 블록/설정만 복사, id는 새로 생성
+        const newId = `product_${Date.now()}`;
+        setCurrentProduct({
+          ...template,
+          id: newId,
+          name: template.name + " (새 상품)",
+          content: { ...template.content, title: "" },
+          blocks: template.blocks.map((b) => ({ ...b, config: { ...b.config } })),
+        });
+        history.replaceState(null, "", `?new=true&base=${id}`);
+      } else {
+        setCurrentProduct({
+          ...template,
+          blocks: template.blocks.map((b) => ({ ...b, config: { ...b.config } })),
+        });
+      }
       setSelectedBlockId(null);
-      // 블록 기본값을 적용한 customer 초기화
       setCustomer(extractDefaultsFromBlocks(template.blocks));
     }
   };
@@ -503,8 +525,8 @@ export default function AdminBuilder() {
       });
   };
 
-  // 현재 템플릿 업데이트
-  const updateCurrentTemplate = () => {
+  // 적용: 미리보기 반영만 (localStorage 템플릿 업데이트, DB 저장 X)
+  const applyToTemplate = () => {
     setTemplates((prev) => {
       const exists = prev.some((t) => t.id === currentProduct.id);
       if (exists) {
@@ -513,7 +535,6 @@ export default function AdminBuilder() {
       return [...prev, { ...currentProduct }];
     });
     setCurrentTemplateId(currentProduct.id);
-    saveProductToServer("변경사항이 적용되었습니다.");
   };
 
   // 블록 ON/OFF
@@ -718,21 +739,34 @@ export default function AdminBuilder() {
     }));
   };
 
-  // 상품보관소에 저장 (템플릿 업데이트 + 저장 완료 알림)
-  const saveToStorage = () => {
+  // 템플릿 저장: localStorage에만 저장 (DB X)
+  const saveTemplate = () => {
     setTemplates((prev) => {
       const exists = prev.some((t) => t.id === currentProduct.id);
       if (exists) {
         return prev.map((t) => (t.id === currentProduct.id ? { ...currentProduct } : t));
       }
-      // 새 상품이면 목록에 추가
       return [...prev, { ...currentProduct }];
     });
     setCurrentTemplateId(currentProduct.id);
-    // URL 업데이트 (new=true → id=xxx)
+    const displayName = currentProduct.content?.title || currentProduct.name;
+    alert(`"${displayName}" 템플릿 저장 완료!`);
+  };
+
+  // 상품 저장: DB에 저장 → /admin/products에 반영
+  const saveProduct = () => {
+    // 템플릿도 동기화
+    setTemplates((prev) => {
+      const exists = prev.some((t) => t.id === currentProduct.id);
+      if (exists) {
+        return prev.map((t) => (t.id === currentProduct.id ? { ...currentProduct } : t));
+      }
+      return [...prev, { ...currentProduct }];
+    });
+    setCurrentTemplateId(currentProduct.id);
     history.replaceState(null, "", `?id=${currentProduct.id}`);
     const displayName = currentProduct.content?.title || currentProduct.name;
-    saveProductToServer(`"${displayName}" 저장 완료!`);
+    saveProductToServer(`"${displayName}" 상품 저장 완료!`);
   };
 
   // JSON 파일로 내보내기 (백업용)
@@ -791,16 +825,16 @@ export default function AdminBuilder() {
               JSON
             </button>
             <button
-              onClick={updateCurrentTemplate}
+              onClick={applyToTemplate}
               className="px-4 py-1.5 border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-md transition-colors"
             >
               적용
             </button>
             <button
-              onClick={saveToStorage}
+              onClick={saveProduct}
               className="px-4 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-md transition-colors"
             >
-              저장
+              상품 저장
             </button>
           </div>
         </div>
@@ -810,10 +844,16 @@ export default function AdminBuilder() {
         {/* 템플릿 선택 - 수정 모드(urlProductId 있음)에서는 숨김 */}
         {!urlProductId && (
           <div className="card bg-white shadow-xl p-4 mb-6">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-gray-500">
                 템플릿 (드래그하여 순서 변경)
               </span>
+              <button
+                onClick={saveTemplate}
+                className="px-3 py-1 border border-gray-300 hover:bg-gray-50 text-gray-600 text-xs font-medium rounded transition-colors"
+              >
+                템플릿 저장
+              </button>
             </div>
             <div ref={templateListRef} className="flex gap-2 flex-wrap">
               {templates
