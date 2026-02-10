@@ -9,8 +9,8 @@ import tailwindcss from "@tailwindcss/vite";
 // https://astro.build/config
 export default defineConfig({
   prefetch: {
-    prefetchAll: false,
-    defaultStrategy: "viewport",
+    prefetchAll: true,
+    defaultStrategy: "hover",
   },
   site: "https://nagi-6tu.pages.dev",
   output: "server",
