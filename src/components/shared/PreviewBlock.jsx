@@ -1022,9 +1022,9 @@ function PreviewBlockInner({
               );
             })}
           </div>
-          {customer.delivery === "same" && (
+          {cfg.sameDayMessage && customer.delivery === "same" && (
             <p className="pv-delivery-warning">
-              당일 제작은 주문 전 고객센터로 문의해주세요.
+              {cfg.sameDayMessage}
             </p>
           )}
         </div>

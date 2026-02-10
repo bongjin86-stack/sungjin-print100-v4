@@ -1046,6 +1046,7 @@ export function getDefaultConfig(type: string): BlockConfig {
           { id: "next3", label: "3영업일", enabled: true, percent: -5 },
         ],
         default: "next2",
+        sameDayMessage: "",
       } as any;
     case "quantity":
       return {

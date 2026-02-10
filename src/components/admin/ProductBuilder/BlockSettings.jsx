@@ -1282,6 +1282,25 @@ function BlockSettings({
               더블클릭으로 기본값 설정 (★)
             </p>
           </div>
+
+          {/* 당일 출고 안내 메시지 */}
+          <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+            <label className="text-xs text-orange-700 font-medium block mb-2">
+              당일 출고 안내 메시지
+            </label>
+            <input
+              type="text"
+              value={cfg.sameDayMessage || ""}
+              onChange={(e) =>
+                updateCfg(block.id, "sameDayMessage", e.target.value)
+              }
+              placeholder="내용을 입력하면 당일 선택 시 표시됩니다"
+              className="input input-bordered input-sm w-full"
+            />
+            <p className="text-xs text-orange-500 mt-1">
+              비워두면 당일 선택 시 안내가 표시되지 않습니다
+            </p>
+          </div>
         </div>
       );
     }
