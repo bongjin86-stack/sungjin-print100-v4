@@ -25,6 +25,11 @@ if (printError || !print) {
   return Astro.redirect("/404");
 }
 
+// 바로 이동 설정: 상세 페이지 없이 상품 페이지로 리다이렉트
+if (print.redirect_to_product && print.linked_product_id) {
+  return Astro.redirect(`/product/${print.linked_product_id}`);
+}
+
 const categoryTitle = print.tag || "";
 
 // field_labels 파싱 (커스텀 라벨)
@@ -35,6 +40,7 @@ let labels = {
   overview_label: "개요",
   support_label: "주요 내용",
   achievements_label: "상세 정보",
+  content_label: "상세 내용",
 };
 
 try {
@@ -200,7 +206,7 @@ const orderHref = hasLinkedProduct
         {
           print.content && (
             <div class="print-section">
-              <h2 class="print-section-title">상세 내용</h2>
+              <h2 class="print-section-title">{labels.content_label}</h2>
               <div class="print-section-text" set:html={contentHtml} />
             </div>
           )

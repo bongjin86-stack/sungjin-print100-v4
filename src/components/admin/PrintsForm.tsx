@@ -23,6 +23,7 @@ interface PrintsFormProps {
     is_published: boolean;
     linked_product_id?: string;
     order_button_text?: string;
+    redirect_to_product?: boolean;
     field_labels?: string | Record<string, string>;
   };
 }
@@ -40,6 +41,7 @@ const DEFAULT_LABELS = {
   overview_label: "개요",
   support_label: "주요 내용",
   achievements_label: "상세 정보",
+  content_label: "상세 내용",
 };
 
 // JSON 배열을 안전하게 파싱
@@ -92,6 +94,51 @@ function parseFieldLabels(
   return { ...DEFAULT_LABELS };
 }
 
+// 인라인 편집 가능한 라벨 컴포넌트
+function EditableLabel({
+  labelKey,
+  fieldLabels,
+  onLabelChange,
+}: {
+  labelKey: string;
+  fieldLabels: Record<string, string>;
+  onLabelChange: (key: string, value: string) => void;
+}) {
+  const [focused, setFocused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const defaultVal = DEFAULT_LABELS[labelKey as keyof typeof DEFAULT_LABELS] || "";
+  const active = focused || hovered;
+  return (
+    <input
+      type="text"
+      value={fieldLabels[labelKey] || ""}
+      onChange={(e) => onLabelChange(labelKey, e.target.value)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      placeholder={defaultVal}
+      title="클릭하여 라벨명 수정"
+      style={{
+        display: "inline-block",
+        border: active ? "1px dashed #9ca3af" : "1px dashed transparent",
+        borderRadius: "0.25rem",
+        padding: "0.125rem 0.375rem",
+        fontSize: "0.875rem",
+        fontWeight: 600,
+        color: "#374151",
+        background: active ? "#f9fafb" : "transparent",
+        outline: "none",
+        cursor: "text",
+        width: "auto",
+        minWidth: "4rem",
+        maxWidth: "14rem",
+        transition: "border-color 0.15s, background 0.15s",
+      }}
+    />
+  );
+}
+
 export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -101,7 +148,6 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
     subtitle: initialData?.subtitle || "",
     description: initialData?.description || "",
     client: initialData?.client || "",
-    category_id: initialData?.category_id || "",
     year: initialData?.year || new Date().getFullYear().toString(),
     tag: initialData?.tag || "",
     image: initialData?.image || "",
@@ -110,6 +156,7 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
     is_published: initialData?.is_published ?? true,
     linked_product_id: initialData?.linked_product_id || "",
     order_button_text: initialData?.order_button_text || "주문하기",
+    redirect_to_product: initialData?.redirect_to_product ?? false,
   });
 
   const [fieldLabels, setFieldLabels] = useState<Record<string, string>>(
@@ -283,7 +330,9 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
 
         <div style={styles.formRow}>
           <div style={styles.formGroup}>
-            <label style={styles.label}>클라이언트</label>
+            <label style={styles.label}>
+              <EditableLabel labelKey="meta1_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+            </label>
             <input
               type="text"
               name="client"
@@ -295,7 +344,29 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>연도</label>
+            <label style={styles.label}>
+              <EditableLabel labelKey="meta2_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+            </label>
+            <input
+              type="text"
+              list="tag-options"
+              value={formData.tag}
+              onChange={(e) => setFormData((prev) => ({ ...prev, tag: e.target.value }))}
+              placeholder="태그 선택 또는 직접 입력"
+              style={styles.input}
+            />
+            <datalist id="tag-options">
+              {existingTags.map((t) => (
+                <option key={t} value={t} />
+              ))}
+            </datalist>
+            <p style={styles.hint}>기존 태그를 선택하거나 새 태그를 직접 입력할 수 있습니다.</p>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>
+              <EditableLabel labelKey="meta3_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+            </label>
             <input
               type="text"
               name="year"
@@ -303,30 +374,6 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
               onChange={handleChange}
               placeholder="2024"
               style={styles.input}
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>태그</label>
-            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-              <select
-                value={existingTags.includes(formData.tag) ? formData.tag : ""}
-                onChange={(e) => setFormData((prev) => ({ ...prev, tag: e.target.value }))}
-                style={{ ...(styles.select || styles.input), flex: 1 }}
-              >
-                <option value="">태그 선택</option>
-                {existingTags.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-              <span style={{ color: "#999", fontSize: "0.75rem" }}>또는</span>
-            </div>
-            <input
-              type="text"
-              value={formData.tag}
-              onChange={(e) => setFormData((prev) => ({ ...prev, tag: e.target.value }))}
-              placeholder="직접 입력 (새 태그 가능)"
-              style={{ ...styles.input, marginTop: "0.5rem" }}
             />
           </div>
         </div>
@@ -352,7 +399,9 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
         />
 
         <div style={styles.formGroup}>
-          <label style={styles.label}>개요 (Overview)</label>
+          <label style={styles.label}>
+            <EditableLabel labelKey="overview_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+          </label>
           <textarea
             name="overview"
             value={formData.overview}
@@ -365,7 +414,9 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
 
         {/* Support 리스트 에디터 */}
         <div style={styles.formGroup}>
-          <label style={styles.label}>주요 내용 (Support)</label>
+          <label style={styles.label}>
+            <EditableLabel labelKey="support_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+          </label>
           <p style={styles.hint}>항목별로 입력하세요.</p>
           <div style={styles.listEditor}>
             {supportList.map((item, index) => (
@@ -398,7 +449,9 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
 
         {/* Achievements 리스트 에디터 */}
         <div style={styles.formGroup}>
-          <label style={styles.label}>상세 정보 (Achievements)</label>
+          <label style={styles.label}>
+            <EditableLabel labelKey="achievements_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+          </label>
           <p style={styles.hint}>제목/설명 형태로 입력하세요.</p>
           <div style={styles.listEditor}>
             {achievementsList.map((item, index) => (
@@ -451,12 +504,12 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
           style={{
             ...styles.formGroup,
             padding: "1rem",
-            background: "#f0fdf4",
+            background: "#f9fafb",
             borderRadius: "0.5rem",
-            border: "1px solid #bbf7d0",
+            border: "1px solid #e5e7eb",
           }}
         >
-          <label style={{ ...styles.label, color: "#166534" }}>
+          <label style={{ ...styles.label, color: "#374151" }}>
             연결 상품 (주문하기 버튼)
           </label>
           <p style={styles.hint}>
@@ -477,65 +530,43 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
           </select>
 
           {formData.linked_product_id && (
-            <div style={{ marginTop: "0.5rem" }}>
-              <label style={styles.label}>버튼 텍스트</label>
-              <input
-                type="text"
-                name="order_button_text"
-                value={formData.order_button_text}
-                onChange={handleChange}
-                placeholder="주문하기"
-                style={styles.input}
-              />
+            <div style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={formData.redirect_to_product}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      redirect_to_product: e.target.checked,
+                    }))
+                  }
+                  style={{ width: "1rem", height: "1rem", cursor: "pointer" }}
+                />
+                <span style={{ fontSize: "0.875rem", color: "#374151", fontWeight: 500 }}>
+                  상품 페이지로 바로 이동
+                </span>
+              </label>
+              {formData.redirect_to_product && (
+                <p style={{ fontSize: "0.75rem", color: "#b91c1c", background: "#fef2f2", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", margin: 0 }}>
+                  고객이 이 Prints를 클릭하면 상세 페이지 없이 바로 상품 페이지로 이동합니다.
+                </p>
+              )}
+              {!formData.redirect_to_product && (
+                <div>
+                  <label style={styles.label}>버튼 텍스트</label>
+                  <input
+                    type="text"
+                    name="order_button_text"
+                    value={formData.order_button_text}
+                    onChange={handleChange}
+                    placeholder="주문하기"
+                    style={styles.input}
+                  />
+                </div>
+              )}
             </div>
           )}
-        </div>
-
-        {/* 필드 라벨 커스터마이징 */}
-        <div
-          style={{
-            ...styles.formGroup,
-            padding: "1rem",
-            background: "#fefce8",
-            borderRadius: "0.5rem",
-            border: "1px solid #fde68a",
-          }}
-        >
-          <label style={{ ...styles.label, color: "#854d0e" }}>
-            필드 라벨 커스터마이징
-          </label>
-          <p style={styles.hint}>
-            상세 페이지에 표시되는 섹션 제목을 변경할 수 있습니다.
-          </p>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "0.5rem",
-            }}
-          >
-            {Object.entries(DEFAULT_LABELS).map(([key, defaultVal]) => (
-              <div key={key}>
-                <label
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "#6b7280",
-                    marginBottom: "0.25rem",
-                    display: "block",
-                  }}
-                >
-                  {defaultVal} 라벨
-                </label>
-                <input
-                  type="text"
-                  value={fieldLabels[key] || ""}
-                  onChange={(e) => handleLabelChange(key, e.target.value)}
-                  placeholder={defaultVal}
-                  style={styles.input}
-                />
-              </div>
-            ))}
-          </div>
         </div>
 
         <div style={styles.formGroup}>
@@ -558,7 +589,9 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
       </div>
 
       <div style={styles.editorSection}>
-        <label style={styles.label}>상세 내용</label>
+        <label style={styles.label}>
+          <EditableLabel labelKey="content_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+        </label>
         <p style={styles.hint}>
           슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.
         </p>

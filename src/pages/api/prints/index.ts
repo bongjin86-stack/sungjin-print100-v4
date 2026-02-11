@@ -33,7 +33,6 @@ export const POST: APIRoute = async ({ request }) => {
     subtitle,
     description,
     client,
-    category_id,
     year,
     tag,
     content,
@@ -44,6 +43,7 @@ export const POST: APIRoute = async ({ request }) => {
     is_published,
     linked_product_id,
     order_button_text,
+    redirect_to_product,
     field_labels,
   } = body;
 
@@ -62,7 +62,6 @@ export const POST: APIRoute = async ({ request }) => {
         subtitle: subtitle || "",
         description: description || "",
         client: client || "",
-        category_id: category_id || null,
         year: year || new Date().getFullYear().toString(),
         tag: tag || "",
         content: content || "",
@@ -73,6 +72,7 @@ export const POST: APIRoute = async ({ request }) => {
         is_published: is_published ?? true,
         linked_product_id: linked_product_id || null,
         order_button_text: order_button_text || "주문하기",
+        redirect_to_product: redirect_to_product ?? false,
         field_labels: field_labels || null,
       },
     ])

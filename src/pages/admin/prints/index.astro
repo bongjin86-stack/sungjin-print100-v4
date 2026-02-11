@@ -47,11 +47,7 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) => a.localeCompare(b))
         <p class="tag-empty">등록된 태그가 없습니다.</p>
       )}
     </div>
-    <div class="tag-add">
-      <input type="text" id="newTagInput" placeholder="새 태그 입력" />
-      <button id="addTagBtn" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">추가</button>
-    </div>
-    <p class="tag-hint">태그를 추가하면 Prints 작성 시 선택할 수 있습니다. 삭제하면 해당 태그를 사용 중인 Prints에서도 제거됩니다.</p>
+    <p class="tag-hint">Prints 작성/수정 시 새 태그를 직접 입력하면 자동으로 등록됩니다. 삭제하면 해당 태그를 사용 중인 Prints에서도 제거됩니다.</p>
   </div>
 
   <div class="prints-list">
@@ -325,26 +321,6 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) => a.localeCompare(b))
     background: #fee2e2;
   }
 
-  .tag-add {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .tag-add input {
-    flex: 1;
-    max-width: 300px;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-  }
-
-  .tag-add input:focus {
-    outline: none;
-    border-color: var(--c-primary, #000);
-  }
-
   .tag-empty {
     color: var(--c-text-sub);
     font-size: 0.875rem;
@@ -411,16 +387,4 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) => a.localeCompare(b))
     });
   });
 
-  // 새 태그 추가 (빈 prints에 태그를 추가하는 게 아니라, 태그 목록에만 등록)
-  // 실제로는 prints에 태그를 부여해야 의미가 있으므로 안내만 표시
-  document.getElementById("addTagBtn")?.addEventListener("click", () => {
-    const input = document.getElementById("newTagInput") as HTMLInputElement;
-    const newTag = input.value.trim();
-    if (!newTag) {
-      alert("태그 이름을 입력해주세요.");
-      return;
-    }
-    alert(`"${newTag}" 태그는 Prints 작성/수정 시 태그 드롭다운에서 직접 입력하면 자동으로 등록됩니다.`);
-    input.value = "";
-  });
 </script>
