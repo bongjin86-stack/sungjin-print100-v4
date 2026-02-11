@@ -33,7 +33,6 @@ export default function ProductView({ product: initialProduct }) {
   const [pricingDataLoaded, setPricingDataLoaded] = useState(false);
   const [serverPrice, setServerPrice] = useState(null);
   const [qtyPrices, setQtyPrices] = useState({});
-  const [detailOpen, setDetailOpen] = useState(true);
   const debounceRef = useRef(null);
 
   useEffect(() => {
@@ -139,10 +138,7 @@ export default function ProductView({ product: initialProduct }) {
   }
 
   const content = product.content || {};
-  const blocks = product.blocks?.filter((b) => b.on && !b.hidden && b.type !== "guide") || [];
-  const detailBlocks = blocks.filter((b) => b.type !== "quantity");
-  const quantityBlock = blocks.find((b) => b.type === "quantity");
-  const guideBlocks = product?.blocks?.filter((b) => b.on && !b.hidden && b.type === "guide") || [];
+  const allBlocks = product.blocks?.filter((b) => b.on && !b.hidden) || [];
   const linkStatus = checkLinkRules(product?.blocks, customer);
 
 
@@ -261,8 +257,9 @@ export default function ProductView({ product: initialProduct }) {
           {/* 주요 특징 */}
           {renderFeatures(content)}
 
-          {/* 가이드 블록들 */}
-          {guideBlocks.map((block, gIdx) => {
+          {/* 블록 빌더 순서대로 렌더링 */}
+          {allBlocks.map((block) => {
+            if (block.type === "guide") {
               const gCfg = block.config || {};
               const gOptions = gCfg.options || [];
               const guideState = customer.guides?.[block.id] || {
@@ -350,60 +347,26 @@ export default function ProductView({ product: initialProduct }) {
                   )}
                 </div>
               );
-            })}
+            }
 
-          {/* 상세옵션 (1-2 완료 시 자동 오픈) */}
-          {detailBlocks.length > 0 && (
-            <>
-              {!detailOpen ? (
-                <div className="pv-step-locked">
-                  <span className="pv-step-title">상세옵션</span>
-                </div>
-              ) : (
-                <>
-                  <div className="pv-detail-header" onClick={() => setDetailOpen(!detailOpen)}>
-                    <span className="pv-detail-label">상세옵션</span>
-                    <span className={`pv-detail-arrow open`}>&#9660;</span>
-                  </div>
-                  {detailBlocks.map((block) => (
-                    <PreviewBlock
-                      key={block.id}
-                      block={block}
-                      customer={customer}
-                      setCustomer={setCustomer}
-                      qtyPrices={qtyPrices}
-                      linkStatus={linkStatus}
-                      handleFoldSelect={handleFoldSelect}
-                      productType={product.product_type || product.id}
-                      dbPapers={dbPapers}
-                      dbPapersList={dbPapersList}
-                      allBlocks={product?.blocks || []}
-                      thicknessError={price.thicknessValidation?.error}
-                      dbSizes={dbSizes}
-                    />
-                  ))}
-                </>
-              )}
-            </>
-          )}
-
-          {/* 수량 (항상 보임) */}
-          {quantityBlock && (
-            <PreviewBlock
-              block={quantityBlock}
-              customer={customer}
-              setCustomer={setCustomer}
-              qtyPrices={qtyPrices}
-              linkStatus={linkStatus}
-              handleFoldSelect={handleFoldSelect}
-              productType={product.product_type || product.id}
-              dbPapers={dbPapers}
-              dbPapersList={dbPapersList}
-              allBlocks={product?.blocks || []}
-              thicknessError={price.thicknessValidation?.error}
-              dbSizes={dbSizes}
-            />
-          )}
+            return (
+              <PreviewBlock
+                key={block.id}
+                block={block}
+                customer={customer}
+                setCustomer={setCustomer}
+                qtyPrices={qtyPrices}
+                linkStatus={linkStatus}
+                handleFoldSelect={handleFoldSelect}
+                productType={product.product_type || product.id}
+                dbPapers={dbPapers}
+                dbPapersList={dbPapersList}
+                allBlocks={product?.blocks || []}
+                thicknessError={price.thicknessValidation?.error}
+                dbSizes={dbSizes}
+              />
+            );
+          })}
 
           {/* 가격 표시 - 공유 컴포넌트 */}
           <PriceBox
