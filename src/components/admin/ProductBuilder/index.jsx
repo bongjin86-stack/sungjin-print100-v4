@@ -197,7 +197,6 @@ export default function AdminBuilder() {
   const [descInput, setDescInput] = useState("");
   const [newQtyInput, setNewQtyInput] = useState("");
   const [showBlockLibrary, setShowBlockLibrary] = useState(false);
-  const [builderDetailOpen, setBuilderDetailOpen] = useState(true);
 
   // 템플릿 편집 상태
   const [editingTemplateId, setEditingTemplateId] = useState(null);
@@ -1195,162 +1194,117 @@ export default function AdminBuilder() {
                 />
               </div>
 
-              {/* 가이드 블록들 */}
+              {/* 블록 빌더 순서대로 렌더링 */}
               {currentProduct?.blocks
-                ?.filter((b) => b.on && !b.hidden && b.type === "guide")
-                .map((block, gIdx) => {
-                  const gCfg = block.config || {};
-                  const gOptions = gCfg.options || [];
-                  const guideState = customer.guides?.[block.id] || {
-                    selected: gCfg.default || gOptions[0]?.id || "",
-                    confirmed: false,
-                  };
-                  const isOpen = !guideState.confirmed;
-                  const selectedOpt = gOptions.find((o) => o.id === guideState.selected);
+                ?.filter((b) => b.on && !b.hidden)
+                .map((block) => {
+                  if (block.type === "guide") {
+                    const gCfg = block.config || {};
+                    const gOptions = gCfg.options || [];
+                    const guideState = customer.guides?.[block.id] || {
+                      selected: gCfg.default || gOptions[0]?.id || "",
+                      confirmed: false,
+                    };
+                    const isOpen = !guideState.confirmed;
+                    const selectedOpt = gOptions.find((o) => o.id === guideState.selected);
 
-                  return (
-                    <div key={block.id}>
-                      <div className="mt-5 pt-5 border-t border-gray-100 flex items-center">
-                        <span className="text-sm font-semibold text-gray-700">{gCfg.title || block.label}</span>
-                        {!isOpen && (
-                          <button
-                            className="text-xs text-gray-400 font-medium ml-auto hover:text-gray-700 transition-colors"
-                            onClick={() => setCustomer((prev) => ({
-                              ...prev,
-                              guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
-                            }))}
-                          >
-                            변경
-                          </button>
-                        )}
-                      </div>
-                      {isOpen ? (
-                        <div className="mt-3 flex flex-col gap-3">
-                          {gOptions.map((opt, idx) => {
-                            const isCurrent = guideState.selected === opt.id;
-                            return (
-                              <div
-                                key={opt.id}
-                                className={`relative rounded-2xl border-2 p-4 cursor-pointer transition-all ${
-                                  isCurrent ? "border-[#222828] bg-[#fafafa]" : "border-gray-200 bg-white hover:border-gray-300"
-                                }`}
-                                onClick={() => setCustomer((prev) => ({
-                                  ...prev,
-                                  guides: { ...prev.guides, [block.id]: { selected: opt.id, confirmed: true } },
-                                }))}
-                              >
-                                <div className="flex items-start gap-3">
-                                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                                    isCurrent ? "bg-[#222828] text-white" : "bg-gray-200 text-gray-500"
-                                  }`}>{idx + 1}</span>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm font-semibold text-gray-900">{opt.label}</span>
-                                      {opt.price > 0 && (
-                                        <span className="text-xs font-semibold text-orange-600">+{opt.price.toLocaleString()}원</span>
-                                      )}
+                    return (
+                      <div key={block.id}>
+                        <div className="mt-5 pt-5 border-t border-gray-100 flex items-center">
+                          <span className="text-sm font-semibold text-gray-700">{gCfg.title || block.label}</span>
+                          {!isOpen && (
+                            <button
+                              className="text-xs text-gray-400 font-medium ml-auto hover:text-gray-700 transition-colors"
+                              onClick={() => setCustomer((prev) => ({
+                                ...prev,
+                                guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
+                              }))}
+                            >
+                              변경
+                            </button>
+                          )}
+                        </div>
+                        {isOpen ? (
+                          <div className="mt-3 flex flex-col gap-3">
+                            {gOptions.map((opt, idx) => {
+                              const isCurrent = guideState.selected === opt.id;
+                              return (
+                                <div
+                                  key={opt.id}
+                                  className={`relative rounded-2xl border-2 p-4 cursor-pointer transition-all ${
+                                    isCurrent ? "border-[#222828] bg-[#fafafa]" : "border-gray-200 bg-white hover:border-gray-300"
+                                  }`}
+                                  onClick={() => setCustomer((prev) => ({
+                                    ...prev,
+                                    guides: { ...prev.guides, [block.id]: { selected: opt.id, confirmed: true } },
+                                  }))}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                                      isCurrent ? "bg-[#222828] text-white" : "bg-gray-200 text-gray-500"
+                                    }`}>{idx + 1}</span>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm font-semibold text-gray-900">{opt.label}</span>
+                                        {opt.price > 0 && (
+                                          <span className="text-xs font-semibold text-orange-600">+{opt.price.toLocaleString()}원</span>
+                                        )}
+                                      </div>
+                                      {opt.hint && renderBuilderHint(opt.hint)}
                                     </div>
-                                    {opt.hint && renderBuilderHint(opt.hint)}
                                   </div>
+                                  {isCurrent && (
+                                    <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#222828] flex items-center justify-center">
+                                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                    </span>
+                                  )}
                                 </div>
-                                {isCurrent && (
-                                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#222828] flex items-center justify-center">
-                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                  </span>
+                              );
+                            })}
+                          </div>
+                        ) : selectedOpt && (
+                          <div className="mt-3">
+                            <div
+                              className="rounded-2xl border-2 border-[#222828] bg-[#fafafa] px-4 py-3 cursor-pointer"
+                              onClick={() => setCustomer((prev) => ({
+                                ...prev,
+                                guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
+                              }))}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="w-5 h-5 rounded-full bg-[#222828] flex items-center justify-center flex-shrink-0">
+                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                </span>
+                                <span className="text-sm font-semibold text-gray-900">{selectedOpt.label}</span>
+                                {selectedOpt.price > 0 && (
+                                  <span className="text-xs font-semibold text-orange-600">+{selectedOpt.price.toLocaleString()}원</span>
                                 )}
                               </div>
-                            );
-                          })}
-                        </div>
-                      ) : selectedOpt && (
-                        <div className="mt-3">
-                          <div
-                            className="rounded-2xl border-2 border-[#222828] bg-[#fafafa] px-4 py-3 cursor-pointer"
-                            onClick={() => setCustomer((prev) => ({
-                              ...prev,
-                              guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
-                            }))}
-                          >
-                            <div className="flex items-center gap-3">
-                              <span className="w-5 h-5 rounded-full bg-[#222828] flex items-center justify-center flex-shrink-0">
-                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                              </span>
-                              <span className="text-sm font-semibold text-gray-900">{selectedOpt.label}</span>
-                              {selectedOpt.price > 0 && (
-                                <span className="text-xs font-semibold text-orange-600">+{selectedOpt.price.toLocaleString()}원</span>
-                              )}
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <PreviewBlock
+                      key={block.id}
+                      block={block}
+                      customer={customer}
+                      setCustomer={setCustomer}
+                      qtyPrices={qtyPrices}
+                      linkStatus={linkStatus}
+                      handleFoldSelect={handleFoldSelect}
+                      productType={currentTemplateId}
+                      dbPapers={dbPapers}
+                      dbPapersList={dbPapersList}
+                      allBlocks={currentProduct.blocks}
+                      thicknessError={price.thicknessValidation?.error}
+                      dbSizes={dbSizes}
+                    />
                   );
                 })}
-
-              {/* 상세옵션 아코디언 */}
-              {(() => {
-                const allBlocks = currentProduct.blocks.filter((b) => b.on && !b.hidden && b.type !== "guide");
-                const detailBlks = allBlocks.filter((b) => b.type !== "quantity");
-                const qtyBlk = allBlocks.find((b) => b.type === "quantity");
-
-                return (
-                  <>
-                    {detailBlks.length > 0 && (
-                      <>
-                        {!builderDetailOpen ? (
-                          <div className="flex items-center gap-2 py-3 mt-2 border-b border-gray-200 opacity-50">
-                            <span className="text-sm font-semibold text-gray-400">상세옵션</span>
-                          </div>
-                        ) : (
-                          <>
-                            <div
-                              className="flex items-center justify-between py-3 mt-2 border-b border-gray-200 cursor-pointer select-none"
-                              onClick={() => setBuilderDetailOpen(!builderDetailOpen)}
-                            >
-                              <span className="text-sm font-semibold text-gray-700">상세옵션</span>
-                              <span className="text-[10px] text-gray-400 transition-transform duration-200 rotate-180">&#9660;</span>
-                            </div>
-                            {detailBlks.map((block) => (
-                              <PreviewBlock
-                                key={block.id}
-                                block={block}
-                                customer={customer}
-                                setCustomer={setCustomer}
-                                qtyPrices={qtyPrices}
-                                linkStatus={linkStatus}
-                                handleFoldSelect={handleFoldSelect}
-                                productType={currentTemplateId}
-                                dbPapers={dbPapers}
-                                dbPapersList={dbPapersList}
-                                allBlocks={currentProduct.blocks}
-                                thicknessError={price.thicknessValidation?.error}
-                                dbSizes={dbSizes}
-                              />
-                            ))}
-                          </>
-                        )}
-                      </>
-                    )}
-
-                    {qtyBlk && (
-                      <PreviewBlock
-                        block={qtyBlk}
-                        customer={customer}
-                        setCustomer={setCustomer}
-                        qtyPrices={qtyPrices}
-                        linkStatus={linkStatus}
-                        handleFoldSelect={handleFoldSelect}
-                        productType={currentTemplateId}
-                        dbPapers={dbPapers}
-                        dbPapersList={dbPapersList}
-                        allBlocks={currentProduct.blocks}
-                        thicknessError={price.thicknessValidation?.error}
-                        dbSizes={dbSizes}
-                      />
-                    )}
-                  </>
-                );
-              })()}
 
               {/* 가격 표시 - 공유 컴포넌트 사용 */}
               <PriceDisplay
