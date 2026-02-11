@@ -17,7 +17,7 @@ export const prerender = false;
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { customer, qty, productType, allQtys } = body;
+    const { customer, qty, productType, allQtys, addonOptions, selectedAddons } = body;
 
     if (!customer || !qty || qty <= 0) {
       return new Response(
@@ -29,7 +29,22 @@ export const POST: APIRoute = async ({ request }) => {
     // Ensure pricing data is loaded (cached after first call)
     await loadPricingData();
 
+    // Calculate addon total from selected options
+    let addonTotal = 0;
+    if (Array.isArray(addonOptions) && Array.isArray(selectedAddons)) {
+      for (const addon of addonOptions) {
+        if (selectedAddons.includes(addon.option_id) && addon.enabled !== false) {
+          addonTotal += addon.price || 0;
+        }
+      }
+    }
+
     const selected = calculatePrice(customer, qty, productType || "flyer");
+    // Add addon cost to total
+    if (addonTotal > 0) {
+      selected.addonTotal = addonTotal;
+      selected.total = (selected.total || 0) + addonTotal;
+    }
 
     // Calculate prices for all quantity options (for quantity table display)
     let byQty: Record<number, unknown> | undefined;
@@ -37,7 +52,12 @@ export const POST: APIRoute = async ({ request }) => {
       byQty = {};
       for (const q of allQtys) {
         try {
-          byQty[q] = calculatePrice(customer, q, productType || "flyer");
+          const result = calculatePrice(customer, q, productType || "flyer") as Record<string, unknown>;
+          if (addonTotal > 0) {
+            result.addonTotal = addonTotal;
+            result.total = ((result.total as number) || 0) + addonTotal;
+          }
+          byQty[q] = result;
         } catch {
           byQty[q] = null;
         }

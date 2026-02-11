@@ -26,6 +26,7 @@ export default function ProductView({ product: initialProduct }) {
     extractDefaultsFromBlocks(initialProduct?.blocks)
   );
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedAddons, setSelectedAddons] = useState([]);
   const [dbPapers, setDbPapers] = useState({});
   const [dbPapersList, setDbPapersList] = useState([]);
   const [dbSizes, setDbSizes] = useState(null);
@@ -95,6 +96,8 @@ export default function ProductView({ product: initialProduct }) {
             qty: customer.qty,
             productType: product.product_type || product.id,
             allQtys,
+            addonOptions: product.addon_options || [],
+            selectedAddons,
           }),
         });
         if (res.ok) {
@@ -110,7 +113,7 @@ export default function ProductView({ product: initialProduct }) {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [customer, pricingDataLoaded]);
+  }, [customer, pricingDataLoaded, selectedAddons]);
 
   if (!product) {
     return (
@@ -233,6 +236,52 @@ export default function ProductView({ product: initialProduct }) {
               })}
             </div>
           )}
+
+          {/* 추가 옵션 카드 */}
+          {(() => {
+            const enabledAddons = (product.addon_options || []).filter(
+              (a) => a.enabled !== false
+            );
+            if (enabledAddons.length === 0) return null;
+            return (
+              <div className="pv-addons">
+                <div className="pv-addons-title">추가 옵션</div>
+                <div className="pv-addon-list">
+                  {enabledAddons.map((addon) => {
+                    const isSelected = selectedAddons.includes(addon.option_id);
+                    return (
+                      <div
+                        key={addon.option_id}
+                        className={`pv-addon-card ${isSelected ? "selected" : ""}`}
+                        onClick={() => {
+                          setSelectedAddons((prev) =>
+                            isSelected
+                              ? prev.filter((id) => id !== addon.option_id)
+                              : [...prev, addon.option_id]
+                          );
+                        }}
+                      >
+                        <div className="pv-addon-check">
+                          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="2 6 5 9 10 3" />
+                          </svg>
+                        </div>
+                        <div className="pv-addon-content">
+                          <div className="pv-addon-header">
+                            <span className="pv-addon-label">{addon.label}</span>
+                            <span className="pv-addon-price">+{addon.price.toLocaleString()}원</span>
+                          </div>
+                          {addon.description && (
+                            <p className="pv-addon-desc">{addon.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* 오른쪽: 옵션 영역 */}
@@ -320,6 +369,8 @@ export default function ProductView({ product: initialProduct }) {
                     : null,
                   // Server-side price verification data
                   customerSelection: customer,
+                  addonOptions: product.addon_options || [],
+                  selectedAddons,
                 })
               );
 

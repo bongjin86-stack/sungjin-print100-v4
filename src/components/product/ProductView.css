@@ -1149,6 +1149,111 @@
   text-align: right;
 }
 
+/* Addon options - moo.com style cards */
+.pv-addons {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.pv-addons-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #222828;
+  margin-bottom: 0.75rem;
+}
+
+.pv-addon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pv-addon-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-4xl, 1.5rem);
+  border: 1px solid var(--c-border-light, #f0f2f2);
+  background: var(--c-bg, white);
+  cursor: pointer;
+  transition: all var(--transition-slow, 300ms)
+    var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1));
+}
+
+.pv-addon-card:hover:not(.selected) {
+  border-color: var(--c-border, #d9d9d9);
+}
+
+.pv-addon-card.selected {
+  border-color: var(--c-primary, #222828);
+  background: #f7f8f8;
+}
+
+.pv-addon-check {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.375rem;
+  border: 1.5px solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.125rem;
+  transition: all var(--transition-base, 200ms);
+}
+
+.pv-addon-card.selected .pv-addon-check {
+  background: var(--c-primary, #222828);
+  border-color: var(--c-primary, #222828);
+}
+
+.pv-addon-check svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: white;
+  opacity: 0;
+  transition: opacity var(--transition-base, 200ms);
+}
+
+.pv-addon-card.selected .pv-addon-check svg {
+  opacity: 1;
+}
+
+.pv-addon-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.pv-addon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.pv-addon-label {
+  font-size: var(--fs-sm, 0.875rem);
+  font-weight: 500;
+  color: var(--c-text, #222828);
+}
+
+.pv-addon-price {
+  font-size: var(--fs-sm, 0.875rem);
+  font-weight: 500;
+  color: var(--c-text-sub, #5a6262);
+  white-space: nowrap;
+}
+
+.pv-addon-desc {
+  font-size: var(--fs-xs, 0.75rem);
+  color: var(--c-text-light, #8a9292);
+  line-height: 1.5;
+  margin-top: 0.25rem;
+  white-space: pre-line;
+}
+
 /* Order button */
 /* Order button - Nagi style fill animation */
 .pv-order-btn {

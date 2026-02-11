@@ -4,10 +4,10 @@ import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
-// GET - 목록 조회
+// GET - 옵션 라이브러리 목록
 export const GET: APIRoute = async () => {
   const { data, error } = await supabase
-    .from("products")
+    .from("addon_options")
     .select("*")
     .order("sort_order", { ascending: true });
 
@@ -24,52 +24,26 @@ export const GET: APIRoute = async () => {
   });
 };
 
-// POST - 새 상품 생성
+// POST - 새 옵션 등록
 export const POST: APIRoute = async ({ request }) => {
   const body = await request.json();
 
-  const {
-    id,
-    name,
-    slug,
-    description,
-    main_image,
-    icon,
-    sort_order,
-    content,
-    blocks,
-    product_type,
-    is_published,
-    addon_options,
-  } = body;
+  const { label, description, price } = body;
 
-  if (!id || !name) {
-    return new Response(
-      JSON.stringify({ message: "id와 name은 필수입니다." }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+  if (!label) {
+    return new Response(JSON.stringify({ message: "라벨은 필수입니다." }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   const { data, error } = await supabase
-    .from("products")
-    .upsert([
+    .from("addon_options")
+    .insert([
       {
-        id,
-        name,
-        slug: slug || null,
+        label,
         description: description || "",
-        main_image: main_image || null,
-        icon: icon || "📄",
-        sort_order: sort_order ?? 0,
-        content: content || {},
-        blocks: blocks || [],
-        product_type: product_type || null,
-        is_published: is_published ?? true,
-        addon_options: addon_options || [],
-        updated_at: new Date().toISOString(),
+        price: price || 0,
       },
     ])
     .select()

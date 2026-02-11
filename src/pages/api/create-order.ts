@@ -30,7 +30,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const { customer, qty, productType } = priceInput;
+    const { customer, qty, productType, addonOptions, selectedAddons } = priceInput;
 
     if (!customer || !qty || qty <= 0) {
       return new Response(
@@ -42,7 +42,18 @@ export const POST: APIRoute = async ({ request }) => {
     // --- Server-side price recalculation ---
     await loadPricingData();
     const serverResult = calculatePrice(customer, qty, productType || "flyer");
-    const serverPrice = serverResult.total;
+
+    // Add addon costs
+    let addonTotal = 0;
+    if (Array.isArray(addonOptions) && Array.isArray(selectedAddons)) {
+      for (const addon of addonOptions) {
+        if (selectedAddons.includes(addon.option_id) && addon.enabled !== false) {
+          addonTotal += addon.price || 0;
+        }
+      }
+    }
+
+    const serverPrice = serverResult.total + addonTotal;
     const submittedPrice = orderData.productAmount;
 
     // --- Price discrepancy check ---

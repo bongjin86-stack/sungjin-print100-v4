@@ -167,6 +167,12 @@ export default function AdminBuilder() {
   // 상품 이미지 업로드 상태
   const [imageUploading, setImageUploading] = useState(false);
 
+  // 추가 옵션 라이브러리 (DB)
+  const [addonLibrary, setAddonLibrary] = useState([]);
+  const [showAddonLibrary, setShowAddonLibrary] = useState(false);
+  const [showAddonCreate, setShowAddonCreate] = useState(false);
+  const [newAddon, setNewAddon] = useState({ label: "", description: "", price: 0 });
+
   // 서버 가격 계산
   const { serverPrice, qtyPrices } = usePriceCalculation(
     customer,
@@ -184,6 +190,16 @@ export default function AdminBuilder() {
     useRef(null),
     useRef(null),
   ];
+
+  // 추가 옵션 라이브러리 로드
+  useEffect(() => {
+    fetch("/api/addon-options")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setAddonLibrary(data);
+      })
+      .catch((err) => console.warn("addon library load error:", err));
+  }, []);
 
   // localStorage 저장
   useEffect(() => {
@@ -247,6 +263,7 @@ export default function AdminBuilder() {
 
         const parsedContent = parseJson(product.content, {});
         const parsedBlocks = parseJson(product.blocks, []);
+        const parsedAddons = parseJson(product.addon_options, []);
 
         // DB 상품 데이터를 빌더 형식으로 변환
         const builderProduct = {
@@ -254,6 +271,7 @@ export default function AdminBuilder() {
           name: product.name,
           product_type: product.product_type,
           blocks: parsedBlocks,
+          addon_options: parsedAddons,
           content: {
             title: parsedContent.title || product.name,
             description: parsedContent.description || product.description || "",
@@ -513,6 +531,7 @@ export default function AdminBuilder() {
         blocks: prod.blocks || [],
         product_type: prod.productType || null,
         is_published: true,
+        addon_options: prod.addon_options || [],
       }),
     })
       .then((res) => {
@@ -1099,6 +1118,364 @@ export default function AdminBuilder() {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* 추가 옵션 섹션 */}
+              <div className="mt-5 pt-5 border-t border-gray-100">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-semibold text-gray-700">추가 옵션</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddonLibrary(true)}
+                    className="text-xs px-2 py-1 border border-gray-200 hover:border-gray-400 rounded-md text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    + 추가
+                  </button>
+                </div>
+
+                {/* 현재 상품의 옵션 목록 */}
+                {(currentProduct.addon_options || []).length === 0 ? (
+                  <p className="text-xs text-gray-400 text-center py-4">
+                    추가 옵션이 없습니다
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {(currentProduct.addon_options || []).map((addon, idx) => (
+                      <div
+                        key={addon.option_id || idx}
+                        className="border border-gray-200 rounded-xl p-3 relative"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <input
+                              type="text"
+                              value={addon.label}
+                              onChange={(e) => {
+                                const newAddons = [...currentProduct.addon_options];
+                                newAddons[idx] = { ...newAddons[idx], label: e.target.value };
+                                setCurrentProduct((prev) => ({ ...prev, addon_options: newAddons }));
+                              }}
+                              className="text-sm font-medium text-gray-800 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-gray-400 outline-none w-full"
+                              placeholder="옵션명"
+                            />
+                            <textarea
+                              value={addon.description || ""}
+                              onChange={(e) => {
+                                const newAddons = [...currentProduct.addon_options];
+                                newAddons[idx] = { ...newAddons[idx], description: e.target.value };
+                                setCurrentProduct((prev) => ({ ...prev, addon_options: newAddons }));
+                              }}
+                              rows={2}
+                              className="mt-1 text-xs text-gray-500 bg-transparent border border-transparent hover:border-gray-200 focus:border-gray-400 outline-none w-full resize-none rounded"
+                              placeholder="설명"
+                            />
+                          </div>
+                          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                value={addon.price}
+                                onChange={(e) => {
+                                  const newAddons = [...currentProduct.addon_options];
+                                  newAddons[idx] = { ...newAddons[idx], price: parseInt(e.target.value) || 0 };
+                                  setCurrentProduct((prev) => ({ ...prev, addon_options: newAddons }));
+                                }}
+                                className="w-20 text-right text-sm font-medium text-gray-700 border border-gray-200 rounded px-2 py-0.5"
+                              />
+                              <span className="text-xs text-gray-400">원</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newAddons = currentProduct.addon_options.filter((_, i) => i !== idx);
+                                setCurrentProduct((prev) => ({ ...prev, addon_options: newAddons }));
+                              }}
+                              className="text-xs text-gray-300 hover:text-red-400 transition-colors"
+                            >
+                              삭제
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
+                          <label className="flex items-center gap-1.5 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={addon.enabled !== false}
+                              onChange={(e) => {
+                                const newAddons = [...currentProduct.addon_options];
+                                newAddons[idx] = { ...newAddons[idx], enabled: e.target.checked };
+                                setCurrentProduct((prev) => ({ ...prev, addon_options: newAddons }));
+                              }}
+                              className="checkbox checkbox-xs"
+                            />
+                            <span className="text-xs text-gray-500">고객에게 표시</span>
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 라이브러리 모달 */}
+                {showAddonLibrary && (
+                  <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+                    <div className="bg-white rounded-2xl shadow-xl w-[480px] max-h-[600px] flex flex-col">
+                      <div className="flex items-center justify-between p-5 pb-3 border-b border-gray-100">
+                        <h3 className="font-bold text-gray-900">옵션 라이브러리</h3>
+                        <button onClick={() => setShowAddonLibrary(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">✕</button>
+                      </div>
+                      <div className="flex-1 overflow-auto p-5 pt-3">
+                        {addonLibrary.filter((lib) => lib.is_active).length === 0 ? (
+                          <p className="text-sm text-gray-400 text-center py-6">등록된 옵션이 없습니다</p>
+                        ) : (
+                          <div className="flex flex-col gap-2">
+                            {addonLibrary.filter((lib) => lib.is_active).map((lib) => {
+                              const alreadyAdded = (currentProduct.addon_options || []).some(
+                                (a) => a.option_id === lib.id
+                              );
+                              const isEditing = lib._editing;
+                              return (
+                                <div
+                                  key={lib.id}
+                                  className={`p-3 border rounded-xl transition-colors ${
+                                    alreadyAdded
+                                      ? "border-gray-100 bg-gray-50/50"
+                                      : "border-gray-200"
+                                  }`}
+                                >
+                                  {isEditing ? (
+                                    /* 수정 모드 */
+                                    <div className="flex flex-col gap-2">
+                                      <input
+                                        type="text"
+                                        value={lib.label}
+                                        onChange={(e) => setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...l, label: e.target.value } : l))}
+                                        className="text-sm font-medium border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-gray-400"
+                                      />
+                                      <textarea
+                                        value={lib.description || ""}
+                                        onChange={(e) => setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...l, description: e.target.value } : l))}
+                                        rows={2}
+                                        className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-gray-400 resize-none"
+                                      />
+                                      <div className="flex items-center gap-1">
+                                        <input
+                                          type="number"
+                                          value={lib.price}
+                                          onChange={(e) => setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...l, price: parseInt(e.target.value) || 0 } : l))}
+                                          className="w-24 text-sm border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-gray-400 text-right"
+                                        />
+                                        <span className="text-xs text-gray-400">원</span>
+                                      </div>
+                                      <div className="flex justify-end gap-1 mt-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...l, _editing: false } : l))}
+                                          className="text-xs px-2 py-1 text-gray-400 hover:text-gray-600"
+                                        >
+                                          취소
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={async () => {
+                                            try {
+                                              const res = await fetch(`/api/addon-options/${lib.id}`, {
+                                                method: "PUT",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({ label: lib.label, description: lib.description, price: lib.price }),
+                                              });
+                                              if (!res.ok) throw new Error("수정 실패");
+                                              const updated = await res.json();
+                                              setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...updated, _editing: false } : l));
+                                            } catch (err) {
+                                              alert("수정 실패: " + err.message);
+                                            }
+                                          }}
+                                          className="text-xs px-3 py-1 bg-gray-800 text-white rounded-md hover:bg-gray-900"
+                                        >
+                                          저장
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    /* 보기 모드 */
+                                    <>
+                                      <div className="flex justify-between items-start">
+                                        <span className="text-sm font-medium text-gray-800">{lib.label}</span>
+                                        <span className="text-sm text-gray-500 flex-shrink-0">+{lib.price.toLocaleString()}원</span>
+                                      </div>
+                                      {lib.description && (
+                                        <p className="text-xs text-gray-400 mt-1 whitespace-pre-line">{lib.description}</p>
+                                      )}
+                                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
+                                        <div className="flex gap-2">
+                                          <button
+                                            type="button"
+                                            onClick={() => setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...l, _editing: true } : l))}
+                                            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                                          >
+                                            수정
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={async () => {
+                                              if (!confirm(`"${lib.label}" 옵션을 라이브러리에서 삭제하시겠습니까?`)) return;
+                                              try {
+                                                const res = await fetch(`/api/addon-options/${lib.id}`, { method: "DELETE" });
+                                                if (!res.ok) throw new Error("삭제 실패");
+                                                setAddonLibrary((prev) => prev.filter((l) => l.id !== lib.id));
+                                              } catch (err) {
+                                                alert("삭제 실패: " + err.message);
+                                              }
+                                            }}
+                                            className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                                          >
+                                            삭제
+                                          </button>
+                                        </div>
+                                        {alreadyAdded ? (
+                                          <span className="text-xs text-gray-400">추가됨</span>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setCurrentProduct((prev) => ({
+                                                ...prev,
+                                                addon_options: [
+                                                  ...(prev.addon_options || []),
+                                                  {
+                                                    option_id: lib.id,
+                                                    label: lib.label,
+                                                    description: lib.description,
+                                                    price: lib.price,
+                                                    enabled: true,
+                                                  },
+                                                ],
+                                              }));
+                                            }}
+                                            className="text-xs px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded transition-colors"
+                                          >
+                                            추가
+                                          </button>
+                                        )}
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-5 pt-3 border-t border-gray-100 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewAddon({ label: "", description: "", price: 0 });
+                            setShowAddonCreate(true);
+                          }}
+                          className="flex-1 py-2 text-sm text-gray-600 hover:text-gray-800 border border-dashed border-gray-300 hover:border-gray-400 rounded-lg transition-colors"
+                        >
+                          + 새 옵션 만들기
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowAddonLibrary(false)}
+                          className="px-4 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          닫기
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 새 옵션 만들기 모달 */}
+                {showAddonCreate && (
+                  <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+                    <div className="bg-white rounded-2xl shadow-xl w-[400px] p-5">
+                      <h3 className="font-bold text-gray-900 mb-4">새 옵션 만들기</h3>
+                      <div className="flex flex-col gap-3">
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">옵션명 *</label>
+                          <input
+                            type="text"
+                            value={newAddon.label}
+                            onChange={(e) => setNewAddon((p) => ({ ...p, label: e.target.value }))}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400"
+                            placeholder="표지 편집"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">설명</label>
+                          <textarea
+                            value={newAddon.description}
+                            onChange={(e) => setNewAddon((p) => ({ ...p, description: e.target.value }))}
+                            rows={3}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 resize-none"
+                            placeholder="정사이즈로 작업하셨나요? 정사이즈가 아닌 경우 편집비가 발생합니다."
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">가격 (원)</label>
+                          <input
+                            type="number"
+                            value={newAddon.price}
+                            onChange={(e) => setNewAddon((p) => ({ ...p, price: parseInt(e.target.value) || 0 }))}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400"
+                            placeholder="5000"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2 mt-4">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddonCreate(false)}
+                          className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700"
+                        >
+                          취소
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!newAddon.label.trim()}
+                          onClick={async () => {
+                            try {
+                              const res = await fetch("/api/addon-options", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(newAddon),
+                              });
+                              if (!res.ok) throw new Error("저장 실패");
+                              const saved = await res.json();
+                              // 라이브러리에 추가
+                              setAddonLibrary((prev) => [...prev, saved]);
+                              // 현재 상품에도 추가
+                              setCurrentProduct((prev) => ({
+                                ...prev,
+                                addon_options: [
+                                  ...(prev.addon_options || []),
+                                  {
+                                    option_id: saved.id,
+                                    label: saved.label,
+                                    description: saved.description,
+                                    price: saved.price,
+                                    enabled: true,
+                                  },
+                                ],
+                              }));
+                              setShowAddonCreate(false);
+                            } catch (err) {
+                              alert("옵션 저장 실패: " + err.message);
+                            }
+                          }}
+                          className="px-4 py-1.5 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          만들기
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
