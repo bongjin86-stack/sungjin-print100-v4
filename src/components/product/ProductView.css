@@ -43,14 +43,13 @@
   .pv-images {
     position: sticky;
     top: 6rem;
-    align-self: start;
     max-height: calc(100vh - 7rem);
     overflow-y: auto;
-    scrollbar-width: none;          /* Firefox */
-    -ms-overflow-style: none;       /* IE/Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
   .pv-images::-webkit-scrollbar {
-    display: none;                  /* Chrome/Safari */
+    display: none;
   }
 }
 
@@ -1156,13 +1155,7 @@
   text-align: right;
 }
 
-/* Addon options - moo.com style cards */
-.pv-addons {
-  margin-top: 1.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid #f3f4f6;
-}
-
+/* Section title (guide blocks, fileSpec) */
 .pv-addons-title {
   font-size: 0.9375rem;
   font-weight: 600;
@@ -1170,95 +1163,347 @@
   margin-bottom: 0.75rem;
 }
 
-.pv-addon-list {
+/* Size dimensions */
+.pv-size-dimensions {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+/* Custom size input */
+.pv-size-input-section {
+  margin-top: 0.75rem;
+}
+.pv-size-input-label {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+.pv-size-input-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
 }
-
-.pv-addon-card {
+.pv-size-input-field {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  border-radius: var(--radius-4xl, 1.5rem);
-  border: 1px solid var(--c-border-light, #f0f2f2);
-  background: var(--c-bg, white);
-  cursor: pointer;
-  transition: all var(--transition-slow, 300ms)
-    var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1));
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: #374151;
 }
-
-.pv-addon-card:hover:not(.selected) {
-  border-color: var(--c-border, #d9d9d9);
+.pv-size-input-field input {
+  width: 5rem;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  text-align: center;
+  outline: none;
 }
-
-.pv-addon-card.selected {
+.pv-size-input-field input:focus {
   border-color: var(--c-primary, #222828);
-  background: #f7f8f8;
+}
+.pv-size-input-x {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+.pv-size-sum {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+.pv-size-sum.error {
+  color: #dc2626;
+  font-weight: 500;
 }
 
-.pv-addon-check {
-  flex-shrink: 0;
+/* File spec / guide section */
+.pv-file-spec-section {
+  margin-top: 1.25rem;
+}
+
+/* 축소 요약 - 페이드인 */
+.pv-fs-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+  padding: 0.75rem 1rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  animation: pvFadeSlideIn 0.3s ease-out;
+}
+
+/* 펼침 카드 컨테이너 - 페이드인 */
+@keyframes pvFadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.pv-fs-summary:hover {
+  border-color: #9ca3af;
+}
+.pv-fs-check {
   width: 1.25rem;
   height: 1.25rem;
-  border-radius: 0.375rem;
-  border: 1.5px solid #d1d5db;
+  border-radius: 50%;
+  background: var(--c-primary, #222828);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 0.125rem;
-  transition: all var(--transition-base, 200ms);
+  flex-shrink: 0;
 }
-
-.pv-addon-card.selected .pv-addon-check {
-  background: var(--c-primary, #222828);
-  border-color: var(--c-primary, #222828);
-}
-
-.pv-addon-check svg {
-  width: 0.75rem;
-  height: 0.75rem;
-  color: white;
-  opacity: 0;
-  transition: opacity var(--transition-base, 200ms);
-}
-
-.pv-addon-card.selected .pv-addon-check svg {
-  opacity: 1;
-}
-
-.pv-addon-content {
+.pv-fs-summary-text {
   flex: 1;
   min-width: 0;
 }
-
-.pv-addon-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.pv-addon-label {
-  font-size: var(--fs-sm, 0.875rem);
+.pv-fs-summary-label {
+  font-size: 0.875rem;
   font-weight: 500;
-  color: var(--c-text, #222828);
+  color: #1f2937;
 }
-
-.pv-addon-price {
-  font-size: var(--fs-sm, 0.875rem);
-  font-weight: 500;
-  color: var(--c-text-sub, #5a6262);
+.pv-fs-summary-size {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-left: 0.375rem;
+}
+.pv-fs-summary-price {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
   white-space: nowrap;
 }
+.pv-fs-change {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--c-primary, #2563eb);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
-.pv-addon-desc {
-  font-size: var(--fs-xs, 0.75rem);
-  color: var(--c-text-light, #8a9292);
-  line-height: 1.5;
-  margin-top: 0.25rem;
-  white-space: pre-line;
+/* 펼침 카드 */
+.pv-fs-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  animation: pvFadeSlideIn 0.3s ease-out;
+}
+.pv-fs-card {
+  position: relative;
+  border: 2px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1rem 1.125rem;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color 0.15s, background 0.15s;
+}
+.pv-fs-card:hover {
+  border-color: #d1d5db;
+}
+.pv-fs-card.selected {
+  border-color: var(--c-primary, #222828);
+  background: #fafafa;
+}
+.pv-fs-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+}
+.pv-fs-num {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: #e5e7eb;
+  color: #6b7280;
+}
+.pv-fs-num.active {
+  background: var(--c-primary, #222828);
+  color: #fff;
+}
+.pv-fs-card-title {
+  flex: 1;
+  min-width: 0;
+}
+.pv-fs-card-label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.pv-fs-card-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+.pv-fs-card-price {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ea580c;
+  white-space: nowrap;
+}
+.pv-fs-card-size {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-top: 0.125rem;
+}
+.pv-fs-card-check {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--c-primary, #222828);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pv-fs-card-hint {
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-top: 0.5rem;
+  padding-left: 2.125rem;
+}
+
+/* Step done bar (numbered, guide/fileSpec/detail collapsed) */
+.pv-step-done {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  animation: pvFadeSlideIn 0.2s ease-out;
+}
+.pv-step-done:hover .pv-step-change {
+  color: var(--c-primary, #222828);
+}
+.pv-step-num {
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  background: var(--c-primary, #222828);
+  color: white;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pv-step-check {
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  background: var(--c-primary, #222828);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pv-step-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pv-step-title::after {
+  content: "\00b7";
+  margin-left: 0.5rem;
+  color: #d1d5db;
+}
+.pv-step-value {
+  font-size: 0.875rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.pv-step-size {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pv-step-price {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pv-step-change {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #9ca3af;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: color 0.15s;
+}
+
+/* Step locked (prereqs not done) */
+.pv-step-locked {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  opacity: 0.5;
+}
+.pv-step-locked .pv-step-title {
+  color: #9ca3af;
+}
+.pv-step-locked .pv-step-title::after {
+  display: none;
+}
+.pv-step-num.locked {
+  background: #d1d5db;
+}
+
+/* Detail section toggle (open/flat style) */
+.pv-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pv-detail-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.pv-detail-arrow {
+  font-size: 0.625rem;
+  color: #9ca3af;
+  transition: transform 0.2s;
+}
+.pv-detail-arrow.open {
+  transform: rotate(180deg);
 }
 
 /* Order button */

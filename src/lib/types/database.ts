@@ -180,6 +180,8 @@ export interface BuilderData {
       name: string;
       multiplier: number;
       base_sheet: string;
+      width: number;
+      height: number;
     };
   };
   finishingTypes: FinishingType[];

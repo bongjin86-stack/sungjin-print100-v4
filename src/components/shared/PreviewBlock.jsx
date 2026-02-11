@@ -211,26 +211,134 @@ function PreviewBlockInner({
   const isDisabled = block.locked;
 
   switch (block.type) {
-    case "size":
+    case "size": {
+      const sizeMode = cfg.mode || "preset";
+      const allSizes = dbSizes || DB.sizeMultipliers;
+      const selectedSizeInfo = allSizes[customer.size];
+      const bleed = cfg.bleed ?? 2;
+
+      // 현재 치수 (preset 또는 custom 입력값)
+      const curWidth = sizeMode === "custom" ? (customer.customWidth || 0) : (selectedSizeInfo?.width || 0);
+      const curHeight = sizeMode === "custom" ? (customer.customHeight || 0) : (selectedSizeInfo?.height || 0);
+      const bleedWidth = curWidth + bleed * 2;
+      const bleedHeight = curHeight + bleed * 2;
+
+      // custom 모드: 합계 검증
+      const customSum = (customer.customWidth || 0) + (customer.customHeight || 0);
+      const selectedCustomOpt = (cfg.customOptions || []).find(
+        (o) => customer.size === `custom_${o.maxSum}`
+      );
+      const maxPrintW = 305;
+      const maxPrintH = 455;
+      const customSizeOverMax = sizeMode === "custom" && customer.customWidth && customer.customHeight &&
+        (Math.min(customer.customWidth, customer.customHeight) > maxPrintW || Math.max(customer.customWidth, customer.customHeight) > maxPrintH);
+      const customSumOver = sizeMode === "custom" && selectedCustomOpt && customSum > selectedCustomOpt.maxSum;
+
       return (
         <div className="pv-block">
           <p className="pv-block-label">{block.label}</p>
-          <div className="pv-btn-row">
-            {cfg.options?.map((s) => (
-              <button
-                key={s}
-                disabled={isDisabled}
-                className={`pv-btn ${customer.size === s ? "active" : ""} ${isDisabled ? "disabled" : ""}`}
-                onClick={() =>
-                  !isDisabled && setCustomer((prev) => ({ ...prev, size: s }))
-                }
-              >
-                {(dbSizes || DB.sizeMultipliers)[s]?.name || s.toUpperCase()}
-              </button>
-            ))}
-          </div>
+
+          {/* preset 모드: 기존 버튼 */}
+          {sizeMode === "preset" && (
+            <>
+              <div className="pv-btn-row">
+                {cfg.options?.map((s) => (
+                  <button
+                    key={s}
+                    disabled={isDisabled}
+                    className={`pv-btn ${customer.size === s ? "active" : ""} ${isDisabled ? "disabled" : ""}`}
+                    onClick={() =>
+                      !isDisabled && setCustomer((prev) => ({ ...prev, size: s }))
+                    }
+                  >
+                    {allSizes[s]?.name || s.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+              {/* 치수는 파일 작업 방식 카드 안에서 표시 */}
+            </>
+          )}
+
+          {/* custom 모드: 구간 선택 + 직접 입력 */}
+          {sizeMode === "custom" && (
+            <>
+              <div className="pv-btn-row">
+                {(cfg.customOptions || []).map((opt) => {
+                  const code = `custom_${opt.maxSum}`;
+                  return (
+                    <button
+                      key={code}
+                      disabled={isDisabled}
+                      className={`pv-btn ${customer.size === code ? "active" : ""} ${isDisabled ? "disabled" : ""}`}
+                      onClick={() =>
+                        !isDisabled && setCustomer((prev) => ({ ...prev, size: code }))
+                      }
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 가로/세로 직접 입력 */}
+              {customer.size?.startsWith("custom_") && (
+                <div className="pv-size-input-section">
+                  <p className="pv-size-input-label">실제 사이즈를 입력해 주세요:</p>
+                  <div className="pv-size-input-row">
+                    <label className="pv-size-input-field">
+                      <span>가로</span>
+                      <input
+                        type="number"
+                        value={customer.customWidth || ""}
+                        placeholder="mm"
+                        min={10}
+                        onChange={(e) =>
+                          setCustomer((prev) => ({ ...prev, customWidth: Number(e.target.value) }))
+                        }
+                      />
+                      <span>mm</span>
+                    </label>
+                    <span className="pv-size-input-x">×</span>
+                    <label className="pv-size-input-field">
+                      <span>세로</span>
+                      <input
+                        type="number"
+                        value={customer.customHeight || ""}
+                        placeholder="mm"
+                        min={10}
+                        onChange={(e) =>
+                          setCustomer((prev) => ({ ...prev, customHeight: Number(e.target.value) }))
+                        }
+                      />
+                      <span>mm</span>
+                    </label>
+                  </div>
+                  {/* 합계 표시 */}
+                  {customer.customWidth > 0 && customer.customHeight > 0 && (
+                    <p className={`pv-size-sum ${customSumOver ? "error" : ""}`}>
+                      가로+세로 합: {customSum}mm
+                      {selectedCustomOpt && (
+                        customSumOver
+                          ? ` (${selectedCustomOpt.maxSum}mm 초과)`
+                          : ` (${selectedCustomOpt.maxSum}mm 이내 ✓)`
+                      )}
+                    </p>
+                  )}
+                  {/* 인쇄 가능 영역 초과 경고 */}
+                  {customSizeOverMax && (
+                    <p className="pv-size-sum error">
+                      인쇄 가능한 최대 크기(305×455mm)를 초과합니다.
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* 파일 작업 방식은 ProductView 왼쪽 컬럼에서 렌더링 */}
         </div>
       );
+    }
 
     case "paper": {
       const role = getPaperBlockRole(block, allBlocks);

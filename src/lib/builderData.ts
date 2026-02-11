@@ -221,6 +221,12 @@ export const BLOCK_TYPES: Record<string, BlockTypeInfo> = {
     desc: "내지 용지+인쇄+페이지 (1p단위)",
     deprecated: true, // 현재 템플릿에서 미사용, 하위호환용 유지
   },
+  guide: {
+    name: "가이드",
+    icon: "❓",
+    color: "from-blue-100 to-blue-200",
+    desc: "고객 안내 질문 (왼쪽 카드)",
+  },
 };
 
 // 상품 템플릿
@@ -843,12 +849,12 @@ export const DB = {
     inspirer: { 105: 44, 130: 58, 160: 71, 190: 84, 240: 98 },
   } as Record<string, Record<number, number>>,
   sizeMultipliers: {
-    a3: { name: "A3", multiplier: 1 },
-    a4: { name: "A4", multiplier: 2 },
-    b5: { name: "B5", multiplier: 2 },
-    a5: { name: "A5", multiplier: 4 },
-    postcard: { name: "엽서", multiplier: 8 },
-  } as Record<string, { name: string; multiplier: number }>,
+    a3: { name: "A3", multiplier: 1, width: 297, height: 420 },
+    a4: { name: "A4", multiplier: 2, width: 210, height: 297 },
+    b5: { name: "B5", multiplier: 2, width: 182, height: 257 },
+    a5: { name: "A5", multiplier: 4, width: 148, height: 210 },
+    postcard: { name: "엽서", multiplier: 8, width: 100, height: 148 },
+  } as Record<string, { name: string; multiplier: number; width: number; height: number }>,
   printCosts: [
     { min: 1, max: 1, cost: 500 },
     { min: 2, max: 2, cost: 480 },
@@ -1142,6 +1148,16 @@ export function getDefaultConfig(type: string): BlockConfig {
         maxThickness: 2.5,
         bindingType: "saddle",
         linkedBlocks: {},
+      } as any;
+    case "guide":
+      return {
+        title: "질문을 입력하세요",
+        options: [
+          { id: "opt_1", label: "옵션 1", hint: "", price: 0 },
+          { id: "opt_2", label: "옵션 2", hint: "", price: 0 },
+        ],
+        default: "opt_1",
+        required: true,
       } as any;
     default:
       return {} as BlockConfig;

@@ -441,6 +441,8 @@ export function getBuilderData(): BuilderData | null {
       name: size.name,
       multiplier: size.up_count,
       base_sheet: size.base_sheet,
+      width: size.width,
+      height: size.height,
     };
   });
 

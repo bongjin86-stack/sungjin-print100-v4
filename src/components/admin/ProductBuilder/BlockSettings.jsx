@@ -49,33 +49,201 @@ function BlockSettings({
     case "size":
       return (
         <div>
-          <p className="text-xs text-info bg-info/10 px-3 py-2 rounded-lg mb-3">
-            더블클릭으로 기본값 설정 (★ 표시)
-          </p>
-          <label className="text-xs text-gray-500 block mb-2">
-            사이즈 옵션
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(sizes).map(([code, info]) => (
-              <label
-                key={code}
-                className="flex items-center gap-1 text-sm bg-white px-3 py-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50"
-                onDoubleClick={() => updateCfg(block.id, "default", code)}
-              >
-                <input
-                  type="checkbox"
-                  checked={cfg.options?.includes(code)}
-                  onChange={(e) =>
-                    toggleSizeOption(block.id, code, e.target.checked)
-                  }
-                  className="checkbox checkbox-sm"
-                />
-                {info.name}
-                {cfg.default === code && (
-                  <span className="text-warning ml-1">★</span>
-                )}
+          {/* 사이즈 모드 선택 */}
+          <label className="text-xs text-gray-500 block mb-2">사이즈 모드</label>
+          <select
+            value={cfg.mode || "preset"}
+            onChange={(e) => updateCfg(block.id, "mode", e.target.value)}
+            className="select select-bordered select-sm w-full mb-3"
+          >
+            <option value="preset">규격 사이즈 (A4, A5, B5 등)</option>
+            <option value="custom">커스텀 사이즈 (가로+세로 합 구간)</option>
+          </select>
+
+          {/* preset 모드: 기존 사이즈 옵션 */}
+          {(cfg.mode || "preset") === "preset" && (
+            <>
+              <p className="text-xs text-info bg-info/10 px-3 py-2 rounded-lg mb-3">
+                더블클릭으로 기본값 설정 (★ 표시)
+              </p>
+              <label className="text-xs text-gray-500 block mb-2">
+                사이즈 옵션
               </label>
-            ))}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {Object.entries(sizes).map(([code, info]) => (
+                  <label
+                    key={code}
+                    className="flex items-center gap-1 text-sm bg-white px-3 py-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50"
+                    onDoubleClick={() => updateCfg(block.id, "default", code)}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={cfg.options?.includes(code)}
+                      onChange={(e) =>
+                        toggleSizeOption(block.id, code, e.target.checked)
+                      }
+                      className="checkbox checkbox-sm"
+                    />
+                    {info.name}
+                    {info.width && info.height && (
+                      <span className="text-gray-400 text-xs ml-1">
+                        ({info.width}×{info.height})
+                      </span>
+                    )}
+                    {cfg.default === code && (
+                      <span className="text-warning ml-1">★</span>
+                    )}
+                  </label>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* custom 모드: 가로+세로 합 구간 */}
+          {cfg.mode === "custom" && (
+            <div className="mb-3">
+              <label className="text-xs text-gray-500 block mb-2">
+                사이즈 구간 (가로+세로 합)
+              </label>
+              <p className="text-xs text-info bg-info/10 px-3 py-2 rounded-lg mb-3">
+                인쇄 가능 최대: 305×455mm (전지 기준)
+              </p>
+              {(cfg.customOptions || []).map((opt, idx) => (
+                <div key={idx} className="flex items-center gap-2 mb-2">
+                  <input
+                    type="number"
+                    value={opt.maxSum}
+                    onChange={(e) => {
+                      const newOpts = [...(cfg.customOptions || [])];
+                      newOpts[idx] = { ...newOpts[idx], maxSum: Number(e.target.value), label: `${e.target.value}mm` };
+                      updateCfg(block.id, "customOptions", newOpts);
+                    }}
+                    className="input input-bordered input-sm w-24"
+                    placeholder="합계mm"
+                  />
+                  <span className="text-xs text-gray-400">mm</span>
+                  <span className="text-xs text-gray-500">배수:</span>
+                  <input
+                    type="number"
+                    value={opt.multiplier}
+                    onChange={(e) => {
+                      const newOpts = [...(cfg.customOptions || [])];
+                      newOpts[idx] = { ...newOpts[idx], multiplier: Number(e.target.value) };
+                      updateCfg(block.id, "customOptions", newOpts);
+                    }}
+                    className="input input-bordered input-sm w-16"
+                    placeholder="배수"
+                  />
+                  <button
+                    className="btn btn-ghost btn-sm text-error"
+                    onClick={() => {
+                      const newOpts = (cfg.customOptions || []).filter((_, i) => i !== idx);
+                      updateCfg(block.id, "customOptions", newOpts);
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                className="btn btn-ghost btn-sm text-primary"
+                onClick={() => {
+                  const newOpts = [...(cfg.customOptions || []), { label: "300mm", maxSum: 300, multiplier: 4 }];
+                  updateCfg(block.id, "customOptions", newOpts);
+                }}
+              >
+                + 구간 추가
+              </button>
+            </div>
+          )}
+
+          {/* 공통: 재단 설정 */}
+          <div className="border-t border-gray-200 pt-3 mt-1">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={cfg.trimEnabled || false}
+                onChange={(e) => updateCfg(block.id, "trimEnabled", e.target.checked)}
+                className="checkbox checkbox-sm"
+              />
+              재단 상품 (파일 작업 방식 선택지 표시)
+            </label>
+            {cfg.trimEnabled && (
+              <div className="mt-2 ml-6 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">섹션 제목:</span>
+                  <input
+                    type="text"
+                    value={cfg.fileSpecTitle || ""}
+                    placeholder="어떤 파일로 올리시나요?"
+                    onChange={(e) => updateCfg(block.id, "fileSpecTitle", e.target.value || undefined)}
+                    className="input input-bordered input-sm flex-1"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">재단 여백:</span>
+                  <input
+                    type="number"
+                    value={cfg.bleed ?? 2}
+                    min={1}
+                    max={10}
+                    onChange={(e) => updateCfg(block.id, "bleed", Number(e.target.value))}
+                    className="input input-bordered input-sm w-16"
+                  />
+                  <span className="text-xs text-gray-400">mm (상하좌우)</span>
+                </div>
+                {/* 파일 작업 방식별 설정 (텍스트 + 금액) */}
+                {[
+                  { key: "with_bleed", title: "옵션 1: 재단 여백 포함", defaultLabel: "재단 여백을 포함해서 작업했어요", defaultHint: "상하좌우 N mm 재단 여백이 포함된 파일이에요. 이미지가 재단면까지 이어지는 디자인이라면, 여백 영역까지 이미지를 확장해서 작업해 주세요. 별도 보정 없이 바로 제작을 진행합니다." },
+                  { key: "exact", title: "옵션 2: 정사이즈", defaultLabel: "완성 사이즈 그대로 작업했어요", defaultHint: "완성 사이즈는 동일하게 W×Hmm로 제작돼요. 가장자리에 이미지나 배경색이 없다면 그대로 재단을 진행합니다. 가장자리에 이미지가 닿아 있는 경우 살짝 확대 후 재단하며, 테두리 1~2mm가 잘릴 수 있어요. 중요한 내용은 테두리에서 최소 1cm 안쪽에 배치하는 게 좋아요." },
+                  { key: "fit", title: "옵션 3: 다른 사이즈", defaultLabel: "다른 사이즈로 작업했어요", defaultHint: "파일 확인 후 가장 적합한 방식으로 인쇄해 드려요. 조정이 필요한 경우 연락드릴 수 있습니다." },
+                ].map(({ key, title, defaultLabel, defaultHint }) => (
+                  <div key={key} className="mb-3 p-3 bg-white rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-gray-700">{title}</span>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          value={(cfg.fileSpecPrices || {})[key] || 0}
+                          min={0}
+                          step={500}
+                          onChange={(e) => {
+                            const prices = { ...(cfg.fileSpecPrices || {}), [key]: Number(e.target.value) };
+                            updateCfg(block.id, "fileSpecPrices", prices);
+                          }}
+                          className="input input-bordered input-sm w-20"
+                        />
+                        <span className="text-xs text-gray-400">원</span>
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      value={(cfg.fileSpecTexts || {})[key]?.label ?? ""}
+                      placeholder={defaultLabel}
+                      onChange={(e) => {
+                        const texts = { ...(cfg.fileSpecTexts || {}) };
+                        texts[key] = { ...texts[key], label: e.target.value || undefined };
+                        if (!texts[key].label && !texts[key].hint) delete texts[key];
+                        updateCfg(block.id, "fileSpecTexts", Object.keys(texts).length ? texts : undefined);
+                      }}
+                      className="input input-bordered input-sm w-full mb-1"
+                    />
+                    <textarea
+                      value={(cfg.fileSpecTexts || {})[key]?.hint ?? ""}
+                      placeholder={defaultHint}
+                      rows={2}
+                      onChange={(e) => {
+                        const texts = { ...(cfg.fileSpecTexts || {}) };
+                        texts[key] = { ...texts[key], hint: e.target.value || undefined };
+                        if (!texts[key].label && !texts[key].hint) delete texts[key];
+                        updateCfg(block.id, "fileSpecTexts", Object.keys(texts).length ? texts : undefined);
+                      }}
+                      className="textarea textarea-bordered textarea-sm w-full text-xs leading-relaxed"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       );
@@ -2045,6 +2213,123 @@ function BlockSettings({
           </div>
         </div>
       );
+
+    case "guide": {
+      const guideOptions = cfg.options || [];
+
+      const updateGuideOption = (idx, field, value) => {
+        const newOptions = [...guideOptions];
+        newOptions[idx] = { ...newOptions[idx], [field]: value };
+        updateCfg(block.id, "options", newOptions);
+      };
+
+      const addGuideOption = () => {
+        const newId = `opt_${Date.now()}`;
+        const newOptions = [
+          ...guideOptions,
+          { id: newId, label: `옵션 ${guideOptions.length + 1}`, hint: "", price: 0 },
+        ];
+        updateCfg(block.id, "options", newOptions);
+      };
+
+      const removeGuideOption = (idx) => {
+        if (guideOptions.length <= 1) return;
+        const removed = guideOptions[idx];
+        const newOptions = guideOptions.filter((_, i) => i !== idx);
+        updateCfg(block.id, "options", newOptions);
+        // 삭제된 게 default면 첫 번째로 변경
+        if (cfg.default === removed.id) {
+          updateCfg(block.id, "default", newOptions[0]?.id || "");
+        }
+      };
+
+      return (
+        <div className="space-y-4">
+          {/* 섹션 제목 */}
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">섹션 제목</label>
+            <input
+              type="text"
+              value={cfg.title || ""}
+              onChange={(e) => updateCfg(block.id, "title", e.target.value)}
+              className="input input-bordered input-sm w-full"
+              placeholder="질문을 입력하세요"
+            />
+          </div>
+
+          {/* 옵션 목록 */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs text-gray-500">옵션 목록</label>
+              <button
+                onClick={addGuideOption}
+                className="text-xs text-blue-500 hover:underline"
+              >
+                + 옵션 추가
+              </button>
+            </div>
+            <div className="space-y-3">
+              {guideOptions.map((opt, idx) => {
+                const isDefault = cfg.default === opt.id;
+                return (
+                  <div
+                    key={opt.id}
+                    className={`p-3 rounded-lg border ${isDefault ? "border-blue-300 bg-blue-50/50" : "border-gray-200 bg-gray-50"}`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-bold text-gray-400 w-5">{idx + 1}</span>
+                      <input
+                        type="text"
+                        value={opt.label || ""}
+                        onChange={(e) => updateGuideOption(idx, "label", e.target.value)}
+                        className="input input-bordered input-sm flex-1"
+                        placeholder="옵션 라벨"
+                      />
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          value={opt.price || 0}
+                          onChange={(e) => updateGuideOption(idx, "price", Number(e.target.value))}
+                          className="input input-bordered input-sm w-24 text-right"
+                        />
+                        <span className="text-xs text-gray-400">원</span>
+                      </div>
+                    </div>
+                    <textarea
+                      value={opt.hint || ""}
+                      onChange={(e) => updateGuideOption(idx, "hint", e.target.value)}
+                      rows={2}
+                      className="textarea textarea-bordered textarea-sm w-full text-xs"
+                      placeholder="설명 (고객에게 표시)"
+                    />
+                    <div className="flex items-center justify-between mt-1.5">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`guide-default-${block.id}`}
+                          checked={isDefault}
+                          onChange={() => updateCfg(block.id, "default", opt.id)}
+                          className="radio radio-xs"
+                        />
+                        <span className="text-xs text-gray-500">기본값</span>
+                      </label>
+                      {guideOptions.length > 1 && (
+                        <button
+                          onClick={() => removeGuideOption(idx)}
+                          className="text-xs text-red-400 hover:text-red-600"
+                        >
+                          삭제
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     default:
       return <p className="text-xs text-gray-400">설정 없음</p>;

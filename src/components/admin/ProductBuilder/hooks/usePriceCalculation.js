@@ -27,6 +27,19 @@ export function usePriceCalculation(
       );
       const allQtys = qtyBlock?.config?.options || [];
       try {
+        // fileSpec 추가금
+        const sizeBlock = currentProduct?.blocks?.find((b) => b.on && b.type === "size");
+        const fileSpecPrice = sizeBlock?.config?.trimEnabled
+          ? (sizeBlock.config.fileSpecPrices || {})[customer.fileSpec || "with_bleed"] || 0
+          : 0;
+
+        // 가이드 블록 가격 합산
+        const guidePriceTotal = Object.entries(customer.guides || {}).reduce((sum, [blockId, state]) => {
+          const guideBlock = currentProduct?.blocks?.find((b) => String(b.id) === String(blockId) && b.on && b.type === "guide");
+          const opt = guideBlock?.config?.options?.find((o) => o.id === state.selected);
+          return sum + (opt?.price || 0);
+        }, 0);
+
         const res = await fetch("/api/calculate-price", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -38,6 +51,8 @@ export function usePriceCalculation(
             qty: customer.qty,
             productType: currentProduct?.productType || currentTemplateId,
             allQtys,
+            fileSpecPrice,
+            guidePriceTotal,
           }),
         });
         if (res.ok) {

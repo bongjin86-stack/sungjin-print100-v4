@@ -40,7 +40,6 @@ export const POST: APIRoute = async ({ request }) => {
     blocks,
     product_type,
     is_published,
-    addon_options,
   } = body;
 
   if (!id || !name) {
@@ -68,7 +67,6 @@ export const POST: APIRoute = async ({ request }) => {
         blocks: blocks || [],
         product_type: product_type || null,
         is_published: is_published ?? true,
-        addon_options: addon_options || [],
         updated_at: new Date().toISOString(),
       },
     ])

@@ -328,7 +328,13 @@ export function extractDefaultsFromBlock(
 
   switch (block.type) {
     case "size":
-      if (cfg.default) result.size = cfg.default;
+      if (cfg.mode === "custom") {
+        const firstOpt = cfg.customOptions?.[0];
+        if (firstOpt) result.size = `custom_${firstOpt.maxSum}`;
+      } else {
+        if (cfg.default) result.size = cfg.default;
+      }
+      if (cfg.trimEnabled) result.fileSpec = "with_bleed";
       break;
     case "paper": {
       const role = getPaperBlockRole(block, allBlocks);
@@ -460,6 +466,13 @@ export function extractDefaultsFromBlock(
       if (cfg.defaultPrint?.side) result.innerSide = cfg.defaultPrint.side;
       if (cfg.defaultPages) result.pages = cfg.defaultPages;
       if (cfg.maxThickness) result.maxThickness = cfg.maxThickness;
+      break;
+    case "guide":
+      if (!result.guides) result.guides = {};
+      result.guides[block.id] = {
+        selected: cfg.default || cfg.options?.[0]?.id || "",
+        confirmed: false,
+      };
       break;
   }
 

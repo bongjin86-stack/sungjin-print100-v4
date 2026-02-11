@@ -5,7 +5,7 @@
 // - 블록 설정: 선택/필수, 고정, 숨김, 기본값
 // ============================================================
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import Sortable from "sortablejs";
 
@@ -156,6 +156,7 @@ export default function AdminBuilder() {
   const [descInput, setDescInput] = useState("");
   const [newQtyInput, setNewQtyInput] = useState("");
   const [showBlockLibrary, setShowBlockLibrary] = useState(false);
+  const [builderDetailOpen, setBuilderDetailOpen] = useState(false);
 
   // 템플릿 편집 상태
   const [editingTemplateId, setEditingTemplateId] = useState(null);
@@ -166,12 +167,6 @@ export default function AdminBuilder() {
 
   // 상품 이미지 업로드 상태
   const [imageUploading, setImageUploading] = useState(false);
-
-  // 추가 옵션 라이브러리 (DB)
-  const [addonLibrary, setAddonLibrary] = useState([]);
-  const [showAddonLibrary, setShowAddonLibrary] = useState(false);
-  const [showAddonCreate, setShowAddonCreate] = useState(false);
-  const [newAddon, setNewAddon] = useState({ label: "", description: "", price: 0 });
 
   // 서버 가격 계산
   const { serverPrice, qtyPrices } = usePriceCalculation(
@@ -190,16 +185,6 @@ export default function AdminBuilder() {
     useRef(null),
     useRef(null),
   ];
-
-  // 추가 옵션 라이브러리 로드
-  useEffect(() => {
-    fetch("/api/addon-options")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setAddonLibrary(data);
-      })
-      .catch((err) => console.warn("addon library load error:", err));
-  }, []);
 
   // localStorage 저장
   useEffect(() => {
@@ -263,15 +248,12 @@ export default function AdminBuilder() {
 
         const parsedContent = parseJson(product.content, {});
         const parsedBlocks = parseJson(product.blocks, []);
-        const parsedAddons = parseJson(product.addon_options, []);
-
         // DB 상품 데이터를 빌더 형식으로 변환
         const builderProduct = {
           id: product.id,
           name: product.name,
           product_type: product.product_type,
           blocks: parsedBlocks,
-          addon_options: parsedAddons,
           content: {
             title: parsedContent.title || product.name,
             description: parsedContent.description || product.description || "",
@@ -352,6 +334,21 @@ export default function AdminBuilder() {
   }, [templates.length]);
 
   const linkStatus = checkLinkRules(currentProduct?.blocks, customer);
+
+  // 빌더 미리보기: 사전 질문 완료 → 상세옵션 자동 펼침
+  const builderPrereqsDone = useMemo(() => {
+    const guideBlocks = currentProduct?.blocks?.filter((b) => b.on && !b.hidden && b.type === "guide") || [];
+    const allGuidesConfirmed = guideBlocks.length === 0 ||
+      guideBlocks.every((b) => customer.guides?.[b.id]?.confirmed);
+    const sizeBlock = currentProduct?.blocks?.find((b) => b.on && b.type === "size");
+    const needsFileSpec = sizeBlock?.config?.trimEnabled;
+    const fileSpecDone = !needsFileSpec || customer.fileSpecConfirmed;
+    return allGuidesConfirmed && fileSpecDone;
+  }, [currentProduct, customer]);
+
+  useEffect(() => {
+    if (builderPrereqsDone) setBuilderDetailOpen(true);
+  }, [builderPrereqsDone]);
 
   // 접지 선택 핸들러 (getFoldUpdate 래퍼)
   const handleFoldSelect = (foldOpt, cfg) => {
@@ -531,7 +528,6 @@ export default function AdminBuilder() {
         blocks: prod.blocks || [],
         product_type: prod.productType || null,
         is_published: true,
-        addon_options: prod.addon_options || [],
       }),
     })
       .then((res) => {
@@ -986,7 +982,7 @@ export default function AdminBuilder() {
           </div>
 
           <div className="grid grid-cols-2 gap-8">
-            {/* 왼쪽: 이미지 영역 */}
+            {/* 왼쪽: 이미지 + 가이드 */}
             <div>
               {/* 메인 이미지 */}
               <input
@@ -1120,363 +1116,6 @@ export default function AdminBuilder() {
                 })}
               </div>
 
-              {/* 추가 옵션 섹션 */}
-              <div className="mt-5 pt-5 border-t border-gray-100">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-semibold text-gray-700">추가 옵션</span>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddonLibrary(true)}
-                    className="text-xs px-2 py-1 border border-gray-200 hover:border-gray-400 rounded-md text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    + 추가
-                  </button>
-                </div>
-
-                {/* 현재 상품의 옵션 목록 */}
-                {(currentProduct.addon_options || []).length === 0 ? (
-                  <p className="text-xs text-gray-400 text-center py-4">
-                    추가 옵션이 없습니다
-                  </p>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    {(currentProduct.addon_options || []).map((addon, idx) => (
-                      <div
-                        key={addon.option_id || idx}
-                        className="border border-gray-200 rounded-xl p-3 relative"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <input
-                              type="text"
-                              value={addon.label}
-                              onChange={(e) => {
-                                const newAddons = [...currentProduct.addon_options];
-                                newAddons[idx] = { ...newAddons[idx], label: e.target.value };
-                                setCurrentProduct((prev) => ({ ...prev, addon_options: newAddons }));
-                              }}
-                              className="text-sm font-medium text-gray-800 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-gray-400 outline-none w-full"
-                              placeholder="옵션명"
-                            />
-                            <textarea
-                              value={addon.description || ""}
-                              onChange={(e) => {
-                                const newAddons = [...currentProduct.addon_options];
-                                newAddons[idx] = { ...newAddons[idx], description: e.target.value };
-                                setCurrentProduct((prev) => ({ ...prev, addon_options: newAddons }));
-                              }}
-                              rows={2}
-                              className="mt-1 text-xs text-gray-500 bg-transparent border border-transparent hover:border-gray-200 focus:border-gray-400 outline-none w-full resize-none rounded"
-                              placeholder="설명"
-                            />
-                          </div>
-                          <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                value={addon.price}
-                                onChange={(e) => {
-                                  const newAddons = [...currentProduct.addon_options];
-                                  newAddons[idx] = { ...newAddons[idx], price: parseInt(e.target.value) || 0 };
-                                  setCurrentProduct((prev) => ({ ...prev, addon_options: newAddons }));
-                                }}
-                                className="w-20 text-right text-sm font-medium text-gray-700 border border-gray-200 rounded px-2 py-0.5"
-                              />
-                              <span className="text-xs text-gray-400">원</span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newAddons = currentProduct.addon_options.filter((_, i) => i !== idx);
-                                setCurrentProduct((prev) => ({ ...prev, addon_options: newAddons }));
-                              }}
-                              className="text-xs text-gray-300 hover:text-red-400 transition-colors"
-                            >
-                              삭제
-                            </button>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
-                          <label className="flex items-center gap-1.5 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={addon.enabled !== false}
-                              onChange={(e) => {
-                                const newAddons = [...currentProduct.addon_options];
-                                newAddons[idx] = { ...newAddons[idx], enabled: e.target.checked };
-                                setCurrentProduct((prev) => ({ ...prev, addon_options: newAddons }));
-                              }}
-                              className="checkbox checkbox-xs"
-                            />
-                            <span className="text-xs text-gray-500">고객에게 표시</span>
-                          </label>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* 라이브러리 모달 */}
-                {showAddonLibrary && (
-                  <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
-                    <div className="bg-white rounded-2xl shadow-xl w-[480px] max-h-[600px] flex flex-col">
-                      <div className="flex items-center justify-between p-5 pb-3 border-b border-gray-100">
-                        <h3 className="font-bold text-gray-900">옵션 라이브러리</h3>
-                        <button onClick={() => setShowAddonLibrary(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">✕</button>
-                      </div>
-                      <div className="flex-1 overflow-auto p-5 pt-3">
-                        {addonLibrary.filter((lib) => lib.is_active).length === 0 ? (
-                          <p className="text-sm text-gray-400 text-center py-6">등록된 옵션이 없습니다</p>
-                        ) : (
-                          <div className="flex flex-col gap-2">
-                            {addonLibrary.filter((lib) => lib.is_active).map((lib) => {
-                              const alreadyAdded = (currentProduct.addon_options || []).some(
-                                (a) => a.option_id === lib.id
-                              );
-                              const isEditing = lib._editing;
-                              return (
-                                <div
-                                  key={lib.id}
-                                  className={`p-3 border rounded-xl transition-colors ${
-                                    alreadyAdded
-                                      ? "border-gray-100 bg-gray-50/50"
-                                      : "border-gray-200"
-                                  }`}
-                                >
-                                  {isEditing ? (
-                                    /* 수정 모드 */
-                                    <div className="flex flex-col gap-2">
-                                      <input
-                                        type="text"
-                                        value={lib.label}
-                                        onChange={(e) => setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...l, label: e.target.value } : l))}
-                                        className="text-sm font-medium border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-gray-400"
-                                      />
-                                      <textarea
-                                        value={lib.description || ""}
-                                        onChange={(e) => setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...l, description: e.target.value } : l))}
-                                        rows={2}
-                                        className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-gray-400 resize-none"
-                                      />
-                                      <div className="flex items-center gap-1">
-                                        <input
-                                          type="number"
-                                          value={lib.price}
-                                          onChange={(e) => setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...l, price: parseInt(e.target.value) || 0 } : l))}
-                                          className="w-24 text-sm border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-gray-400 text-right"
-                                        />
-                                        <span className="text-xs text-gray-400">원</span>
-                                      </div>
-                                      <div className="flex justify-end gap-1 mt-1">
-                                        <button
-                                          type="button"
-                                          onClick={() => setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...l, _editing: false } : l))}
-                                          className="text-xs px-2 py-1 text-gray-400 hover:text-gray-600"
-                                        >
-                                          취소
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={async () => {
-                                            try {
-                                              const res = await fetch(`/api/addon-options/${lib.id}`, {
-                                                method: "PUT",
-                                                headers: { "Content-Type": "application/json" },
-                                                body: JSON.stringify({ label: lib.label, description: lib.description, price: lib.price }),
-                                              });
-                                              if (!res.ok) throw new Error("수정 실패");
-                                              const updated = await res.json();
-                                              setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...updated, _editing: false } : l));
-                                            } catch (err) {
-                                              alert("수정 실패: " + err.message);
-                                            }
-                                          }}
-                                          className="text-xs px-3 py-1 bg-gray-800 text-white rounded-md hover:bg-gray-900"
-                                        >
-                                          저장
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    /* 보기 모드 */
-                                    <>
-                                      <div className="flex justify-between items-start">
-                                        <span className="text-sm font-medium text-gray-800">{lib.label}</span>
-                                        <span className="text-sm text-gray-500 flex-shrink-0">+{lib.price.toLocaleString()}원</span>
-                                      </div>
-                                      {lib.description && (
-                                        <p className="text-xs text-gray-400 mt-1 whitespace-pre-line">{lib.description}</p>
-                                      )}
-                                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
-                                        <div className="flex gap-2">
-                                          <button
-                                            type="button"
-                                            onClick={() => setAddonLibrary((prev) => prev.map((l) => l.id === lib.id ? { ...l, _editing: true } : l))}
-                                            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                                          >
-                                            수정
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={async () => {
-                                              if (!confirm(`"${lib.label}" 옵션을 라이브러리에서 삭제하시겠습니까?`)) return;
-                                              try {
-                                                const res = await fetch(`/api/addon-options/${lib.id}`, { method: "DELETE" });
-                                                if (!res.ok) throw new Error("삭제 실패");
-                                                setAddonLibrary((prev) => prev.filter((l) => l.id !== lib.id));
-                                              } catch (err) {
-                                                alert("삭제 실패: " + err.message);
-                                              }
-                                            }}
-                                            className="text-xs text-gray-400 hover:text-red-500 transition-colors"
-                                          >
-                                            삭제
-                                          </button>
-                                        </div>
-                                        {alreadyAdded ? (
-                                          <span className="text-xs text-gray-400">추가됨</span>
-                                        ) : (
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setCurrentProduct((prev) => ({
-                                                ...prev,
-                                                addon_options: [
-                                                  ...(prev.addon_options || []),
-                                                  {
-                                                    option_id: lib.id,
-                                                    label: lib.label,
-                                                    description: lib.description,
-                                                    price: lib.price,
-                                                    enabled: true,
-                                                  },
-                                                ],
-                                              }));
-                                            }}
-                                            className="text-xs px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded transition-colors"
-                                          >
-                                            추가
-                                          </button>
-                                        )}
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-5 pt-3 border-t border-gray-100 flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNewAddon({ label: "", description: "", price: 0 });
-                            setShowAddonCreate(true);
-                          }}
-                          className="flex-1 py-2 text-sm text-gray-600 hover:text-gray-800 border border-dashed border-gray-300 hover:border-gray-400 rounded-lg transition-colors"
-                        >
-                          + 새 옵션 만들기
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowAddonLibrary(false)}
-                          className="px-4 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                          닫기
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 새 옵션 만들기 모달 */}
-                {showAddonCreate && (
-                  <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
-                    <div className="bg-white rounded-2xl shadow-xl w-[400px] p-5">
-                      <h3 className="font-bold text-gray-900 mb-4">새 옵션 만들기</h3>
-                      <div className="flex flex-col gap-3">
-                        <div>
-                          <label className="text-xs text-gray-500 mb-1 block">옵션명 *</label>
-                          <input
-                            type="text"
-                            value={newAddon.label}
-                            onChange={(e) => setNewAddon((p) => ({ ...p, label: e.target.value }))}
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400"
-                            placeholder="표지 편집"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-500 mb-1 block">설명</label>
-                          <textarea
-                            value={newAddon.description}
-                            onChange={(e) => setNewAddon((p) => ({ ...p, description: e.target.value }))}
-                            rows={3}
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 resize-none"
-                            placeholder="정사이즈로 작업하셨나요? 정사이즈가 아닌 경우 편집비가 발생합니다."
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-500 mb-1 block">가격 (원)</label>
-                          <input
-                            type="number"
-                            value={newAddon.price}
-                            onChange={(e) => setNewAddon((p) => ({ ...p, price: parseInt(e.target.value) || 0 }))}
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400"
-                            placeholder="5000"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-2 mt-4">
-                        <button
-                          type="button"
-                          onClick={() => setShowAddonCreate(false)}
-                          className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700"
-                        >
-                          취소
-                        </button>
-                        <button
-                          type="button"
-                          disabled={!newAddon.label.trim()}
-                          onClick={async () => {
-                            try {
-                              const res = await fetch("/api/addon-options", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify(newAddon),
-                              });
-                              if (!res.ok) throw new Error("저장 실패");
-                              const saved = await res.json();
-                              // 라이브러리에 추가
-                              setAddonLibrary((prev) => [...prev, saved]);
-                              // 현재 상품에도 추가
-                              setCurrentProduct((prev) => ({
-                                ...prev,
-                                addon_options: [
-                                  ...(prev.addon_options || []),
-                                  {
-                                    option_id: saved.id,
-                                    label: saved.label,
-                                    description: saved.description,
-                                    price: saved.price,
-                                    enabled: true,
-                                  },
-                                ],
-                              }));
-                              setShowAddonCreate(false);
-                            } catch (err) {
-                              alert("옵션 저장 실패: " + err.message);
-                            }
-                          }}
-                          className="px-4 py-1.5 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          만들기
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* 오른쪽: 옵션 영역 */}
@@ -1529,26 +1168,266 @@ export default function AdminBuilder() {
                 />
               </div>
 
-              {/* 블록 미리보기 */}
-              {currentProduct.blocks
-                .filter((b) => b.on && !b.hidden)
-                .map((block) => (
-                  <PreviewBlock
-                    key={block.id}
-                    block={block}
-                    customer={customer}
-                    setCustomer={setCustomer}
-                    qtyPrices={qtyPrices}
-                    linkStatus={linkStatus}
-                    handleFoldSelect={handleFoldSelect}
-                    productType={currentTemplateId}
-                    dbPapers={dbPapers}
-                    dbPapersList={dbPapersList}
-                    allBlocks={currentProduct.blocks}
-                    thicknessError={price.thicknessValidation?.error}
-                    dbSizes={dbSizes}
-                  />
-                ))}
+              {/* 가이드 블록들 */}
+              {currentProduct?.blocks
+                ?.filter((b) => b.on && !b.hidden && b.type === "guide")
+                .map((block, gIdx) => {
+                  const gCfg = block.config || {};
+                  const gOptions = gCfg.options || [];
+                  const guideState = customer.guides?.[block.id] || {
+                    selected: gCfg.default || gOptions[0]?.id || "",
+                    confirmed: false,
+                  };
+                  const isOpen = !guideState.confirmed;
+                  const selectedOpt = gOptions.find((o) => o.id === guideState.selected);
+
+                  return (
+                    <div key={block.id}>
+                      {!isOpen && selectedOpt ? (
+                        <div
+                          className="flex items-center gap-2 py-2.5 border-b border-gray-100 cursor-pointer group"
+                          onClick={() => setCustomer((prev) => ({
+                            ...prev,
+                            guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
+                          }))}
+                        >
+                          <span className="w-[1.375rem] h-[1.375rem] rounded-full bg-[#222828] flex items-center justify-center flex-shrink-0">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          </span>
+                          <span className="text-sm font-semibold text-gray-600 flex-shrink-0">{gCfg.title || block.label}<span className="text-gray-300 ml-2">·</span></span>
+                          <span className="text-sm text-gray-500 truncate">{selectedOpt.label}</span>
+                          {selectedOpt.price > 0 && (
+                            <span className="text-[13px] font-semibold text-gray-400 flex-shrink-0">+{selectedOpt.price.toLocaleString()}원</span>
+                          )}
+                          <span className="text-xs text-gray-400 font-medium flex-shrink-0 ml-auto group-hover:text-gray-700 transition-colors">변경</span>
+                        </div>
+                      ) : (
+                        <>
+                        <div className="mt-5 pt-5 border-t border-gray-100">
+                          <span className="text-sm font-semibold text-gray-700">{gCfg.title || block.label}</span>
+                        </div>
+                        {isOpen && (
+                        <div className="mt-3 flex flex-col gap-3">
+                          {gOptions.map((opt, idx) => {
+                            const isCurrent = guideState.selected === opt.id;
+                            return (
+                              <div
+                                key={opt.id}
+                                className={`relative rounded-2xl border-2 p-4 cursor-pointer transition-all ${
+                                  isCurrent ? "border-[#222828] bg-[#fafafa]" : "border-gray-200 bg-white hover:border-gray-300"
+                                }`}
+                                onClick={() => setCustomer((prev) => ({
+                                  ...prev,
+                                  guides: { ...prev.guides, [block.id]: { selected: opt.id, confirmed: true } },
+                                }))}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                                    isCurrent ? "bg-[#222828] text-white" : "bg-gray-200 text-gray-500"
+                                  }`}>{idx + 1}</span>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-semibold text-gray-900">{opt.label}</span>
+                                      {opt.price > 0 && (
+                                        <span className="text-xs font-semibold text-orange-600">+{opt.price.toLocaleString()}원</span>
+                                      )}
+                                    </div>
+                                    {opt.hint && <p className="text-xs text-gray-500 mt-2 leading-relaxed">{opt.hint}</p>}
+                                  </div>
+                                </div>
+                                {isCurrent && (
+                                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#222828] flex items-center justify-center">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      </>
+                      )}
+                    </div>
+                  );
+                })}
+
+              {/* 파일 작업 방식 (재단 상품만) */}
+              {(() => {
+                const sizeBlock = currentProduct?.blocks?.find((b) => b.on && b.type === "size");
+                const fsCfg = sizeBlock?.config;
+                if (!fsCfg?.trimEnabled) return null;
+
+                const allSizes = dbSizes || DB.sizeMultipliers;
+                const sizeMode = fsCfg.mode || "preset";
+                const bleed = fsCfg.bleed ?? 2;
+                const selectedSizeInfo = allSizes[customer.size];
+                const curWidth = sizeMode === "custom" ? (customer.customWidth || 0) : (selectedSizeInfo?.width || 0);
+                const curHeight = sizeMode === "custom" ? (customer.customHeight || 0) : (selectedSizeInfo?.height || 0);
+                const bleedWidth = curWidth + bleed * 2;
+                const bleedHeight = curHeight + bleed * 2;
+
+                if (curWidth <= 0 || curHeight <= 0) return null;
+
+                const fsPrices = fsCfg.fileSpecPrices || {};
+                const fsTexts = fsCfg.fileSpecTexts || {};
+                const fileSpecOptions = [
+                  {
+                    value: "with_bleed",
+                    label: fsTexts.with_bleed?.label || "재단 여백을 포함해서 작업했어요",
+                    size: `${bleedWidth}×${bleedHeight}mm`,
+                    hint: fsTexts.with_bleed?.hint || `상하좌우 ${bleed}mm 재단 여백이 포함된 파일이에요.`,
+                    price: fsPrices.with_bleed || 0,
+                  },
+                  {
+                    value: "exact",
+                    label: fsTexts.exact?.label || "완성 사이즈 그대로 작업했어요",
+                    size: `${curWidth}×${curHeight}mm`,
+                    hint: fsTexts.exact?.hint || `완성 사이즈 ${curWidth}×${curHeight}mm로 제작돼요.`,
+                    price: fsPrices.exact || 0,
+                  },
+                  {
+                    value: "fit",
+                    label: fsTexts.fit?.label || "다른 사이즈로 작업했어요",
+                    size: null,
+                    hint: fsTexts.fit?.hint || `선택하신 사이즈와 다른 규격의 파일이에요.`,
+                    price: fsPrices.fit || 0,
+                  },
+                ];
+
+                const currentFs = customer.fileSpec || "with_bleed";
+                const isOpen = !customer.fileSpecConfirmed;
+                const selectedOpt = fileSpecOptions.find((o) => o.value === currentFs);
+
+                return (
+                  <div>
+                    {!isOpen && selectedOpt ? (
+                      <div
+                        className="flex items-center gap-2 py-2.5 border-b border-gray-100 cursor-pointer group"
+                        onClick={() => setCustomer((prev) => ({ ...prev, fileSpecConfirmed: false }))}
+                      >
+                        <span className="w-[1.375rem] h-[1.375rem] rounded-full bg-[#222828] flex items-center justify-center flex-shrink-0">
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </span>
+                        <span className="text-sm font-semibold text-gray-600 flex-shrink-0">{fsCfg.fileSpecTitle || "파일 방식"}<span className="text-gray-300 ml-2">·</span></span>
+                        <span className="text-sm text-gray-500 truncate">{selectedOpt.label}</span>
+                        {selectedOpt.size && <span className="text-[13px] text-gray-400 flex-shrink-0">{selectedOpt.size}</span>}
+                        {selectedOpt.price > 0 && (
+                          <span className="text-[13px] font-semibold text-gray-400 flex-shrink-0">+{selectedOpt.price.toLocaleString()}원</span>
+                        )}
+                        <span className="text-xs text-gray-400 font-medium flex-shrink-0 ml-auto group-hover:text-gray-700 transition-colors">변경</span>
+                      </div>
+                    ) : (
+                      <>
+                      <div className="mt-5 pt-5 border-t border-gray-100">
+                        <span className="text-sm font-semibold text-gray-700">{fsCfg.fileSpecTitle || "어떤 파일로 올리시나요?"}</span>
+                      </div>
+                      <div className="mt-3 flex flex-col gap-3">
+                        {fileSpecOptions.map((opt, idx) => {
+                          const isCurrent = currentFs === opt.value;
+                          return (
+                            <div
+                              key={opt.value}
+                              className={`relative rounded-2xl border-2 p-4 cursor-pointer transition-all ${
+                                isCurrent ? "border-[#222828] bg-[#fafafa]" : "border-gray-200 bg-white hover:border-gray-300"
+                              }`}
+                              onClick={() => {
+                                setCustomer((prev) => ({ ...prev, fileSpec: opt.value, fileSpecConfirmed: true }));
+                              }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                                  isCurrent ? "bg-[#222828] text-white" : "bg-gray-200 text-gray-500"
+                                }`}>{idx + 1}</span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-gray-900">{opt.label}</span>
+                                    {opt.price > 0 && (
+                                      <span className="text-xs font-semibold text-orange-600">+{opt.price.toLocaleString()}원</span>
+                                    )}
+                                  </div>
+                                  {opt.size && <p className="text-xs font-medium text-gray-500 mt-0.5">{opt.size}</p>}
+                                  <p className="text-xs text-gray-500 mt-2 leading-relaxed">{opt.hint}</p>
+                                </div>
+                              </div>
+                              {isCurrent && (
+                                <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#222828] flex items-center justify-center">
+                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* 상세옵션 아코디언 */}
+              {(() => {
+                const allBlocks = currentProduct.blocks.filter((b) => b.on && !b.hidden && b.type !== "guide");
+                const detailBlks = allBlocks.filter((b) => b.type !== "quantity");
+                const qtyBlk = allBlocks.find((b) => b.type === "quantity");
+
+                return (
+                  <>
+                    {detailBlks.length > 0 && (
+                      <>
+                        {!builderDetailOpen ? (
+                          <div className="flex items-center gap-2 py-3 mt-2 border-b border-gray-200 opacity-50">
+                            <span className="text-sm font-semibold text-gray-400">상세옵션</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div
+                              className="flex items-center justify-between py-3 mt-2 border-b border-gray-200 cursor-pointer select-none"
+                              onClick={() => setBuilderDetailOpen(!builderDetailOpen)}
+                            >
+                              <span className="text-sm font-semibold text-gray-700">상세옵션</span>
+                              <span className="text-[10px] text-gray-400 transition-transform duration-200 rotate-180">&#9660;</span>
+                            </div>
+                            {detailBlks.map((block) => (
+                              <PreviewBlock
+                                key={block.id}
+                                block={block}
+                                customer={customer}
+                                setCustomer={setCustomer}
+                                qtyPrices={qtyPrices}
+                                linkStatus={linkStatus}
+                                handleFoldSelect={handleFoldSelect}
+                                productType={currentTemplateId}
+                                dbPapers={dbPapers}
+                                dbPapersList={dbPapersList}
+                                allBlocks={currentProduct.blocks}
+                                thicknessError={price.thicknessValidation?.error}
+                                dbSizes={dbSizes}
+                              />
+                            ))}
+                          </>
+                        )}
+                      </>
+                    )}
+
+                    {qtyBlk && (
+                      <PreviewBlock
+                        block={qtyBlk}
+                        customer={customer}
+                        setCustomer={setCustomer}
+                        qtyPrices={qtyPrices}
+                        linkStatus={linkStatus}
+                        handleFoldSelect={handleFoldSelect}
+                        productType={currentTemplateId}
+                        dbPapers={dbPapers}
+                        dbPapersList={dbPapersList}
+                        allBlocks={currentProduct.blocks}
+                        thicknessError={price.thicknessValidation?.error}
+                        dbSizes={dbSizes}
+                      />
+                    )}
+                  </>
+                );
+              })()}
 
               {/* 가격 표시 - 공유 컴포넌트 사용 */}
               <PriceDisplay

@@ -35,7 +35,6 @@ const productData = {
   ...product,
   content: parseJson(product.content, {}),
   blocks: parseJson(product.blocks, []),
-  addon_options: parseJson(product.addon_options, []),
 };
 
 const title = productData.content?.title || productData.name || "상품";
