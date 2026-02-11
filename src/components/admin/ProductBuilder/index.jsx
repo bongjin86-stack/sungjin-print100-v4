@@ -197,7 +197,7 @@ export default function AdminBuilder() {
   const [descInput, setDescInput] = useState("");
   const [newQtyInput, setNewQtyInput] = useState("");
   const [showBlockLibrary, setShowBlockLibrary] = useState(false);
-  const [builderDetailOpen, setBuilderDetailOpen] = useState(false);
+  const [builderDetailOpen, setBuilderDetailOpen] = useState(true);
 
   // 템플릿 편집 상태
   const [editingTemplateId, setEditingTemplateId] = useState(null);
@@ -376,16 +376,6 @@ export default function AdminBuilder() {
 
   const linkStatus = checkLinkRules(currentProduct?.blocks, customer);
 
-  // 빌더 미리보기: 사전 질문 완료 → 상세옵션 자동 펼침
-  const builderPrereqsDone = useMemo(() => {
-    const guideBlocks = currentProduct?.blocks?.filter((b) => b.on && !b.hidden && b.type === "guide") || [];
-    return guideBlocks.length === 0 ||
-      guideBlocks.every((b) => customer.guides?.[b.id]?.confirmed);
-  }, [currentProduct, customer]);
-
-  useEffect(() => {
-    if (builderPrereqsDone) setBuilderDetailOpen(true);
-  }, [builderPrereqsDone]);
 
   // 접지 선택 핸들러 (getFoldUpdate 래퍼)
   const handleFoldSelect = (foldOpt, cfg) => {

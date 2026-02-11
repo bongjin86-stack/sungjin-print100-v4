@@ -4,7 +4,7 @@
 // PreviewBlock은 shared 컴포넌트 사용
 // ============================================================
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import DOMPurify from "dompurify";
 
@@ -33,7 +33,7 @@ export default function ProductView({ product: initialProduct }) {
   const [pricingDataLoaded, setPricingDataLoaded] = useState(false);
   const [serverPrice, setServerPrice] = useState(null);
   const [qtyPrices, setQtyPrices] = useState({});
-  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(true);
   const debounceRef = useRef(null);
 
   useEffect(() => {
@@ -145,17 +145,6 @@ export default function ProductView({ product: initialProduct }) {
   const guideBlocks = product?.blocks?.filter((b) => b.on && !b.hidden && b.type === "guide") || [];
   const linkStatus = checkLinkRules(product?.blocks, customer);
 
-  // 모든 사전 질문(가이드) 완료 여부
-  const allPrereqsDone = useMemo(() => {
-    const guideBlocks = product?.blocks?.filter((b) => b.on && !b.hidden && b.type === "guide") || [];
-    return guideBlocks.length === 0 ||
-      guideBlocks.every((b) => customer.guides?.[b.id]?.confirmed);
-  }, [product, customer]);
-
-  // 사전 질문 완료 시 상세옵션 자동 펼침
-  useEffect(() => {
-    if (allPrereqsDone) setDetailOpen(true);
-  }, [allPrereqsDone]);
 
   // 서버에서 계산된 가격 사용
   const defaultPrice = {
