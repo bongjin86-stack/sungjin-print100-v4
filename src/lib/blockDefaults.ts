@@ -334,7 +334,6 @@ export function extractDefaultsFromBlock(
       } else {
         if (cfg.default) result.size = cfg.default;
       }
-      if (cfg.trimEnabled) result.fileSpec = "with_bleed";
       break;
     case "paper": {
       const role = getPaperBlockRole(block, allBlocks);

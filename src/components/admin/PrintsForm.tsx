@@ -143,6 +143,7 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [existingTags, setExistingTags] = useState<string[]>([]);
+  const [isCustomTag, setIsCustomTag] = useState(false);
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
     subtitle: initialData?.subtitle || "",
@@ -190,6 +191,10 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
             data.map((p: { tag?: string }) => p.tag).filter(Boolean)
           )].sort() as string[];
           setExistingTags(tags);
+          // 기존 태그에 없는 값이면 직접 입력 모드로 전환
+          if (initialData?.tag && !tags.includes(initialData.tag)) {
+            setIsCustomTag(true);
+          }
         }
       })
       .catch(() => {});
@@ -347,20 +352,47 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
             <label style={styles.label}>
               <EditableLabel labelKey="meta2_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
             </label>
-            <input
-              type="text"
-              list="tag-options"
-              value={formData.tag}
-              onChange={(e) => setFormData((prev) => ({ ...prev, tag: e.target.value }))}
-              placeholder="태그 선택 또는 직접 입력"
-              style={styles.input}
-            />
-            <datalist id="tag-options">
-              {existingTags.map((t) => (
-                <option key={t} value={t} />
-              ))}
-            </datalist>
-            <p style={styles.hint}>기존 태그를 선택하거나 새 태그를 직접 입력할 수 있습니다.</p>
+            {isCustomTag ? (
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <input
+                  type="text"
+                  value={formData.tag}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, tag: e.target.value }))}
+                  placeholder="새 태그 입력"
+                  style={{ ...styles.input, flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => { setIsCustomTag(false); }}
+                  style={{ ...styles.cancelButton, padding: "0.375rem 0.75rem", fontSize: "0.8125rem", whiteSpace: "nowrap" as const }}
+                >
+                  목록에서 선택
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <select
+                  value={existingTags.includes(formData.tag) ? formData.tag : ""}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "__custom__") {
+                      setIsCustomTag(true);
+                      setFormData((prev) => ({ ...prev, tag: "" }));
+                    } else {
+                      setFormData((prev) => ({ ...prev, tag: v }));
+                    }
+                  }}
+                  style={{ ...styles.select, flex: 1 }}
+                >
+                  <option value="">태그 선택</option>
+                  {existingTags.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                  <option value="__custom__">+ 직접 입력</option>
+                </select>
+              </div>
+            )}
+            <p style={styles.hint}>기존 태그를 선택하거나 "직접 입력"으로 새 태그를 추가할 수 있습니다.</p>
           </div>
 
           <div style={styles.formGroup}>

@@ -1217,6 +1217,51 @@
   font-weight: 500;
 }
 
+/* Trim notice (사이즈 아래 주의사항) */
+.pv-trim-notice {
+  margin-top: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+}
+.pv-trim-notice-size {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #374151;
+  line-height: 1.4;
+}
+.pv-trim-notice-body {
+  margin-top: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid #e5e7eb;
+}
+.pv-trim-notice-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 0.375rem;
+}
+.pv-trim-notice-body ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.pv-trim-notice-body li {
+  position: relative;
+  padding-left: 0.875rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 0.25rem;
+}
+.pv-trim-notice-body li::before {
+  content: "\2022";
+  position: absolute;
+  left: 0;
+  color: #9ca3af;
+}
+
 /* File spec / guide section */
 .pv-file-spec-section {
   margin-top: 1.25rem;
@@ -1379,6 +1424,23 @@
   line-height: 1.6;
   margin-top: 0.5rem;
   padding-left: 2.125rem;
+}
+.pv-fs-card-hint ul {
+  list-style: disc;
+  padding-left: 1.2em;
+  margin: 0;
+}
+.pv-fs-card-hint li {
+  margin-bottom: 0.15em;
+}
+.pv-fs-card-hint p {
+  margin: 0;
+}
+.pv-fs-card-hint h1,
+.pv-fs-card-hint h2,
+.pv-fs-card-hint h3 {
+  margin: 0.25em 0 0.1em;
+  line-height: 1.4;
 }
 
 /* Step done bar (numbered, guide/fileSpec/detail collapsed) */

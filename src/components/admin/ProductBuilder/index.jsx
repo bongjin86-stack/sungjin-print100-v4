@@ -42,6 +42,47 @@ import TemplateSelector from "./TemplateSelector";
 // ProductView와 동일한 스타일 사용
 import "@/components/product/ProductView.css";
 
+// BlockNote JSON hint를 렌더링하는 헬퍼 (ProductView.css의 pv-fs-card-hint 사용)
+function renderBuilderHint(hint) {
+  if (!hint) return null;
+  let parsed = hint;
+  if (typeof parsed === "string") {
+    try { parsed = JSON.parse(parsed); } catch { parsed = null; }
+  }
+  if (Array.isArray(parsed)) {
+    const items = parsed
+      .map((block) => {
+        const textParts = block.content
+          ?.filter((c) => c.type === "text" && c.text)
+          .map((c, i) => {
+            let el = c.text;
+            const s = c.styles || {};
+            if (s.bold) el = <strong key={`b${i}`}>{el}</strong>;
+            if (s.italic) el = <em key={`i${i}`}>{el}</em>;
+            if (s.fontSize) el = <span key={`fs${i}`} style={{ fontSize: s.fontSize }}>{el}</span>;
+            return <span key={i}>{el}</span>;
+          });
+        if (!textParts?.length) return null;
+        if (block.type === "bulletListItem") return <li key={block.id}>{textParts}</li>;
+        if (block.type === "heading") {
+          const Tag = `h${block.props?.level || 3}`;
+          return <Tag key={block.id}>{textParts}</Tag>;
+        }
+        return <p key={block.id}>{textParts}</p>;
+      })
+      .filter(Boolean);
+    if (items.length > 0) {
+      const hasList = parsed.some((b) => b.type === "bulletListItem" || b.type === "numberedListItem");
+      return <div className="pv-fs-card-hint">{hasList ? <ul>{items}</ul> : <div>{items}</div>}</div>;
+    }
+  }
+  // 폴백: plain text
+  if (typeof hint === "string" && hint.trim()) {
+    return <p className="pv-fs-card-hint">{hint}</p>;
+  }
+  return null;
+}
+
 export default function AdminBuilder() {
   const urlParams =
     typeof window !== "undefined"
@@ -338,12 +379,8 @@ export default function AdminBuilder() {
   // 빌더 미리보기: 사전 질문 완료 → 상세옵션 자동 펼침
   const builderPrereqsDone = useMemo(() => {
     const guideBlocks = currentProduct?.blocks?.filter((b) => b.on && !b.hidden && b.type === "guide") || [];
-    const allGuidesConfirmed = guideBlocks.length === 0 ||
+    return guideBlocks.length === 0 ||
       guideBlocks.every((b) => customer.guides?.[b.id]?.confirmed);
-    const sizeBlock = currentProduct?.blocks?.find((b) => b.on && b.type === "size");
-    const needsFileSpec = sizeBlock?.config?.trimEnabled;
-    const fileSpecDone = !needsFileSpec || customer.fileSpecConfirmed;
-    return allGuidesConfirmed && fileSpecDone;
   }, [currentProduct, customer]);
 
   useEffect(() => {
@@ -1183,30 +1220,21 @@ export default function AdminBuilder() {
 
                   return (
                     <div key={block.id}>
-                      {!isOpen && selectedOpt ? (
-                        <div
-                          className="flex items-center gap-2 py-2.5 border-b border-gray-100 cursor-pointer group"
-                          onClick={() => setCustomer((prev) => ({
-                            ...prev,
-                            guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
-                          }))}
-                        >
-                          <span className="w-[1.375rem] h-[1.375rem] rounded-full bg-[#222828] flex items-center justify-center flex-shrink-0">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          </span>
-                          <span className="text-sm font-semibold text-gray-600 flex-shrink-0">{gCfg.title || block.label}<span className="text-gray-300 ml-2">·</span></span>
-                          <span className="text-sm text-gray-500 truncate">{selectedOpt.label}</span>
-                          {selectedOpt.price > 0 && (
-                            <span className="text-[13px] font-semibold text-gray-400 flex-shrink-0">+{selectedOpt.price.toLocaleString()}원</span>
-                          )}
-                          <span className="text-xs text-gray-400 font-medium flex-shrink-0 ml-auto group-hover:text-gray-700 transition-colors">변경</span>
-                        </div>
-                      ) : (
-                        <>
-                        <div className="mt-5 pt-5 border-t border-gray-100">
-                          <span className="text-sm font-semibold text-gray-700">{gCfg.title || block.label}</span>
-                        </div>
-                        {isOpen && (
+                      <div className="mt-5 pt-5 border-t border-gray-100 flex items-center">
+                        <span className="text-sm font-semibold text-gray-700">{gCfg.title || block.label}</span>
+                        {!isOpen && (
+                          <button
+                            className="text-xs text-gray-400 font-medium ml-auto hover:text-gray-700 transition-colors"
+                            onClick={() => setCustomer((prev) => ({
+                              ...prev,
+                              guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
+                            }))}
+                          >
+                            변경
+                          </button>
+                        )}
+                      </div>
+                      {isOpen ? (
                         <div className="mt-3 flex flex-col gap-3">
                           {gOptions.map((opt, idx) => {
                             const isCurrent = guideState.selected === opt.id;
@@ -1232,7 +1260,7 @@ export default function AdminBuilder() {
                                         <span className="text-xs font-semibold text-orange-600">+{opt.price.toLocaleString()}원</span>
                                       )}
                                     </div>
-                                    {opt.hint && <p className="text-xs text-gray-500 mt-2 leading-relaxed">{opt.hint}</p>}
+                                    {opt.hint && renderBuilderHint(opt.hint)}
                                   </div>
                                 </div>
                                 {isCurrent && (
@@ -1244,125 +1272,30 @@ export default function AdminBuilder() {
                             );
                           })}
                         </div>
-                      )}
-                      </>
+                      ) : selectedOpt && (
+                        <div className="mt-3">
+                          <div
+                            className="rounded-2xl border-2 border-[#222828] bg-[#fafafa] px-4 py-3 cursor-pointer"
+                            onClick={() => setCustomer((prev) => ({
+                              ...prev,
+                              guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
+                            }))}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="w-5 h-5 rounded-full bg-[#222828] flex items-center justify-center flex-shrink-0">
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                              </span>
+                              <span className="text-sm font-semibold text-gray-900">{selectedOpt.label}</span>
+                              {selectedOpt.price > 0 && (
+                                <span className="text-xs font-semibold text-orange-600">+{selectedOpt.price.toLocaleString()}원</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   );
                 })}
-
-              {/* 파일 작업 방식 (재단 상품만) */}
-              {(() => {
-                const sizeBlock = currentProduct?.blocks?.find((b) => b.on && b.type === "size");
-                const fsCfg = sizeBlock?.config;
-                if (!fsCfg?.trimEnabled) return null;
-
-                const allSizes = dbSizes || DB.sizeMultipliers;
-                const sizeMode = fsCfg.mode || "preset";
-                const bleed = fsCfg.bleed ?? 2;
-                const selectedSizeInfo = allSizes[customer.size];
-                const curWidth = sizeMode === "custom" ? (customer.customWidth || 0) : (selectedSizeInfo?.width || 0);
-                const curHeight = sizeMode === "custom" ? (customer.customHeight || 0) : (selectedSizeInfo?.height || 0);
-                const bleedWidth = curWidth + bleed * 2;
-                const bleedHeight = curHeight + bleed * 2;
-
-                if (curWidth <= 0 || curHeight <= 0) return null;
-
-                const fsPrices = fsCfg.fileSpecPrices || {};
-                const fsTexts = fsCfg.fileSpecTexts || {};
-                const fileSpecOptions = [
-                  {
-                    value: "with_bleed",
-                    label: fsTexts.with_bleed?.label || "재단 여백을 포함해서 작업했어요",
-                    size: `${bleedWidth}×${bleedHeight}mm`,
-                    hint: fsTexts.with_bleed?.hint || `상하좌우 ${bleed}mm 재단 여백이 포함된 파일이에요.`,
-                    price: fsPrices.with_bleed || 0,
-                  },
-                  {
-                    value: "exact",
-                    label: fsTexts.exact?.label || "완성 사이즈 그대로 작업했어요",
-                    size: `${curWidth}×${curHeight}mm`,
-                    hint: fsTexts.exact?.hint || `완성 사이즈 ${curWidth}×${curHeight}mm로 제작돼요.`,
-                    price: fsPrices.exact || 0,
-                  },
-                  {
-                    value: "fit",
-                    label: fsTexts.fit?.label || "다른 사이즈로 작업했어요",
-                    size: null,
-                    hint: fsTexts.fit?.hint || `선택하신 사이즈와 다른 규격의 파일이에요.`,
-                    price: fsPrices.fit || 0,
-                  },
-                ];
-
-                const currentFs = customer.fileSpec || "with_bleed";
-                const isOpen = !customer.fileSpecConfirmed;
-                const selectedOpt = fileSpecOptions.find((o) => o.value === currentFs);
-
-                return (
-                  <div>
-                    {!isOpen && selectedOpt ? (
-                      <div
-                        className="flex items-center gap-2 py-2.5 border-b border-gray-100 cursor-pointer group"
-                        onClick={() => setCustomer((prev) => ({ ...prev, fileSpecConfirmed: false }))}
-                      >
-                        <span className="w-[1.375rem] h-[1.375rem] rounded-full bg-[#222828] flex items-center justify-center flex-shrink-0">
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        </span>
-                        <span className="text-sm font-semibold text-gray-600 flex-shrink-0">{fsCfg.fileSpecTitle || "파일 방식"}<span className="text-gray-300 ml-2">·</span></span>
-                        <span className="text-sm text-gray-500 truncate">{selectedOpt.label}</span>
-                        {selectedOpt.size && <span className="text-[13px] text-gray-400 flex-shrink-0">{selectedOpt.size}</span>}
-                        {selectedOpt.price > 0 && (
-                          <span className="text-[13px] font-semibold text-gray-400 flex-shrink-0">+{selectedOpt.price.toLocaleString()}원</span>
-                        )}
-                        <span className="text-xs text-gray-400 font-medium flex-shrink-0 ml-auto group-hover:text-gray-700 transition-colors">변경</span>
-                      </div>
-                    ) : (
-                      <>
-                      <div className="mt-5 pt-5 border-t border-gray-100">
-                        <span className="text-sm font-semibold text-gray-700">{fsCfg.fileSpecTitle || "어떤 파일로 올리시나요?"}</span>
-                      </div>
-                      <div className="mt-3 flex flex-col gap-3">
-                        {fileSpecOptions.map((opt, idx) => {
-                          const isCurrent = currentFs === opt.value;
-                          return (
-                            <div
-                              key={opt.value}
-                              className={`relative rounded-2xl border-2 p-4 cursor-pointer transition-all ${
-                                isCurrent ? "border-[#222828] bg-[#fafafa]" : "border-gray-200 bg-white hover:border-gray-300"
-                              }`}
-                              onClick={() => {
-                                setCustomer((prev) => ({ ...prev, fileSpec: opt.value, fileSpecConfirmed: true }));
-                              }}
-                            >
-                              <div className="flex items-start gap-3">
-                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                                  isCurrent ? "bg-[#222828] text-white" : "bg-gray-200 text-gray-500"
-                                }`}>{idx + 1}</span>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-semibold text-gray-900">{opt.label}</span>
-                                    {opt.price > 0 && (
-                                      <span className="text-xs font-semibold text-orange-600">+{opt.price.toLocaleString()}원</span>
-                                    )}
-                                  </div>
-                                  {opt.size && <p className="text-xs font-medium text-gray-500 mt-0.5">{opt.size}</p>}
-                                  <p className="text-xs text-gray-500 mt-2 leading-relaxed">{opt.hint}</p>
-                                </div>
-                              </div>
-                              {isCurrent && (
-                                <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#222828] flex items-center justify-center">
-                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      </>
-                    )}
-                  </div>
-                );
-              })()}
 
               {/* 상세옵션 아코디언 */}
               {(() => {

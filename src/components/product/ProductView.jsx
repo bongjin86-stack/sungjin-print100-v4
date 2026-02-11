@@ -89,12 +89,6 @@ export default function ProductView({ product: initialProduct }) {
         : [...presetQtys, customer.qty];
 
       try {
-        // fileSpec 추가금 계산: 사이즈 블록의 fileSpecPrices에서 선택한 옵션 금액
-        const sizeBlock = product?.blocks?.find((b) => b.on && b.type === "size");
-        const fileSpecPrice = sizeBlock?.config?.trimEnabled
-          ? (sizeBlock.config.fileSpecPrices || {})[customer.fileSpec || "with_bleed"] || 0
-          : 0;
-
         // 가이드 블록 가격 합산
         const guidePriceTotal = Object.entries(customer.guides || {}).reduce((sum, [blockId, state]) => {
           const guideBlock = product?.blocks?.find((b) => String(b.id) === String(blockId) && b.on && b.type === "guide");
@@ -110,7 +104,6 @@ export default function ProductView({ product: initialProduct }) {
             qty: customer.qty,
             productType: product.product_type || product.id,
             allQtys,
-            fileSpecPrice,
             guidePriceTotal,
           }),
         });
@@ -149,19 +142,14 @@ export default function ProductView({ product: initialProduct }) {
   const blocks = product.blocks?.filter((b) => b.on && !b.hidden && b.type !== "guide") || [];
   const detailBlocks = blocks.filter((b) => b.type !== "quantity");
   const quantityBlock = blocks.find((b) => b.type === "quantity");
-  // 전체 순번 계산 (가이드 → fileSpec → 상세옵션)
   const guideBlocks = product?.blocks?.filter((b) => b.on && !b.hidden && b.type === "guide") || [];
   const linkStatus = checkLinkRules(product?.blocks, customer);
 
-  // 모든 사전 질문(가이드+fileSpec) 완료 여부
+  // 모든 사전 질문(가이드) 완료 여부
   const allPrereqsDone = useMemo(() => {
     const guideBlocks = product?.blocks?.filter((b) => b.on && !b.hidden && b.type === "guide") || [];
-    const allGuidesConfirmed = guideBlocks.length === 0 ||
+    return guideBlocks.length === 0 ||
       guideBlocks.every((b) => customer.guides?.[b.id]?.confirmed);
-    const sizeBlock = product?.blocks?.find((b) => b.on && b.type === "size");
-    const needsFileSpec = sizeBlock?.config?.trimEnabled;
-    const fileSpecDone = !needsFileSpec || customer.fileSpecConfirmed;
-    return allGuidesConfirmed && fileSpecDone;
   }, [product, customer]);
 
   // 사전 질문 완료 시 상세옵션 자동 펼침
@@ -297,27 +285,22 @@ export default function ProductView({ product: initialProduct }) {
 
               return (
                 <div key={block.id} className="pv-file-spec-section">
-                  {!isOpen && selectedOpt ? (
-                    <div
-                      className="pv-step-done"
-                      onClick={() => setCustomer((prev) => ({
-                        ...prev,
-                        guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
-                      }))}
-                    >
-                      <span className="pv-step-check">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      </span>
-                      <span className="pv-step-title">{gCfg.title || block.label}</span>
-                      <span className="pv-step-value">{selectedOpt.label}</span>
-                      {selectedOpt.price > 0 && (
-                        <span className="pv-step-price">+{selectedOpt.price.toLocaleString()}원</span>
-                      )}
-                      <span className="pv-step-change">변경</span>
-                    </div>
-                  ) : (
-                    <>
-                    <div className="pv-addons-title">{gCfg.title || block.label}</div>
+                  <div className="pv-addons-title">
+                    {gCfg.title || block.label}
+                    {!isOpen && (
+                      <button
+                        className="pv-step-change"
+                        style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer" }}
+                        onClick={() => setCustomer((prev) => ({
+                          ...prev,
+                          guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
+                        }))}
+                      >
+                        변경
+                      </button>
+                    )}
+                  </div>
+                  {isOpen ? (
                     <div className="pv-fs-cards">
                       {gOptions.map((opt, idx) => {
                         const isCurrent = guideState.selected === opt.id;
@@ -346,123 +329,39 @@ export default function ProductView({ product: initialProduct }) {
                                 </span>
                               )}
                             </div>
-                            {opt.hint && <p className="pv-fs-card-hint">{opt.hint}</p>}
+                            {opt.hint && renderHintContent(opt.hint)}
                           </div>
                         );
                       })}
                     </div>
-                    </>
+                  ) : selectedOpt && (
+                    <div className="pv-fs-cards">
+                      <div
+                        className="pv-fs-card selected"
+                        onClick={() => setCustomer((prev) => ({
+                          ...prev,
+                          guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
+                        }))}
+                      >
+                        <div className="pv-fs-card-header">
+                          <span className="pv-fs-card-check">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          </span>
+                          <div className="pv-fs-card-title">
+                            <div className="pv-fs-card-label-row">
+                              <span className="pv-fs-card-label">{selectedOpt.label}</span>
+                              {selectedOpt.price > 0 && (
+                                <span className="pv-fs-card-price">+{selectedOpt.price.toLocaleString()}원</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               );
             })}
-
-          {/* 파일 작업 방식 (재단 상품만) */}
-          {(() => {
-            const sizeBlock = product?.blocks?.find((b) => b.on && b.type === "size");
-            const fsCfg = sizeBlock?.config;
-            if (!fsCfg?.trimEnabled) return null;
-
-            const allSizes = dbSizes || DB.sizeMultipliers;
-            const sizeMode = fsCfg.mode || "preset";
-            const bleed = fsCfg.bleed ?? 2;
-            const selectedSizeInfo = allSizes[customer.size];
-            const curWidth = sizeMode === "custom" ? (customer.customWidth || 0) : (selectedSizeInfo?.width || 0);
-            const curHeight = sizeMode === "custom" ? (customer.customHeight || 0) : (selectedSizeInfo?.height || 0);
-            const bleedWidth = curWidth + bleed * 2;
-            const bleedHeight = curHeight + bleed * 2;
-
-            if (curWidth <= 0 || curHeight <= 0) return null;
-
-            const fsPrices = fsCfg.fileSpecPrices || {};
-            const fsTexts = fsCfg.fileSpecTexts || {};
-            const fileSpecOptions = [
-              {
-                value: "with_bleed",
-                label: fsTexts.with_bleed?.label || "재단 여백을 포함해서 작업했어요",
-                size: `${bleedWidth}×${bleedHeight}mm`,
-                hint: fsTexts.with_bleed?.hint || `상하좌우 ${bleed}mm 재단 여백이 포함된 파일이에요. 이미지가 재단면까지 이어지는 디자인이라면, 여백 영역까지 이미지를 확장해서 작업해 주세요. 별도 보정 없이 바로 제작을 진행합니다.`,
-                price: fsPrices.with_bleed || 0,
-              },
-              {
-                value: "exact",
-                label: fsTexts.exact?.label || "완성 사이즈 그대로 작업했어요",
-                size: `${curWidth}×${curHeight}mm`,
-                hint: fsTexts.exact?.hint || `완성 사이즈는 동일하게 ${curWidth}×${curHeight}mm로 제작돼요. 가장자리에 이미지나 배경색이 없다면 그대로 재단을 진행합니다. 가장자리에 이미지가 닿아 있는 경우 살짝 확대 후 재단하며, 테두리 1~2mm가 잘릴 수 있어요. 중요한 내용은 테두리에서 최소 1cm 안쪽에 배치하는 게 좋아요.`,
-                price: fsPrices.exact || 0,
-              },
-              {
-                value: "fit",
-                label: fsTexts.fit?.label || "다른 사이즈로 작업했어요",
-                size: null,
-                hint: fsTexts.fit?.hint || `선택하신 사이즈(${curWidth}×${curHeight}mm)와 다른 규격의 파일이에요. 파일 확인 후 비율에 맞춰 조정하며, 상하좌우 여백이 생기거나 일부가 잘릴 수 있어요. 필요한 경우 작업 전 연락드립니다.`,
-                price: fsPrices.fit || 0,
-              },
-            ];
-
-            const currentFs = customer.fileSpec || "with_bleed";
-            const isOpen = !customer.fileSpecConfirmed;
-            const selectedOpt = fileSpecOptions.find((o) => o.value === currentFs);
-
-            return (
-              <div className="pv-file-spec-section">
-                {!isOpen && selectedOpt ? (
-                  <div
-                    className="pv-step-done"
-                    onClick={() => setCustomer((prev) => ({ ...prev, fileSpecConfirmed: false }))}
-                  >
-                    <span className="pv-step-check">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </span>
-                    <span className="pv-step-title">{fsCfg.fileSpecTitle || "파일 방식"}</span>
-                    <span className="pv-step-value">{selectedOpt.label}</span>
-                    {selectedOpt.size && <span className="pv-step-size">{selectedOpt.size}</span>}
-                    {selectedOpt.price > 0 && (
-                      <span className="pv-step-price">+{selectedOpt.price.toLocaleString()}원</span>
-                    )}
-                    <span className="pv-step-change">변경</span>
-                  </div>
-                ) : (
-                  <>
-                  <div className="pv-addons-title">{fsCfg.fileSpecTitle || "어떤 파일로 올리시나요?"}</div>
-                  <div className="pv-fs-cards">
-                    {fileSpecOptions.map((opt, idx) => {
-                      const isCurrent = currentFs === opt.value;
-                      return (
-                        <div
-                          key={opt.value}
-                          className={`pv-fs-card ${isCurrent ? "selected" : ""}`}
-                          onClick={() => {
-                            setCustomer((prev) => ({ ...prev, fileSpec: opt.value, fileSpecConfirmed: true }));
-                          }}
-                        >
-                          <div className="pv-fs-card-header">
-                            <span className={`pv-fs-num ${isCurrent ? "active" : ""}`}>{idx + 1}</span>
-                            <div className="pv-fs-card-title">
-                              <div className="pv-fs-card-label-row">
-                                <span className="pv-fs-card-label">{opt.label}</span>
-                                {opt.price > 0 && (
-                                  <span className="pv-fs-card-price">+{opt.price.toLocaleString()}원</span>
-                                )}
-                              </div>
-                              {opt.size && <p className="pv-fs-card-size">{opt.size}</p>}
-                            </div>
-                            {isCurrent && (
-                              <span className="pv-fs-card-check">
-                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                              </span>
-                            )}
-                          </div>
-                          <p className="pv-fs-card-hint">{opt.hint}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  </>
-                )}
-              </div>
-            );
-          })()}
 
           {/* 상세옵션 (1-2 완료 시 자동 오픈) */}
           {detailBlocks.length > 0 && (
@@ -589,24 +488,67 @@ export default function ProductView({ product: initialProduct }) {
 // ============================================================
 // BlockNote JSON → 텍스트 렌더링
 // ============================================================
+function renderInlineContent(contentArr) {
+  if (!Array.isArray(contentArr)) return null;
+  return contentArr
+    .filter((c) => c.type === "text" && c.text)
+    .map((c, i) => {
+      let el = c.text;
+      const s = c.styles || {};
+      if (s.bold) el = <strong key={`b${i}`}>{el}</strong>;
+      if (s.italic) el = <em key={`i${i}`}>{el}</em>;
+      if (s.underline) el = <u key={`u${i}`}>{el}</u>;
+      if (s.strike) el = <s key={`s${i}`}>{el}</s>;
+      if (s.fontSize) el = <span key={`fs${i}`} style={{ fontSize: s.fontSize }}>{el}</span>;
+      return <span key={i}>{el}</span>;
+    });
+}
+
 function renderBlockContent(blocks) {
   if (!Array.isArray(blocks)) return null;
   return blocks
     .map((block) => {
-      const text =
-        block.content
-          ?.filter((c) => c.type === "text")
-          ?.map((c) => c.text)
-          ?.join("") || "";
-      if (!text) return null;
-      if (block.type === "bulletListItem")
-        return <li key={block.id}>{text}</li>;
-      if (block.type === "paragraph") return <p key={block.id}>{text}</p>;
-      return <span key={block.id}>{text}</span>;
+      const inline = renderInlineContent(block.content);
+      const hasText = block.content?.some((c) => c.type === "text" && c.text);
+      if (!hasText) return null;
+      switch (block.type) {
+        case "heading": {
+          const level = block.props?.level || 1;
+          const Tag = `h${level}`;
+          return <Tag key={block.id}>{inline}</Tag>;
+        }
+        case "bulletListItem":
+          return <li key={block.id}>{inline}</li>;
+        case "numberedListItem":
+          return <li key={block.id}>{inline}</li>;
+        case "paragraph":
+          return <p key={block.id}>{inline}</p>;
+        default:
+          return <span key={block.id}>{inline}</span>;
+      }
     })
     .filter(Boolean);
 }
 
+function renderHintContent(hint) {
+  if (!hint) return null;
+  let parsed = hint;
+  if (typeof parsed === "string") {
+    try { parsed = JSON.parse(parsed); } catch { parsed = null; }
+  }
+  if (Array.isArray(parsed)) {
+    const items = renderBlockContent(parsed);
+    if (items?.length > 0) {
+      const listTypes = ["bulletListItem", "numberedListItem"];
+      const hasList = parsed.some((b) => listTypes.includes(b.type));
+      return <div className="pv-fs-card-hint">{hasList ? <ul>{items}</ul> : <div>{items}</div>}</div>;
+    }
+  }
+  if (typeof hint === "string" && hint.trim()) {
+    return <p className="pv-fs-card-hint">{hint}</p>;
+  }
+  return null;
+}
 
 function renderFeatures(content) {
   // 1) featuresHtml이 BlockNote JSON 배열인 경우

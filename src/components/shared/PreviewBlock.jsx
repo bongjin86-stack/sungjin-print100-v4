@@ -26,6 +26,33 @@ import {
 } from "@/lib/builderData";
 import { formatBusinessDate, getBusinessDate } from "@/lib/businessDays";
 
+/** BlockNote JSON → 구조화된 렌더링 (trim notice용) */
+function renderNoticeBody(notice) {
+  if (!notice) return null;
+  let parsed = notice;
+  if (typeof parsed === "string") {
+    try { parsed = JSON.parse(parsed); } catch { return null; }
+  }
+  if (!Array.isArray(parsed) || parsed.length === 0) return null;
+  const items = parsed.map((block, bIdx) => {
+    const textParts = (block.content || [])
+      .filter((c) => c.type === "text" && c.text)
+      .map((c, cIdx) => {
+        let el = c.text;
+        const s = c.styles || {};
+        if (s.bold) el = <strong key={`${bIdx}-${cIdx}`}>{el}</strong>;
+        if (s.italic) el = <em key={`${bIdx}-${cIdx}`}>{el}</em>;
+        return <span key={`${bIdx}-${cIdx}`}>{el}</span>;
+      });
+    if (!textParts.length) return null;
+    if (block.type === "bulletListItem") return <li key={block.id || bIdx}>{textParts}</li>;
+    return <p key={block.id || bIdx}>{textParts}</p>;
+  }).filter(Boolean);
+  if (items.length === 0) return null;
+  const hasBullets = parsed.some((b) => b.type === "bulletListItem");
+  return hasBullets ? <ul>{items}</ul> : <div>{items}</div>;
+}
+
 const PAPER_SWATCH_GRADIENTS = {
   snow: "linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)",
   mojo: "linear-gradient(135deg, #fefcf3 0%, #fef3c7 50%, #fde68a 100%)",
@@ -335,7 +362,25 @@ function PreviewBlockInner({
             </>
           )}
 
-          {/* 파일 작업 방식은 ProductView 왼쪽 컬럼에서 렌더링 */}
+          {/* 재단 상품 주의사항 */}
+          {cfg.trimEnabled && customer.size && curWidth > 0 && curHeight > 0 && (
+            <div className="pv-trim-notice">
+              <div className="pv-trim-notice-size">
+                {selectedSizeInfo?.name || customer.size} ({curWidth}×{curHeight}mm)
+                {" / "}재단 여백 포함 시 {bleedWidth}×{bleedHeight}mm
+              </div>
+              <div className="pv-trim-notice-body">
+                <p className="pv-trim-notice-title">주의사항</p>
+                {renderNoticeBody(cfg.trimNotice) || (
+                  <ul>
+                    <li>재단 여백({bleed}mm)을 포함한 사이즈로 제공해 주시면 가장 좋아요</li>
+                    <li>정사이즈({curWidth}×{curHeight}mm) 파일 제공 시, 가장자리에 이미지가 닿아 있으면 살짝 확대 후 재단하며 1~2mm 잘릴 수 있어요</li>
+                    <li>선택한 사이즈와 다른 파일은 비율에 맞게 조정하며, 여백이 생기거나 일부가 잘릴 수 있어요</li>
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       );
     }

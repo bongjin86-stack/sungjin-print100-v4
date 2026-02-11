@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface BlockNoteEditorProps {
   initialContent?: string;
@@ -86,6 +86,15 @@ function markdownToBlocks(markdown: string): any[] {
   return blocks.length > 0 ? blocks : [{ type: "paragraph", content: [] }];
 }
 
+const FONT_SIZES = [
+  { label: "12", value: "12px" },
+  { label: "13", value: "13px" },
+  { label: "14", value: "14px" },
+  { label: "16", value: "16px" },
+  { label: "18", value: "18px" },
+  { label: "20", value: "20px" },
+];
+
 // 실제 BlockNote 에디터 컴포넌트 (클라이언트에서만 로드)
 function BlockNoteEditorInner({
   initialContent = "",
@@ -93,7 +102,7 @@ function BlockNoteEditorInner({
   height = "120px",
 }: BlockNoteEditorProps) {
   const [editor, setEditor] = useState<any>(null);
-  const [BlockNoteView, setBlockNoteView] = useState<any>(null);
+  const [modules, setModules] = useState<any>(null);
 
   // 초기 블록 파싱
   const initialBlocks = useMemo(() => {
@@ -128,12 +137,31 @@ function BlockNoteEditorInner({
 
         if (!mounted) return;
 
+        // fontSize 커스텀 스타일
+        const FontSize = reactModule.createReactStyleSpec(
+          { type: "fontSize", propSchema: "string" },
+          {
+            render: (props: any) => {
+              const ref = props.contentRef;
+              return <span style={{ fontSize: props.value }} ref={ref} />;
+            },
+          }
+        );
+
+        const schema = coreModule.BlockNoteSchema.create({
+          styleSpecs: {
+            ...coreModule.defaultStyleSpecs,
+            fontSize: FontSize,
+          },
+        });
+
         const newEditor = coreModule.BlockNoteEditor.create({
+          schema,
           initialContent: initialBlocks,
         });
 
         setEditor(newEditor);
-        setBlockNoteView(() => mantineModule.BlockNoteView);
+        setModules({ core: coreModule, react: reactModule, mantine: mantineModule });
       } catch (error) {
         console.error("Failed to load BlockNote:", error);
       }
@@ -158,7 +186,7 @@ function BlockNoteEditorInner({
     editor.onEditorContentChange(handleChange);
   }, [editor, onChange]);
 
-  if (!editor || !BlockNoteView) {
+  if (!editor || !modules) {
     return (
       <div
         style={{
@@ -177,6 +205,129 @@ function BlockNoteEditorInner({
     );
   }
 
+  const {
+    BlockNoteView,
+  } = modules.mantine;
+
+  const {
+    FormattingToolbarController,
+    FormattingToolbar,
+    BlockTypeSelect,
+    BasicTextStyleButton,
+    ColorStyleButton,
+    CreateLinkButton,
+    NestBlockButton,
+    UnnestBlockButton,
+    useBlockNoteEditor,
+    useComponentsContext,
+  } = modules.react;
+
+  // 폰트 사이즈 드롭다운 버튼
+  const FontSizeButton = () => {
+    const ed = useBlockNoteEditor();
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      const handler = (e: MouseEvent) => {
+        if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      };
+      document.addEventListener("mousedown", handler);
+      return () => document.removeEventListener("mousedown", handler);
+    }, []);
+
+    const currentSize = ed.getActiveStyles?.()?.fontSize || "";
+
+    return (
+      <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          style={{
+            padding: "2px 6px",
+            fontSize: "12px",
+            fontWeight: 500,
+            border: "none",
+            background: open ? "#f3f4f6" : "transparent",
+            borderRadius: "4px",
+            cursor: "pointer",
+            color: "#374151",
+            display: "flex",
+            alignItems: "center",
+            gap: "2px",
+          }}
+          title="폰트 사이즈"
+        >
+          {currentSize ? currentSize.replace("px", "") : "크기"}
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M3 4L5 6L7 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+          </svg>
+        </button>
+        {open && (
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              background: "white",
+              border: "1px solid #e5e7eb",
+              borderRadius: "6px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              zIndex: 999,
+              minWidth: "60px",
+              overflow: "hidden",
+            }}
+          >
+            {FONT_SIZES.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => {
+                  ed.addStyles({ fontSize: s.value });
+                  setOpen(false);
+                }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  padding: "4px 10px",
+                  fontSize: "12px",
+                  border: "none",
+                  background: currentSize === s.value ? "#f3f4f6" : "transparent",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  color: "#374151",
+                }}
+              >
+                {s.label}px
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                ed.removeStyles({ fontSize: "" });
+                setOpen(false);
+              }}
+              style={{
+                display: "block",
+                width: "100%",
+                padding: "4px 10px",
+                fontSize: "11px",
+                border: "none",
+                borderTop: "1px solid #e5e7eb",
+                background: "transparent",
+                cursor: "pointer",
+                textAlign: "left",
+                color: "#9ca3af",
+              }}
+            >
+              초기화
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div
       style={{
@@ -186,7 +337,24 @@ function BlockNoteEditorInner({
         overflow: "hidden",
       }}
     >
-      <BlockNoteView editor={editor} theme="light" />
+      <BlockNoteView editor={editor} theme="light" formattingToolbar={false}>
+        <FormattingToolbarController
+          formattingToolbar={() => (
+            <FormattingToolbar>
+              <BlockTypeSelect />
+              <BasicTextStyleButton basicTextStyle="bold" />
+              <BasicTextStyleButton basicTextStyle="italic" />
+              <BasicTextStyleButton basicTextStyle="underline" />
+              <BasicTextStyleButton basicTextStyle="strike" />
+              <FontSizeButton />
+              <ColorStyleButton />
+              <NestBlockButton />
+              <UnnestBlockButton />
+              <CreateLinkButton />
+            </FormattingToolbar>
+          )}
+        />
+      </BlockNoteView>
     </div>
   );
 }
@@ -246,6 +414,7 @@ export function renderBlocksToHTML(content: string): string {
             if (c.styles?.italic) text = `<em>${text}</em>`;
             if (c.styles?.underline) text = `<u>${text}</u>`;
             if (c.styles?.strike) text = `<s>${text}</s>`;
+            if (c.styles?.fontSize) text = `<span style="font-size:${c.styles.fontSize}">${text}</span>`;
             return text;
           })
           .join("") || "";

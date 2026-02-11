@@ -17,7 +17,7 @@ export const prerender = false;
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { customer, qty, productType, allQtys, fileSpecPrice, guidePriceTotal } = body;
+    const { customer, qty, productType, allQtys, guidePriceTotal } = body;
 
     if (!customer || !qty || qty <= 0) {
       return new Response(
@@ -30,12 +30,6 @@ export const POST: APIRoute = async ({ request }) => {
     await loadPricingData();
 
     const selected = calculatePrice(customer, qty, productType || "flyer");
-    // Add fileSpec surcharge (주문당 고정금)
-    const fsPrice = Number(fileSpecPrice) || 0;
-    if (fsPrice > 0) {
-      selected.fileSpecTotal = fsPrice;
-      selected.total = (selected.total || 0) + fsPrice;
-    }
     // Add guide block surcharges (주문당 고정금)
     const guidePrice = Number(guidePriceTotal) || 0;
     if (guidePrice > 0) {
@@ -50,10 +44,6 @@ export const POST: APIRoute = async ({ request }) => {
       for (const q of allQtys) {
         try {
           const result = calculatePrice(customer, q, productType || "flyer") as Record<string, unknown>;
-          if (fsPrice > 0) {
-            result.fileSpecTotal = fsPrice;
-            result.total = ((result.total as number) || 0) + fsPrice;
-          }
           if (guidePrice > 0) {
             result.guidePriceTotal = guidePrice;
             result.total = ((result.total as number) || 0) + guidePrice;
