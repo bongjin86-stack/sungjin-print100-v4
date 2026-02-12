@@ -227,6 +227,12 @@ export const BLOCK_TYPES: Record<string, BlockTypeInfo> = {
     color: "from-blue-100 to-blue-200",
     desc: "고객 안내 질문 (왼쪽 카드)",
   },
+  consultation: {
+    name: "상담",
+    icon: "💬",
+    color: "from-yellow-100 to-yellow-200",
+    desc: "카카오톡 상담 안내",
+  },
 };
 
 // 상품 템플릿
@@ -1158,6 +1164,21 @@ export function getDefaultConfig(type: string): BlockConfig {
         ],
         default: "opt_1",
         required: true,
+      } as any;
+    case "consultation":
+      return {
+        title: "성진프린트 상담",
+        message:
+          "주문 전 궁금한 점이 있으시면 아래에서 확인하시거나, 카톡으로 편하게 문의하세요.",
+        faqs: [
+          { id: "faq_1", emoji: "📄", text: "어떤 파일 형식으로 보내야 하나요?", answer: "AI, PDF, PSD, JPG 등 대부분의 파일 형식을 지원합니다. 가장 좋은 품질을 위해 AI 또는 PDF 파일을 권장합니다." },
+          { id: "faq_2", emoji: "🎨", text: "모니터와 인쇄 색상이 다를 수 있나요?", answer: "네, 모니터는 RGB, 인쇄는 CMYK 색상 체계를 사용하므로 차이가 발생할 수 있습니다. 중요한 색상은 별색(팬톤) 지정을 권장합니다." },
+          { id: "faq_3", emoji: "📐", text: "재단 여백은 어떻게 잡아야 하나요?", answer: "사방 2~3mm의 재단 여백을 포함해 주세요. 중요한 텍스트나 이미지는 재단선 안쪽 3mm 이상 여유를 두시면 안전합니다." },
+        ],
+        kakaoUrl: "https://pf.kakao.com/_sungjinprint",
+        ctaText: "카카오톡으로 상담하기",
+        openTime: "09:00",
+        closeTime: "18:00",
       } as any;
     default:
       return {} as BlockConfig;

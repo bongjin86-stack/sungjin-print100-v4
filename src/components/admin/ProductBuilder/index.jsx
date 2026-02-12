@@ -1142,6 +1142,23 @@ export default function AdminBuilder() {
                 })}
               </div>
 
+              {/* 상담 블록 (왼쪽 컬럼에 렌더링) */}
+              {currentProduct?.blocks
+                ?.filter((b) => b.on && !b.hidden && b.type === "consultation")
+                .map((block) => (
+                  <PreviewBlock
+                    key={block.id}
+                    block={block}
+                    customer={customer}
+                    setCustomer={setCustomer}
+                    qtyPrices={{}}
+                    linkStatus={{}}
+                    handleFoldSelect={() => {}}
+                    productType={currentProduct.product_type || currentProduct.id}
+                    allBlocks={currentProduct?.blocks || []}
+                  />
+                ))}
+
             </div>
 
             {/* 오른쪽: 옵션 영역 */}
@@ -1194,9 +1211,9 @@ export default function AdminBuilder() {
                 />
               </div>
 
-              {/* 블록 빌더 순서대로 렌더링 */}
+              {/* 블록 빌더 순서대로 렌더링 (consultation은 왼쪽 컬럼) */}
               {currentProduct?.blocks
-                ?.filter((b) => b.on && !b.hidden)
+                ?.filter((b) => b.on && !b.hidden && b.type !== "consultation")
                 .map((block) => {
                   if (block.type === "guide") {
                     const gCfg = block.config || {};

@@ -32,11 +32,22 @@
   }
 }
 
+/* Left column wrapper */
+.pv-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 /* Images (sticky on desktop) */
 .pv-images {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.pv-images > * {
+  flex-shrink: 0;
 }
 
 @media (min-width: 768px) {
@@ -45,16 +56,16 @@
     top: 6rem;
     max-height: calc(100vh - 7rem);
     overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    scrollbar-width: none;          /* Firefox */
+    -ms-overflow-style: none;       /* IE/Edge */
   }
   .pv-images::-webkit-scrollbar {
-    display: none;
+    display: none;                  /* Chrome/Safari */
   }
 }
 
 .pv-main-image {
-  aspect-ratio: 1;
+  aspect-ratio: 3 / 2;
   background: #f9fafb;
   border-radius: var(--radius-4xl, 1.5rem);
   overflow: hidden;
@@ -82,7 +93,7 @@
 }
 
 .pv-thumb {
-  aspect-ratio: 1;
+  aspect-ratio: 3 / 2;
   background: #f9fafb;
   border-radius: var(--radius-4xl, 1.5rem);
   overflow: hidden;
@@ -109,9 +120,10 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem 1.5rem;
-  margin-top: 1.5rem;
-  padding-top: 1.25rem;
+  margin-top: 1rem;
+  padding: 1rem 0;
   border-top: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .pv-highlight-card {
@@ -144,6 +156,170 @@
   color: #6b7280;
   line-height: 1.5;
   margin: 0;
+}
+
+/* Consultation section (플랫 스타일 - 선 구분) */
+.pv-consult {
+  margin-top: 0;
+  padding: 1rem 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.pv-consult-header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 1rem;
+}
+
+.pv-consult-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--c-primary, #222828);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.pv-consult-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--c-text, #1a1a1a);
+}
+
+.pv-consult-status {
+  font-size: 0.75rem;
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pv-consult-status.offline {
+  color: #9ca3af;
+}
+
+.pv-consult-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  display: inline-block;
+}
+
+.pv-consult-dot.offline {
+  background: #9ca3af;
+}
+
+.pv-consult-bubble {
+  background: var(--c-bg-secondary, #f5f7f7);
+  border-radius: 4px 1rem 1rem 1rem;
+  padding: 0.875rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--c-text-sub, #333);
+  line-height: 1.6;
+}
+
+.pv-consult-bubble strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--c-text, #1a1a1a);
+}
+
+.pv-consult-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pv-consult-faq-item {
+  border: 1.5px solid var(--c-border-light, #e5e5e0);
+  border-radius: var(--radius-4xl, 1.5rem);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.pv-consult-faq-item:has(.pv-consult-reply.active) {
+  border-color: var(--c-border, #333);
+}
+
+.pv-consult-reply {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.6875rem 1rem;
+  background: #fff;
+  border: none;
+  font-size: 0.8125rem;
+  color: var(--c-text-sub, #444);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  font-family: inherit;
+}
+
+.pv-consult-reply:hover {
+  background: #fafaf8;
+}
+
+.pv-consult-reply.active {
+  background: #fafaf8;
+}
+
+.pv-consult-chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s;
+  color: #999;
+}
+
+.pv-consult-chevron.open {
+  transform: rotate(180deg);
+}
+
+.pv-consult-answer {
+  padding: 0 1rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--c-text-sub, #555);
+  line-height: 1.6;
+  background: #fafaf8;
+  border-top: 1px solid var(--c-border-light, #f0f0ee);
+}
+
+.pv-consult-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.875rem;
+  background: #FAE100;
+  color: #3C1E1E;
+  border: none;
+  border-radius: var(--radius-4xl, 1.5rem);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+}
+
+.pv-consult-cta:hover {
+  background: #f0d800;
+}
+
+.pv-consult-cta svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 /* Options area */
@@ -643,7 +819,7 @@
   color: white;
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-xl, 0.75rem);
   white-space: nowrap;
   z-index: 10;
 }
@@ -703,7 +879,7 @@
   padding: 0.5rem 0.75rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: var(--radius-base, 0.5rem);
+  border-radius: var(--radius-xl, 0.75rem);
   color: #b91c1c;
   font-size: 0.75rem;
   font-weight: 400;
@@ -756,7 +932,7 @@
   color: #222828;
   text-align: center;
   border: 1px solid transparent;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-xl, 0.75rem);
   background: transparent;
   padding: 0.25rem;
   -moz-appearance: textfield;
@@ -1010,7 +1186,7 @@
   max-width: 120px;
   padding: 0.375rem 0.625rem;
   border: 1px solid var(--c-border, #e5e7eb);
-  border-radius: var(--radius-md, 0.5rem);
+  border-radius: var(--radius-xl, 0.75rem);
   font-size: var(--fs-sm, 0.875rem);
   text-align: right;
   background: white;
@@ -1195,7 +1371,7 @@
   width: 5rem;
   padding: 0.375rem 0.5rem;
   border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-xl, 0.75rem);
   font-size: 0.875rem;
   text-align: center;
   outline: none;
@@ -1223,7 +1399,7 @@
   padding: 0.875rem 1rem;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-xl, 0.75rem);
 }
 .pv-trim-notice-size {
   font-size: 0.8125rem;
@@ -1344,19 +1520,19 @@
 }
 .pv-fs-card {
   position: relative;
-  border: 2px solid #e5e7eb;
-  border-radius: 1rem;
+  border: 1px solid var(--c-border-light, #f0f2f2);
+  border-radius: var(--radius-4xl, 1.5rem);
   padding: 1rem 1.125rem;
   cursor: pointer;
   background: #fff;
   transition: border-color 0.15s, background 0.15s;
 }
 .pv-fs-card:hover {
-  border-color: #d1d5db;
+  border-color: var(--c-border, #d9d9d9);
 }
 .pv-fs-card.selected {
-  border-color: var(--c-primary, #222828);
-  background: #fafafa;
+  border-color: var(--c-border, #d9d9d9);
+  background: #f7f8f8;
 }
 .pv-fs-card-header {
   display: flex;

@@ -24,7 +24,7 @@ import {
   getSpringOptionsDefaults,
   TEMPLATES,
 } from "@/lib/builderData";
-import { formatBusinessDate, getBusinessDate } from "@/lib/businessDays";
+import { formatBusinessDate, getBusinessDate, isBusinessDay } from "@/lib/businessDays";
 
 /** BlockNote JSON → 구조화된 렌더링 (trim notice용) */
 function renderNoticeBody(notice) {
@@ -216,6 +216,120 @@ function CustomQtyInput({ qtyMin, qtyMax, isCustomQty, customerQty, setCustomer,
           {qtyMin}~{qtyMax}부 사이로 입력해주세요
         </p>
       )}
+    </div>
+  );
+}
+
+/** 상담 가능 여부 + 다음 오픈 시간 계산 (businessDays.ts 영업일 공유) */
+function getConsultStatus(cfg) {
+  const now = new Date();
+  const openTime = cfg.openTime || "09:00";
+  const closeTime = cfg.closeTime || "18:00";
+
+  const [openH, openM] = openTime.split(":").map(Number);
+  const [closeH, closeM] = closeTime.split(":").map(Number);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const openMin = openH * 60 + openM;
+  const closeMin = closeH * 60 + closeM;
+
+  const todayBiz = isBusinessDay(now);
+  const isOpen = todayBiz && nowMin >= openMin && nowMin < closeMin;
+
+  if (isOpen) return { isOpen: true, nextOpen: null };
+
+  // 오늘 영업일인데 아직 오픈 전
+  if (todayBiz && nowMin < openMin) {
+    return { isOpen: false, nextOpen: `오늘 ${openTime}` };
+  }
+
+  // 다음 영업일 찾기
+  const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
+  const next = new Date(now);
+  for (let i = 1; i <= 14; i++) {
+    next.setDate(next.getDate() + 1);
+    if (isBusinessDay(next)) {
+      if (i === 1) return { isOpen: false, nextOpen: `내일 ${openTime}` };
+      const m = next.getMonth() + 1;
+      const d = next.getDate();
+      const dayName = DAY_NAMES[next.getDay()];
+      return { isOpen: false, nextOpen: `${m}/${d}(${dayName}) ${openTime}` };
+    }
+  }
+  return { isOpen: false, nextOpen: null };
+}
+
+/** 상담 블록 — FAQ 아코디언 + 상담시간 표시 */
+function ConsultationBlock({ cfg, faqs }) {
+  const [openFaq, setOpenFaq] = useState(null);
+  const [status, setStatus] = useState(() => getConsultStatus(cfg));
+
+  // 1분마다 상태 갱신
+  useEffect(() => {
+    const timer = setInterval(() => setStatus(getConsultStatus(cfg)), 60_000);
+    return () => clearInterval(timer);
+  }, [cfg.openTime, cfg.closeTime, cfg.offDays]);
+
+  return (
+    <div className="pv-consult">
+      <div className="pv-consult-header">
+        <div className="pv-consult-avatar">SJ</div>
+        <div className="pv-consult-info">
+          <div className="pv-consult-name">{cfg.title || "성진프린트 상담"}</div>
+          {status.isOpen ? (
+            <div className="pv-consult-status">
+              <span className="pv-consult-dot" />
+              상담 가능
+            </div>
+          ) : (
+            <div className="pv-consult-status offline">
+              <span className="pv-consult-dot offline" />
+              {status.nextOpen ? `${status.nextOpen}에 상담 가능` : "상담 불가"}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="pv-consult-bubble">
+        <strong>안녕하세요! 👋</strong>
+        {cfg.message || ""}
+      </div>
+
+      {faqs.length > 0 && (
+        <div className="pv-consult-replies">
+          {faqs.map((faq) => (
+            <div key={faq.id} className="pv-consult-faq-item">
+              <button
+                type="button"
+                className={`pv-consult-reply${openFaq === faq.id ? " active" : ""}`}
+                onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)}
+              >
+                <span>{faq.emoji}&nbsp;&nbsp;{faq.text}</span>
+                <svg
+                  className={`pv-consult-chevron${openFaq === faq.id ? " open" : ""}`}
+                  width="16" height="16" viewBox="0 0 16 16" fill="none"
+                >
+                  <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              {openFaq === faq.id && faq.answer && (
+                <div className="pv-consult-answer">{faq.answer}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <a
+        href={cfg.kakaoUrl || "#"}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="pv-consult-cta"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.95 5.29 4.84 6.68-.2.97-.72 3.04-.76 3.23 0 0-.01.09.05.13.06.04.13.02.13.02.18-.03 2.15-1.42 3.04-2.1.87.14 1.78.21 2.7.21 5.52 0 10-3.58 10-8C22 6.58 17.52 3 12 3z" />
+        </svg>
+        {cfg.ctaText || "카카오톡으로 상담하기"}
+      </a>
     </div>
   );
 }
@@ -1510,6 +1624,11 @@ function PreviewBlockInner({
           />
         </div>
       );
+    }
+
+    case "consultation": {
+      const faqs = cfg.faqs || [];
+      return <ConsultationBlock cfg={cfg} faqs={faqs} />;
     }
 
     default:

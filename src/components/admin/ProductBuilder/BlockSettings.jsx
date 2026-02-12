@@ -2281,6 +2281,148 @@ function BlockSettings({
       );
     }
 
+    case "consultation": {
+      const faqs = cfg.faqs || [];
+      return (
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">상담 제목</label>
+            <input
+              type="text"
+              value={cfg.title || ""}
+              onChange={(e) => updateCfg(block.id, "title", e.target.value)}
+              className="input input-bordered input-sm w-full"
+              placeholder="성진프린트 상담"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">안내 메시지</label>
+            <textarea
+              value={cfg.message || ""}
+              onChange={(e) => updateCfg(block.id, "message", e.target.value)}
+              className="textarea textarea-bordered textarea-sm w-full"
+              placeholder="주문 전 궁금한 점이 있으시면..."
+              rows={2}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">카카오톡 URL</label>
+            <input
+              type="url"
+              value={cfg.kakaoUrl || ""}
+              onChange={(e) => updateCfg(block.id, "kakaoUrl", e.target.value)}
+              className="input input-bordered input-sm w-full"
+              placeholder="https://pf.kakao.com/..."
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">버튼 텍스트</label>
+            <input
+              type="text"
+              value={cfg.ctaText || ""}
+              onChange={(e) => updateCfg(block.id, "ctaText", e.target.value)}
+              className="input input-bordered input-sm w-full"
+              placeholder="카카오톡으로 상담하기"
+            />
+          </div>
+
+          <div className="border-t pt-3">
+            <label className="text-xs text-gray-500 block mb-2">상담 가능 시간</label>
+            <div className="flex items-center gap-2 mb-1">
+              <input
+                type="time"
+                value={cfg.openTime || "09:00"}
+                onChange={(e) => updateCfg(block.id, "openTime", e.target.value)}
+                className="input input-bordered input-sm"
+              />
+              <span className="text-xs text-gray-400">~</span>
+              <input
+                type="time"
+                value={cfg.closeTime || "18:00"}
+                onChange={(e) => updateCfg(block.id, "closeTime", e.target.value)}
+                className="input input-bordered input-sm"
+              />
+            </div>
+            <p className="text-[11px] text-gray-400 mb-0">주말/공휴일은 출고일과 동일하게 자동 휴무 처리됩니다.</p>
+          </div>
+
+          <div className="border-t pt-3">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs text-gray-500">자주 묻는 질문</label>
+              <button
+                type="button"
+                onClick={() => {
+                  const newId = `faq_${Date.now()}`;
+                  updateCfg(block.id, "faqs", [
+                    ...faqs,
+                    { id: newId, emoji: "❓", text: "" },
+                  ]);
+                }}
+                className="btn btn-xs btn-ghost"
+              >
+                + 추가
+              </button>
+            </div>
+            {faqs.map((faq, i) => (
+              <div key={faq.id} className="mb-3 border border-gray-200 rounded-lg p-2">
+                <div className="flex items-center gap-1 mb-1">
+                  <input
+                    type="text"
+                    value={faq.emoji || ""}
+                    onChange={(e) => {
+                      const updated = [...faqs];
+                      updated[i] = { ...updated[i], emoji: e.target.value };
+                      updateCfg(block.id, "faqs", updated);
+                    }}
+                    className="input input-bordered input-sm w-12 text-center"
+                    maxLength={2}
+                  />
+                  <input
+                    type="text"
+                    value={faq.text || ""}
+                    onChange={(e) => {
+                      const updated = [...faqs];
+                      updated[i] = { ...updated[i], text: e.target.value };
+                      updateCfg(block.id, "faqs", updated);
+                    }}
+                    className="input input-bordered input-sm flex-1"
+                    placeholder="질문 내용"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateCfg(
+                        block.id,
+                        "faqs",
+                        faqs.filter((_, j) => j !== i)
+                      );
+                    }}
+                    className="btn btn-xs btn-ghost text-red-400"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <textarea
+                  value={faq.answer || ""}
+                  onChange={(e) => {
+                    const updated = [...faqs];
+                    updated[i] = { ...updated[i], answer: e.target.value };
+                    updateCfg(block.id, "faqs", updated);
+                  }}
+                  className="textarea textarea-bordered textarea-sm w-full mt-1"
+                  placeholder="답변 내용"
+                  rows={2}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     default:
       return <p className="text-xs text-gray-400">설정 없음</p>;
   }

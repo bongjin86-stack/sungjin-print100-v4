@@ -176,7 +176,8 @@ export default function ProductView({ product: initialProduct }) {
       )}
 
       <div className="pv-grid">
-        {/* 왼쪽 컬럼: 이미지만 */}
+        {/* 왼쪽 컬럼 */}
+        <div className="pv-left-col">
         <div className="pv-images">
           {/* 메인 이미지 */}
           <div className="pv-main-image">
@@ -244,7 +245,29 @@ export default function ProductView({ product: initialProduct }) {
             </div>
           )}
 
+          {/* 상담 블록 (스티키 안, 이미지 아래) */}
+          {allBlocks
+            .filter((b) => b.type === "consultation")
+            .map((block) => (
+              <PreviewBlock
+                key={block.id}
+                block={block}
+                customer={customer}
+                setCustomer={setCustomer}
+                qtyPrices={qtyPrices}
+                linkStatus={linkStatus}
+                handleFoldSelect={handleFoldSelect}
+                productType={product.product_type || product.id}
+                dbPapers={dbPapers}
+                dbPapersList={dbPapersList}
+                allBlocks={product?.blocks || []}
+                thicknessError={price.thicknessValidation?.error}
+                dbSizes={dbSizes}
+              />
+            ))}
+
         </div>{/* end pv-images */}
+        </div>{/* end pv-left-col */}
 
         {/* 오른쪽: 옵션 영역 */}
         <div className="pv-options">
@@ -257,8 +280,8 @@ export default function ProductView({ product: initialProduct }) {
           {/* 주요 특징 */}
           {renderFeatures(content)}
 
-          {/* 블록 빌더 순서대로 렌더링 */}
-          {allBlocks.map((block) => {
+          {/* 블록 빌더 순서대로 렌더링 (consultation은 왼쪽 컬럼) */}
+          {allBlocks.filter((b) => b.type !== "consultation").map((block) => {
             if (block.type === "guide") {
               const gCfg = block.config || {};
               const gOptions = gCfg.options || [];
