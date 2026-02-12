@@ -52,12 +52,12 @@ export const POST: APIRoute = async ({ request }) => {
       if (productId) {
         const { data: product } = await supabase
           .from("products")
-          .select("outsourced_config, content, blocks")
+          .select("content, blocks")
           .eq("id", productId)
           .single();
 
         if (product) {
-          const oCfg = product.outsourced_config || product.content?.outsourced_config;
+          const oCfg = product.content?.outsourced_config;
           if (oCfg) {
             const qtyDiscounts = oCfg.qtyDiscounts || [];
             const findDiscount = (q: number) => {

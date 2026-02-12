@@ -111,7 +111,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (productType === "outsourced" && body.productId) {
       const { data: product } = await supabase
         .from("products")
-        .select("outsourced_config, content, blocks")
+        .select("content, blocks")
         .eq("id", body.productId)
         .single();
 
@@ -122,7 +122,7 @@ export const POST: APIRoute = async ({ request }) => {
         );
       }
 
-      const oCfg = product.outsourced_config || product.content?.outsourced_config;
+      const oCfg = product.content?.outsourced_config;
       if (!oCfg) {
         return new Response(
           JSON.stringify({ error: "Missing outsourced config" }),
