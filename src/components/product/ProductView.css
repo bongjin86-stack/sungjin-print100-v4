@@ -19,27 +19,33 @@
   margin-bottom: 1.5rem;
 }
 
-/* Grid: 2-column on desktop */
+/* Grid: 2-column on desktop (flex stretch → 양쪽 높이 동일) */
 .pv-grid {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 2rem;
 }
 
 @media (min-width: 768px) {
   .pv-grid {
-    grid-template-columns: 1fr 1fr;
+    flex-direction: row;
+    align-items: stretch;
     gap: 3rem;
+  }
+  .pv-grid > * {
+    flex: 1 1 0;
+    min-width: 0;
   }
 }
 
-/* Left column wrapper */
+/* Left column wrapper — stretch로 오른쪽과 높이 동일 */
 .pv-left-col {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
-/* Images (sticky on desktop) */
+/* Images — 순수 CSS sticky + flex stretch 하단 정렬 */
 .pv-images {
   display: flex;
   flex-direction: column;
@@ -54,13 +60,6 @@
   .pv-images {
     position: sticky;
     top: 6rem;
-    max-height: calc(100vh - 7rem);
-    overflow-y: auto;
-    scrollbar-width: none;          /* Firefox */
-    -ms-overflow-style: none;       /* IE/Edge */
-  }
-  .pv-images::-webkit-scrollbar {
-    display: none;                  /* Chrome/Safari */
   }
 }
 
@@ -161,7 +160,7 @@
 /* Consultation section (플랫 스타일 - 선 구분) */
 .pv-consult {
   margin-top: 0;
-  padding: 1rem 0;
+  padding: 1rem 0 0;
   background: transparent;
   border: none;
   border-radius: 0;
