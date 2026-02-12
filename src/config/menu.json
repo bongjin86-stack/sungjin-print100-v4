@@ -35,6 +35,10 @@
       "path": "/prints/"
     },
     {
+      "title": "Edu+100",
+      "path": "/edu100/"
+    },
+    {
       "title": "공지사항",
       "path": "/news/"
     }

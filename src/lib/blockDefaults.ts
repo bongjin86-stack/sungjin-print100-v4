@@ -155,6 +155,13 @@ export function getPaperBlockRole(
     allBlocks.some((b) => b.config?.linkedBlocks?.innerPaper === block.id)
   )
     return "inner";
+  // 3. 자동 감지: 활성 paper 블록이 2개 이상이면 순서 기반 할당
+  const enabledPapers = allBlocks.filter((b) => b.on && b.type === "paper");
+  if (enabledPapers.length >= 2) {
+    const idx = enabledPapers.findIndex((b) => b.id === block.id);
+    if (idx === 0) return "cover";
+    if (idx === 1) return "inner";
+  }
   return "default";
 }
 
@@ -472,6 +479,14 @@ export function extractDefaultsFromBlock(
         selected: cfg.default || cfg.options?.[0]?.id || "",
         confirmed: false,
       };
+      break;
+    case "design_select":
+      result.designTier = cfg.defaultTier || "type_a";
+      result.selectedDesign = null;
+      break;
+    case "text_input":
+      if (!result.textInputs) result.textInputs = {};
+      result.textInputs[block.id] = "";
       break;
   }
 

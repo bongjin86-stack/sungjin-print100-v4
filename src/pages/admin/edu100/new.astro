@@ -1,0 +1,44 @@
+---
+import Edu100Form from "../../../components/admin/Edu100Form";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+
+export const prerender = false;
+---
+
+<AdminLayout title="새 표지 등록">
+  <div class="admin-header">
+    <h1>새 표지 등록</h1>
+    <a href="/admin/edu100" class="btn-back">목록으로</a>
+  </div>
+
+  <Edu100Form client:only="react" mode="create" />
+</AdminLayout>
+
+<style>
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .admin-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+
+  .btn-back {
+    background: #e5e7eb;
+    color: #374151;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .btn-back:hover {
+    background: #d1d5db;
+  }
+</style>

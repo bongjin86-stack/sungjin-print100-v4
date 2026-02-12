@@ -40,6 +40,35 @@ export function usePriceCalculation(
           return sum + (opt?.price || 0);
         }, 0);
 
+        const productType = currentProduct?.product_type || currentProduct?.productType || currentTemplateId;
+
+        // 외주 상품: 클라이언트에서 직접 계산 (priceEngine 안 거침)
+        const oCfg = currentProduct?.outsourced_config;
+        if (productType === "outsourced" && oCfg) {
+          const pagesBlock = currentProduct?.blocks?.find((b) => b.on && b.type === "pages");
+          const oPages = customer.pages || pagesBlock?.config?.default || 100;
+          const oPagePrice = oCfg.pagePrice ?? 40;
+          const oBindingFee = oCfg.bindingFee ?? 1500;
+          const perCopy = oPages * oPagePrice + oBindingFee;
+          const qtyDiscounts = oCfg.qtyDiscounts || [];
+
+          const byQty = {};
+          for (const q of allQtys) {
+            const discount = [...qtyDiscounts]
+              .sort((a, b) => b.minQty - a.minQty)
+              .find((d) => q >= d.minQty);
+            const discountPct = discount?.percent || 0;
+            const basePerCopy = perCopy + guidePriceTotal;
+            const total = Math.round(basePerCopy * q * (1 - discountPct / 100));
+            const unitPrice = Math.round(total / q);
+            byQty[q] = { total, unitPrice, perUnit: unitPrice, sheets: 0, faces: 0 };
+          }
+          const sel = byQty[customer.qty] || {};
+          setServerPrice(sel);
+          setQtyPrices(byQty);
+          return;
+        }
+
         const res = await fetch("/api/calculate-price", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

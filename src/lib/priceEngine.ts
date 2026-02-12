@@ -621,6 +621,12 @@ export function calculatePrice(
       qty,
       productType as "saddle" | "perfect" | "spring"
     );
+  } else if (productType === "outsourced") {
+    return {
+      total: 0, breakdown: {}, perUnit: 0, unitPrice: 0,
+      sheets: 0, faces: 0, upCount: 0, baseSheet: "outsourced",
+      estimatedWeight: 0,
+    } as SingleLayerResult;
   } else {
     throw new Error(`알 수 없는 상품 타입: ${productType}`);
   }

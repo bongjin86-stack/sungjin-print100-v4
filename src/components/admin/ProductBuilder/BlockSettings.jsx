@@ -14,14 +14,16 @@
  * - PreviewBlock.jsx도 함께 수정 필요
  */
 
+import BlockNoteEditor from "@/components/admin/BlockNoteEditor";
 import {
   DB,
   FIXED_DELIVERY_OPTIONS,
   getSpringOptionsDefaults,
   TEMPLATES,
 } from "@/lib/builderData";
+import { uploadImage } from "@/lib/supabase";
+
 import PaperSelector from "./PaperSelector";
-import BlockNoteEditor from "@/components/admin/BlockNoteEditor";
 
 function BlockSettings({
   block,
@@ -200,6 +202,190 @@ function BlockSettings({
       );
 
     case "paper":
+      // 커스텀 용지 모드 (외주블록용 — DB 무관, 라벨만 자유 편집)
+      if (cfg.customPapers) {
+        const cp = cfg.customPapers || [];
+        const isDefaultPaperFn = (paperId) => cfg.default?.paper === paperId;
+        return (
+          <div>
+            {/* 용지 역할 — 표지/내지 구분 */}
+            <div className="mb-3 p-3 bg-white rounded-lg border border-gray-200">
+              <label className="text-xs text-gray-500 block mb-1">용지 역할</label>
+              <select
+                value={cfg.role || "default"}
+                onChange={(e) =>
+                  updateCfg(
+                    block.id,
+                    "role",
+                    e.target.value === "default" ? undefined : e.target.value
+                  )
+                }
+                className="select select-bordered select-sm w-full"
+              >
+                <option value="default">기본 (단층 상품)</option>
+                <option value="cover">표지 용지</option>
+                <option value="inner">내지 용지</option>
+              </select>
+            </div>
+            <p className="text-xs text-info bg-info/10 px-3 py-2 rounded-lg mb-3">
+              더블클릭으로 기본값 설정 (★ 표시). 용지명을 자유롭게 수정 가능합니다.
+            </p>
+            {cp.map((p, i) => {
+              const isDefault = isDefaultPaperFn(p.id);
+              return (
+                <div key={p.id || i} className="mb-2 p-3 bg-white rounded-lg border border-gray-200">
+                  <div
+                    className="flex items-center gap-2 text-sm font-medium"
+                    onDoubleClick={(e) => {
+                      if (e.target.tagName === "INPUT") return;
+                      updateCfg(block.id, "default", { paper: p.id, weight: p.weights?.[0] || 0 });
+                    }}
+                  >
+                    <input
+                      type="text"
+                      value={p.name}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        updateCfg(block.id, "customPapers", (prev) =>
+                          (prev || []).map((pp, j) => j === i ? { ...pp, name: val } : pp)
+                        );
+                      }}
+                      className="input input-bordered input-xs flex-1"
+                      placeholder="용지 이름"
+                    />
+                    {isDefault && <span className="text-warning">★</span>}
+                    {/* 이미지 */}
+                    {p.image ? (
+                      <div className="relative w-8 h-8 rounded overflow-hidden border flex-shrink-0">
+                        <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => {
+                            updateCfg(block.id, "customPapers", (prev) =>
+                              (prev || []).map((pp, j) => j === i ? { ...pp, image: null } : pp)
+                            );
+                          }}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-3.5 h-3.5 text-[9px] flex items-center justify-center"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="btn btn-xs btn-ghost text-gray-400 cursor-pointer flex-shrink-0">
+                        img
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              const url = await uploadImage(file, "products");
+                              updateCfg(block.id, "customPapers", (prev) =>
+                                (prev || []).map((pp, j) => j === i ? { ...pp, image: url } : pp)
+                              );
+                            } catch (err) {
+                              console.error("이미지 업로드 실패:", err);
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
+                    <button
+                      onClick={() => updateCfg(block.id, "customPapers", (prev) =>
+                        (prev || []).filter((_, j) => j !== i)
+                      )}
+                      className="btn btn-xs btn-ghost text-red-400 flex-shrink-0"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  {/* 평량 */}
+                  <div className="flex flex-wrap gap-2 mt-2 ml-6">
+                    {(p.weights || []).map((w, wi) => (
+                      <span
+                        key={wi}
+                        className="group/wt flex items-center gap-1 text-xs bg-gray-50 px-2 py-1 rounded cursor-pointer hover:bg-gray-100 select-none"
+                        onDoubleClick={() => updateCfg(block.id, "default", { paper: p.id, weight: w })}
+                      >
+                        {w}g
+                        {isDefault && cfg.default?.weight === w && (
+                          <span className="text-warning ml-1">★</span>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateCfg(block.id, "customPapers", (prev) =>
+                              (prev || []).map((pp, j) => j === i
+                                ? { ...pp, weights: (pp.weights || []).filter((v) => v !== w) }
+                                : pp
+                              )
+                            );
+                          }}
+                          className="hidden group-hover/wt:inline text-red-300 hover:text-red-500 ml-0.5"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      type="number"
+                      placeholder="g"
+                      id={`wt-input-${p.id}`}
+                      className="input input-bordered input-xs w-14"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const val = Number(e.target.value);
+                          if (val > 0) {
+                            updateCfg(block.id, "customPapers", (prev) =>
+                              (prev || []).map((pp, j) => j === i
+                                ? { ...pp, weights: (pp.weights || []).includes(val) ? pp.weights : [...(pp.weights || []), val] }
+                                : pp
+                              )
+                            );
+                            e.target.value = "";
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const input = document.getElementById(`wt-input-${p.id}`);
+                        const val = Number(input?.value);
+                        if (val > 0) {
+                          updateCfg(block.id, "customPapers", (prev) =>
+                            (prev || []).map((pp, j) => j === i
+                              ? { ...pp, weights: (pp.weights || []).includes(val) ? pp.weights : [...(pp.weights || []), val] }
+                              : pp
+                            )
+                          );
+                          if (input) input.value = "";
+                        }
+                      }}
+                      className="btn btn-xs btn-ghost text-gray-500"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+            <button
+              onClick={() =>
+                updateCfg(block.id, "customPapers", (prev) => [
+                  ...(prev || []),
+                  { id: `paper_${Date.now()}`, name: "새 용지", weights: [80] },
+                ])
+              }
+              className="btn btn-xs btn-outline mt-2"
+            >
+              + 용지 추가
+            </button>
+          </div>
+        );
+      }
+      // 기존 DB 용지 모드
       return (
         <div>
           {/* 용지 역할 — 제본 상품에서 표지/내지 구분 */}
@@ -1666,8 +1852,8 @@ function BlockSettings({
             용지+평량+페이지로 두께 자동 계산되어 초과 시 에러 표시.
           </p>
 
-          {/* 제본 타입 선택 (pages 타입일 때만) */}
-          {block.type === "pages" && (
+          {/* 제본 타입 선택 (pages 타입 + 외주블록 아닐 때만) */}
+          {block.type === "pages" && block.source !== "outsourced" && (
             <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
               <label className="text-xs text-gray-600 font-medium block mb-2">
                 제본 타입
@@ -1703,8 +1889,8 @@ function BlockSettings({
             </div>
           )}
 
-          {/* 연동 블록 선택 UI - bindingType이 설정된 경우에만 표시 */}
-          {block.type === "pages" && cfg.bindingType && (
+          {/* 연동 블록 선택 UI - bindingType이 설정된 경우 + 외주 아닐 때만 */}
+          {block.type === "pages" && block.source !== "outsourced" && cfg.bindingType && (
             <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
               <label className="text-xs text-amber-700 font-medium block mb-3">
                 연동 블록 선택 (필수)
@@ -2422,6 +2608,165 @@ function BlockSettings({
         </div>
       );
     }
+
+    case "design_select": {
+      const tiers = cfg.tiers || [];
+      return (
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">소스 테이블</label>
+            <input
+              type="text"
+              value={cfg.sourceTable || "edu100_covers"}
+              onChange={(e) => updateCfg(block.id, "sourceTable", e.target.value)}
+              className="input input-bordered input-sm w-full"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">태그 필터 (비우면 전체)</label>
+            <input
+              type="text"
+              value={cfg.sourceTag || ""}
+              onChange={(e) => updateCfg(block.id, "sourceTag", e.target.value)}
+              className="input input-bordered input-sm w-full"
+              placeholder="예: 국어"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">변경 타입 목록</label>
+            <div className="space-y-2">
+              {tiers.map((tier, i) => (
+                <div key={tier.id || i} className="flex gap-2 items-center bg-white p-2 rounded border">
+                  <input
+                    type="text"
+                    value={tier.id}
+                    onChange={(e) => {
+                      const updated = [...tiers];
+                      updated[i] = { ...updated[i], id: e.target.value };
+                      updateCfg(block.id, "tiers", updated);
+                    }}
+                    className="input input-bordered input-xs w-20"
+                    placeholder="ID"
+                  />
+                  <input
+                    type="text"
+                    value={tier.label}
+                    onChange={(e) => {
+                      const updated = [...tiers];
+                      updated[i] = { ...updated[i], label: e.target.value };
+                      updateCfg(block.id, "tiers", updated);
+                    }}
+                    className="input input-bordered input-xs flex-1"
+                    placeholder="라벨"
+                  />
+                  <input
+                    type="number"
+                    value={tier.price}
+                    onChange={(e) => {
+                      const updated = [...tiers];
+                      updated[i] = { ...updated[i], price: Number(e.target.value) };
+                      updateCfg(block.id, "tiers", updated);
+                    }}
+                    className="input input-bordered input-xs w-24"
+                    placeholder="가격"
+                  />
+                  <input
+                    type="number"
+                    value={tier.minQty}
+                    onChange={(e) => {
+                      const updated = [...tiers];
+                      updated[i] = { ...updated[i], minQty: Number(e.target.value) };
+                      updateCfg(block.id, "tiers", updated);
+                    }}
+                    className="input input-bordered input-xs w-20"
+                    placeholder="최소수량"
+                  />
+                  <button
+                    onClick={() => updateCfg(block.id, "tiers", tiers.filter((_, j) => j !== i))}
+                    className="btn btn-xs btn-ghost text-red-400"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() =>
+                  updateCfg(block.id, "tiers", [
+                    ...tiers,
+                    { id: `type_${tiers.length + 1}`, label: "", price: 0, minQty: 20 },
+                  ])
+                }
+                className="btn btn-xs btn-outline"
+              >
+                + 타입 추가
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">기본 타입</label>
+            <select
+              value={cfg.defaultTier || ""}
+              onChange={(e) => updateCfg(block.id, "defaultTier", e.target.value)}
+              className="select select-bordered select-sm w-full"
+            >
+              {tiers.map((t) => (
+                <option key={t.id} value={t.id}>{t.label || t.id}</option>
+              ))}
+            </select>
+          </div>
+
+          <label className="flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={cfg.showImageInLeft ?? true}
+              onChange={(e) => updateCfg(block.id, "showImageInLeft", e.target.checked)}
+              className="checkbox checkbox-xs"
+            />
+            선택한 디자인 이미지를 왼쪽 컬럼에 표시
+          </label>
+        </div>
+      );
+    }
+
+    case "text_input":
+      return (
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">안내 문구 (placeholder)</label>
+            <input
+              type="text"
+              value={cfg.placeholder || ""}
+              onChange={(e) => updateCfg(block.id, "placeholder", e.target.value)}
+              className="input input-bordered input-sm w-full"
+              placeholder="예: 표지에 넣을 내용을 입력해주세요"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">최대 글자수</label>
+              <input
+                type="number"
+                value={cfg.maxLength || 500}
+                onChange={(e) => updateCfg(block.id, "maxLength", Number(e.target.value))}
+                className="input input-bordered input-sm w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">줄 수</label>
+              <input
+                type="number"
+                value={cfg.rows || 3}
+                min={1}
+                max={10}
+                onChange={(e) => updateCfg(block.id, "rows", Number(e.target.value))}
+                className="input input-bordered input-sm w-full"
+              />
+            </div>
+          </div>
+        </div>
+      );
 
     default:
       return <p className="text-xs text-gray-400">설정 없음</p>;

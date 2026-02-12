@@ -233,6 +233,18 @@ export const BLOCK_TYPES: Record<string, BlockTypeInfo> = {
     color: "from-yellow-100 to-yellow-200",
     desc: "카카오톡 상담 안내",
   },
+  design_select: {
+    name: "디자인 선택",
+    icon: "🎨",
+    color: "from-violet-100 to-violet-200",
+    desc: "표지 디자인 선택 + 변경 타입",
+  },
+  text_input: {
+    name: "텍스트 입력",
+    icon: "✏️",
+    color: "from-stone-100 to-stone-200",
+    desc: "자유 텍스트 입력란",
+  },
 };
 
 // 상품 템플릿
@@ -820,6 +832,167 @@ export const TEMPLATES: Record<string, Template> = {
       },
     ],
   },
+  outsourced: {
+    name: "외주 상품",
+    productType: "outsourced",
+    outsourced_config: {
+      pagePrice: 40,
+      bindingFee: 1500,
+      qtyDiscounts: [
+        { minQty: 1, percent: 0 },
+        { minQty: 50, percent: 5 },
+        { minQty: 100, percent: 10 },
+      ],
+    },
+    blocks: [
+      {
+        id: 1,
+        type: "size",
+        label: "사이즈",
+        on: true,
+        optional: false,
+        locked: false,
+        hidden: false,
+        config: { options: ["a4", "b5"], default: "a4" },
+      },
+      {
+        id: 2,
+        type: "paper",
+        label: "용지",
+        on: true,
+        optional: false,
+        locked: false,
+        hidden: false,
+        config: {
+          customPapers: [
+            { id: "mojo80", name: "모조지 80g", weights: [80] },
+            { id: "mojo100", name: "모조지 100g", weights: [100] },
+          ],
+          default: { paper: "mojo80", weight: 80 },
+        },
+      },
+      {
+        id: 3,
+        type: "print",
+        label: "인쇄",
+        on: true,
+        optional: false,
+        locked: true,
+        hidden: false,
+        config: {
+          color: true,
+          mono: true,
+          single: false,
+          double: true,
+          default: { color: "mono", side: "double" },
+        },
+      },
+      {
+        id: 4,
+        type: "finishing",
+        label: "후가공",
+        on: true,
+        optional: true,
+        locked: false,
+        hidden: false,
+        config: {
+          corner: false,
+          punch: false,
+          mising: false,
+          coating: {
+            enabled: true,
+            types: ["matte", "gloss"],
+            sides: ["single"],
+          },
+          osi: { enabled: false },
+          fold: { enabled: false },
+        },
+      },
+      {
+        id: 5,
+        type: "guide",
+        label: "추가 옵션",
+        on: true,
+        optional: true,
+        locked: false,
+        hidden: false,
+        config: {
+          options: [
+            { id: "epoxy", label: "에폭시", price: 700, desc: "권당 +700원" },
+            { id: "none", label: "없음", price: 0, desc: "" },
+          ],
+          default: "none",
+          displayMode: "radio",
+        },
+      },
+      {
+        id: 6,
+        type: "pages",
+        label: "페이지 수",
+        on: true,
+        optional: false,
+        locked: false,
+        hidden: false,
+        config: {
+          min: 4,
+          max: 500,
+          step: 2,
+          default: 100,
+          maxThickness: 0,
+          bindingType: "",
+          linkedBlocks: {},
+        },
+      },
+      {
+        id: 7,
+        type: "delivery",
+        label: "출고일",
+        on: true,
+        optional: false,
+        locked: false,
+        hidden: false,
+        config: {
+          options: [
+            { id: "next2", label: "2영업일", enabled: true, percent: 0, deadline: "12:00" },
+            { id: "next3", label: "3영업일", enabled: true, percent: -5, deadline: "12:00" },
+            { id: "next5", label: "5영업일", enabled: true, percent: -10, deadline: "12:00" },
+          ],
+          default: "next3",
+        },
+      },
+      {
+        id: 8,
+        type: "quantity",
+        label: "수량",
+        on: true,
+        optional: false,
+        locked: false,
+        hidden: false,
+        config: {
+          options: [20, 50, 100, 200, 500],
+          default: 50,
+          min: 20,
+          max: 1000,
+          allowCustom: true,
+          showUnitPrice: true,
+        },
+      },
+      {
+        id: 9,
+        type: "text_input",
+        label: "요청사항",
+        on: true,
+        optional: true,
+        locked: false,
+        hidden: false,
+        config: {
+          placeholder: "내용을 입력해주세요",
+          maxLength: 500,
+          rows: 3,
+        },
+      },
+    ],
+  },
 };
 
 // DB 데이터 (폴백용 하드코딩)
@@ -1180,6 +1353,24 @@ export function getDefaultConfig(type: string): BlockConfig {
         openTime: "09:00",
         closeTime: "18:00",
       } as any;
+    case "design_select":
+      return {
+        sourceTable: "edu100_covers",
+        sourceTag: "",
+        tiers: [
+          { id: "type_a", label: "A타입 - 텍스트만 변경", price: 0, minQty: 20 },
+          { id: "type_b", label: "B타입 - 색상+소스 변경", price: 5000, minQty: 100 },
+          { id: "type_c", label: "C타입 - 고객 파일 사용", price: 0, minQty: 20 },
+        ],
+        defaultTier: "type_a",
+        showImageInLeft: true,
+      } as any;
+    case "text_input":
+      return {
+        placeholder: "내용을 입력해주세요",
+        maxLength: 500,
+        rows: 3,
+      } as any;
     default:
       return {} as BlockConfig;
   }
@@ -1253,6 +1444,30 @@ export function getDefaultContent(name: string) {
           icon: "CircleDollarSign",
           title: "경제적",
           desc: "합리적인 가격의 제본 서비스",
+        },
+      ],
+    },
+    "외주 상품": {
+      title: "윤전제본",
+      description: "대량 인쇄에 최적화된 윤전제본 서비스",
+      features: [
+        "대량 인쇄 최적화",
+        "다양한 표지 디자인",
+        "경제적인 단가",
+        "빠른 제작",
+      ],
+      mainImage: null,
+      thumbnails: [null, null, null, null],
+      highlights: [
+        {
+          icon: "Printer",
+          title: "대량 인쇄",
+          desc: "윤전기로 빠르고 경제적인 인쇄",
+        },
+        {
+          icon: "Palette",
+          title: "디자인 선택",
+          desc: "다양한 표지 디자인 중 선택",
         },
       ],
     },

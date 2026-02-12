@@ -198,6 +198,7 @@ export default function AdminBuilder() {
   const [descInput, setDescInput] = useState("");
   const [newQtyInput, setNewQtyInput] = useState("");
   const [showBlockLibrary, setShowBlockLibrary] = useState(false);
+  const [showOutsourcedLibrary, setShowOutsourcedLibrary] = useState(false);
 
   // 템플릿 편집 상태
   const [editingTemplateId, setEditingTemplateId] = useState(null);
@@ -294,6 +295,7 @@ export default function AdminBuilder() {
           id: product.id,
           name: product.name,
           product_type: product.product_type,
+          outsourced_config: parsedContent.outsourced_config || null,
           blocks: parsedBlocks,
           content: {
             title: parsedContent.title || product.name,
@@ -551,7 +553,10 @@ export default function AdminBuilder() {
         main_image: prod.content?.mainImage || null,
         icon: prod.icon || "📄",
         sort_order: prod.order ?? 0,
-        content: prod.content || {},
+        content: {
+          ...(prod.content || {}),
+          ...(prod.outsourced_config ? { outsourced_config: prod.outsourced_config } : {}),
+        },
         blocks: prod.blocks || [],
         product_type: inferProductType(prod),
         is_published: true,
@@ -606,6 +611,52 @@ export default function AdminBuilder() {
       blocks: prev.blocks.filter((b) => b.id !== id),
     }));
     if (selectedBlockId === id) setSelectedBlockId(null);
+  };
+
+  // 외주블록 개별 추가 (outsourced 템플릿의 프리셋 config 적용)
+  const addOutsourcedBlock = (templateBlock) => {
+    const tmpl = DEFAULT_TEMPLATES.outsourced;
+    const newBlock = {
+      ...templateBlock,
+      id: crypto.randomUUID(),
+      source: "outsourced",
+      config: JSON.parse(JSON.stringify(templateBlock.config)),
+    };
+    setCurrentProduct((prev) => {
+      // 용지 블록: 이미 하나 있으면 자동 역할 배정
+      if (newBlock.type === "paper") {
+        const existingPaper = prev.blocks.find((b) => b.type === "paper" && b.on);
+        if (existingPaper && !existingPaper.config?.role) {
+          // 기존 블록을 표지로, 새 블록을 내지로
+          return {
+            ...prev,
+            product_type: prev.product_type || "outsourced",
+            outsourced_config: prev.outsourced_config || tmpl?.outsourced_config || {},
+            blocks: [
+              ...prev.blocks.map((b) =>
+                b.id === existingPaper.id
+                  ? { ...b, label: b.label === "용지" ? "표지 용지" : b.label, config: { ...b.config, role: "cover" } }
+                  : b
+              ),
+              { ...newBlock, label: "내지 용지", config: { ...newBlock.config, role: "inner" } },
+            ],
+          };
+        } else if (existingPaper) {
+          // 기존이 cover면 새 블록은 inner, 그 반대도
+          const newRole = existingPaper.config.role === "cover" ? "inner" : "cover";
+          const newLabel = newRole === "inner" ? "내지 용지" : "표지 용지";
+          newBlock.config.role = newRole;
+          newBlock.label = newLabel;
+        }
+      }
+      return {
+        ...prev,
+        product_type: prev.product_type || "outsourced",
+        outsourced_config: prev.outsourced_config || tmpl?.outsourced_config || {},
+        blocks: [...prev.blocks, newBlock],
+      };
+    });
+    setShowOutsourcedLibrary(false);
   };
 
   // 블록 추가
@@ -665,13 +716,15 @@ export default function AdminBuilder() {
     }));
   };
 
-  // config 업데이트
-  const updateCfg = (blockId, key, value) => {
+  // config 업데이트 (value가 함수면 prev 기반으로 계산)
+  const updateCfg = (blockId, key, valueOrFn) => {
     setCurrentProduct((prev) => ({
       ...prev,
-      blocks: prev.blocks.map((b) =>
-        b.id === blockId ? { ...b, config: { ...b.config, [key]: value } } : b
-      ),
+      blocks: prev.blocks.map((b) => {
+        if (b.id !== blockId) return b;
+        const val = typeof valueOrFn === "function" ? valueOrFn(b.config[key]) : valueOrFn;
+        return { ...b, config: { ...b.config, [key]: val } };
+      }),
     }));
   };
 
@@ -1008,7 +1061,7 @@ export default function AdminBuilder() {
             <span className="text-sm text-gray-400">블록 {onCount}개</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-2 gap-12">
             {/* 왼쪽: 이미지 + 가이드 */}
             <div>
               {/* 메인 이미지 */}
@@ -1019,30 +1072,47 @@ export default function AdminBuilder() {
                 className="hidden"
                 onChange={handleMainImageUpload}
               />
-              <div
-                className={`aspect-square bg-gray-50 rounded-2xl border border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors mb-4 overflow-hidden ${imageUploading ? "opacity-50" : ""}`}
-                onClick={() => mainImageRef.current?.click()}
-              >
-                {content.mainImage ? (
-                  <img
-                    src={content.mainImage}
-                    alt="메인"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <>
-                    <div className="text-4xl text-gray-300 mb-2">+</div>
-                    <p className="text-sm text-gray-400">
-                      {imageUploading ? "업로드 중..." : "메인 이미지"}
-                    </p>
-                  </>
+              <div className="relative group/main mb-4">
+                <div
+                  className={`aspect-[3/2] bg-gray-50 rounded-2xl border border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors overflow-hidden ${imageUploading ? "opacity-50" : ""}`}
+                  onClick={() => mainImageRef.current?.click()}
+                >
+                  {content.mainImage ? (
+                    <img
+                      src={content.mainImage}
+                      alt="메인"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <>
+                      <div className="text-4xl text-gray-300 mb-2">+</div>
+                      <p className="text-sm text-gray-400">
+                        {imageUploading ? "업로드 중..." : "메인 이미지"}
+                      </p>
+                    </>
+                  )}
+                </div>
+                {content.mainImage && (
+                  <button
+                    type="button"
+                    className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-black/40 text-white text-xs hover:bg-red-500 transition-colors opacity-0 group-hover/main:opacity-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentProduct((prev) => ({
+                        ...prev,
+                        content: { ...prev.content, mainImage: null },
+                      }));
+                    }}
+                  >
+                    ✕
+                  </button>
                 )}
               </div>
 
               {/* 썸네일 4개 */}
               <div className="grid grid-cols-4 gap-2 mb-4">
                 {[0, 1, 2, 3].map((idx) => (
-                  <div key={idx}>
+                  <div key={idx} className="relative group/thumb">
                     <input
                       ref={thumbImageRefs[idx]}
                       type="file"
@@ -1051,7 +1121,7 @@ export default function AdminBuilder() {
                       onChange={(e) => handleThumbnailUpload(e, idx)}
                     />
                     <div
-                      className={`aspect-square bg-gray-50 rounded-lg border border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors overflow-hidden ${imageUploading ? "opacity-50" : ""}`}
+                      className={`aspect-[3/2] bg-gray-50 rounded-2xl border border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors overflow-hidden ${imageUploading ? "opacity-50" : ""}`}
                       onClick={() => thumbImageRefs[idx].current?.click()}
                     >
                       {content.thumbnails?.[idx] ? (
@@ -1064,13 +1134,43 @@ export default function AdminBuilder() {
                         <span className="text-xl text-gray-300">+</span>
                       )}
                     </div>
+                    {content.thumbnails?.[idx] && (
+                      <button
+                        type="button"
+                        className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-full bg-black/40 text-white text-[10px] hover:bg-red-500 transition-colors opacity-0 group-hover/thumb:opacity-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const newThumbnails = [...(content.thumbnails || [])];
+                          newThumbnails[idx] = null;
+                          setCurrentProduct((prev) => ({
+                            ...prev,
+                            content: { ...prev.content, thumbnails: newThumbnails },
+                          }));
+                        }}
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
 
               {/* 하이라이트 카드 */}
-              <div className="grid grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-gray-100">
-                {content.highlights?.map((h, idx) => {
+              {content.highlights?.length > 0 && (
+              <div className="grid grid-cols-2 gap-x-[1.5rem] gap-y-[1.25rem] mt-4 py-4 border-t border-b border-gray-100 relative group/hl">
+                <button
+                  type="button"
+                  className="absolute -top-3 right-0 text-xs text-gray-300 hover:text-red-400 transition-colors hidden group-hover/hl:block bg-white px-1"
+                  onClick={() =>
+                    setCurrentProduct((prev) => ({
+                      ...prev,
+                      content: { ...prev.content, highlights: [], featuresHtml: null, features: null },
+                    }))
+                  }
+                >
+                  주요특징 삭제
+                </button>
+                {content.highlights.map((h, idx) => {
                   const IconComp = getIconComponent(h.icon);
                   const updateHighlight = (field, value) => {
                     const newHighlights = [...content.highlights];
@@ -1081,7 +1181,20 @@ export default function AdminBuilder() {
                     }));
                   };
                   return (
-                    <div key={idx} className="flex items-start gap-3">
+                    <div key={idx} className="flex items-start gap-3 group/card relative">
+                      <button
+                        type="button"
+                        className="absolute -top-1 -right-1 text-gray-300 hover:text-red-400 text-xs hidden group-hover/card:block"
+                        onClick={() => {
+                          const newHighlights = content.highlights.filter((_, i) => i !== idx);
+                          setCurrentProduct((prev) => ({
+                            ...prev,
+                            content: { ...prev.content, highlights: newHighlights },
+                          }));
+                        }}
+                      >
+                        ✕
+                      </button>
                       {/* 아이콘 선택 */}
                       <div className="relative group flex-shrink-0 pt-0.5">
                         <button
@@ -1125,7 +1238,7 @@ export default function AdminBuilder() {
                           onChange={(e) =>
                             updateHighlight("title", e.target.value)
                           }
-                          className="block w-full text-[15px] font-semibold text-[#222828] bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none leading-snug mb-0.5"
+                          className="block w-full text-[15px] font-semibold text-[#222828] bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none leading-[1.3] mb-[3px]"
                           placeholder="제목"
                         />
                         <input
@@ -1134,7 +1247,7 @@ export default function AdminBuilder() {
                           onChange={(e) =>
                             updateHighlight("desc", e.target.value)
                           }
-                          className="block w-full text-[13px] text-[#6b7280] bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none leading-relaxed"
+                          className="block w-full text-[13px] text-[#6b7280] bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none leading-[1.5]"
                           placeholder="설명"
                         />
                       </div>
@@ -1142,6 +1255,7 @@ export default function AdminBuilder() {
                   );
                 })}
               </div>
+              )}
 
               {/* 상담 블록 (왼쪽 컬럼에 렌더링) */}
               {currentProduct?.blocks
@@ -1176,7 +1290,7 @@ export default function AdminBuilder() {
                     content: { ...prev.content, title: val },
                   }));
                 }}
-                className="text-2xl font-bold mb-2 bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-primary outline-none w-full"
+                className="text-2xl font-semibold mb-3 bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-primary outline-none w-full leading-snug text-[#222828]"
                 placeholder="상품명"
               />
 
@@ -1190,13 +1304,28 @@ export default function AdminBuilder() {
                     content: { ...prev.content, description: e.target.value },
                   }))
                 }
-                className="text-gray-600 mb-4 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary outline-none w-full"
+                className="text-[#5a6262] mb-5 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary outline-none w-full leading-relaxed"
                 placeholder="상품 설명"
               />
 
               {/* 주요 특징 - 노션 스타일 에디터 */}
-              <div className="mb-4">
-                <p className="font-medium text-sm mb-2">주요 특징</p>
+              {(content.featuresHtml || content.features?.length || content.highlights?.length) ? (
+              <div className="mb-5">
+                <div className="flex items-center justify-between mb-2.5">
+                  <p className="font-medium text-base text-[#222828]">주요 특징</p>
+                  <button
+                    type="button"
+                    className="text-xs text-gray-300 hover:text-red-400 transition-colors"
+                    onClick={() =>
+                      setCurrentProduct((prev) => ({
+                        ...prev,
+                        content: { ...prev.content, featuresHtml: null, features: null, highlights: [] },
+                      }))
+                    }
+                  >
+                    전체 삭제
+                  </button>
+                </div>
                 <BlockNoteEditor
                   initialContent={
                     content.featuresHtml ||
@@ -1211,6 +1340,27 @@ export default function AdminBuilder() {
                   }
                 />
               </div>
+              ) : (
+              <button
+                type="button"
+                className="mb-4 w-full p-3 border border-dashed border-gray-200 rounded-xl text-gray-400 hover:text-gray-500 hover:border-gray-300 transition-colors text-sm text-center"
+                onClick={() =>
+                  setCurrentProduct((prev) => ({
+                    ...prev,
+                    content: {
+                      ...prev.content,
+                      featuresHtml: "<ul><li></li></ul>",
+                      highlights: [
+                        { icon: "Printer", title: "", desc: "" },
+                        { icon: "Sparkles", title: "", desc: "" },
+                      ],
+                    },
+                  }))
+                }
+              >
+                + 주요 특징 추가
+              </button>
+              )}
 
               {/* 블록 빌더 순서대로 렌더링 (consultation은 왼쪽 컬럼) */}
               {currentProduct?.blocks
@@ -1228,8 +1378,8 @@ export default function AdminBuilder() {
 
                     return (
                       <div key={block.id}>
-                        <div className="mt-5 pt-5 border-t border-gray-100 flex items-center">
-                          <span className="text-sm font-semibold text-gray-700">{gCfg.title || block.label}</span>
+                        <div className="mt-5 flex items-center">
+                          <span className="text-[15px] font-semibold text-[#222828]">{gCfg.title || block.label}</span>
                           {!isOpen && (
                             <button
                               className="text-xs text-gray-400 font-medium ml-auto hover:text-gray-700 transition-colors"
@@ -1249,8 +1399,8 @@ export default function AdminBuilder() {
                               return (
                                 <div
                                   key={opt.id}
-                                  className={`relative rounded-2xl border-2 p-4 cursor-pointer transition-all ${
-                                    isCurrent ? "border-[#222828] bg-[#fafafa]" : "border-gray-200 bg-white hover:border-gray-300"
+                                  className={`relative rounded-3xl border p-4 cursor-pointer transition-all ${
+                                    isCurrent ? "border-[#d9d9d9] bg-[#f7f8f8]" : "border-[#f0f2f2] bg-white hover:border-[#d9d9d9]"
                                   }`}
                                   onClick={() => setCustomer((prev) => ({
                                     ...prev,
@@ -1259,7 +1409,7 @@ export default function AdminBuilder() {
                                 >
                                   <div className="flex items-start gap-3">
                                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                                      isCurrent ? "bg-[#222828] text-white" : "bg-gray-200 text-gray-500"
+                                      isCurrent ? "bg-[#222828] text-white" : "bg-[#f0f2f2] text-[#9ca3af]"
                                     }`}>{idx + 1}</span>
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center gap-2">
@@ -1283,7 +1433,7 @@ export default function AdminBuilder() {
                         ) : selectedOpt && (
                           <div className="mt-3">
                             <div
-                              className="rounded-2xl border-2 border-[#222828] bg-[#fafafa] px-4 py-3 cursor-pointer"
+                              className="rounded-3xl border border-[#d9d9d9] bg-[#f7f8f8] px-4 py-3 cursor-pointer"
                               onClick={() => setCustomer((prev) => ({
                                 ...prev,
                                 guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
@@ -1335,6 +1485,112 @@ export default function AdminBuilder() {
           </div>
         </div>
 
+        {/* 외주 단가 설정 (outsourced 상품일 때만 표시) */}
+        {currentProduct.product_type === "outsourced" && currentProduct.outsourced_config && (
+          <div className="card bg-white shadow-xl p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg">🏭</span>
+              <div>
+                <h2 className="font-bold text-gray-900">외주 단가 설정</h2>
+                <p className="text-xs text-gray-500">고정 단가 기반 가격 계산</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">페이지 단가 (원)</label>
+                <input
+                  type="number"
+                  value={currentProduct.outsourced_config.pagePrice ?? 40}
+                  onChange={(e) => setCurrentProduct((prev) => ({
+                    ...prev,
+                    outsourced_config: { ...prev.outsourced_config, pagePrice: Number(e.target.value) },
+                  }))}
+                  className="input input-bordered input-sm w-full"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">제본비 (원/권)</label>
+                <input
+                  type="number"
+                  value={currentProduct.outsourced_config.bindingFee ?? 1500}
+                  onChange={(e) => setCurrentProduct((prev) => ({
+                    ...prev,
+                    outsourced_config: { ...prev.outsourced_config, bindingFee: Number(e.target.value) },
+                  }))}
+                  className="input input-bordered input-sm w-full"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              권당 가격 = 페이지 수(pages 블록) × 페이지 단가 + 제본비
+            </p>
+            {/* 수량 할인 */}
+            <div className="mt-4">
+              <label className="text-xs text-gray-500 block mb-2">수량 할인</label>
+              <div className="space-y-2">
+                {(currentProduct.outsourced_config.qtyDiscounts || []).map((qd, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input
+                      type="number"
+                      value={qd.minQty}
+                      onChange={(e) => {
+                        const updated = [...(currentProduct.outsourced_config.qtyDiscounts || [])];
+                        updated[i] = { ...updated[i], minQty: Number(e.target.value) };
+                        setCurrentProduct((prev) => ({
+                          ...prev,
+                          outsourced_config: { ...prev.outsourced_config, qtyDiscounts: updated },
+                        }));
+                      }}
+                      className="input input-bordered input-xs w-20"
+                      placeholder="최소수량"
+                    />
+                    <span className="text-xs text-gray-400">부 이상 →</span>
+                    <input
+                      type="number"
+                      value={qd.percent}
+                      onChange={(e) => {
+                        const updated = [...(currentProduct.outsourced_config.qtyDiscounts || [])];
+                        updated[i] = { ...updated[i], percent: Number(e.target.value) };
+                        setCurrentProduct((prev) => ({
+                          ...prev,
+                          outsourced_config: { ...prev.outsourced_config, qtyDiscounts: updated },
+                        }));
+                      }}
+                      className="input input-bordered input-xs w-16"
+                      placeholder="%"
+                    />
+                    <span className="text-xs text-gray-400">% 할인</span>
+                    <button
+                      onClick={() => {
+                        const updated = (currentProduct.outsourced_config.qtyDiscounts || []).filter((_, j) => j !== i);
+                        setCurrentProduct((prev) => ({
+                          ...prev,
+                          outsourced_config: { ...prev.outsourced_config, qtyDiscounts: updated },
+                        }));
+                      }}
+                      className="btn btn-xs btn-ghost text-red-400"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => {
+                    const updated = [...(currentProduct.outsourced_config.qtyDiscounts || []), { minQty: 0, percent: 0 }];
+                    setCurrentProduct((prev) => ({
+                      ...prev,
+                      outsourced_config: { ...prev.outsourced_config, qtyDiscounts: updated },
+                    }));
+                  }}
+                  className="btn btn-xs btn-outline"
+                >
+                  + 할인 구간
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 블록 빌더 */}
         <div className="card bg-white shadow-xl p-6">
           <div className="flex items-center justify-between mb-4">
@@ -1347,12 +1603,20 @@ export default function AdminBuilder() {
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => setShowBlockLibrary(true)}
-              className="btn btn-success btn-sm"
-            >
-              + 블록 추가
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowBlockLibrary(true)}
+                className="btn btn-success btn-sm"
+              >
+                + 블록 추가
+              </button>
+              <button
+                onClick={() => setShowOutsourcedLibrary(true)}
+                className="btn btn-warning btn-sm"
+              >
+                + 외주블록
+              </button>
+            </div>
           </div>
 
           <div ref={blockListRef} className="space-y-2">
@@ -1432,6 +1696,56 @@ export default function AdminBuilder() {
                     <p className="text-xs text-gray-400 mt-0.5">{info.desc}</p>
                   </button>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 외주블록 라이브러리 모달 */}
+        {showOutsourcedLibrary && (
+          <div
+            className="modal modal-open"
+            onClick={() => setShowOutsourcedLibrary(false)}
+          >
+            <div
+              className="modal-box w-[600px] max-w-5xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold">외주블록 라이브러리</h3>
+                <button
+                  onClick={() => setShowOutsourcedLibrary(false)}
+                  className="btn btn-ghost btn-sm btn-circle"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                외주 상품용 프리셋 블록입니다. 추가하면 product_type이 outsourced로 설정됩니다.
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                {(DEFAULT_TEMPLATES.outsourced?.blocks || []).map((tmplBlock) => {
+                  const info = BLOCK_TYPES[tmplBlock.type] || {};
+                  return (
+                    <button
+                      key={tmplBlock.id}
+                      onClick={() => addOutsourcedBlock(tmplBlock)}
+                      className="p-4 rounded-lg border border-orange-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all text-left"
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-lg bg-gradient-to-br ${info.color || "from-orange-100 to-orange-200"} flex items-center justify-center text-xl mb-2`}
+                      >
+                        {info.icon || "🏭"}
+                      </div>
+                      <p className="font-medium text-sm text-gray-700">
+                        {tmplBlock.label}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {info.desc || ""}
+                      </p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

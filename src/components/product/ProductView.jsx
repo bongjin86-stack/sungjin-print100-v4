@@ -33,10 +33,19 @@ export default function ProductView({ product: initialProduct }) {
   const [pricingDataLoaded, setPricingDataLoaded] = useState(false);
   const [serverPrice, setServerPrice] = useState(null);
   const [qtyPrices, setQtyPrices] = useState({});
+  const [designCover, setDesignCover] = useState(null);
   const debounceRef = useRef(null);
 
   useEffect(() => {
     loadDbPapers();
+    // ?designId URL 파라미터 → edu100 커버 이미지 로드
+    const designId = new URLSearchParams(window.location.search).get("designId");
+    if (designId) {
+      fetch(`/api/edu100/${designId}`)
+        .then((res) => res.ok ? res.json() : null)
+        .then((cover) => { if (cover) setDesignCover(cover); })
+        .catch(() => {});
+    }
   }, []);
 
   // DB에서 용지 데이터 로드
@@ -95,21 +104,56 @@ export default function ProductView({ product: initialProduct }) {
           return sum + (opt?.price || 0);
         }, 0);
 
-        const res = await fetch("/api/calculate-price", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            customer: mapPrintOptionsToCustomer(customer, product?.blocks),
-            qty: customer.qty,
-            productType: inferProductType(product),
-            allQtys,
-            guidePriceTotal,
-          }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setServerPrice(data.selected || null);
-          if (data.byQty) setQtyPrices(data.byQty);
+        // 디자인 타입 가격 합산
+        const designBlock = product?.blocks?.find((b) => b.on && b.type === "design_select");
+        const designTierPrice = designBlock?.config?.tiers?.find(
+          (t) => t.id === customer.designTier
+        )?.price || 0;
+        const totalGuidePrice = guidePriceTotal + designTierPrice;
+
+        // 외주 상품 가격 계산 (클라이언트 전용 — priceEngine 안 거침)
+        const oCfg = product?.outsourced_config || product?.content?.outsourced_config;
+        const isOutsourced = (product?.product_type === "outsourced") && oCfg;
+        if (isOutsourced) {
+          const pagesBlock = product?.blocks?.find((b) => b.on && b.type === "pages");
+          const oPages = customer.pages || pagesBlock?.config?.default || 100;
+          const oPagePrice = oCfg.pagePrice ?? 40;
+          const oBindingFee = oCfg.bindingFee ?? 1500;
+          const perCopy = oPages * oPagePrice + oBindingFee;
+          const qtyDiscounts = oCfg.qtyDiscounts || [];
+
+          // 각 수량별 가격 계산 (guidePriceTotal 포함 = 에폭시 등 가이드 옵션)
+          const byQty = {};
+          for (const q of allQtys) {
+            const discount = [...qtyDiscounts]
+              .sort((a, b) => b.minQty - a.minQty)
+              .find((d) => q >= d.minQty);
+            const discountPct = discount?.percent || 0;
+            const basePerCopy = perCopy + totalGuidePrice;
+            const total = Math.round(basePerCopy * q * (1 - discountPct / 100));
+            const unitPrice = Math.round(total / q);
+            byQty[q] = { total, unitPrice, perUnit: unitPrice, sheets: 0, faces: 0 };
+          }
+          const sel = byQty[customer.qty] || {};
+          setServerPrice(sel);
+          setQtyPrices(byQty);
+        } else {
+          const res = await fetch("/api/calculate-price", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              customer: mapPrintOptionsToCustomer(customer, product?.blocks),
+              qty: customer.qty,
+              productType: inferProductType(product),
+              allQtys,
+              guidePriceTotal: totalGuidePrice,
+            }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setServerPrice(data.selected || null);
+            if (data.byQty) setQtyPrices(data.byQty);
+          }
         }
       } catch (e) {
         console.warn("Price fetch error:", e.message);
@@ -162,9 +206,12 @@ export default function ProductView({ product: initialProduct }) {
     };
   }
 
-  const images = [content.mainImage, ...(content.thumbnails || [])].filter(
-    Boolean
-  );
+  // 선택한 디자인 이미지가 있으면 맨 앞에 추가
+  const designImages = designCover
+    ? [designCover.image, ...(designCover.thumbnails || [])].filter(Boolean)
+    : [];
+  const baseImages = [content.mainImage, ...(content.thumbnails || [])].filter(Boolean);
+  const images = designImages.length > 0 ? designImages : baseImages;
 
   return (
     <div className="product-view">

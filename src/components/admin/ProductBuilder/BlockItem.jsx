@@ -58,7 +58,7 @@ function BlockItem({
       data-block-id={block.id}
       onDragOver={onBlockDragOver}
       onDrop={onBlockDrop}
-      className={`rounded-lg border transition-all ${isDragOver ? "border-blue-400 border-t-2" : ""} ${isEditing ? "border-gray-300 bg-gray-50/30" : "border-gray-200"} ${!block.on ? "opacity-40" : ""}`}
+      className={`rounded-lg border transition-all ${isDragOver ? "border-blue-400 border-t-2" : ""} ${isEditing ? "border-gray-300 bg-gray-50/30" : block.source === "outsourced" ? "border-amber-300 bg-amber-50/40" : "border-gray-200"} ${!block.on ? "opacity-40" : ""}`}
     >
       <div className="flex items-center gap-3 p-3">
         <div
@@ -91,6 +91,11 @@ function BlockItem({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <p className="font-medium text-sm">{block.label}</p>
+            {block.source === "outsourced" && (
+              <span className="text-xs text-amber-600 px-1.5 py-0.5 bg-amber-100 rounded font-medium">
+                외주
+              </span>
+            )}
             {block.optional && (
               <span className="text-xs text-gray-400 px-1.5 py-0.5 bg-gray-50 rounded">
                 선택

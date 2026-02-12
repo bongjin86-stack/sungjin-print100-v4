@@ -1,0 +1,355 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import CTA from "@/components/sections/CTA.astro";
+import CategoryNavigation from "@/components/ui/CategoryNavigation.astro";
+import PageHero from "@/components/ui/PageHero.astro";
+import Pagination from "@/components/ui/Pagination.astro";
+import Layout from "@/layouts/Layout.astro";
+import { supabase } from "@/lib/supabase";
+import CoverGalleryClient from "@/components/edu100/CoverGallery";
+
+export const prerender = false;
+
+// URL에서 페이지 번호 추출
+const { page: pageParam } = Astro.params;
+const currentPage = pageParam ? parseInt(pageParam) : 1;
+const pageSize = 12;
+
+// 전체 개수
+const { count: totalCount } = await supabase
+  .from("edu100_covers")
+  .select("*", { count: "exact", head: true })
+  .eq("is_published", true);
+
+// 표지 데이터 가져오기
+const { data: covers, error } = await supabase
+  .from("edu100_covers")
+  .select("*")
+  .eq("is_published", true)
+  .order("sort_order", { ascending: true })
+  .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
+
+if (error) {
+  console.error("Error fetching edu100 covers:", error);
+}
+
+const coversList = covers || [];
+const totalPages = Math.ceil((totalCount || 0) / pageSize);
+
+// 태그 목록 추출 (카테고리 네비게이션용)
+const uniqueTags = [...new Set(coversList.map((c) => c.tag).filter(Boolean))].sort();
+const categoryList = uniqueTags.map((tag) => ({
+  id: tag,
+  title: tag,
+}));
+---
+
+<Layout title="Edu+100 - 표지 갤러리" description="다양한 교재 표지 디자인을 살펴보세요.">
+  <PageHero title="Edu+100" subtitle="표지 갤러리" />
+
+  <Section class="edu100-section">
+    <Container>
+      <CategoryNavigation categories={categoryList} basePath="/edu100" />
+
+      <div class="edu100-grid">
+        {
+          coversList.map((cover) => (
+            <article class="edu100-card">
+              <div class="edu100-card-link" data-cover-id={cover.id} style="cursor:pointer">
+                <div class="edu100-card-image">
+                  {cover.image ? (
+                    <img
+                      src={cover.image}
+                      alt={cover.title}
+                      width="600"
+                      height="400"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div class="edu100-card-placeholder">No Image</div>
+                  )}
+                </div>
+                <div class="edu100-card-content">
+                  <h3 class="edu100-card-title">{cover.title}</h3>
+                  <p class="edu100-card-client">{cover.subtitle || ""}</p>
+                  {cover.tag && (
+                    <span class="edu100-card-category">{cover.tag}</span>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+
+      {coversList.length === 0 && (
+        <p class="edu100-empty">등록된 표지가 없습니다.</p>
+      )}
+
+      {
+        totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath="/edu100"
+          />
+        )
+      }
+    </Container>
+  </Section>
+
+  <CTA />
+
+  {/* 모달만 React (클릭 이벤트 위임) */}
+  <CoverGalleryClient client:only="react" covers={coversList} />
+</Layout>
+
+<style lang="scss">
+  .edu100-section {
+    padding-top: var(--sp-md);
+  }
+
+  .edu100-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-2xl);
+    margin-top: var(--sp-3xl);
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sp-xl);
+    }
+
+    @media (min-width: 900px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-2xl);
+    }
+  }
+
+  .edu100-card-link {
+    display: block;
+  }
+
+  .edu100-card-image {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-4xl);
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      aspect-ratio: 3 / 2;
+      transition: transform var(--transition-slow);
+    }
+
+    .edu100-card:hover & img {
+      transform: scale(1.05);
+    }
+  }
+
+  .edu100-card-placeholder {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    background-color: var(--c-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--c-text-sub);
+  }
+
+  .edu100-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+    margin: var(--sp-md) 0 0;
+  }
+
+  .edu100-card-title {
+    color: var(--c-text);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    line-height: var(--lh-snug);
+
+    @media (min-width: 600px) {
+      font-size: var(--fs-lg);
+    }
+  }
+
+  .edu100-card-client {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+  }
+
+  .edu100-card-category {
+    display: inline-block;
+    align-self: self-start;
+    margin-top: var(--sp-xs);
+    padding: var(--sp-xs) var(--sp-md);
+    background-color: var(--c-bg-secondary);
+    color: var(--c-text-sub);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    line-height: var(--lh-tight);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius-full);
+  }
+
+  .edu100-empty {
+    text-align: center;
+    color: var(--c-text-sub);
+    padding: var(--sp-4xl) 0;
+  }
+
+  /* 모달 스타일 (:global — React 컴포넌트용) */
+  :global(.edu100-modal-overlay) {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-lg);
+  }
+
+  :global(.edu100-modal) {
+    background: white;
+    border-radius: var(--radius-4xl);
+    max-width: 720px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  :global(.edu100-modal-image) {
+    overflow: hidden;
+    border-radius: var(--radius-4xl) var(--radius-4xl) 0 0;
+
+    img {
+      width: 100%;
+      aspect-ratio: 3 / 2;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  :global(.edu100-modal-thumbs) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: var(--sp-xs);
+    padding: var(--sp-sm) var(--sp-2xl) 0;
+  }
+
+  :global(.edu100-modal-thumb) {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.15s;
+    opacity: 0.6;
+
+    &:hover {
+      opacity: 0.9;
+    }
+
+    img {
+      width: 100%;
+      aspect-ratio: 3 / 2;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  :global(.edu100-modal-thumb.active) {
+    border-color: var(--c-primary);
+    opacity: 1;
+  }
+
+  :global(.edu100-modal-body) {
+    padding: var(--sp-xl) var(--sp-2xl) var(--sp-2xl);
+  }
+
+  :global(.edu100-modal-title) {
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    color: var(--c-text);
+    margin: 0 0 var(--sp-lg);
+    line-height: var(--lh-snug);
+  }
+
+  :global(.edu100-modal-desc) {
+    font-size: var(--fs-sm);
+    color: var(--c-text);
+    line-height: var(--lh-relaxed);
+    margin: 0 0 var(--sp-xl);
+
+    ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+      margin: var(--sp-sm) 0;
+    }
+
+    li {
+      margin-bottom: var(--sp-xs);
+    }
+
+    p {
+      margin-bottom: var(--sp-sm);
+    }
+
+    strong, b {
+      font-weight: 600;
+    }
+  }
+
+  :global(.edu100-modal-actions) {
+    display: flex;
+    gap: var(--sp-sm);
+    align-items: center;
+  }
+
+  :global(.edu100-order-btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-sm) var(--sp-xl);
+    background: var(--c-primary);
+    color: var(--c-text-inverse);
+    border-radius: var(--radius-full);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    transition: opacity 0.2s;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.85;
+    }
+  }
+
+  :global(.edu100-close-btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-sm) var(--sp-xl);
+    background: var(--c-bg-secondary);
+    color: var(--c-text-sub);
+    border-radius: var(--radius-full);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: var(--c-bg-tertiary, #e5e7eb);
+    }
+  }
+</style>

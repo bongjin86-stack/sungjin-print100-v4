@@ -70,6 +70,7 @@ const ALLOWED_FOLDERS = new Set([
   "partners",
   "faq",
   "general",
+  "edu100",
 ]);
 
 // Auth check: unauthenticated requests can only upload to 'orders' folder

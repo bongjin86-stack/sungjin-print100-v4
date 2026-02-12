@@ -258,6 +258,112 @@ function getConsultStatus(cfg) {
   return { isOpen: false, nextOpen: null };
 }
 
+/** 디자인 선택 블록 — 표지 디자인 카드 그리드 + 변경 타입 라디오 */
+function DesignSelectBlock({ cfg, tiers, designs, selectedDesign, designTier, setCustomer }) {
+  const [loaded, setLoaded] = useState(false);
+  const [designList, setDesignList] = useState(designs || []);
+
+  // 디자인 목록 fetch (최초 1회)
+  useEffect(() => {
+    if (loaded || designList.length > 0) return;
+    const table = cfg.sourceTable || "edu100_covers";
+    const tag = cfg.sourceTag || "";
+    let url = `/api/${table.replace("_covers", "")}`;
+    fetch(url)
+      .then((r) => r.json())
+      .then((data) => {
+        let list = Array.isArray(data) ? data : [];
+        if (tag) list = list.filter((d) => d.tag === tag);
+        list = list.filter((d) => d.is_published !== false);
+        setDesignList(list);
+        setCustomer((prev) => ({ ...prev, _designs: list }));
+
+        // URL에서 designId 자동 선택
+        const params = new URLSearchParams(window.location.search);
+        const designId = params.get("designId");
+        if (designId) {
+          const found = list.find((d) => d.id === designId);
+          if (found) {
+            setCustomer((prev) => ({ ...prev, selectedDesign: found }));
+          }
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoaded(true));
+  }, []);
+
+  return (
+    <div>
+      {/* 디자인 카드 그리드 */}
+      {designList.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: "0.75rem", marginBottom: "1rem" }}>
+          {designList.map((d) => {
+            const isSelected = selectedDesign?.id === d.id;
+            return (
+              <div
+                key={d.id}
+                onClick={() => setCustomer((prev) => ({ ...prev, selectedDesign: d }))}
+                style={{
+                  cursor: "pointer",
+                  borderRadius: "0.5rem",
+                  overflow: "hidden",
+                  border: isSelected ? "2px solid #000" : "2px solid transparent",
+                  boxShadow: isSelected ? "0 0 0 1px #000" : "0 1px 3px rgba(0,0,0,0.08)",
+                  transition: "all 0.15s",
+                }}
+              >
+                {d.image ? (
+                  <img src={d.image} alt={d.title} style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }} />
+                ) : (
+                  <div style={{ width: "100%", aspectRatio: "3/4", background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", color: "#999" }}>No img</div>
+                )}
+                <div style={{ padding: "0.375rem", fontSize: "0.7rem", fontWeight: isSelected ? 600 : 400, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {d.title}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {designList.length === 0 && loaded && (
+        <p style={{ color: "#999", fontSize: "0.875rem", padding: "1rem 0" }}>등록된 디자인이 없습니다.</p>
+      )}
+
+      {/* 변경 타입 라디오 */}
+      {tiers.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          {tiers.map((tier) => (
+            <label
+              key={tier.id}
+              style={{
+                display: "flex", alignItems: "center", gap: "0.5rem",
+                padding: "0.625rem 0.75rem", borderRadius: "0.5rem",
+                border: designTier === tier.id ? "2px solid #000" : "1px solid #e5e7eb",
+                cursor: "pointer", fontSize: "0.875rem",
+                background: designTier === tier.id ? "#fafafa" : "white",
+                transition: "all 0.15s",
+              }}
+            >
+              <input
+                type="radio"
+                name="designTier"
+                checked={designTier === tier.id}
+                onChange={() => setCustomer((prev) => ({ ...prev, designTier: tier.id }))}
+                style={{ accentColor: "#000" }}
+              />
+              <span style={{ flex: 1 }}>{tier.label}</span>
+              {tier.price > 0 && (
+                <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>+{tier.price.toLocaleString()}원</span>
+              )}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** 상담 블록 — FAQ 아코디언 + 상담시간 표시 */
 function ConsultationBlock({ cfg, faqs }) {
   const [openFaq, setOpenFaq] = useState(null);
@@ -521,6 +627,61 @@ function PreviewBlockInner({
         }));
       };
 
+      // 커스텀 용지 모드 (외주블록용)
+      if (cfg.customPapers) {
+        return (
+          <div className="pv-block">
+            <p className="pv-block-label">{block.label}</p>
+            <div className="pv-paper-list">
+              {cfg.customPapers.map((cp) => {
+                const isSelected = customer[paperField] === cp.id;
+                return (
+                  <div
+                    key={cp.id}
+                    className={`pv-paper-item ${isSelected ? "active" : ""} ${isDisabled ? "disabled" : ""}`}
+                    onClick={() => handlePaperSelect(cp.id, cp.weights?.[0] || 0)}
+                  >
+                    <div className="pv-paper-thumb">
+                      {cp.image ? (
+                        <img src={cp.image} alt={cp.name} loading="lazy" decoding="async" />
+                      ) : (
+                        <div
+                          className="pv-paper-swatch"
+                          style={{ background: DEFAULT_PAPER_SWATCH }}
+                        />
+                      )}
+                    </div>
+                    <div className="pv-paper-info">
+                      <p className={`pv-paper-name ${isSelected ? "active" : ""}`}>
+                        {cp.name}
+                      </p>
+                    </div>
+                    {(cp.weights || []).length > 0 && (
+                      <div className="pv-weight-btns">
+                        {cp.weights.map((w) => (
+                          <button
+                            key={w}
+                            disabled={isDisabled}
+                            className={`pv-weight-btn ${isSelected && customer[weightField] === w ? "active" : ""}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePaperSelect(cp.id, w);
+                            }}
+                          >
+                            {w}g
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      // 기존 DB 용지 모드
       return (
         <div className="pv-block">
           <p className="pv-block-label">{block.label}</p>
@@ -1629,6 +1790,55 @@ function PreviewBlockInner({
     case "consultation": {
       const faqs = cfg.faqs || [];
       return <ConsultationBlock cfg={cfg} faqs={faqs} />;
+    }
+
+    case "design_select": {
+      const tiers = cfg.tiers || [];
+      const designs = customer._designs || [];
+      const selectedDesign = customer.selectedDesign;
+      const designTier = customer.designTier || cfg.defaultTier || "type_a";
+
+      return (
+        <div className="pv-block-section">
+          <DesignSelectBlock
+            cfg={cfg}
+            tiers={tiers}
+            designs={designs}
+            selectedDesign={selectedDesign}
+            designTier={designTier}
+            setCustomer={setCustomer}
+          />
+        </div>
+      );
+    }
+
+    case "text_input": {
+      const inputKey = `textInput_${block.id}`;
+      const textInputs = customer.textInputs || {};
+      const value = textInputs[block.id] || "";
+      return (
+        <div className="pv-block">
+          <p className="pv-block-label">{block.label}</p>
+          <textarea
+            value={value}
+            onChange={(e) => {
+              const val = cfg.maxLength ? e.target.value.slice(0, cfg.maxLength) : e.target.value;
+              setCustomer((prev) => ({
+                ...prev,
+                textInputs: { ...(prev.textInputs || {}), [block.id]: val },
+              }));
+            }}
+            placeholder={cfg.placeholder || "내용을 입력해주세요"}
+            rows={cfg.rows || 3}
+            className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-gray-400 transition-colors"
+          />
+          {cfg.maxLength && (
+            <p className="text-xs text-gray-400 text-right mt-1">
+              {value.length}/{cfg.maxLength}
+            </p>
+          )}
+        </div>
+      );
     }
 
     default:
