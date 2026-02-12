@@ -1061,9 +1061,10 @@ export default function AdminBuilder() {
             <span className="text-sm text-gray-400">블록 {onCount}개</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-12">
+          <div className="pv-grid">
             {/* 왼쪽: 이미지 + 가이드 */}
-            <div>
+            <div className="pv-left-col">
+             <div className="pv-images" style={{ position: 'static', maxHeight: 'none' }}>
               {/* 메인 이미지 */}
               <input
                 ref={mainImageRef}
@@ -1072,24 +1073,18 @@ export default function AdminBuilder() {
                 className="hidden"
                 onChange={handleMainImageUpload}
               />
-              <div className="relative group/main mb-4">
+              <div className="relative group/main">
                 <div
-                  className={`aspect-[3/2] bg-gray-50 rounded-2xl border border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors overflow-hidden ${imageUploading ? "opacity-50" : ""}`}
+                  className={`pv-main-image cursor-pointer border border-dashed border-gray-200 hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
                   onClick={() => mainImageRef.current?.click()}
                 >
                   {content.mainImage ? (
-                    <img
-                      src={content.mainImage}
-                      alt="메인"
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={content.mainImage} alt="메인" />
                   ) : (
-                    <>
-                      <div className="text-4xl text-gray-300 mb-2">+</div>
-                      <p className="text-sm text-gray-400">
-                        {imageUploading ? "업로드 중..." : "메인 이미지"}
-                      </p>
-                    </>
+                    <div className="pv-no-image">
+                      <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>+</div>
+                      <p>{imageUploading ? "업로드 중..." : "메인 이미지"}</p>
+                    </div>
                   )}
                 </div>
                 {content.mainImage && (
@@ -1110,7 +1105,7 @@ export default function AdminBuilder() {
               </div>
 
               {/* 썸네일 4개 */}
-              <div className="grid grid-cols-4 gap-2 mb-4">
+              <div className="pv-thumbnails">
                 {[0, 1, 2, 3].map((idx) => (
                   <div key={idx} className="relative group/thumb">
                     <input
@@ -1121,17 +1116,17 @@ export default function AdminBuilder() {
                       onChange={(e) => handleThumbnailUpload(e, idx)}
                     />
                     <div
-                      className={`aspect-[3/2] bg-gray-50 rounded-2xl border border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors overflow-hidden ${imageUploading ? "opacity-50" : ""}`}
+                      className={`pv-thumb cursor-pointer border-dashed hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
+                      style={{ borderStyle: 'dashed' }}
                       onClick={() => thumbImageRefs[idx].current?.click()}
                     >
                       {content.thumbnails?.[idx] ? (
                         <img
                           src={content.thumbnails[idx]}
                           alt={`썸네일${idx + 1}`}
-                          className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-xl text-gray-300">+</span>
+                        <span style={{ fontSize: '1.25rem', color: '#d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>+</span>
                       )}
                     </div>
                     {content.thumbnails?.[idx] && (
@@ -1157,7 +1152,7 @@ export default function AdminBuilder() {
 
               {/* 하이라이트 카드 */}
               {content.highlights?.length > 0 && (
-              <div className="grid grid-cols-2 gap-x-[1.5rem] gap-y-[1.25rem] mt-4 py-4 border-t border-b border-gray-100 relative group/hl">
+              <div className="pv-highlights relative group/hl">
                 <button
                   type="button"
                   className="absolute -top-3 right-0 text-xs text-gray-300 hover:text-red-400 transition-colors hidden group-hover/hl:block bg-white px-1"
@@ -1181,7 +1176,7 @@ export default function AdminBuilder() {
                     }));
                   };
                   return (
-                    <div key={idx} className="flex items-start gap-3 group/card relative">
+                    <div key={idx} className="pv-highlight-card group/card relative">
                       <button
                         type="button"
                         className="absolute -top-1 -right-1 text-gray-300 hover:text-red-400 text-xs hidden group-hover/card:block"
@@ -1196,7 +1191,7 @@ export default function AdminBuilder() {
                         ✕
                       </button>
                       {/* 아이콘 선택 */}
-                      <div className="relative group flex-shrink-0 pt-0.5">
+                      <div className="pv-highlight-icon relative group">
                         <button
                           type="button"
                           className="flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
@@ -1231,14 +1226,15 @@ export default function AdminBuilder() {
                         </div>
                       </div>
                       {/* 텍스트 */}
-                      <div className="flex-1 min-w-0">
+                      <div className="pv-highlight-text">
                         <input
                           type="text"
                           value={h.title || ""}
                           onChange={(e) =>
                             updateHighlight("title", e.target.value)
                           }
-                          className="block w-full text-[15px] font-semibold text-[#222828] bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none leading-[1.3] mb-[3px]"
+                          className="pv-highlight-title block w-full bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none"
+                          style={{ marginBottom: 0 }}
                           placeholder="제목"
                         />
                         <input
@@ -1247,7 +1243,8 @@ export default function AdminBuilder() {
                           onChange={(e) =>
                             updateHighlight("desc", e.target.value)
                           }
-                          className="block w-full text-[13px] text-[#6b7280] bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none leading-[1.5]"
+                          className="pv-highlight-desc block w-full bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none"
+                          style={{ margin: 0 }}
                           placeholder="설명"
                         />
                       </div>
@@ -1274,10 +1271,11 @@ export default function AdminBuilder() {
                   />
                 ))}
 
-            </div>
+             </div>{/* /pv-images */}
+            </div>{/* /pv-left-col */}
 
             {/* 오른쪽: 옵션 영역 */}
-            <div>
+            <div className="pv-options">
               {/* 제목 */}
               <input
                 type="text"
@@ -1290,7 +1288,7 @@ export default function AdminBuilder() {
                     content: { ...prev.content, title: val },
                   }));
                 }}
-                className="text-2xl font-semibold mb-3 bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-primary outline-none w-full leading-snug text-[#222828]"
+                className="pv-product-title bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-primary outline-none w-full"
                 placeholder="상품명"
               />
 
@@ -1304,7 +1302,7 @@ export default function AdminBuilder() {
                     content: { ...prev.content, description: e.target.value },
                   }))
                 }
-                className="text-[#5a6262] mb-5 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary outline-none w-full leading-relaxed"
+                className="pv-product-desc bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary outline-none w-full"
                 placeholder="상품 설명"
               />
 
@@ -1312,7 +1310,7 @@ export default function AdminBuilder() {
               {(content.featuresHtml || content.features?.length || content.highlights?.length) ? (
               <div className="mb-5">
                 <div className="flex items-center justify-between mb-2.5">
-                  <p className="font-medium text-base text-[#222828]">주요 특징</p>
+                  <p className="pv-features-label">주요 특징</p>
                   <button
                     type="button"
                     className="text-xs text-gray-300 hover:text-red-400 transition-colors"
@@ -1377,9 +1375,9 @@ export default function AdminBuilder() {
                     const selectedOpt = gOptions.find((o) => o.id === guideState.selected);
 
                     return (
-                      <div key={block.id}>
-                        <div className="mt-5 flex items-center">
-                          <span className="text-[15px] font-semibold text-[#222828]">{gCfg.title || block.label}</span>
+                      <div key={block.id} className="pv-file-spec-section">
+                        <div className="flex items-center">
+                          <span className="pv-addons-title" style={{ marginBottom: 0 }}>{gCfg.title || block.label}</span>
                           {!isOpen && (
                             <button
                               className="text-xs text-gray-400 font-medium ml-auto hover:text-gray-700 transition-colors"
@@ -1393,36 +1391,32 @@ export default function AdminBuilder() {
                           )}
                         </div>
                         {isOpen ? (
-                          <div className="mt-3 flex flex-col gap-3">
+                          <div className="pv-fs-cards">
                             {gOptions.map((opt, idx) => {
                               const isCurrent = guideState.selected === opt.id;
                               return (
                                 <div
                                   key={opt.id}
-                                  className={`relative rounded-3xl border p-4 cursor-pointer transition-all ${
-                                    isCurrent ? "border-[#d9d9d9] bg-[#f7f8f8]" : "border-[#f0f2f2] bg-white hover:border-[#d9d9d9]"
-                                  }`}
+                                  className={`pv-fs-card ${isCurrent ? "selected" : ""}`}
                                   onClick={() => setCustomer((prev) => ({
                                     ...prev,
                                     guides: { ...prev.guides, [block.id]: { selected: opt.id, confirmed: true } },
                                   }))}
                                 >
-                                  <div className="flex items-start gap-3">
-                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                                      isCurrent ? "bg-[#222828] text-white" : "bg-[#f0f2f2] text-[#9ca3af]"
-                                    }`}>{idx + 1}</span>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-sm font-semibold text-gray-900">{opt.label}</span>
+                                  <div className="pv-fs-card-header">
+                                    <span className={`pv-fs-num ${isCurrent ? "active" : ""}`}>{idx + 1}</span>
+                                    <div className="pv-fs-card-title">
+                                      <div className="pv-fs-card-label-row">
+                                        <span className="pv-fs-card-label">{opt.label}</span>
                                         {opt.price > 0 && (
-                                          <span className="text-xs font-semibold text-orange-600">+{opt.price.toLocaleString()}원</span>
+                                          <span className="pv-fs-card-price">+{opt.price.toLocaleString()}원</span>
                                         )}
                                       </div>
                                       {opt.hint && renderBuilderHint(opt.hint)}
                                     </div>
                                   </div>
                                   {isCurrent && (
-                                    <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#222828] flex items-center justify-center">
+                                    <span className="pv-fs-card-check">
                                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                     </span>
                                   )}
@@ -1431,21 +1425,21 @@ export default function AdminBuilder() {
                             })}
                           </div>
                         ) : selectedOpt && (
-                          <div className="mt-3">
+                          <div style={{ marginTop: '0.75rem' }}>
                             <div
-                              className="rounded-3xl border border-[#d9d9d9] bg-[#f7f8f8] px-4 py-3 cursor-pointer"
+                              className="pv-fs-card selected cursor-pointer"
                               onClick={() => setCustomer((prev) => ({
                                 ...prev,
                                 guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
                               }))}
                             >
-                              <div className="flex items-center gap-3">
-                                <span className="w-5 h-5 rounded-full bg-[#222828] flex items-center justify-center flex-shrink-0">
+                              <div className="pv-fs-card-header">
+                                <span className="pv-fs-check" style={{ width: '1.25rem', height: '1.25rem' }}>
                                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 </span>
-                                <span className="text-sm font-semibold text-gray-900">{selectedOpt.label}</span>
+                                <span className="pv-fs-card-label">{selectedOpt.label}</span>
                                 {selectedOpt.price > 0 && (
-                                  <span className="text-xs font-semibold text-orange-600">+{selectedOpt.price.toLocaleString()}원</span>
+                                  <span className="pv-fs-card-price">+{selectedOpt.price.toLocaleString()}원</span>
                                 )}
                               </div>
                             </div>

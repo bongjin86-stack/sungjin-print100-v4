@@ -9,6 +9,8 @@
  * - 특징 카드 2개 편집
  * - 상품명, 설명 편집
  * - 주요 특징 에디터 (NotionEditor)
+ *
+ * 레이아웃: ProductView.css .pv-* 클래스 공유 (빌더 ↔ 상품페이지 동일)
  */
 
 import { useRef } from "react";
@@ -39,9 +41,10 @@ function ProductEditor({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-12">
+    <div className="pv-grid">
       {/* 왼쪽: 이미지 영역 */}
-      <div>
+      <div className="pv-left-col">
+       <div className="pv-images" style={{ position: 'static', maxHeight: 'none' }}>
         {/* 메인 이미지 */}
         <input
           ref={mainImageRef}
@@ -50,24 +53,18 @@ function ProductEditor({
           className="hidden"
           onChange={onMainImageUpload}
         />
-        <div className="relative group/main mb-4">
+        <div className="relative group/main">
           <div
-            className={`aspect-[3/2] bg-gray-50 rounded-2xl border border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors overflow-hidden ${imageUploading ? "opacity-50" : ""}`}
+            className={`pv-main-image cursor-pointer border border-dashed border-gray-200 hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
             onClick={() => mainImageRef.current?.click()}
           >
             {content.mainImage ? (
-              <img
-                src={content.mainImage}
-                alt="메인"
-                className="w-full h-full object-cover"
-              />
+              <img src={content.mainImage} alt="메인" />
             ) : (
-              <>
-                <div className="text-4xl text-gray-300 mb-2">+</div>
-                <p className="text-sm text-gray-400">
-                  {imageUploading ? "업로드 중..." : "메인 이미지"}
-                </p>
-              </>
+              <div className="pv-no-image">
+                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>+</div>
+                <p>{imageUploading ? "업로드 중..." : "메인 이미지"}</p>
+              </div>
             )}
           </div>
           {content.mainImage && (
@@ -85,7 +82,7 @@ function ProductEditor({
         </div>
 
         {/* 썸네일 4개 */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
+        <div className="pv-thumbnails">
           {[0, 1, 2, 3].map((idx) => (
             <div key={idx} className="relative group/thumb">
               <input
@@ -96,17 +93,17 @@ function ProductEditor({
                 onChange={(e) => onThumbnailUpload(e, idx)}
               />
               <div
-                className={`aspect-[3/2] bg-gray-50 rounded-2xl border border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors overflow-hidden ${imageUploading ? "opacity-50" : ""}`}
+                className={`pv-thumb cursor-pointer hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
+                style={{ borderStyle: 'dashed' }}
                 onClick={() => thumbImageRefs[idx].current?.click()}
               >
                 {content.thumbnails?.[idx] ? (
                   <img
                     src={content.thumbnails[idx]}
                     alt={`썸네일${idx + 1}`}
-                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-xl text-gray-300">+</span>
+                  <span style={{ fontSize: '1.25rem', color: '#d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>+</span>
                 )}
               </div>
               {content.thumbnails?.[idx] && (
@@ -126,17 +123,17 @@ function ProductEditor({
             </div>
           ))}
         </div>
-
+       </div>{/* /pv-images */}
       </div>
 
       {/* 오른쪽: 정보 영역 */}
-      <div>
+      <div className="pv-options">
         {/* 제목 */}
         <input
           type="text"
           value={content.title}
           onChange={(e) => onUpdateContent({ title: e.target.value })}
-          className="text-2xl font-semibold mb-3 bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-primary outline-none w-full leading-snug text-[#222828]"
+          className="pv-product-title bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-primary outline-none w-full"
           placeholder="상품명"
         />
 
@@ -145,7 +142,7 @@ function ProductEditor({
           type="text"
           value={content.description}
           onChange={(e) => onUpdateContent({ description: e.target.value })}
-          className="text-[#5a6262] mb-5 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary outline-none w-full leading-relaxed"
+          className="pv-product-desc bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary outline-none w-full"
           placeholder="상품 설명"
         />
       </div>
