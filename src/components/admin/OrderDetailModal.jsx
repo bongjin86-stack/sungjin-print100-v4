@@ -397,8 +397,63 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                   </div>
                 </Card>
 
-                {/* 커스텀 텍스트 입력 (표지 입력 등) */}
-                {item.textInputs?.length > 0 && (
+                {/* 시리즈 주문이 있으면 테이블로 표시, 없으면 기존 입력 내용 */}
+                {item.booksSummary?.length > 0 ? (
+                  <Card title="시리즈 주문" icon={
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  }>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-200 text-gray-500 text-xs">
+                          <th className="pb-2 text-left font-medium">#</th>
+                          <th className="pb-2 text-left font-medium">내용</th>
+                          <th className="pb-2 text-right font-medium">페이지</th>
+                          <th className="pb-2 text-right font-medium">수량</th>
+                          <th className="pb-2 text-right font-medium">소계</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {item.booksSummary.filter((b) => b.designFee == null).map((book) => {
+                          // 필드 중 첫 번째 텍스트 값 (색상 코드 제외)
+                          const fieldText = Object.entries(book.fields || {})
+                            .filter(([, v]) => v && !/^#[0-9a-fA-F]{3,8}$/.test(String(v)))
+                            .map(([, v]) => v)
+                            .join(" / ");
+                          return (
+                            <tr key={book.index} className="border-b border-gray-50">
+                              <td className="py-2 text-gray-400">{book.index}</td>
+                              <td className="py-2 text-gray-900 max-w-[200px] truncate">{fieldText || "-"}</td>
+                              <td className="py-2 text-right text-gray-700">{book.pages}p</td>
+                              <td className="py-2 text-right text-gray-700">{book.qty}부</td>
+                              <td className="py-2 text-right font-medium text-gray-900">{formatPrice(book.subtotal)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    {/* 디자인 비용 */}
+                    {item.booksSummary.filter((b) => b.designFee != null).map((df, i) => (
+                      <div key={`df-${i}`} className="flex justify-between items-center pt-2 mt-1 border-t border-gray-100">
+                        <span className="text-xs text-amber-700">디자인 비용</span>
+                        <span className="text-sm font-medium text-amber-700">{formatPrice(df.designFee)}</span>
+                      </div>
+                    ))}
+                    {/* 합계 */}
+                    {(() => {
+                      const books = item.booksSummary.filter((b) => b.designFee == null);
+                      const totalQty = books.reduce((s, b) => s + (b.qty || 0), 0);
+                      const totalAmt = books.reduce((s, b) => s + (b.subtotal || 0), 0);
+                      return (
+                        <div className="flex justify-between items-center pt-2 mt-1 border-t border-gray-200">
+                          <span className="text-sm font-semibold text-gray-900">합계 {books.length}권 / {totalQty}부</span>
+                          <span className="text-sm font-bold text-gray-900">{formatPrice(totalAmt)}</span>
+                        </div>
+                      );
+                    })()}
+                  </Card>
+                ) : item.textInputs?.length > 0 ? (
                   <Card title="입력 내용" icon={
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -415,48 +470,7 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                       ))}
                     </div>
                   </Card>
-                )}
-
-                {/* 시리즈(다권) 주문 요약 */}
-                {item.booksSummary?.length > 0 && (
-                  <Card title="시리즈 주문" icon={
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  }>
-                    <div className="space-y-3">
-                      {item.booksSummary.map((book, i) =>
-                        book.designFee != null ? (
-                          <div key={`df-${i}`} className="flex justify-between items-center pt-2 border-t border-gray-100">
-                            <span className="text-xs text-amber-700">디자인 비용 (총 {book.totalQty}부 &lt; {book.freeMinQty}부)</span>
-                            <span className="text-sm font-medium text-amber-700">{formatPrice(book.designFee)}</span>
-                          </div>
-                        ) : (
-                          <div key={i} className="bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs font-semibold text-gray-700">시리즈 {book.index}</span>
-                              <span className="text-xs text-gray-500">
-                                {book.pages}p / {book.qty}부 / 권당 {formatPrice(book.perCopy)}
-                              </span>
-                            </div>
-                            {book.fields && Object.keys(book.fields).length > 0 && (
-                              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
-                                {Object.entries(book.fields).map(([label, value]) => (
-                                  <span key={label} className="text-xs text-gray-600">
-                                    <span className="text-gray-400">{label}:</span> {value}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                            <div className="text-right mt-1">
-                              <span className="text-sm font-medium text-gray-900">{formatPrice(book.subtotal)}</span>
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </Card>
-                )}
+                ) : null}
 
                 {/* 파일 상태 + 요청사항 */}
                 <Card title="인쇄 파일" icon={
