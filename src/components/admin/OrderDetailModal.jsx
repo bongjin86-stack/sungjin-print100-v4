@@ -404,35 +404,35 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                   }>
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-gray-200 text-gray-500 text-xs">
-                          <th className="pb-2 text-left font-medium">#</th>
-                          <th className="pb-2 text-left font-medium">내용</th>
-                          <th className="pb-2 text-right font-medium">페이지</th>
-                          <th className="pb-2 text-right font-medium">수량</th>
-                          <th className="pb-2 text-right font-medium">소계</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {item.booksSummary.filter((b) => b.designFee == null).map((book) => {
-                          // 필드 중 첫 번째 텍스트 값 (색상 코드 제외)
-                          const fieldText = Object.entries(book.fields || {})
-                            .filter(([, v]) => v && !/^#[0-9a-fA-F]{3,8}$/.test(String(v)))
-                            .map(([, v]) => v)
-                            .join(" / ");
-                          return (
-                            <tr key={book.index} className="border-b border-gray-50">
-                              <td className="py-2 text-gray-400">{book.index}</td>
-                              <td className="py-2 text-gray-900 max-w-[200px] truncate">{fieldText || "-"}</td>
-                              <td className="py-2 text-right text-gray-700">{book.pages}p</td>
-                              <td className="py-2 text-right text-gray-700">{book.qty}부</td>
-                              <td className="py-2 text-right font-medium text-gray-900">{formatPrice(book.subtotal)}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                    <div className="space-y-3">
+                      {item.booksSummary.filter((b) => b.designFee == null).map((book) => {
+                        const fields = Object.entries(book.fields || {})
+                          .filter(([, v]) => v && !/^#[0-9a-fA-F]{3,8}$/.test(String(v)));
+                        return (
+                          <div key={book.index} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                            <div className="flex justify-between items-center mb-1.5">
+                              <span className="text-sm font-semibold text-gray-900">{book.index}권</span>
+                              <span className="text-sm font-semibold text-gray-900">{formatPrice(book.subtotal)}</span>
+                            </div>
+                            {fields.length > 0 && (
+                              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 mb-1.5">
+                                {fields.map(([label, value]) => (
+                                  <div key={label} className="contents">
+                                    <span className="text-sm text-gray-400">{label}</span>
+                                    <span className="text-sm text-gray-900">{value}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            <div className="flex gap-3 text-xs text-gray-500">
+                              <span>{book.pages}p</span>
+                              <span>{book.qty}부</span>
+                              <span>권당 {formatPrice(book.perCopy)}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                     {/* 디자인 비용 */}
                     {item.booksSummary.filter((b) => b.designFee != null).map((df, i) => (
                       <div key={`df-${i}`} className="flex justify-between items-center pt-2 mt-1 border-t border-gray-100">
