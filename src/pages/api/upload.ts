@@ -76,11 +76,15 @@ const ALLOWED_FOLDERS = new Set([
 // Auth check: unauthenticated requests can only upload to 'orders' folder
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    // Check authentication status
+    // Check authentication status (actually verify token, not just existence)
     const accessToken =
       cookies.get("sb-access-token")?.value ||
       request.headers.get("Authorization")?.replace("Bearer ", "");
-    const isAuthenticated = !!accessToken;
+    let isAuthenticated = false;
+    if (accessToken) {
+      const { data } = await supabaseAdmin.auth.getUser(accessToken);
+      isAuthenticated = !!data?.user;
+    }
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
@@ -116,21 +120,28 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     // --- MIME type validation ---
-    if (file.type && !ALLOWED_MIME_TYPES.has(file.type)) {
-      // Allow empty/unknown MIME (some design files don't have standard MIME)
-      // But block known dangerous types
-      const dangerousTypes = [
-        "text/html",
-        "application/javascript",
-        "text/javascript",
-        "application/x-executable",
-      ];
+    const dangerousTypes = [
+      "text/html",
+      "application/javascript",
+      "text/javascript",
+      "application/x-executable",
+    ];
+    if (file.type) {
       if (dangerousTypes.includes(file.type)) {
         return new Response(
           JSON.stringify({ error: `MIME type ${file.type} is not allowed.` }),
           { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
+      if (!ALLOWED_MIME_TYPES.has(file.type)) {
+        return new Response(
+          JSON.stringify({ error: `MIME type ${file.type} is not allowed.` }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // 빈 MIME: 확장자 기반 허용 목록만으로 검증 (위에서 이미 처리됨)
+      // 디자인 파일(.ai, .psd)은 MIME이 빈 경우가 있어 허용
     }
 
     // --- Folder path traversal prevention ---

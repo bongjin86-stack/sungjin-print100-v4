@@ -31,10 +31,15 @@ function parseJson(val: any, fallback: any) {
   }
 }
 
+// outsourced_config는 서버에서만 사용 — 클라이언트에 노출하지 않음
+const { outsourced_config: _oc, ...safeProduct } = product;
+const parsedContent = parseJson(safeProduct.content, {});
+const { outsourced_config: _oc2, ...safeContent } = parsedContent;
+
 const productData = {
-  ...product,
-  content: parseJson(product.content, {}),
-  blocks: parseJson(product.blocks, []),
+  ...safeProduct,
+  content: safeContent,
+  blocks: parseJson(safeProduct.blocks, []),
 };
 
 const title = productData.content?.title || productData.name || "상품";

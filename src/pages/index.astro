@@ -11,6 +11,12 @@ import Layout from "@/layouts/Layout.astro";
 
 export const prerender = false;
 
+// CDN 캐시: 1시간 유지, 24시간 stale-while-revalidate
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, s-maxage=3600, stale-while-revalidate=86400"
+);
+
 const siteTitle = String(siteConfig.site.title);
 const siteDescription = String(siteConfig.site.description);
 ---

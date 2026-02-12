@@ -49,7 +49,7 @@ export default function LandingSectionsForm() {
   const loadSettings = async () => {
     try {
       const { data, error } = await supabase
-        .from("site_config")
+        .from("site_settings")
         .select("key, value");
 
       if (error) throw error;
@@ -119,7 +119,7 @@ export default function LandingSectionsForm() {
       }));
 
       const { error } = await supabase
-        .from("site_config")
+        .from("site_settings")
         .upsert(updates, { onConflict: "key" });
 
       if (error) throw error;

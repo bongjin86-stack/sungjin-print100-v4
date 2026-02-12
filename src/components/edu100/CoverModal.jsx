@@ -1,4 +1,3 @@
-import DOMPurify from "dompurify";
 import { useEffect, useState } from "react";
 
 export default function CoverModal({ cover, onClose }) {
@@ -53,7 +52,7 @@ export default function CoverModal({ cover, onClose }) {
           {cover.description && (
             <div
               className="edu100-modal-desc"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cover.description) }}
+              dangerouslySetInnerHTML={{ __html: cover.description }}
             />
           )}
 

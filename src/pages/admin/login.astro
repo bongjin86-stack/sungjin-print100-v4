@@ -76,15 +76,20 @@ import "@/styles/global.css";
         } = await supabase.auth.getUser();
         if (!user) return; // 미인증 또는 만료 → 로그인 폼 표시
 
-        // 유효한 세션 → 쿠키 동기화 후 리다이렉트
+        // 유효한 세션 → httpOnly 쿠키 설정 후 리다이렉트
         const {
           data: { session },
         } = await supabase.auth.getSession();
         if (session) {
-          const secure = window.location.protocol === "https:";
-          const cookieOpts = `path=/; max-age=${session.expires_in}; SameSite=Lax${secure ? "; Secure" : ""}`;
-          document.cookie = `sb-access-token=${session.access_token}; ${cookieOpts}`;
-          document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? "; Secure" : ""}`;
+          await fetch("/api/auth/set-cookies", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              access_token: session.access_token,
+              refresh_token: session.refresh_token,
+              expires_in: session.expires_in,
+            }),
+          });
           window.location.href = "/admin";
         }
       })();
@@ -121,12 +126,17 @@ import "@/styles/global.css";
             throw new Error(error.message);
           }
 
-          // 로그인 성공 - 쿠키 설정 후 대시보드로 이동
+          // 로그인 성공 - httpOnly 쿠키 설정 후 대시보드로 이동
           if (data.session) {
-            const secure = window.location.protocol === "https:";
-            const cookieOpts = `path=/; max-age=${data.session.expires_in}; SameSite=Lax${secure ? "; Secure" : ""}`;
-            document.cookie = `sb-access-token=${data.session.access_token}; ${cookieOpts}`;
-            document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? "; Secure" : ""}`;
+            await fetch("/api/auth/set-cookies", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                access_token: data.session.access_token,
+                refresh_token: data.session.refresh_token,
+                expires_in: data.session.expires_in,
+              }),
+            });
           }
           window.location.href = "/admin";
         } catch (err: any) {

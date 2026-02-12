@@ -178,7 +178,7 @@ export async function updateConfig(
   value: string
 ): Promise<boolean> {
   try {
-    const { error } = await supabase.from("site_config").upsert(
+    const { error } = await supabase.from("site_settings").upsert(
       {
         key,
         value,
@@ -212,7 +212,7 @@ export async function updateConfigs(
       updated_at: new Date().toISOString(),
     }));
 
-    const { error } = await supabase.from("site_config").upsert(updates, {
+    const { error } = await supabase.from("site_settings").upsert(updates, {
       onConflict: "key",
     });
 

@@ -216,6 +216,14 @@ export default function Checkout() {
         customer: product.customerSelection || {},
         qty: product.spec?.quantity || 1,
         productType: product.type || "flyer",
+        guidePriceTotal: product.guidePriceTotal || 0,
+        // outsourced 서버 검증용 추가 데이터
+        ...(product.type === "outsourced" && {
+          productId: product.productId,
+          books: product.books,
+          pages: product.pages,
+          designFee: product.designFee,
+        }),
       };
 
       const result = await createOrderViaApi(orderData, priceInput);

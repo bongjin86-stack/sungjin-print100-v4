@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-02-13
+
+### Security — 보안 강화 (14항목)
+
+- **httpOnly 쿠키 전환** — `document.cookie` 직접 조작 → 서버 API 엔드포인트(`/api/auth/set-cookies`, `/api/auth/clear-cookies`) 경유. XSS 토큰 탈취 차단
+- **외주상품 가격 서버 이전** — `outsourced_config`를 클라이언트에 노출하지 않고 `/api/calculate-price`에서 서버 재계산. `product/[id].astro`에서 config 스트리핑
+- **가격 검증 보완** — `create-order.ts`에서 일반상품 guidePriceTotal 누락 수정, 에러 응답에서 가격 정보 제거
+- **upload.ts 인증 강화** — `!!accessToken` 존재 확인 → `supabaseAdmin.auth.getUser()` 실제 토큰 검증
+- **products API 인증** — `?all=1` 파라미터에 `getUser()` 토큰 유효성 검증 추가
+- **검색 SQL Injection 방지** — `%`, `_` 와일드카드 새니타이징 추가, `sortBy` 컬럼 화이트리스트
+- **upload MIME 검증** — 위험 MIME 타입 우선 차단, 빈 MIME 허용 로직 개선
+- **siteConfigService 테이블명 통일** — `site_config` → `site_settings` (LandingSectionsForm.tsx 포함)
+- **DOMPurify 고객페이지 제거** — 관리자 작성 컨텐츠에 불필요한 클라이언트 라이브러리 제거 (ProductView, CoverModal)
+- **middleware httpOnly: true** — 토큰 갱신 시에도 httpOnly 플래그 유지
+
+### Fixed — 버그 수정
+
+- **주문번호 충돌** — `createOrder()`에 최대 5회 재시도 로직 (error code 23505 감지)
+- **상태 카운트 1000행 제한** — `getOrderStatusCounts()`를 `count:exact, head:true` 병렬 쿼리로 변경
+- **ProductView designCover 의존성** — 가격 useEffect에 `designCover` 누락 수정
+
+### Performance — 성능 개선
+
+- **홈페이지 CDN 캐시** — `index.astro`에 `Cache-Control: s-maxage=3600, stale-while-revalidate=86400`
+- **다음 우편번호 async** — `checkout.astro` 스크립트에 `async` 속성 추가
+- **N+1 상태 카운트** — 6개 개별 쿼리 → 7개 병렬 count 쿼리 (head:true, 데이터 전송 없음)
+
+### Added
+
+- `/api/auth/set-cookies` — httpOnly 쿠키 설정 서버 엔드포인트
+- `/api/auth/clear-cookies` — 쿠키 삭제 서버 엔드포인트
+- `calculate-price.ts` — 외주상품(`outsourced`) 서버 가격 계산 로직
+
+---
+
 ## [2.2.1] - 2026-02-08
 
 ### Fixed — 버그 수정

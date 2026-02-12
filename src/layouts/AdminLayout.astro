@@ -168,18 +168,22 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
         <script>
           import { supabase } from "@/lib/supabase";
 
-          // 쿠키 설정 헬퍼
-          function setAuthCookies(session) {
+          // httpOnly 쿠키 설정 (서버 API 경유)
+          async function setAuthCookies(session) {
             if (!session) return;
-            const secure = window.location.protocol === "https:";
-            const cookieOpts = `path=/; max-age=${session.expires_in}; SameSite=Lax${secure ? "; Secure" : ""}`;
-            document.cookie = `sb-access-token=${session.access_token}; ${cookieOpts}`;
-            document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure ? "; Secure" : ""}`;
+            await fetch("/api/auth/set-cookies", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                access_token: session.access_token,
+                refresh_token: session.refresh_token,
+                expires_in: session.expires_in,
+              }),
+            });
           }
 
-          function clearAuthCookies() {
-            document.cookie = "sb-access-token=; path=/; max-age=0";
-            document.cookie = "sb-refresh-token=; path=/; max-age=0";
+          async function clearAuthCookies() {
+            await fetch("/api/auth/clear-cookies", { method: "POST" });
           }
 
           // 클라이언트 사이드 인증 체크 (서버 미들웨어가 1차 보호, 이건 2차)
@@ -187,13 +191,13 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
             const { data } = await supabase.auth.getSession();
 
             if (!data.session) {
-              clearAuthCookies();
+              await clearAuthCookies();
               window.location.href = "/admin/login";
               return;
             }
 
             // 쿠키 동기화 (토큰 갱신 시)
-            setAuthCookies(data.session);
+            await setAuthCookies(data.session);
 
             // 사용자 이메일 표시
             const userEmailEl = document.getElementById("userEmail");
@@ -203,12 +207,12 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
           })();
 
           // 토큰 자동 갱신 시 쿠키도 업데이트
-          supabase.auth.onAuthStateChange((event, session) => {
+          supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === "TOKEN_REFRESHED" && session) {
-              setAuthCookies(session);
+              await setAuthCookies(session);
             }
             if (event === "SIGNED_OUT") {
-              clearAuthCookies();
+              await clearAuthCookies();
             }
           });
 
@@ -217,7 +221,7 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
             .getElementById("logoutButton")
             ?.addEventListener("click", async () => {
               await supabase.auth.signOut();
-              clearAuthCookies();
+              await clearAuthCookies();
               window.location.href = "/admin/login";
             });
 

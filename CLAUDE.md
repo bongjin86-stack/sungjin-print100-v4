@@ -183,29 +183,46 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 | `/api/edu100`          | API                 | Edu100 표지 CRUD (GET/POST)                     |
 | `/api/edu100/:id`      | API                 | Edu100 단일 표지 (GET/PUT/DELETE)               |
 | `/admin/edu100`        | Admin               | Edu100 표지 관리                                |
-| `/api/calculate-price` | API                 | Server-side price calculation (public)          |
+| `/api/calculate-price` | API                 | Server-side price calculation (public, outsourced 포함) |
 | `/api/create-order`    | API                 | Order creation with price verification (public) |
+| `/api/auth/set-cookies`| API                 | httpOnly 쿠키 설정 (public POST)                |
+| `/api/auth/clear-cookies`| API               | 쿠키 삭제 (public POST)                         |
 
-## Security (v2.1.0)
+## Security (v2.3.0)
 
 ### Authentication Flow
 
 - `src/middleware.ts` — Server-side JWT auth middleware
   - `/admin/*` (login 제외): 쿠키 검증 → 실패 시 `/admin/login` 리다이렉트
   - `/api/*` POST/PUT/DELETE/PATCH: 쿠키 또는 Authorization 헤더 검증 → 실패 시 401
-  - 공개 쓰기 엔드포인트: `/api/calculate-price`, `/api/create-order`
-- Auth cookies: `sb-access-token`, `sb-refresh-token` (login.astro에서 설정, AdminLayout에서 동기화)
-- 토큰 만료 시 refresh_token으로 자동 갱신
+  - 공개 쓰기 엔드포인트: `/api/calculate-price`, `/api/create-order`, `/api/auth/set-cookies`, `/api/auth/clear-cookies`
+- Auth cookies: `sb-access-token`, `sb-refresh-token` (**httpOnly: true**, 서버 API 엔드포인트 경유)
+  - 설정: `login.astro`, `AdminLayout.astro` → `POST /api/auth/set-cookies`
+  - 삭제: `AdminLayout.astro` → `POST /api/auth/clear-cookies`
+  - **document.cookie 직접 조작 금지** — XSS 토큰 탈취 방지
+- 토큰 만료 시 refresh_token으로 자동 갱신 (middleware + AdminLayout onAuthStateChange)
+- `upload.ts`: `supabaseAdmin.auth.getUser()` 실제 토큰 검증
+- `products/index.ts`: `?all=1` 파라미터에 `getUser()` 토큰 유효성 검증
 
 ### Price Verification
 
-- 주문 생성 시 서버에서 `priceEngine.ts`로 가격 재계산
+- 주문 생성 시 서버에서 `priceEngine.ts`로 가격 재계산 (일반상품 + outsourced)
+- outsourced 상품: `calculate-price.ts`에서 DB의 `outsourced_config` 로드 → 서버 재계산
+- `outsourced_config`는 클라이언트에 **절대 노출 금지** (`product/[id].astro`에서 스트리핑)
 - 제출 금액과 서버 계산 금액 비교 (3% 초과 차이 시 거부)
-- `Checkout.jsx` → `/api/create-order` → `priceEngine` → `orderService`
+- guidePriceTotal: 모든 상품 타입에서 서버 가격 검증에 포함
+- `Checkout.jsx` → `/api/create-order` → `priceEngine` / DB lookup → `orderService`
 
 ### Upload Security
 
 - 파일 크기 30MB 제한, 확장자/MIME 화이트리스트, 경로 순회 방지
+- 위험 MIME 우선 차단, 빈 MIME은 디자인 파일 확장자일 때만 허용
+
+### Search & Query Security
+
+- `orderService.ts` 검색: `%`, `_` 와일드카드 새니타이징
+- `sortBy` 컬럼 화이트리스트: `ALLOWED_SORT_COLUMNS`
+- `getOrderStatusCounts()`: `count:exact, head:true`로 1000행 제한 없이 카운트
 
 ## Documentation Management
 

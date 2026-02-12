@@ -15,6 +15,8 @@ const PUBLIC_WRITE_PATHS = [
   "/api/calculate-price",
   "/api/create-order",
   "/api/upload",
+  "/api/auth/set-cookies",
+  "/api/auth/clear-cookies",
 ];
 
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -68,19 +70,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
         user = data.session.user;
         // Update cookies with new tokens
         const secure = import.meta.env.PROD;
-        // NOTE: httpOnly must be false — login.astro and AdminLayout.astro
-        // set/read cookies via document.cookie (client-side JS).
-        // httpOnly cookies can't be accessed by JS, causing duplicate cookies.
         context.cookies.set("sb-access-token", data.session.access_token, {
           path: "/",
-          httpOnly: false,
+          httpOnly: true,
           secure,
           sameSite: "lax",
           maxAge: data.session.expires_in,
         });
         context.cookies.set("sb-refresh-token", data.session.refresh_token, {
           path: "/",
-          httpOnly: false,
+          httpOnly: true,
           secure,
           sameSite: "lax",
           maxAge: 60 * 60 * 24 * 7, // 7 days

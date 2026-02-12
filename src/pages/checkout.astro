@@ -8,6 +8,7 @@ export const prerender = false;
 <Layout title="주문서 작성 - 성진프린트" description="주문서 작성">
   <script
     slot="head"
+    async
     src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
   ></script>
   <Checkout client:only="react" />

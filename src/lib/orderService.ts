@@ -183,15 +183,18 @@ export const TRACKING_COMPANIES: TrackingCompany[] = [
 ];
 
 /**
- * 주문 생성
+ * 주문 생성 (주문번호 충돌 시 최대 5회 재시도)
  */
 export async function createOrder(
   orderData: OrderData
 ): Promise<{ orderNumber: string; uuid: string }> {
-  const orderNumber = generateOrderNumber();
+  const MAX_RETRIES = 5;
 
-  const dbOrder = {
-    order_number: orderNumber,
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const orderNumber = generateOrderNumber();
+
+    const dbOrder = {
+      order_number: orderNumber,
     status:
       orderData.paymentMethod === "bank_transfer" ? "pending" : "confirmed",
 
@@ -236,21 +239,25 @@ export async function createOrder(
     items: orderData.items,
   };
 
-  const { data, error } = await supabase
-    .from("orders")
-    .insert(dbOrder)
-    .select("order_number, uuid")
-    .single();
+    const { data, error } = await supabase
+      .from("orders")
+      .insert(dbOrder)
+      .select("order_number, uuid")
+      .single();
 
-  if (error) {
-    console.error("주문 생성 실패:", error);
-    throw new Error("주문 생성에 실패했습니다.");
+    if (!error) {
+      return { orderNumber: data.order_number, uuid: data.uuid };
+    }
+
+    // 주문번호 중복 충돌이면 재시도
+    const isDuplicate = error.code === "23505" || error.message?.includes("duplicate");
+    if (!isDuplicate || attempt === MAX_RETRIES - 1) {
+      console.error("주문 생성 실패:", error);
+      throw new Error("주문 생성에 실패했습니다.");
+    }
   }
 
-  return {
-    orderNumber: data.order_number,
-    uuid: data.uuid,
-  };
+  throw new Error("주문번호 생성에 실패했습니다. 다시 시도해주세요.");
 }
 
 /**
@@ -275,13 +282,18 @@ export async function getOrders(
   }
 
   if (search) {
-    const sanitized = search.replace(/[,.()"'\\]/g, "");
-    query = query.or(
-      `order_number.ilike.%${sanitized}%,recipient.ilike.%${sanitized}%,customer_phone.ilike.%${sanitized}%`
-    );
+    const sanitized = search.replace(/[,.()"'\\%_]/g, "");
+    if (sanitized.trim()) {
+      query = query.or(
+        `order_number.ilike.%${sanitized}%,recipient.ilike.%${sanitized}%,customer_phone.ilike.%${sanitized}%`
+      );
+    }
   }
 
-  query = query.order(sortBy, { ascending: order === "asc" });
+  // sortBy 컬럼 화이트리스트
+  const ALLOWED_SORT_COLUMNS = ["created_at", "updated_at", "order_number", "total_amount", "status"];
+  const safeSortBy = ALLOWED_SORT_COLUMNS.includes(sortBy) ? sortBy : "created_at";
+  query = query.order(safeSortBy, { ascending: order === "asc" });
 
   const from = (page - 1) * limit;
   const to = from + limit - 1;
@@ -305,15 +317,19 @@ export async function getOrders(
 
 async function getOrderStatusCounts(): Promise<StatusCounts> {
   const statuses: OrderStatus[] = [
-    "pending",
-    "confirmed",
-    "in_production",
-    "shipped",
-    "completed",
-    "canceled",
+    "pending", "confirmed", "in_production", "shipped", "completed", "canceled",
   ];
+
+  // head:true로 행 데이터 없이 count만 조회 (1000행 제한 없음)
+  const [allResult, ...statusResults] = await Promise.all([
+    supabase.from("orders").select("*", { count: "exact", head: true }),
+    ...statuses.map((s) =>
+      supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", s)
+    ),
+  ]);
+
   const counts: StatusCounts = {
-    all: 0,
+    all: allResult.count || 0,
     pending: 0,
     confirmed: 0,
     in_production: 0,
@@ -322,19 +338,8 @@ async function getOrderStatusCounts(): Promise<StatusCounts> {
     canceled: 0,
   };
 
-  const results = await Promise.all(
-    statuses.map((status) =>
-      supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true })
-        .eq("status", status)
-    )
-  );
-
-  statuses.forEach((status, i) => {
-    const c = results[i].count || 0;
-    counts[status] = c;
-    counts.all += c;
+  statuses.forEach((s, i) => {
+    counts[s] = statusResults[i].count || 0;
   });
 
   return counts;
