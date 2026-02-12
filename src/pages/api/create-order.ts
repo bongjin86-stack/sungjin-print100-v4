@@ -93,7 +93,7 @@ export const POST: APIRoute = async ({ request }) => {
         success: true,
         orderNumber: result.orderNumber,
         uuid: result.uuid,
-        verifiedPrice: serverPrice,
+        verifiedPrice: finalPrice,
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
