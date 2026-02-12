@@ -37,6 +37,7 @@ src/
 │   │   └── *Form.tsx        # CMS content forms (Hero, About, etc.)
 │   ├── product/         # Customer-facing product view
 │   ├── order/           # Checkout, upload, order status
+│   ├── edu100/          # Edu100 표지 갤러리 (CoverGallery, CoverModal)
 │   ├── shared/          # Shared components (PreviewBlock, etc.)
 │   ├── layout/          # Header, Footer, Navigation
 │   ├── sections/        # Landing page sections
@@ -178,6 +179,10 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 | `/admin/products`      | Product list        | Product management                              |
 | `/admin/db/*`          | DB managers         | Papers, sizes, finishing, etc.                  |
 | `/admin/settings`      | Site settings       | General settings                                |
+| `/edu100`              | CoverGallery        | Edu100 표지 갤러리 (모달 + 필터)                |
+| `/api/edu100`          | API                 | Edu100 표지 CRUD (GET/POST)                     |
+| `/api/edu100/:id`      | API                 | Edu100 단일 표지 (GET/PUT/DELETE)               |
+| `/admin/edu100`        | Admin               | Edu100 표지 관리                                |
 | `/api/calculate-price` | API                 | Server-side price calculation (public)          |
 | `/api/create-order`    | API                 | Order creation with price verification (public) |
 
@@ -232,6 +237,40 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 | 새 규칙 추가   | `blockDefaults.ts` + `rules.ts` + `rules-constraints.md` + `CLAUDE.md` |
 | 새 문서 생성   | `docs/README.md` 인덱스에 등록                                         |
 | 아키텍처 변경  | `CLAUDE.md` 해당 섹션                                                  |
+
+## Edu100 (표지 갤러리)
+
+교재인쇄 서비스 — 표지 갤러리 + 상품 연동 시스템.
+
+### DB 테이블
+
+- `edu100_covers` — 표지 데이터 (title, subtitle, description, image, thumbnails JSONB, tag, linked_product_id, is_published, sort_order)
+- `thumbnails`: JSONB 배열, 최대 4개 (빌더와 동일한 메인 1 + 썸네일 4 포맷)
+
+### 파일 구조
+
+| 파일 | 역할 |
+|------|------|
+| `src/components/admin/Edu100Form.tsx` | 관리자 표지 등록/수정 폼 (빌더 동일 이미지 포맷) |
+| `src/components/edu100/CoverGallery.jsx` | 갤러리 모달 열기/닫기 (이벤트 위임) |
+| `src/components/edu100/CoverModal.jsx` | 표지 상세 모달 (이미지 네비게이션 + 설명 + 주문 링크) |
+| `src/pages/edu100/[...page].astro` | 고객 갤러리 페이지 + 모달 스타일 |
+| `src/pages/api/edu100/index.ts` | GET (목록) / POST (생성) |
+| `src/pages/api/edu100/[id].ts` | GET / PUT / DELETE |
+| `src/pages/admin/edu100/*.astro` | 관리자 CRUD 페이지 |
+
+### 주요 동작
+
+- 갤러리 카드 클릭 → CoverModal 열림 (메인 이미지 + 썸네일 네비게이션)
+- "이 디자인으로 주문하기" → `/product/{linked_product_id}?designId={cover.id}`
+- ProductView에서 `?designId` URL 파라미터 → edu100 API로 커버 fetch → 커버 이미지를 상품 이미지 자리에 표시
+- 이미지 포맷: 메인 1 + 썸네일 4 (빌더/ProductView/Edu100Form/CoverModal 모두 동일)
+
+### Outsourced 상품 가격
+
+- `product_type === "outsourced"` → 클라이언트에서 직접 계산 (priceEngine 안 거침)
+- `outsourced_config`: pagePrice, bindingFee, qtyDiscounts 설정
+- guide 블록 가격은 totalGuidePrice에 합산
 
 ## Supabase
 
