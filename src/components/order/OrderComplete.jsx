@@ -43,6 +43,9 @@ export default function OrderComplete() {
   };
 
   const spec = orderData?.product?.spec;
+  const hasBooks = orderData?.product?.booksSummary?.length > 0;
+  const books = hasBooks ? orderData.product.booksSummary.filter(b => b.designFee == null) : [];
+  const isHex = (v) => /^#[0-9a-fA-F]{3,8}$/.test(String(v));
 
   return (
     <div className="min-h-screen bg-[#f5f7f7]">
@@ -116,13 +119,13 @@ export default function OrderComplete() {
                       <span>{spec.size}</span>
                     </div>
                   )}
-                  {spec?.paper && (
+                  {!hasBooks && spec?.paper && (
                     <div className="flex justify-between">
                       <span className="text-gray-500">용지</span>
                       <span>{spec.paper}</span>
                     </div>
                   )}
-                  {spec?.color && (
+                  {!hasBooks && spec?.color && (
                     <div className="flex justify-between">
                       <span className="text-gray-500">인쇄</span>
                       <span>{spec.color}</span>
@@ -130,9 +133,9 @@ export default function OrderComplete() {
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-500">수량</span>
-                    <span>{spec?.quantity || 0}부</span>
+                    <span>{spec?.quantity || 0}부{hasBooks ? ` (${books.length}권)` : ""}</span>
                   </div>
-                  {spec?.pages && (
+                  {!hasBooks && spec?.pages && (
                     <div className="flex justify-between">
                       <span className="text-gray-500">페이지</span>
                       <span>{spec.pages}p</span>
@@ -146,15 +149,56 @@ export default function OrderComplete() {
                   )}
                 </div>
 
+                {/* 시리즈 주문 상세 */}
+                {hasBooks && (
+                  <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                    {books.map((book) => {
+                      const fields = Object.entries(book.fields || {}).filter(([, v]) => v && String(v).trim());
+                      return (
+                        <div key={book.index} className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-sm font-semibold">{book.index}권</span>
+                            <span className="text-xs text-gray-500">{book.pages}p · {book.qty}부</span>
+                          </div>
+                          {fields.length > 0 && (
+                            <div className="space-y-0.5">
+                              {fields.map(([label, value]) => (
+                                <div key={label} className="flex items-center gap-1.5 text-xs text-gray-600">
+                                  <span className="text-gray-400">{label}:</span>
+                                  {isHex(value) ? (
+                                    <span className="inline-block w-3.5 h-3.5 rounded-full border border-gray-300" style={{backgroundColor: String(value)}} />
+                                  ) : (
+                                    <span>{String(value)}</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {orderData.product.booksSummary.filter(b => b.designFee != null).map((df, i) => (
+                      <div key={`df-${i}`} className="flex justify-between text-xs text-amber-700">
+                        <span>디자인 비용</span>
+                        <span>{formatPrice(df.designFee)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* 텍스트 입력 내용 */}
-                {orderData.product.textInputs?.length > 0 && (
+                {!hasBooks && orderData.product.textInputs?.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
                     {orderData.product.textInputs.map((ti, i) => (
                       <div key={i}>
                         <p className="text-xs text-gray-500 mb-1">{ti.label}</p>
-                        <p className="text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 rounded-lg p-3">
-                          {ti.value}
-                        </p>
+                        {isHex(ti.value) ? (
+                          <span className="inline-block w-4 h-4 rounded-full border border-gray-300" style={{backgroundColor: ti.value}} />
+                        ) : (
+                          <p className="text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 rounded-lg p-3">
+                            {ti.value}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>

@@ -359,23 +359,23 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                       <h5 className="font-semibold text-gray-900 text-base truncate">
                         {item.productName || "-"}
                       </h5>
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
-                        {item.spec?.size && (
-                          <span>{item.spec.size}</span>
-                        )}
-                        {item.spec?.paper && (
-                          <span>{item.spec.paper}</span>
-                        )}
-                        {item.spec?.color && (
-                          <span>{item.spec.color}</span>
-                        )}
-                        {item.spec?.quantity && (
-                          <span className="font-medium text-gray-900">{item.spec.quantity}부</span>
-                        )}
-                        {item.spec?.pages && (
-                          <span>{item.spec.pages}p</span>
-                        )}
-                      </div>
+                      {(() => {
+                        const booksExist = item.booksSummary?.length > 0;
+                        const booksCount = booksExist ? item.booksSummary.filter(b => b.designFee == null).length : 0;
+                        return (
+                          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+                            {item.spec?.size && <span>{item.spec.size}</span>}
+                            {!booksExist && item.spec?.paper && <span>{item.spec.paper}</span>}
+                            {!booksExist && item.spec?.color && <span>{item.spec.color}</span>}
+                            {item.spec?.quantity && (
+                              <span className="font-medium text-gray-900">
+                                {item.spec.quantity}부{booksExist ? ` (${booksCount}권)` : ""}
+                              </span>
+                            )}
+                            {!booksExist && item.spec?.pages && <span>{item.spec.pages}p</span>}
+                          </div>
+                        );
+                      })()}
                       {item.spec?.finishing?.length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1.5">
                           {item.spec.finishing.map((f, i) => (
@@ -407,7 +407,8 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                     <div className="space-y-3">
                       {item.booksSummary.filter((b) => b.designFee == null).map((book) => {
                         const fields = Object.entries(book.fields || {})
-                          .filter(([, v]) => v && !/^#[0-9a-fA-F]{3,8}$/.test(String(v)));
+                          .filter(([, v]) => v && String(v).trim());
+                        const isHex = (v) => /^#[0-9a-fA-F]{3,8}$/.test(String(v));
                         return (
                           <div key={book.index} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
                             <div className="flex justify-between items-center mb-1.5">
@@ -419,7 +420,11 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                                 {fields.map(([label, value]) => (
                                   <div key={label} className="contents">
                                     <span className="text-sm text-gray-400">{label}</span>
-                                    <span className="text-sm text-gray-900">{value}</span>
+                                    {isHex(value) ? (
+                                      <span className="inline-block w-4 h-4 rounded-full border border-gray-300" style={{backgroundColor: String(value)}} />
+                                    ) : (
+                                      <span className="text-sm text-gray-900">{String(value)}</span>
+                                    )}
                                   </div>
                                 ))}
                               </div>

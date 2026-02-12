@@ -41,50 +41,87 @@ export default function OrderSummary({
           <div className="text-center pb-4 border-b border-dashed border-gray-300">
             <h3 className="font-bold text-base">{product.name}</h3>
           </div>
-          <div className="py-4 space-y-3 text-sm border-b border-dashed border-gray-300">
-            <div className="flex justify-between">
-              <span className="text-gray-500">사이즈</span>
-              <span>{product.spec?.size || "-"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">용지</span>
-              <span>{product.spec?.paper || "-"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">인쇄</span>
-              <span>{product.spec?.color || "-"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">수량</span>
-              <span>{product.spec?.quantity || 0}부</span>
-            </div>
-            {product.spec?.pages && (
-              <div className="flex justify-between">
-                <span className="text-gray-500">페이지</span>
-                <span>{product.spec.pages}p</span>
-              </div>
-            )}
-            {product.spec?.finishing && product.spec.finishing.length > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-500">후가공</span>
-                <span>{product.spec.finishing.join(", ")}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-gray-500">출고일</span>
-              <span>{releaseDate || `${product.productionDays}영업일`}</span>
-            </div>
-          </div>
-          {product.textInputs?.length > 0 && (
-            <div className="py-4 border-b border-dashed border-gray-300 space-y-2">
-              {product.textInputs.map((ti, i) => (
-                <div key={i}>
-                  <p className="text-xs text-gray-500 mb-1">{ti.label}</p>
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{ti.value}</p>
+          {(() => {
+            const hasBooks = product.booksSummary?.length > 0;
+            const books = hasBooks ? product.booksSummary.filter(b => b.designFee == null) : [];
+            const isHex = (v) => /^#[0-9a-fA-F]{3,8}$/.test(String(v));
+            return (
+              <>
+                <div className="py-4 space-y-3 text-sm border-b border-dashed border-gray-300">
+                  {product.spec?.size && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">사이즈</span>
+                      <span>{product.spec.size}</span>
+                    </div>
+                  )}
+                  {!hasBooks && product.spec?.paper && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">용지</span>
+                      <span>{product.spec.paper}</span>
+                    </div>
+                  )}
+                  {!hasBooks && product.spec?.color && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">인쇄</span>
+                      <span>{product.spec.color}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">수량</span>
+                    <span>{product.spec?.quantity || 0}부{hasBooks ? ` (${books.length}권)` : ""}</span>
+                  </div>
+                  {!hasBooks && product.spec?.pages && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">페이지</span>
+                      <span>{product.spec.pages}p</span>
+                    </div>
+                  )}
+                  {product.spec?.finishing && product.spec.finishing.length > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">후가공</span>
+                      <span>{product.spec.finishing.join(", ")}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">출고일</span>
+                    <span>{releaseDate || `${product.productionDays}영업일`}</span>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+                {/* 시리즈 주문 요약 */}
+                {hasBooks && (
+                  <div className="py-4 border-b border-dashed border-gray-300 space-y-1.5 text-sm">
+                    {books.map((book) => (
+                      <div key={book.index} className="flex justify-between text-gray-600">
+                        <span>{book.index}권</span>
+                        <span>{book.pages}p · {book.qty}부</span>
+                      </div>
+                    ))}
+                    {product.booksSummary.filter(b => b.designFee != null).map((df, i) => (
+                      <div key={`df-${i}`} className="flex justify-between text-xs text-amber-700 pt-1">
+                        <span>디자인 비용</span>
+                        <span>{formatPrice(df.designFee)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* 텍스트 입력 */}
+                {!hasBooks && product.textInputs?.length > 0 && (
+                  <div className="py-4 border-b border-dashed border-gray-300 space-y-2">
+                    {product.textInputs.map((ti, i) => (
+                      <div key={i}>
+                        <p className="text-xs text-gray-500 mb-1">{ti.label}</p>
+                        {isHex(ti.value) ? (
+                          <span className="inline-block w-4 h-4 rounded-full border border-gray-300" style={{backgroundColor: ti.value}} />
+                        ) : (
+                          <p className="text-sm text-gray-900 whitespace-pre-wrap">{ti.value}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          })()}
           <div className="py-4 border-b border-dashed border-gray-300">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">배송방법</span>

@@ -538,11 +538,7 @@ export default function ProductView({ product: initialProduct }) {
                   textInputEntries.push({ label: block.label || "요청사항", value: val });
                 }
               });
-              // 색상 hex 코드 제거 (고객에게 보여줄 필요 없음)
-              const isHexColor = (v) => /^#[0-9a-fA-F]{3,8}$/.test(v);
-              const filtered = textInputEntries.filter((ti) => !isHexColor(ti.value));
-              textInputEntries.length = 0;
-              textInputEntries.push(...filtered);
+              // hex 색상은 유지 (표시 컴포넌트에서 컬러 칩으로 렌더링)
 
               // books 블록 → booksSummary만 구성 (textInputEntries에 넣지 않음)
               const booksArr = customer.books || [];
