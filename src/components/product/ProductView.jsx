@@ -116,27 +116,78 @@ export default function ProductView({ product: initialProduct }) {
         const isOutsourced = (product?.product_type === "outsourced") && oCfg;
         if (isOutsourced) {
           const pagesBlock = product?.blocks?.find((b) => b.on && b.type === "pages");
-          const oPages = customer.pages || pagesBlock?.config?.default || 100;
           const oPagePrice = oCfg.pagePrice ?? 40;
           const oBindingFee = oCfg.bindingFee ?? 1500;
-          const perCopy = oPages * oPagePrice + oBindingFee;
           const qtyDiscounts = oCfg.qtyDiscounts || [];
 
-          // 각 수량별 가격 계산 (guidePriceTotal 포함 = 에폭시 등 가이드 옵션)
-          const byQty = {};
-          for (const q of allQtys) {
+          const findDiscount = (qty) => {
             const discount = [...qtyDiscounts]
               .sort((a, b) => b.minQty - a.minQty)
-              .find((d) => q >= d.minQty);
-            const discountPct = discount?.percent || 0;
-            const basePerCopy = perCopy + totalGuidePrice;
-            const total = Math.round(basePerCopy * q * (1 - discountPct / 100));
-            const unitPrice = Math.round(total / q);
-            byQty[q] = { total, unitPrice, perUnit: unitPrice, sheets: 0, faces: 0 };
+              .find((d) => qty >= d.minQty);
+            return discount?.percent || 0;
+          };
+
+          // books 배열이 있으면 권별 합산 (books블록 config 우선, outsourced_config 폴백)
+          const booksArr = customer.books || [];
+          const booksBlock = product?.blocks?.find((b) => b.on && b.type === "books");
+          const booksCfg = booksBlock?.config || {};
+          // 무게 추정 (A4 기준 80g 내지 + 200g 표지)
+          const areaM2 = 0.21 * 0.297; // A4
+          const innerGsm = 80;
+          const coverGsm = 200;
+
+          if (booksArr.length > 0) {
+            const bPagePrice = booksCfg.pagePrice ?? oPagePrice;
+            const bBindingFee = booksCfg.bindingFee ?? oBindingFee;
+            const freeDesignMinQty = booksCfg.freeDesignMinQty ?? 100;
+            const coverDesignFee = designCover?.design_fee ?? 0;
+
+            // 총 수량 합산 → 할인율 결정
+            const totalQty = booksArr.reduce((s, b) => s + (b.qty || 1), 0);
+            const discountPct = findDiscount(totalQty);
+
+            let grandTotal = 0;
+            let totalWeightG = 0;
+            for (const book of booksArr) {
+              const pages = book.pages || pagesBlock?.config?.default || 100;
+              const qty = book.qty || 1;
+              const perCopy = pages * bPagePrice + bBindingFee + totalGuidePrice;
+              grandTotal += Math.round(perCopy * qty * (1 - discountPct / 100));
+              // 권당 무게: 내지 sheets(pages/2) + 표지 1장
+              const innerW = areaM2 * innerGsm * (pages / 2);
+              const coverW = areaM2 * coverGsm * 1;
+              totalWeightG += (innerW + coverW) * qty;
+            }
+            // 디자인 비용: 총합 수량 < freeDesignMinQty이면 청구
+            if (coverDesignFee > 0 && totalQty < freeDesignMinQty) {
+              grandTotal += coverDesignFee;
+            }
+            const unitPrice = totalQty > 0 ? Math.round(grandTotal / totalQty) : 0;
+            const estimatedWeight = totalWeightG / 1000;
+            const sel = { total: grandTotal, unitPrice, perUnit: unitPrice, sheets: 0, faces: 0, estimatedWeight };
+            setServerPrice(sel);
+            setQtyPrices({ [totalQty]: sel });
+          } else {
+            const oPages = customer.pages || pagesBlock?.config?.default || 100;
+            const perCopy = oPages * oPagePrice + oBindingFee;
+
+            // 각 수량별 가격 계산 (guidePriceTotal 포함 = 에폭시 등 가이드 옵션)
+            const byQty = {};
+            for (const q of allQtys) {
+              const discountPct = findDiscount(q);
+              const basePerCopy = perCopy + totalGuidePrice;
+              const total = Math.round(basePerCopy * q * (1 - discountPct / 100));
+              const unitPrice = Math.round(total / q);
+              // 무게: 내지(pages/2 sheets) + 표지 1장
+              const innerW = areaM2 * innerGsm * (oPages / 2);
+              const coverW = areaM2 * coverGsm * 1;
+              const estimatedWeight = ((innerW + coverW) * q) / 1000;
+              byQty[q] = { total, unitPrice, perUnit: unitPrice, sheets: 0, faces: 0, estimatedWeight };
+            }
+            const sel = byQty[customer.qty] || {};
+            setServerPrice(sel);
+            setQtyPrices(byQty);
           }
-          const sel = byQty[customer.qty] || {};
-          setServerPrice(sel);
-          setQtyPrices(byQty);
         } else {
           const res = await fetch("/api/calculate-price", {
             method: "POST",
@@ -310,6 +361,7 @@ export default function ProductView({ product: initialProduct }) {
                 allBlocks={product?.blocks || []}
                 thicknessError={price.thicknessValidation?.error}
                 dbSizes={dbSizes}
+                designCover={designCover}
               />
             ))}
 
@@ -434,6 +486,7 @@ export default function ProductView({ product: initialProduct }) {
                 allBlocks={product?.blocks || []}
                 thicknessError={price.thicknessValidation?.error}
                 dbSizes={dbSizes}
+                designCover={designCover}
               />
             );
           })}
@@ -472,11 +525,55 @@ export default function ProductView({ product: initialProduct }) {
               // 텍스트 입력 블록 값 추출 (label → value)
               const textInputEntries = [];
               allBlocks.filter(b => b.type === "text_input").forEach(block => {
-                const value = customer.textInputs?.[block.id];
-                if (value?.trim()) {
-                  textInputEntries.push({ label: block.label || "요청사항", value });
+                const val = customer.textInputs?.[block.id];
+                const source = block.config?.source || "manual";
+                if (source === "cover" && val && typeof val === "object") {
+                  // cover 모드: 객체를 {label, value}[] 로 전개
+                  Object.entries(val).forEach(([label, v]) => {
+                    if (v && String(v).trim()) {
+                      textInputEntries.push({ label, value: String(v) });
+                    }
+                  });
+                } else if (typeof val === "string" && val.trim()) {
+                  textInputEntries.push({ label: block.label || "요청사항", value: val });
                 }
               });
+              // books 블록 값 추출 (권별 필드 + 페이지/수량)
+              const booksArr = customer.books || [];
+              const booksSummary = [];
+              if (booksArr.length > 0) {
+                const bBlock = product?.blocks?.find((b) => b.on && b.type === "books");
+                const bCfg = bBlock?.config || {};
+                const bPagePrice = bCfg.pagePrice ?? 40;
+                const bBindingFee = bCfg.bindingFee ?? 1500;
+                const bFreeDesignMinQty = bCfg.freeDesignMinQty ?? 100;
+                const bDesignFee = designCover?.design_fee ?? 0;
+                const bTotalQty = booksArr.reduce((s, b) => s + (b.qty || 1), 0);
+
+                booksArr.forEach((book, idx) => {
+                  const prefix = `${idx + 1}권`;
+                  Object.entries(book.fields || {}).forEach(([label, v]) => {
+                    if (v && String(v).trim()) {
+                      textInputEntries.push({ label: `${prefix} ${label}`, value: String(v) });
+                    }
+                  });
+                  textInputEntries.push({ label: `${prefix} 페이지`, value: `${book.pages}p` });
+                  textInputEntries.push({ label: `${prefix} 수량`, value: `${book.qty}부` });
+                  const perCopy = (book.pages || 100) * bPagePrice + bBindingFee;
+                  booksSummary.push({
+                    index: idx + 1,
+                    pages: book.pages,
+                    qty: book.qty,
+                    perCopy,
+                    subtotal: perCopy * (book.qty || 1),
+                    fields: book.fields || {},
+                  });
+                });
+                // 디자인 비용 정보
+                if (bDesignFee > 0 && bTotalQty < bFreeDesignMinQty) {
+                  booksSummary.push({ designFee: bDesignFee, totalQty: bTotalQty, freeMinQty: bFreeDesignMinQty });
+                }
+              }
 
               sessionStorage.setItem(
                 "checkoutProduct",
@@ -484,6 +581,7 @@ export default function ProductView({ product: initialProduct }) {
                   name: product.name,
                   image: images[0] || null,
                   textInputs: textInputEntries.length > 0 ? textInputEntries : null,
+                  booksSummary: booksSummary.length > 0 ? booksSummary : null,
                   type: inferProductType(product),
                   spec: {
                     size: customer.size?.startsWith("custom_")

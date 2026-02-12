@@ -245,6 +245,12 @@ export const BLOCK_TYPES: Record<string, BlockTypeInfo> = {
     color: "from-stone-100 to-stone-200",
     desc: "자유 텍스트 입력란",
   },
+  books: {
+    name: "시리즈(다권)",
+    icon: "📚",
+    color: "from-amber-100 to-amber-200",
+    desc: "시리즈(다권) 주문 — 권별 페이지/수량/필드 입력",
+  },
 };
 
 // 상품 템플릿
@@ -1367,9 +1373,23 @@ export function getDefaultConfig(type: string): BlockConfig {
       } as any;
     case "text_input":
       return {
+        source: "manual",
         placeholder: "내용을 입력해주세요",
         maxLength: 500,
         rows: 3,
+      } as any;
+    case "books":
+      return {
+        minBooks: 1,
+        maxBooks: 10,
+        defaultPages: 100,
+        defaultQty: 30,
+        pagesMin: 4,
+        pagesMax: 500,
+        pagesStep: 2,
+        pagePrice: 40,
+        bindingFee: 1500,
+        freeDesignMinQty: 100,
       } as any;
     default:
       return {} as BlockConfig;

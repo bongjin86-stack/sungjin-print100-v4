@@ -1,4 +1,5 @@
 ---
+import CoverGalleryClient from "@/components/edu100/CoverGallery";
 import Container from "@/components/layout/Container.astro";
 import Section from "@/components/layout/Section.astro";
 import CTA from "@/components/sections/CTA.astro";
@@ -7,7 +8,6 @@ import PageHero from "@/components/ui/PageHero.astro";
 import Pagination from "@/components/ui/Pagination.astro";
 import Layout from "@/layouts/Layout.astro";
 import { supabase } from "@/lib/supabase";
-import CoverGalleryClient from "@/components/edu100/CoverGallery";
 
 export const prerender = false;
 
@@ -73,9 +73,14 @@ const categoryList = uniqueTags.map((tag) => ({
                 <div class="edu100-card-content">
                   <h3 class="edu100-card-title">{cover.title}</h3>
                   <p class="edu100-card-client">{cover.subtitle || ""}</p>
-                  {cover.tag && (
-                    <span class="edu100-card-category">{cover.tag}</span>
-                  )}
+                  <div class="edu100-card-meta">
+                    {cover.tag && (
+                      <span class="edu100-card-category">{cover.tag}</span>
+                    )}
+                    {cover.design_fee > 0 && (
+                      <span class="edu100-card-fee">+{cover.design_fee.toLocaleString()}원</span>
+                    )}
+                  </div>
                 </div>
               </div>
             </article>
@@ -184,10 +189,16 @@ const categoryList = uniqueTags.map((tag) => ({
     line-height: var(--lh-snug);
   }
 
+  .edu100-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-xs);
+    margin-top: var(--sp-xs);
+  }
+
   .edu100-card-category {
     display: inline-block;
-    align-self: self-start;
-    margin-top: var(--sp-xs);
     padding: var(--sp-xs) var(--sp-md);
     background-color: var(--c-bg-secondary);
     color: var(--c-text-sub);
@@ -196,6 +207,17 @@ const categoryList = uniqueTags.map((tag) => ({
     line-height: var(--lh-tight);
     text-transform: uppercase;
     letter-spacing: 0.02em;
+    border-radius: var(--radius-full);
+  }
+
+  .edu100-card-fee {
+    display: inline-block;
+    padding: var(--sp-xs) var(--sp-md);
+    background-color: #fef3c7;
+    color: #92400e;
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    line-height: var(--lh-tight);
     border-radius: var(--radius-full);
   }
 
@@ -306,6 +328,17 @@ const categoryList = uniqueTags.map((tag) => ({
     strong, b {
       font-weight: 600;
     }
+  }
+
+  :global(.edu100-modal-fee) {
+    display: inline-block;
+    padding: var(--sp-xs) var(--sp-md);
+    background-color: #fef3c7;
+    color: #92400e;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    border-radius: var(--radius-lg);
+    margin: 0 0 var(--sp-lg);
   }
 
   :global(.edu100-modal-actions) {

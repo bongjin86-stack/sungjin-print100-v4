@@ -2734,33 +2734,167 @@ function BlockSettings({
       return (
         <div className="space-y-3">
           <div>
-            <label className="text-xs text-gray-500 block mb-1">안내 문구 (placeholder)</label>
-            <input
-              type="text"
-              value={cfg.placeholder || ""}
-              onChange={(e) => updateCfg(block.id, "placeholder", e.target.value)}
-              className="input input-bordered input-sm w-full"
-              placeholder="예: 표지에 넣을 내용을 입력해주세요"
-            />
+            <label className="text-xs text-gray-500 block mb-1">입력 소스</label>
+            <select
+              value={cfg.source || "manual"}
+              onChange={(e) => updateCfg(block.id, "source", e.target.value)}
+              className="select select-bordered select-sm w-full"
+            >
+              <option value="manual">기존 텍스트 입력</option>
+              <option value="cover">커버 필드 연동</option>
+            </select>
           </div>
+          {(cfg.source || "manual") === "manual" ? (
+            <>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">안내 문구 (placeholder)</label>
+                <input
+                  type="text"
+                  value={cfg.placeholder || ""}
+                  onChange={(e) => updateCfg(block.id, "placeholder", e.target.value)}
+                  className="input input-bordered input-sm w-full"
+                  placeholder="예: 표지에 넣을 내용을 입력해주세요"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">최대 글자수</label>
+                  <input
+                    type="number"
+                    value={cfg.maxLength || 500}
+                    onChange={(e) => updateCfg(block.id, "maxLength", Number(e.target.value))}
+                    className="input input-bordered input-sm w-full"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">줄 수</label>
+                  <input
+                    type="number"
+                    value={cfg.rows || 3}
+                    min={1}
+                    max={10}
+                    onChange={(e) => updateCfg(block.id, "rows", Number(e.target.value))}
+                    className="input input-bordered input-sm w-full"
+                  />
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-info bg-info/10 px-3 py-2 rounded-lg">
+              edu100 커버의 fields 배열에서 라벨/placeholder를 자동으로 가져옵니다.
+              고객이 디자인을 선택하면 해당 커버의 필드가 표시됩니다.
+            </p>
+          )}
+        </div>
+      );
+
+    case "books":
+      return (
+        <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500 block mb-1">최대 글자수</label>
+              <label className="text-xs text-gray-500 block mb-1">최소 권수</label>
               <input
                 type="number"
-                value={cfg.maxLength || 500}
-                onChange={(e) => updateCfg(block.id, "maxLength", Number(e.target.value))}
+                value={cfg.minBooks ?? 1}
+                min={1}
+                onChange={(e) => updateCfg(block.id, "minBooks", Number(e.target.value))}
                 className="input input-bordered input-sm w-full"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">줄 수</label>
+              <label className="text-xs text-gray-500 block mb-1">최대 권수</label>
               <input
                 type="number"
-                value={cfg.rows || 3}
+                value={cfg.maxBooks ?? 10}
                 min={1}
-                max={10}
-                onChange={(e) => updateCfg(block.id, "rows", Number(e.target.value))}
+                onChange={(e) => updateCfg(block.id, "maxBooks", Number(e.target.value))}
+                className="input input-bordered input-sm w-full"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">기본 페이지 수</label>
+              <input
+                type="number"
+                value={cfg.defaultPages ?? 100}
+                min={4}
+                onChange={(e) => updateCfg(block.id, "defaultPages", Number(e.target.value))}
+                className="input input-bordered input-sm w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">기본 수량</label>
+              <input
+                type="number"
+                value={cfg.defaultQty ?? 30}
+                min={1}
+                onChange={(e) => updateCfg(block.id, "defaultQty", Number(e.target.value))}
+                className="input input-bordered input-sm w-full"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">페이지 최소</label>
+              <input
+                type="number"
+                value={cfg.pagesMin ?? 4}
+                min={2}
+                onChange={(e) => updateCfg(block.id, "pagesMin", Number(e.target.value))}
+                className="input input-bordered input-sm w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">페이지 최대</label>
+              <input
+                type="number"
+                value={cfg.pagesMax ?? 500}
+                onChange={(e) => updateCfg(block.id, "pagesMax", Number(e.target.value))}
+                className="input input-bordered input-sm w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">페이지 단위</label>
+              <input
+                type="number"
+                value={cfg.pagesStep ?? 2}
+                min={1}
+                onChange={(e) => updateCfg(block.id, "pagesStep", Number(e.target.value))}
+                className="input input-bordered input-sm w-full"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mt-2 mb-1 font-semibold">가격 설정</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">페이지 단가</label>
+              <input
+                type="number"
+                value={cfg.pagePrice ?? 40}
+                min={0}
+                onChange={(e) => updateCfg(block.id, "pagePrice", Number(e.target.value))}
+                className="input input-bordered input-sm w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">제본 비용</label>
+              <input
+                type="number"
+                value={cfg.bindingFee ?? 1500}
+                min={0}
+                onChange={(e) => updateCfg(block.id, "bindingFee", Number(e.target.value))}
+                className="input input-bordered input-sm w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">무료 디자인 최소 수량</label>
+              <input
+                type="number"
+                value={cfg.freeDesignMinQty ?? 100}
+                min={0}
+                onChange={(e) => updateCfg(block.id, "freeDesignMinQty", Number(e.target.value))}
                 className="input input-bordered input-sm w-full"
               />
             </div>

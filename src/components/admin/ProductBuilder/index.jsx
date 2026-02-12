@@ -1268,6 +1268,7 @@ export default function AdminBuilder() {
                     handleFoldSelect={() => {}}
                     productType={currentProduct.product_type || currentProduct.id}
                     allBlocks={currentProduct?.blocks || []}
+                    designCover={null}
                   />
                 ))}
 
@@ -1464,6 +1465,7 @@ export default function AdminBuilder() {
                       allBlocks={currentProduct.blocks}
                       thicknessError={price.thicknessValidation?.error}
                       dbSizes={dbSizes}
+                      designCover={null}
                     />
                   );
                 })}

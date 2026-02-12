@@ -486,7 +486,21 @@ export function extractDefaultsFromBlock(
       break;
     case "text_input":
       if (!result.textInputs) result.textInputs = {};
-      result.textInputs[block.id] = "";
+      if ((cfg.source || "manual") === "cover") {
+        result.textInputs[block.id] = {};
+      } else {
+        result.textInputs[block.id] = "";
+      }
+      break;
+    case "books":
+      result.books = [
+        {
+          id: Date.now(),
+          fields: {},
+          pages: cfg.defaultPages || 100,
+          qty: cfg.defaultQty || 30,
+        },
+      ];
       break;
   }
 

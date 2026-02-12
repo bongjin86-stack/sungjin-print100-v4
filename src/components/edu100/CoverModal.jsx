@@ -56,6 +56,13 @@ export default function CoverModal({ cover, onClose }) {
             />
           )}
 
+          {/* 디자인 비용 안내 */}
+          {cover.design_fee > 0 && (
+            <p className="edu100-modal-fee">
+              +{cover.design_fee.toLocaleString()}원
+            </p>
+          )}
+
           {/* 버튼 영역 */}
           <div className="edu100-modal-actions">
             {cover.linked_product_id && (

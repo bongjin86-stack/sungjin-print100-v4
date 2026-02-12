@@ -5,6 +5,7 @@
  * 이 컴포넌트는 모달 열기/닫기만 담당.
  */
 import { useEffect, useState } from "react";
+
 import CoverModal from "./CoverModal";
 
 export default function CoverGalleryClient({ covers }) {

@@ -5,6 +5,13 @@ import { uploadImage } from "@/lib/supabase";
 import { adminFormStyles as styles } from "./adminFormStyles";
 import BlockNoteEditor from "./BlockNoteEditor";
 
+interface CoverField {
+  label: string;
+  placeholder?: string;
+  type?: "text" | "color" | "select";
+  options?: string[];
+}
+
 interface Edu100FormProps {
   mode: "create" | "edit";
   initialData?: {
@@ -18,6 +25,8 @@ interface Edu100FormProps {
     linked_product_id?: string;
     is_published: boolean;
     sort_order?: number;
+    fields?: CoverField[];
+    design_fee?: number;
   };
 }
 
@@ -35,6 +44,8 @@ export default function Edu100Form({ mode, initialData }: Edu100FormProps) {
     linked_product_id: initialData?.linked_product_id || "",
     is_published: initialData?.is_published ?? false,
     sort_order: initialData?.sort_order ?? 0,
+    fields: (initialData?.fields as CoverField[]) || [],
+    design_fee: initialData?.design_fee ?? 0,
   });
 
   const mainImageRef = useRef<HTMLInputElement>(null);
@@ -377,6 +388,208 @@ export default function Edu100Form({ mode, initialData }: Edu100FormProps) {
             <option value="true">공개</option>
             <option value="false">비공개</option>
           </select>
+        </div>
+
+        {/* 디자인 비용 */}
+        <div style={styles.formGroup}>
+          <label style={styles.label}>디자인 비용 (원)</label>
+          <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0 0 0.5rem" }}>
+            시리즈 총합 수량 미달 시 청구할 디자인 비용. 0이면 무료.
+          </p>
+          <input
+            type="number"
+            name="design_fee"
+            value={formData.design_fee}
+            onChange={handleChange}
+            placeholder="예: 30000"
+            min={0}
+            style={styles.input}
+          />
+        </div>
+
+        {/* 고객 입력 필드 */}
+        <div style={styles.formGroup}>
+          <label style={styles.label}>고객 입력 필드</label>
+          <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0 0 0.5rem" }}>
+            고객이 주문 시 입력할 항목을 정의합니다 (예: 제목, 부제목, 색상 등)
+          </p>
+          {(formData.fields || []).map((field: CoverField, idx: number) => {
+            const fieldType = field.type || "text";
+            const updateField = (patch: Partial<CoverField>) => {
+              const newFields = [...(formData.fields || [])];
+              newFields[idx] = { ...newFields[idx], ...patch };
+              setFormData((prev) => ({ ...prev, fields: newFields }));
+            };
+            return (
+              <div
+                key={idx}
+                style={{
+                  marginBottom: "0.75rem",
+                  padding: "0.75rem",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "0.5rem",
+                  background: "#fafafa",
+                }}
+              >
+                {/* 상단: 라벨 + 타입 + 삭제 */}
+                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.5rem" }}>
+                  <input
+                    type="text"
+                    value={field.label}
+                    onChange={(e) => updateField({ label: e.target.value })}
+                    placeholder="라벨 (예: 제목)"
+                    style={{ ...styles.input, flex: 1 }}
+                  />
+                  <select
+                    value={fieldType}
+                    onChange={(e) => {
+                      const newType = e.target.value as CoverField["type"];
+                      const patch: Partial<CoverField> = { type: newType };
+                      if (newType === "color" || newType === "select") {
+                        patch.options = field.options?.length ? field.options : [];
+                        patch.placeholder = undefined;
+                      } else {
+                        patch.placeholder = field.placeholder || "";
+                      }
+                      updateField(patch);
+                    }}
+                    style={{ ...styles.select, width: "auto", minWidth: "90px", flexShrink: 0 }}
+                  >
+                    <option value="text">텍스트</option>
+                    <option value="color">색상</option>
+                    <option value="select">선택</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newFields = (formData.fields || []).filter(
+                        (_: CoverField, i: number) => i !== idx
+                      );
+                      setFormData((prev) => ({ ...prev, fields: newFields }));
+                    }}
+                    style={{
+                      padding: "0.25rem 0.5rem",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "0.375rem",
+                      background: "white",
+                      color: "#ef4444",
+                      cursor: "pointer",
+                      fontSize: "0.875rem",
+                      flexShrink: 0,
+                    }}
+                  >
+                    삭제
+                  </button>
+                </div>
+
+                {/* 타입별 하위 설정 */}
+                {fieldType === "text" && (
+                  <input
+                    type="text"
+                    value={field.placeholder || ""}
+                    onChange={(e) => updateField({ placeholder: e.target.value })}
+                    placeholder="안내 문구 (예: 표지 제목을 입력하세요)"
+                    style={{ ...styles.input, width: "100%" }}
+                  />
+                )}
+
+                {fieldType === "color" && (
+                  <div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                      {(field.options || []).map((hex: string, cIdx: number) => (
+                        <div key={cIdx} style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                          <input
+                            type="color"
+                            value={hex}
+                            onChange={(e) => {
+                              const newOpts = [...(field.options || [])];
+                              newOpts[cIdx] = e.target.value;
+                              updateField({ options: newOpts });
+                            }}
+                            style={{ width: "2rem", height: "2rem", border: "none", padding: 0, cursor: "pointer", borderRadius: "0.25rem" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newOpts = (field.options || []).filter((_: string, i: number) => i !== cIdx);
+                              updateField({ options: newOpts });
+                            }}
+                            style={{ background: "none", border: "none", color: "#9ca3af", cursor: "pointer", fontSize: "0.75rem", padding: "0" }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => updateField({ options: [...(field.options || []), "#3B82F6"] })}
+                      style={{ fontSize: "0.75rem", color: "#6b7280", background: "none", border: "1px dashed #d1d5db", borderRadius: "0.25rem", padding: "0.25rem 0.5rem", cursor: "pointer" }}
+                    >
+                      + 색상 추가
+                    </button>
+                  </div>
+                )}
+
+                {fieldType === "select" && (
+                  <div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginBottom: "0.5rem" }}>
+                      {(field.options || []).map((opt: string, oIdx: number) => (
+                        <div key={oIdx} style={{ display: "flex", gap: "0.25rem", alignItems: "center" }}>
+                          <input
+                            type="text"
+                            value={opt}
+                            onChange={(e) => {
+                              const newOpts = [...(field.options || [])];
+                              newOpts[oIdx] = e.target.value;
+                              updateField({ options: newOpts });
+                            }}
+                            placeholder="옵션명"
+                            style={{ ...styles.input, flex: 1 }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newOpts = (field.options || []).filter((_: string, i: number) => i !== oIdx);
+                              updateField({ options: newOpts });
+                            }}
+                            style={{ background: "none", border: "none", color: "#9ca3af", cursor: "pointer", fontSize: "0.75rem", padding: "0" }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => updateField({ options: [...(field.options || []), ""] })}
+                      style={{ fontSize: "0.75rem", color: "#6b7280", background: "none", border: "1px dashed #d1d5db", borderRadius: "0.25rem", padding: "0.25rem 0.5rem", cursor: "pointer" }}
+                    >
+                      + 옵션 추가
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => {
+              const newFields = [...(formData.fields || []), { label: "", placeholder: "", type: "text" }];
+              setFormData((prev) => ({ ...prev, fields: newFields }));
+            }}
+            style={{
+              padding: "0.375rem 0.75rem",
+              border: "1px dashed #d1d5db",
+              borderRadius: "0.375rem",
+              background: "white",
+              color: "#6b7280",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+            }}
+          >
+            + 필드 추가
+          </button>
         </div>
       </div>
 

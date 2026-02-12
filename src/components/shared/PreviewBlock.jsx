@@ -453,6 +453,7 @@ function PreviewBlockInner({
   allBlocks = [],
   thicknessError = false,
   dbSizes,
+  designCover = null,
 }) {
   const cfg = block.config;
   const isDisabled = block.locked;
@@ -1813,9 +1814,95 @@ function PreviewBlockInner({
     }
 
     case "text_input": {
-      const inputKey = `textInput_${block.id}`;
       const textInputs = customer.textInputs || {};
-      const value = textInputs[block.id] || "";
+      const source = cfg.source || "manual";
+
+      // cover 모드: designCover의 fields 기반 다중 입력
+      if (source === "cover") {
+        const coverFields = designCover?.fields || [];
+        if (coverFields.length === 0) {
+          return (
+            <div className="pv-block">
+              <p className="pv-block-label">{block.label}</p>
+              <p className="text-xs text-gray-400">디자인을 선택하면 입력 필드가 표시됩니다.</p>
+            </div>
+          );
+        }
+        const fieldValues = textInputs[block.id] || {};
+        const updateCoverField = (label, value) => {
+          setCustomer((prev) => ({
+            ...prev,
+            textInputs: {
+              ...(prev.textInputs || {}),
+              [block.id]: { ...((prev.textInputs || {})[block.id] || {}), [label]: value },
+            },
+          }));
+        };
+        return (
+          <div className="pv-block">
+            <style>{`.pv-book-input::placeholder { color: #d1d5db; }`}</style>
+            <p className="pv-block-label">{block.label}</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+              {coverFields.map((field) => {
+                const ft = field.type || "text";
+                const val = fieldValues[field.label] || "";
+                if (ft === "color") {
+                  return (
+                    <div key={field.label}>
+                      <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
+                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                        {(field.options || []).map((hex) => (
+                          <button key={hex} type="button" onClick={() => updateCoverField(field.label, hex)} style={{
+                            width: "2rem", height: "2rem", borderRadius: "50%", background: hex,
+                            border: val === hex ? "2.5px solid #222" : "2px solid #e5e7eb",
+                            cursor: "pointer", outline: val === hex ? "2px solid white" : "none", outlineOffset: "-4px",
+                          }} title={hex} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                if (ft === "select") {
+                  return (
+                    <div key={field.label}>
+                      <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
+                      <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}>
+                        {(field.options || []).map((opt) => (
+                          <button key={opt} type="button" onClick={() => updateCoverField(field.label, opt)} style={{
+                            padding: "0.375rem 0.75rem", borderRadius: "1.5rem",
+                            border: val === opt ? "1.5px solid #222" : "1px solid #d1d5db",
+                            background: val === opt ? "#222" : "white", color: val === opt ? "white" : "#374151",
+                            fontSize: "0.8rem", cursor: "pointer",
+                          }}>
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={field.label}>
+                    <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
+                    <input
+                      type="text" value={val}
+                      onChange={(e) => updateCoverField(field.label, e.target.value)}
+                      placeholder={field.placeholder || `${field.label}을(를) 입력하세요`}
+                      className="pv-book-input"
+                      style={{ width: "100%", border: "1px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.625rem 0.75rem", fontSize: "0.875rem", outline: "none", background: "white", color: "#111" }}
+                      onFocus={(e) => { e.target.style.borderColor = "#9ca3af"; }}
+                      onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      // manual 모드: 기존 단일 textarea
+      const value = typeof textInputs[block.id] === "string" ? textInputs[block.id] : "";
       return (
         <div className="pv-block">
           <p className="pv-block-label">{block.label}</p>
@@ -1837,6 +1924,353 @@ function PreviewBlockInner({
               {value.length}/{cfg.maxLength}
             </p>
           )}
+        </div>
+      );
+    }
+
+    case "books": {
+      const books = customer.books || [];
+      const minBooks = cfg.minBooks ?? 1;
+      const maxBooks = cfg.maxBooks ?? 10;
+      const defaultPages = cfg.defaultPages ?? 100;
+      const defaultQty = cfg.defaultQty ?? 30;
+      const pagesMin = cfg.pagesMin ?? 4;
+      const pagesMax = cfg.pagesMax ?? 500;
+      const pagesStep = cfg.pagesStep ?? 2;
+      const coverFields = designCover?.fields || [];
+
+      // 가격 설정
+      const pagePrice = cfg.pagePrice ?? 40;
+      const bindingFee = cfg.bindingFee ?? 1500;
+      const freeDesignMinQty = cfg.freeDesignMinQty ?? 100;
+      const designFee = designCover?.design_fee ?? 0;
+
+      // 가이드 블록 가격 합산 (에폭시 등)
+      const guidePriceTotal = Object.entries(customer.guides || {}).reduce((sum, [blockId, state]) => {
+        const guideBlock = allBlocks.find((b) => String(b.id) === String(blockId) && b.type === "guide");
+        const opt = guideBlock?.config?.options?.find((o) => o.id === state?.selected);
+        return sum + (opt?.price || 0);
+      }, 0);
+      const activeGuideLabels = Object.entries(customer.guides || {}).reduce((arr, [blockId, state]) => {
+        const guideBlock = allBlocks.find((b) => String(b.id) === String(blockId) && b.type === "guide");
+        const opt = guideBlock?.config?.options?.find((o) => o.id === state?.selected);
+        if (opt?.price > 0) arr.push({ label: opt.label, price: opt.price });
+        return arr;
+      }, []);
+
+      const addBook = () => {
+        if (books.length >= maxBooks) return;
+        setCustomer((prev) => ({
+          ...prev,
+          books: [...(prev.books || []), { id: Date.now(), fields: {}, pages: defaultPages, qty: defaultQty }],
+        }));
+      };
+
+      const removeBook = (bookId) => {
+        setCustomer((prev) => ({
+          ...prev,
+          books: (prev.books || []).filter((b) => b.id !== bookId),
+        }));
+      };
+
+      const updateBook = (bookId, key, value) => {
+        setCustomer((prev) => ({
+          ...prev,
+          books: (prev.books || []).map((b) =>
+            b.id === bookId ? { ...b, [key]: value } : b
+          ),
+        }));
+      };
+
+      const updateBookField = (bookId, label, value) => {
+        setCustomer((prev) => ({
+          ...prev,
+          books: (prev.books || []).map((b) =>
+            b.id === bookId ? { ...b, fields: { ...b.fields, [label]: value } } : b
+          ),
+        }));
+      };
+
+      /** 필드 타입별 렌더링 */
+      const renderField = (field, book) => {
+        const fieldType = field.type || "text";
+        const currentVal = book.fields?.[field.label] || "";
+
+        if (fieldType === "color") {
+          const colors = field.options || [];
+          return (
+            <div key={field.label} style={{ marginBottom: "0.25rem" }}>
+              <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                {colors.map((hex) => (
+                  <button
+                    key={hex}
+                    type="button"
+                    onClick={() => updateBookField(book.id, field.label, hex)}
+                    style={{
+                      width: "2rem",
+                      height: "2rem",
+                      borderRadius: "50%",
+                      background: hex,
+                      border: currentVal === hex ? "2.5px solid #222" : "2px solid #e5e7eb",
+                      cursor: "pointer",
+                      outline: currentVal === hex ? "2px solid white" : "none",
+                      outlineOffset: "-4px",
+                      transition: "border 0.15s",
+                    }}
+                    title={hex}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        if (fieldType === "select") {
+          const options = field.options || [];
+          return (
+            <div key={field.label} style={{ marginBottom: "0.25rem" }}>
+              <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
+              <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}>
+                {options.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => updateBookField(book.id, field.label, opt)}
+                    style={{
+                      padding: "0.375rem 0.75rem",
+                      borderRadius: "1.5rem",
+                      border: currentVal === opt ? "1.5px solid #222" : "1px solid #d1d5db",
+                      background: currentVal === opt ? "#222" : "white",
+                      color: currentVal === opt ? "white" : "#374151",
+                      fontSize: "0.8rem",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        // text (default)
+        return (
+          <div key={field.label} style={{ marginBottom: "0.25rem" }}>
+            <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
+            <input
+              type="text"
+              value={currentVal}
+              onChange={(e) => updateBookField(book.id, field.label, e.target.value)}
+              placeholder={field.placeholder || `${field.label}을(를) 입력하세요`}
+              className="pv-book-input"
+              style={{
+                width: "100%",
+                border: "1px solid #e5e7eb",
+                borderRadius: "0.5rem",
+                padding: "0.625rem 0.75rem",
+                fontSize: "0.875rem",
+                outline: "none",
+                background: "white",
+                color: "#111",
+                transition: "border 0.15s",
+              }}
+              onFocus={(e) => { e.target.style.borderColor = "#9ca3af"; }}
+              onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; }}
+            />
+          </div>
+        );
+      };
+
+      // 가격 요약 계산
+      const totalQty = books.reduce((s, b) => s + (b.qty || 1), 0);
+      const bookCosts = books.map((book) => {
+        const pages = book.pages || defaultPages;
+        const qty = book.qty || 1;
+        const perCopy = pages * pagePrice + bindingFee + guidePriceTotal;
+        return { perCopy, subtotal: perCopy * qty, qty, pages };
+      });
+      const subtotalAll = bookCosts.reduce((s, c) => s + c.subtotal, 0);
+      const showDesignFee = designFee > 0 && totalQty < freeDesignMinQty;
+      const grandTotal = subtotalAll + (showDesignFee ? designFee : 0);
+
+      return (
+        <div className="pv-block">
+          <style>{`.pv-book-input::placeholder { color: #d1d5db; }`}</style>
+          <p className="pv-block-label">{block.label}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {books.map((book, idx) => (
+              <div
+                key={book.id}
+                style={{
+                  borderRadius: "0.875rem",
+                  overflow: "hidden",
+                  border: "1px solid #e5e7eb",
+                  background: "white",
+                }}
+              >
+                {/* 헤더 */}
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "0.625rem 0.875rem",
+                  background: "#f9fafb",
+                  borderBottom: "1px solid #f0f0f0",
+                }}>
+                  <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#222" }}>
+                    {idx + 1}권
+                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
+                      {bookCosts[idx]?.subtotal?.toLocaleString()}원
+                    </span>
+                    <button
+                      onClick={() => removeBook(book.id)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#b0b0b0",
+                        cursor: "pointer",
+                        fontSize: "0.75rem",
+                        padding: "0.125rem 0.375rem",
+                      }}
+                    >
+                      삭제
+                    </button>
+                  </div>
+                </div>
+                {/* 본문 */}
+                <div style={{ padding: "0.875rem", display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+                  {/* 커버 필드 */}
+                  {coverFields.map((field) => renderField(field, book))}
+
+                  {/* 페이지 수 + 수량 */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginTop: coverFields.length > 0 ? "0.25rem" : 0 }}>
+                    <div>
+                      <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>페이지 수</label>
+                      <input
+                        type="number"
+                        value={book.pages}
+                        min={pagesMin}
+                        max={pagesMax}
+                        step={pagesStep}
+                        onChange={(e) => updateBook(book.id, "pages", Number(e.target.value))}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = "#e5e7eb";
+                          let v = Number(e.target.value) || pagesMin;
+                          v = Math.max(pagesMin, Math.min(pagesMax, v));
+                          const rem = (v - pagesMin) % pagesStep;
+                          if (rem !== 0) v = v - rem + pagesStep;
+                          v = Math.min(v, pagesMax);
+                          updateBook(book.id, "pages", v);
+                        }}
+                        className="pv-book-input"
+                        style={{
+                          width: "100%",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "0.5rem",
+                          padding: "0.625rem 0.75rem",
+                          fontSize: "0.875rem",
+                          outline: "none",
+                          background: "white",
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = "#9ca3af"; }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>수량</label>
+                      <input
+                        type="number"
+                        value={book.qty}
+                        min={1}
+                        onChange={(e) => updateBook(book.id, "qty", Number(e.target.value))}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = "#e5e7eb";
+                          const v = Math.max(1, Number(e.target.value) || 1);
+                          updateBook(book.id, "qty", v);
+                        }}
+                        className="pv-book-input"
+                        style={{
+                          width: "100%",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "0.5rem",
+                          padding: "0.625rem 0.75rem",
+                          fontSize: "0.875rem",
+                          outline: "none",
+                          background: "white",
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = "#9ca3af"; }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {books.length < maxBooks && (
+              <button
+                onClick={addBook}
+                style={{
+                  padding: "0.75rem",
+                  border: "1px dashed #d1d5db",
+                  borderRadius: "0.875rem",
+                  background: "white",
+                  color: "#6b7280",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  transition: "border-color 0.15s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#9ca3af"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; }}
+              >
+                + 시리즈 추가
+              </button>
+            )}
+
+            {/* 가격 요약 */}
+            {books.length > 0 && (
+              <div style={{
+                borderRadius: "0.875rem",
+                border: "1px solid #e5e7eb",
+                background: "#fafafa",
+                padding: "0.875rem",
+              }}>
+                <p style={{ fontSize: "0.8rem", fontWeight: 600, color: "#222", marginBottom: "0.5rem" }}>주문 요약</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                  {books.map((book, idx) => (
+                    <div key={book.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#6b7280" }}>
+                      <span>{idx + 1}권 ({bookCosts[idx]?.pages}p × {bookCosts[idx]?.qty}부)</span>
+                      <span>{bookCosts[idx]?.subtotal?.toLocaleString()}원</span>
+                    </div>
+                  ))}
+                  {activeGuideLabels.map((g) => (
+                    <div key={g.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#6b7280" }}>
+                      <span>{g.label} (권당 +{g.price.toLocaleString()}원)</span>
+                      <span>포함</span>
+                    </div>
+                  ))}
+                  {showDesignFee && (
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#ef4444" }}>
+                      <span>디자인 비용 ({freeDesignMinQty}부 미만)</span>
+                      <span>+{designFee.toLocaleString()}원</span>
+                    </div>
+                  )}
+                  {designFee > 0 && !showDesignFee && (
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#16a34a" }}>
+                      <span>디자인 비용 ({freeDesignMinQty}부 이상 무료)</span>
+                      <span>0원</span>
+                    </div>
+                  )}
+                  <div style={{ borderTop: "1px solid #e5e7eb", marginTop: "0.375rem", paddingTop: "0.375rem", display: "flex", justifyContent: "space-between", fontSize: "0.875rem", fontWeight: 600, color: "#111" }}>
+                    <span>합계 ({totalQty}부)</span>
+                    <span>{grandTotal.toLocaleString()}원</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       );
     }
