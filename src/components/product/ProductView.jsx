@@ -595,8 +595,11 @@ export default function ProductView({ product: initialProduct }) {
                     paper: paperFullName,
                     color: `${customer.color === "color" ? "컬러" : "흑백"} ${customer.side === "single" ? "단면" : "양면"}`,
                     finishing: finishingList,
-                    quantity: customer.qty,
-                    pages: customer.pages,
+                    // 시리즈 주문: 총 부수 합산, 페이지는 권별이므로 생략
+                    quantity: booksSummary.length > 0
+                      ? booksSummary.filter(b => b.designFee == null).reduce((s, b) => s + (b.qty || 1), 0)
+                      : customer.qty,
+                    pages: booksSummary.length > 0 ? null : customer.pages,
                   },
                   price: price.total,
                   productionDays: 2,

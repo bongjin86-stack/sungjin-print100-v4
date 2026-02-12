@@ -421,11 +421,28 @@ export async function startShipping(
 }
 
 export async function deleteOrder(id: number): Promise<boolean> {
+  // 먼저 파일 경로 조회 (Storage 정리용)
+  const { data: order } = await supabase
+    .from("orders")
+    .select("file_path")
+    .eq("id", id)
+    .single();
+
   const { error } = await supabase.from("orders").delete().eq("id", id);
 
   if (error) {
     console.error("주문 삭제 실패:", error);
     throw new Error("주문 삭제에 실패했습니다.");
+  }
+
+  // DB 삭제 성공 후 Storage 파일 정리 (실패해도 주문 삭제는 유지)
+  if (order?.file_path) {
+    const { error: storageError } = await supabase.storage
+      .from("uploads")
+      .remove([order.file_path]);
+    if (storageError) {
+      console.warn("파일 삭제 실패 (수동 정리 필요):", order.file_path, storageError);
+    }
   }
 
   return true;
