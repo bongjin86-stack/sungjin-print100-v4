@@ -404,32 +404,32 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                   }>
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                       {item.booksSummary.filter((b) => b.designFee == null).map((book) => {
                         const fields = Object.entries(book.fields || {})
                           .filter(([, v]) => v && String(v).trim());
                         const isHex = (v) => /^#[0-9a-fA-F]{3,8}$/.test(String(v));
                         return (
-                          <div key={book.index} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-                            <div className="flex justify-between items-center mb-1.5">
-                              <span className="text-sm font-semibold text-gray-900">{book.index}권</span>
-                              <span className="text-sm font-semibold text-gray-900">{formatPrice(book.subtotal)}</span>
+                          <div key={book.index} className="bg-gray-50 rounded-lg p-3">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="font-semibold text-gray-900">{book.index}권</span>
+                              <span className="font-semibold text-gray-900">{formatPrice(book.subtotal)}</span>
                             </div>
                             {fields.length > 0 && (
-                              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 mb-1.5">
+                              <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 mb-2">
                                 {fields.map(([label, value]) => (
                                   <div key={label} className="contents">
-                                    <span className="text-sm text-gray-400">{label}</span>
+                                    <span className="text-xs text-gray-400">{label}</span>
                                     {isHex(value) ? (
                                       <span className="inline-block w-4 h-4 rounded-full border border-gray-300" style={{backgroundColor: String(value)}} />
                                     ) : (
-                                      <span className="text-sm text-gray-900">{String(value)}</span>
+                                      <span className="text-sm text-gray-700">{String(value)}</span>
                                     )}
                                   </div>
                                 ))}
                               </div>
                             )}
-                            <div className="flex gap-3 text-xs text-gray-500">
+                            <div className="flex gap-3 text-xs text-gray-400 pt-1.5 border-t border-gray-200/60">
                               <span>{book.pages}p</span>
                               <span>{book.qty}부</span>
                               <span>권당 {formatPrice(book.perCopy)}</span>
@@ -440,9 +440,9 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                     </div>
                     {/* 디자인 비용 */}
                     {item.booksSummary.filter((b) => b.designFee != null).map((df, i) => (
-                      <div key={`df-${i}`} className="flex justify-between items-center pt-2 mt-1 border-t border-gray-100">
-                        <span className="text-xs text-amber-700">디자인 비용</span>
-                        <span className="text-sm font-medium text-amber-700">{formatPrice(df.designFee)}</span>
+                      <div key={`df-${i}`} className="flex justify-between items-center pt-3 mt-1">
+                        <span className="text-xs text-gray-500">디자인 비용</span>
+                        <span className="text-sm font-medium text-gray-700">{formatPrice(df.designFee)}</span>
                       </div>
                     ))}
                     {/* 합계 */}
@@ -451,9 +451,9 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                       const totalQty = books.reduce((s, b) => s + (b.qty || 0), 0);
                       const totalAmt = books.reduce((s, b) => s + (b.subtotal || 0), 0);
                       return (
-                        <div className="flex justify-between items-center pt-2 mt-1 border-t border-gray-200">
-                          <span className="text-sm font-semibold text-gray-900">합계 {books.length}권 / {totalQty}부</span>
-                          <span className="text-sm font-bold text-gray-900">{formatPrice(totalAmt)}</span>
+                        <div className="flex justify-between items-center pt-3 mt-1 border-t border-gray-200">
+                          <span className="font-semibold text-gray-900">합계 {books.length}권 / {totalQty}부</span>
+                          <span className="font-bold text-gray-900">{formatPrice(totalAmt)}</span>
                         </div>
                       );
                     })()}
