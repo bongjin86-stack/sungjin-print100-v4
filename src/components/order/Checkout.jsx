@@ -192,6 +192,8 @@ export default function Checkout() {
           {
             productName: product.name,
             productType: product.type,
+            image: product.image || null,
+            textInputs: product.textInputs || null,
             spec: product.spec,
             unitPrice: product.price,
             quantity: 1,

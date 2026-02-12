@@ -222,7 +222,7 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
       className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
         {/* 모달 헤더 */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div>
@@ -521,142 +521,157 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
             </div>
           )}
 
-          {/* 주문 내역 */}
+          {/* 주문 내역 - 2단 레이아웃 */}
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-900 mb-3">
               주문 내역
             </h4>
-            <div className="bg-white border border-gray-200 rounded-xl p-4">
-              <div className="text-center mb-4">
-                <span className="text-xs text-gray-400 uppercase tracking-wider">
-                  ORDER SUMMARY
-                </span>
-                <h5 className="text-lg font-semibold text-gray-900 mt-1">
-                  {item.productName || "-"}
-                </h5>
-              </div>
-              <div className="space-y-2 text-sm border-t border-gray-100 pt-4">
-                {item.spec?.size && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">사이즈</span>
-                    <span className="text-gray-900">{item.spec.size}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 왼쪽: 상품 이미지 + 스펙 */}
+              <div className="space-y-4">
+                {item.image && (
+                  <div className="rounded-xl overflow-hidden border border-gray-200">
+                    <img
+                      src={item.image}
+                      alt={item.productName}
+                      className="w-full aspect-[3/2] object-cover"
+                    />
                   </div>
                 )}
-                {item.spec?.paper && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">용지</span>
-                    <span className="text-gray-900">{item.spec.paper}</span>
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <h5 className="font-semibold text-gray-900 mb-3">
+                    {item.productName || "-"}
+                  </h5>
+                  <div className="space-y-2 text-sm">
+                    {item.spec?.size && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">사이즈</span>
+                        <span className="text-gray-900">{item.spec.size}</span>
+                      </div>
+                    )}
+                    {item.spec?.paper && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">용지</span>
+                        <span className="text-gray-900">{item.spec.paper}</span>
+                      </div>
+                    )}
+                    {item.spec?.color && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">인쇄</span>
+                        <span className="text-gray-900">{item.spec.color}</span>
+                      </div>
+                    )}
+                    {item.spec?.quantity && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">수량</span>
+                        <span className="text-gray-900">{item.spec.quantity}부</span>
+                      </div>
+                    )}
+                    {item.spec?.pages && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">페이지</span>
+                        <span className="text-gray-900">{item.spec.pages}p</span>
+                      </div>
+                    )}
+                    {item.spec?.finishing?.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">후가공</span>
+                        <span className="text-gray-900">{item.spec.finishing.join(", ")}</span>
+                      </div>
+                    )}
+                    {item.productionDays && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">출고일</span>
+                        <span className="text-gray-900">
+                          {calculateReleaseDateFrom(order.created_at, item.productionDays)}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-                {item.spec?.color && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">인쇄</span>
-                    <span className="text-gray-900">{item.spec.color}</span>
-                  </div>
-                )}
-                {item.spec?.quantity && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">수량</span>
-                    <span className="text-gray-900">
-                      {item.spec.quantity}부
-                    </span>
-                  </div>
-                )}
-                {item.spec?.pages && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">페이지</span>
-                    <span className="text-gray-900">{item.spec.pages}p</span>
-                  </div>
-                )}
-                {item.productionDays && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">출고일</span>
-                    <span className="text-gray-900">
-                      {calculateReleaseDateFrom(
-                        order.created_at,
-                        item.productionDays
-                      )}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="border-t border-gray-200 mt-4 pt-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">배송방법</span>
-                  <span className="text-gray-900">
-                    {getDeliveryTypeLabel(order.delivery_type)}
-                  </span>
-                </div>
-              </div>
-              <div className="border-t border-gray-200 mt-4 pt-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">상품 금액</span>
-                  <span className="text-gray-900">
-                    {formatPrice(order.product_amount)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">부가세</span>
-                  <span className="text-gray-900">
-                    {formatPrice(Math.round(order.product_amount * 0.1))}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">배송비</span>
-                  <span className="text-gray-900">
-                    {order.shipping_cost === 0
-                      ? "무료"
-                      : formatPrice(order.shipping_cost)}
-                  </span>
-                </div>
-                {order.quick_cost > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">퀵 비용</span>
-                    <span className="text-gray-900">
-                      {formatPrice(order.quick_cost)}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between pt-2 border-t border-gray-100">
-                  <span className="font-semibold text-gray-900">
-                    총 결제금액
-                  </span>
-                  <span className="font-bold text-xl text-gray-900">
-                    {formatPrice(order.total_amount)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          {/* 결제 정보 */}
-          <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">
-              결제 정보
-            </h4>
-            <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-500">결제 방법</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {getPaymentMethodLabel(order.payment_method)}
-                </span>
+                  {/* 텍스트 입력 내용 */}
+                  {item.textInputs?.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                      {item.textInputs.map((ti, i) => (
+                        <div key={i}>
+                          <p className="text-xs text-gray-500 mb-1">{ti.label}</p>
+                          <p className="text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 rounded-lg p-2">
+                            {ti.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              {order.payment_method === "bank_transfer" && (
-                <>
+
+              {/* 오른쪽: 금액 + 결제 정보 */}
+              <div className="space-y-4">
+                <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-500">입금 계좌</span>
-                    <span className="text-sm font-medium text-gray-900">
-                      {bankInfo.bankName} {bankInfo.bankAccount}
+                    <span className="text-gray-500">배송방법</span>
+                    <span className="text-gray-900">
+                      {getDeliveryTypeLabel(order.delivery_type)}
+                    </span>
+                  </div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">상품 금액</span>
+                    <span className="text-gray-900">{formatPrice(order.product_amount)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">부가세</span>
+                    <span className="text-gray-900">
+                      {formatPrice(Math.round(order.product_amount * 0.1))}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-500">예금주</span>
-                    <span className="text-sm font-medium text-gray-900">
-                      {bankInfo.bankHolder}
+                    <span className="text-gray-500">배송비</span>
+                    <span className="text-gray-900">
+                      {order.shipping_cost === 0 ? "무료" : formatPrice(order.shipping_cost)}
                     </span>
                   </div>
-                </>
-              )}
+                  {order.quick_cost > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">퀵 비용</span>
+                      <span className="text-gray-900">{formatPrice(order.quick_cost)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-2 border-t border-gray-100">
+                    <span className="font-semibold text-gray-900">총 결제금액</span>
+                    <span className="font-bold text-xl text-gray-900">
+                      {formatPrice(order.total_amount)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 결제 정보 */}
+                <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">결제 방법</span>
+                    <span className="font-medium text-gray-900">
+                      {getPaymentMethodLabel(order.payment_method)}
+                    </span>
+                  </div>
+                  {order.payment_method === "bank_transfer" && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">입금 계좌</span>
+                        <span className="font-medium text-gray-900">
+                          {bankInfo.bankName} {bankInfo.bankAccount}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">예금주</span>
+                        <span className="font-medium text-gray-900">
+                          {bankInfo.bankHolder}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 

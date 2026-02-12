@@ -292,7 +292,7 @@ export default function ProductView({ product: initialProduct }) {
             </div>
           )}
 
-          {/* 상담 블록 (스티키 안, 이미지 아래) */}
+          {/* 상담 블록 (카카오톡) */}
           {allBlocks
             .filter((b) => b.type === "consultation")
             .map((block) => (
@@ -469,10 +469,21 @@ export default function ProductView({ product: initialProduct }) {
                 product.product_type || product.id
               );
 
+              // 텍스트 입력 블록 값 추출 (label → value)
+              const textInputEntries = [];
+              allBlocks.filter(b => b.type === "text_input").forEach(block => {
+                const value = customer.textInputs?.[block.id];
+                if (value?.trim()) {
+                  textInputEntries.push({ label: block.label || "요청사항", value });
+                }
+              });
+
               sessionStorage.setItem(
                 "checkoutProduct",
                 JSON.stringify({
                   name: product.name,
+                  image: images[0] || null,
+                  textInputs: textInputEntries.length > 0 ? textInputEntries : null,
                   type: inferProductType(product),
                   spec: {
                     size: customer.size?.startsWith("custom_")

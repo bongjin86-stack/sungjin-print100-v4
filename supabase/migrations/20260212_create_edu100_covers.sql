@@ -5,6 +5,7 @@ CREATE TABLE edu100_covers (
   subtitle TEXT,
   description TEXT,
   image TEXT,
+  thumbnails JSONB DEFAULT '[]'::jsonb,
   tag TEXT,
   linked_product_id TEXT,
   is_published BOOLEAN DEFAULT false,

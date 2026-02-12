@@ -86,14 +86,17 @@ export default function CustomerOrderStatus({ uuid }) {
     );
   }
 
+  const firstItem = order.items?.[0];
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">주문 조회</h1>
           <p className="text-gray-500">주문번호: {order.order_number}</p>
         </div>
 
+        {/* 현재 상태 */}
         <div className="bg-white rounded-xl border border-gray-200 p-8 mb-6 text-center">
           <p className="text-sm text-gray-500 mb-3">현재 상태</p>
           <span
@@ -106,6 +109,7 @@ export default function CustomerOrderStatus({ uuid }) {
           </p>
         </div>
 
+        {/* 배송 정보 */}
         {order.status === "shipped" && order.tracking_number && (
           <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
             <h3 className="font-semibold text-gray-900 mb-4">배송 정보</h3>
@@ -137,41 +141,82 @@ export default function CustomerOrderStatus({ uuid }) {
           </div>
         )}
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-          <h3 className="font-semibold text-gray-900 mb-4">수령 방법</h3>
-          <span
-            className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-              order.delivery_type === "delivery"
-                ? "bg-blue-100 text-blue-700"
-                : order.delivery_type === "quick"
-                  ? "bg-purple-100 text-purple-700"
-                  : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {getDeliveryTypeLabel(order.delivery_type)}
-          </span>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">주문 상품</h3>
+        {/* 2단 레이아웃: 상품 정보 + 주문 정보 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 왼쪽: 상품 정보 */}
           <div className="space-y-4">
-            {order.items?.map((item, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-start pb-4 border-b border-gray-100 last:border-0 last:pb-0"
-              >
-                <div>
-                  <p className="font-medium text-gray-900">
-                    {item.productName}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {item.spec?.size} · {item.spec?.quantity}부
-                    {item.spec?.pages && ` · ${item.spec.pages}p`}
-                  </p>
-                </div>
-                <span className="font-semibold text-gray-900">{`\u20A9${item.price?.toLocaleString()}`}</span>
+            {/* 상품 이미지 */}
+            {firstItem?.image && (
+              <div className="rounded-xl overflow-hidden bg-white border border-gray-200">
+                <img
+                  src={firstItem.image}
+                  alt={firstItem.productName}
+                  className="w-full aspect-[3/2] object-cover"
+                />
               </div>
-            ))}
+            )}
+
+            {/* 상품 상세 */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">주문 상품</h3>
+              <div className="space-y-4">
+                {order.items?.map((item, index) => (
+                  <div key={index}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {item.productName}
+                        </p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {item.spec?.size} · {item.spec?.quantity}부
+                          {item.spec?.pages && ` · ${item.spec.pages}p`}
+                        </p>
+                        {item.spec?.finishing?.length > 0 && (
+                          <p className="text-sm text-gray-500">
+                            후가공: {item.spec.finishing.join(", ")}
+                          </p>
+                        )}
+                      </div>
+                      <span className="font-semibold text-gray-900">
+                        {`\u20A9${item.price?.toLocaleString()}`}
+                      </span>
+                    </div>
+
+                    {/* 텍스트 입력 내용 */}
+                    {item.textInputs?.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {item.textInputs.map((ti, i) => (
+                          <div key={i}>
+                            <p className="text-xs text-gray-500">{ti.label}</p>
+                            <p className="text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 rounded-lg p-2 mt-1">
+                              {ti.value}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 오른쪽: 주문/배송 정보 */}
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">수령 방법</h3>
+              <span
+                className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
+                  order.delivery_type === "delivery"
+                    ? "bg-blue-100 text-blue-700"
+                    : order.delivery_type === "quick"
+                      ? "bg-purple-100 text-purple-700"
+                      : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                {getDeliveryTypeLabel(order.delivery_type)}
+              </span>
+            </div>
           </div>
         </div>
 

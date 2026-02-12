@@ -8,10 +8,13 @@ import { supabase } from "./supabase";
 // 타입 정의
 export interface OrderItem {
   productName: string;
+  image?: string | null;
+  textInputs?: { label: string; value: string }[] | null;
   spec?: {
     size?: string;
     quantity?: number;
     pages?: number;
+    finishing?: string[];
   };
   price?: number;
   unitPrice?: number;

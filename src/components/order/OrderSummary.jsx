@@ -29,6 +29,15 @@ export default function OrderSummary({
             <h2 className="text-lg font-bold">주문 내역</h2>
             <p className="text-xs text-gray-400 mt-1">ORDER SUMMARY</p>
           </div>
+          {product.image && (
+            <div className="rounded-xl overflow-hidden mb-4">
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full aspect-[3/2] object-cover"
+              />
+            </div>
+          )}
           <div className="text-center pb-4 border-b border-dashed border-gray-300">
             <h3 className="font-bold text-base">{product.name}</h3>
           </div>
@@ -66,6 +75,16 @@ export default function OrderSummary({
               <span>{releaseDate || `${product.productionDays}영업일`}</span>
             </div>
           </div>
+          {product.textInputs?.length > 0 && (
+            <div className="py-4 border-b border-dashed border-gray-300 space-y-2">
+              {product.textInputs.map((ti, i) => (
+                <div key={i}>
+                  <p className="text-xs text-gray-500 mb-1">{ti.label}</p>
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{ti.value}</p>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="py-4 border-b border-dashed border-gray-300">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">배송방법</span>
