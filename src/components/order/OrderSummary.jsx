@@ -141,11 +141,6 @@ export default function OrderSummary({
                   {packaging.boxCount}박스 (약 {packaging.totalWeight}kg)
                 </span>
               </div>
-              {packaging.needsFreight && (
-                <p className="text-xs text-amber-600 mt-2">
-                  * 30kg 초과 시 화물/퀵 배송을 권장합니다.
-                </p>
-              )}
             </div>
           )}
           <div className="py-4 space-y-3 text-sm border-b border-dashed border-gray-300">
