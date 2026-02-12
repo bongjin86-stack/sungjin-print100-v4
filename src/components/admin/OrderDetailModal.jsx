@@ -369,7 +369,7 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                             {!booksExist && item.spec?.color && <span>{item.spec.color}</span>}
                             {item.spec?.quantity && (
                               <span className="font-medium text-gray-900">
-                                {item.spec.quantity}부{booksExist ? ` (${booksCount}권)` : ""}
+                                {item.spec.quantity}부{booksExist ? ` (${booksCount}종)` : ""}
                               </span>
                             )}
                             {!booksExist && item.spec?.pages && <span>{item.spec.pages}p</span>}
@@ -452,7 +452,7 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                       const totalAmt = books.reduce((s, b) => s + (b.subtotal || 0), 0);
                       return (
                         <div className="flex justify-between items-center pt-3 mt-1 border-t border-gray-200">
-                          <span className="font-semibold text-gray-900">합계 {books.length}권 / {totalQty}부</span>
+                          <span className="font-semibold text-gray-900">합계 {books.length}종 / {totalQty}부</span>
                           <span className="font-bold text-gray-900">{formatPrice(totalAmt)}</span>
                         </div>
                       );

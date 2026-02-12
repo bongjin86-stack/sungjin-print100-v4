@@ -68,7 +68,7 @@ export default function OrderSummary({
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-500">수량</span>
-                    <span>{product.spec?.quantity || 0}부{hasBooks ? ` (${books.length}권)` : ""}</span>
+                    <span>{product.spec?.quantity || 0}부{hasBooks ? ` (${books.length}종)` : ""}</span>
                   </div>
                   {!hasBooks && product.spec?.pages && (
                     <div className="flex justify-between">

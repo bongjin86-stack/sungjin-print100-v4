@@ -133,7 +133,7 @@ export default function OrderComplete() {
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-500">수량</span>
-                    <span>{spec?.quantity || 0}부{hasBooks ? ` (${books.length}권)` : ""}</span>
+                    <span>{spec?.quantity || 0}부{hasBooks ? ` (${books.length}종)` : ""}</span>
                   </div>
                   {!hasBooks && spec?.pages && (
                     <div className="flex justify-between">

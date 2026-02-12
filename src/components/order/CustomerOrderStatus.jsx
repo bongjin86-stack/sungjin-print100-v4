@@ -173,7 +173,7 @@ export default function CustomerOrderStatus({ uuid }) {
                         </p>
                         <p className="text-sm text-gray-500 mt-1">
                           {item.spec?.size} · {item.spec?.quantity}부
-                          {itemHasBooks && ` (${itemBooks.length}권)`}
+                          {itemHasBooks && ` (${itemBooks.length}종)`}
                           {!itemHasBooks && item.spec?.pages && ` · ${item.spec.pages}p`}
                         </p>
                         {item.spec?.finishing?.length > 0 && (
