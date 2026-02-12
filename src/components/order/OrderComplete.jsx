@@ -291,14 +291,14 @@ export default function OrderComplete() {
 
             {/* 입금 안내 */}
             {orderData?.paymentMethod === "bank_transfer" && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
-                <h2 className="text-base font-semibold text-amber-900 mb-4">
+              <div className="bg-white rounded-2xl shadow-sm p-6">
+                <h2 className="text-base font-semibold text-gray-900 mb-4">
                   입금 안내
                 </h2>
-                <p className="text-sm text-amber-800 mb-4">
+                <p className="text-sm text-gray-600 mb-4">
                   아래 계좌로 입금해주시면 제작이 시작됩니다.
                 </p>
-                <div className="bg-white rounded-xl p-4 space-y-2">
+                <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-500">은행</span>
                     <span className="font-medium">{bankInfo.bankName}</span>
@@ -313,9 +313,9 @@ export default function OrderComplete() {
                     <span className="text-gray-500">예금주</span>
                     <span className="font-medium">{bankInfo.bankHolder}</span>
                   </div>
-                  <div className="flex justify-between pt-2 border-t border-gray-100">
+                  <div className="flex justify-between pt-2 border-t border-gray-200">
                     <span className="text-gray-500">입금금액</span>
-                    <span className="font-semibold text-amber-700">
+                    <span className="font-semibold text-[#222828]">
                       {formatPrice(orderData?.totalAmount)}
                     </span>
                   </div>
