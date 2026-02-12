@@ -40,38 +40,48 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // --- Server-side price recalculation ---
-    await loadPricingData();
-    const serverResult = calculatePrice(customer, qty, productType || "flyer");
-
-    const serverPrice = serverResult.total;
     const submittedPrice = orderData.productAmount;
+    const isOutsourced = productType === "outsourced";
 
-    // --- Price discrepancy check ---
-    // Only reject if submitted price is significantly LOWER than server price
-    // (higher is acceptable - customer might have faster delivery selected)
-    if (submittedPrice < serverPrice) {
-      const discrepancy = ((serverPrice - submittedPrice) / serverPrice) * 100;
+    let finalPrice = submittedPrice;
 
-      if (discrepancy > MAX_PRICE_DISCREPANCY_PERCENT) {
-        return new Response(
-          JSON.stringify({
-            error: "Price verification failed",
-            serverPrice,
-            submittedPrice,
-            message:
-              "가격이 서버 계산과 일치하지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.",
-          }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
-        );
+    if (isOutsourced) {
+      // outsourced 상품: 클라이언트 전용 가격 계산 (priceEngine 미지원)
+      // 서버 검증 불가 → 제출 가격 그대로 사용
+      finalPrice = submittedPrice;
+    } else {
+      await loadPricingData();
+      const serverResult = calculatePrice(customer, qty, productType || "flyer");
+      const serverPrice = serverResult.total;
+
+      // Price discrepancy check
+      // Only reject if submitted price is significantly LOWER than server price
+      if (submittedPrice < serverPrice) {
+        const discrepancy = ((serverPrice - submittedPrice) / serverPrice) * 100;
+
+        if (discrepancy > MAX_PRICE_DISCREPANCY_PERCENT) {
+          return new Response(
+            JSON.stringify({
+              error: "Price verification failed",
+              serverPrice,
+              submittedPrice,
+              message:
+                "가격이 서버 계산과 일치하지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.",
+            }),
+            { status: 400, headers: { "Content-Type": "application/json" } }
+          );
+        }
       }
+
+      finalPrice = serverPrice;
     }
 
-    // --- Use server-calculated price for the order ---
+    // --- Use verified price for the order ---
     const verifiedOrderData = {
       ...orderData,
-      productAmount: serverPrice,
+      productAmount: finalPrice,
       totalAmount:
-        serverPrice +
+        finalPrice +
         (orderData.shippingCost || 0) +
         (orderData.quickCost || 0),
     };

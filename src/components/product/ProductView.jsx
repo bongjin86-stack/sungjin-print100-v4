@@ -538,7 +538,13 @@ export default function ProductView({ product: initialProduct }) {
                   textInputEntries.push({ label: block.label || "요청사항", value: val });
                 }
               });
-              // books 블록 값 추출 (권별 필드 + 페이지/수량)
+              // 색상 hex 코드 제거 (고객에게 보여줄 필요 없음)
+              const isHexColor = (v) => /^#[0-9a-fA-F]{3,8}$/.test(v);
+              const filtered = textInputEntries.filter((ti) => !isHexColor(ti.value));
+              textInputEntries.length = 0;
+              textInputEntries.push(...filtered);
+
+              // books 블록 → booksSummary만 구성 (textInputEntries에 넣지 않음)
               const booksArr = customer.books || [];
               const booksSummary = [];
               if (booksArr.length > 0) {
@@ -558,14 +564,6 @@ export default function ProductView({ product: initialProduct }) {
                 }, 0);
 
                 booksArr.forEach((book, idx) => {
-                  const prefix = `${idx + 1}권`;
-                  Object.entries(book.fields || {}).forEach(([label, v]) => {
-                    if (v && String(v).trim()) {
-                      textInputEntries.push({ label: `${prefix} ${label}`, value: String(v) });
-                    }
-                  });
-                  textInputEntries.push({ label: `${prefix} 페이지`, value: `${book.pages}p` });
-                  textInputEntries.push({ label: `${prefix} 수량`, value: `${book.qty}부` });
                   const perCopy = (book.pages || 100) * bPagePrice + bBindingFee + bGuidePrice;
                   booksSummary.push({
                     index: idx + 1,
