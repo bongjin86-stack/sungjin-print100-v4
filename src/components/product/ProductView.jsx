@@ -550,6 +550,13 @@ export default function ProductView({ product: initialProduct }) {
                 const bDesignFee = designCover?.design_fee ?? 0;
                 const bTotalQty = booksArr.reduce((s, b) => s + (b.qty || 1), 0);
 
+                // 가이드 가격 합산 (실제 가격 계산과 동일한 공식)
+                const bGuidePrice = Object.entries(customer.guides || {}).reduce((sum, [blockId, state]) => {
+                  const gb = product?.blocks?.find((b) => String(b.id) === String(blockId) && b.on && b.type === "guide");
+                  const opt = gb?.config?.options?.find((o) => o.id === state.selected);
+                  return sum + (opt?.price || 0);
+                }, 0);
+
                 booksArr.forEach((book, idx) => {
                   const prefix = `${idx + 1}권`;
                   Object.entries(book.fields || {}).forEach(([label, v]) => {
@@ -559,7 +566,7 @@ export default function ProductView({ product: initialProduct }) {
                   });
                   textInputEntries.push({ label: `${prefix} 페이지`, value: `${book.pages}p` });
                   textInputEntries.push({ label: `${prefix} 수량`, value: `${book.qty}부` });
-                  const perCopy = (book.pages || 100) * bPagePrice + bBindingFee;
+                  const perCopy = (book.pages || 100) * bPagePrice + bBindingFee + bGuidePrice;
                   booksSummary.push({
                     index: idx + 1,
                     pages: book.pages,
@@ -602,8 +609,11 @@ export default function ProductView({ product: initialProduct }) {
                   coverWeight: isBinding
                     ? customer.coverWeight || customer.weight || 200
                     : null,
-                  // Server-side price verification data
-                  customerSelection: customer,
+                  // Server-side price verification data (transient 필드 제거)
+                  customerSelection: (() => {
+                    const { _designs, selectedDesign, textInputs, books, guides, ...clean } = customer;
+                    return clean;
+                  })(),
                 })
               );
 

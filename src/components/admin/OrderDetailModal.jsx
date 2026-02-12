@@ -645,6 +645,42 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                       value={getPaymentMethodLabel(order.payment_method)}
                       className="font-medium"
                     />
+                    {/* 입금 상태 */}
+                    <div className="flex justify-between items-center py-1.5">
+                      <span className="text-sm text-gray-500">입금 상태</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
+                          order.payment_status === "paid"
+                            ? "bg-green-100 text-green-700"
+                            : order.payment_status === "refunded"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                        }`}>
+                          {order.payment_status === "paid" ? "입금완료" : order.payment_status === "refunded" ? "환불" : "입금대기"}
+                        </span>
+                        {order.payment_status !== "paid" && order.payment_status !== "refunded" && (
+                          <button
+                            onClick={async () => {
+                              if (!confirm("입금 확인 처리하시겠습니까?")) return;
+                              setIsSaving(true);
+                              try {
+                                await updateOrder(order.id, { payment_status: "paid" });
+                                setOrder((prev) => ({ ...prev, payment_status: "paid" }));
+                                onUpdate?.();
+                              } catch (err) {
+                                setError(err.message);
+                              } finally {
+                                setIsSaving(false);
+                              }
+                            }}
+                            disabled={isSaving}
+                            className="text-xs text-green-600 hover:text-green-700 font-medium hover:underline disabled:opacity-50"
+                          >
+                            입금확인
+                          </button>
+                        )}
+                      </div>
+                    </div>
                     {order.payment_method === "bank_transfer" && (
                       <>
                         <InfoRow

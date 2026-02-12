@@ -47,7 +47,7 @@ export default function ServicesForm({ mode, initialData }: ServicesFormProps) {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    fetch("/api/products")
+    fetch("/api/products?all=1")
       .then((res) => res.json())
       .then((data: Product[]) =>
         setProducts(data.filter((p) => p.is_published !== false))

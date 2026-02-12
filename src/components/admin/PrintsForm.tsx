@@ -174,7 +174,7 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
 
   // 상품 목록 + 기존 태그 가져오기
   useEffect(() => {
-    fetch("/api/products")
+    fetch("/api/products?all=1")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {

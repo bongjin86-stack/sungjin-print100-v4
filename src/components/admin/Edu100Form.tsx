@@ -58,7 +58,7 @@ export default function Edu100Form({ mode, initialData }: Edu100FormProps) {
 
   // 상품 목록 로드
   useEffect(() => {
-    fetch("/api/products")
+    fetch("/api/products?all=1")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setProducts(data);

@@ -55,7 +55,28 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    return new Response(JSON.stringify({ selected, byQty }), {
+    // 클라이언트에 내부 원가 구조(breakdown) 노출 방지 — 필요한 필드만 반환
+    const sanitize = (r: Record<string, unknown>) => ({
+      total: r.total,
+      unitPrice: r.unitPrice,
+      perUnit: r.perUnit,
+      estimatedWeight: r.estimatedWeight,
+      totalThickness: r.totalThickness,
+      thicknessValidation: r.thicknessValidation,
+      pages: r.pages,
+      guidePriceTotal: r.guidePriceTotal,
+    });
+
+    const safeSelected = sanitize(selected as Record<string, unknown>);
+    let safeByQty: Record<number, unknown> | undefined;
+    if (byQty) {
+      safeByQty = {};
+      for (const [q, v] of Object.entries(byQty)) {
+        safeByQty[Number(q)] = v ? sanitize(v as Record<string, unknown>) : null;
+      }
+    }
+
+    return new Response(JSON.stringify({ selected: safeSelected, byQty: safeByQty }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

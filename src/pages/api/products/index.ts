@@ -4,12 +4,22 @@ import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
-// GET - 목록 조회
-export const GET: APIRoute = async () => {
-  const { data, error } = await supabase
+// GET - 공개 상품 목록 조회 (is_published 필터)
+export const GET: APIRoute = async ({ request }) => {
+  const url = new URL(request.url);
+  const includeAll = url.searchParams.get("all") === "1";
+
+  let query = supabase
     .from("products")
     .select("*")
     .order("sort_order", { ascending: true });
+
+  // 관리자 API 호출 시에만 전체 조회 (미들웨어 인증 통과 필수)
+  if (!includeAll) {
+    query = query.eq("is_published", true);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {

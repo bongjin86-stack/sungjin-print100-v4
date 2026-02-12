@@ -1967,10 +1967,11 @@ function PreviewBlockInner({
       };
 
       const removeBook = (bookId) => {
-        setCustomer((prev) => ({
-          ...prev,
-          books: (prev.books || []).filter((b) => b.id !== bookId),
-        }));
+        setCustomer((prev) => {
+          const current = prev.books || [];
+          if (current.length <= minBooks) return prev;
+          return { ...prev, books: current.filter((b) => b.id !== bookId) };
+        });
       };
 
       const updateBook = (bookId, key, value) => {
