@@ -73,6 +73,13 @@ export default function Checkout() {
 
   const packaging = useMemo(() => {
     if (!product) return { boxCount: 1, totalWeight: 0, needsFreight: false };
+    // outsourced/books: ProductView에서 계산한 무게 사용
+    if (product.estimatedWeight > 0) {
+      const w = product.estimatedWeight;
+      const BOX_MAX_KG = 20;
+      const boxCount = Math.max(1, Math.ceil(w / BOX_MAX_KG));
+      return { boxCount, totalWeight: Math.round(w * 10) / 10, needsFreight: w > 30 };
+    }
     if (product.isBinding) {
       return calculateBindingPackaging(
         product.spec?.quantity || 1,

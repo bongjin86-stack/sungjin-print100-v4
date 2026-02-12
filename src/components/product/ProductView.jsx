@@ -587,7 +587,7 @@ export default function ProductView({ product: initialProduct }) {
                   spec: {
                     size: customer.size?.startsWith("custom_")
                       ? `${customer.customWidth || 0}×${customer.customHeight || 0}mm`
-                      : customer.size || "맞춤",
+                      : (dbSizes?.[customer.size]?.name || customer.size?.toUpperCase()) || "맞춤",
                     paper: paperFullName,
                     color: `${customer.color === "color" ? "컬러" : "흑백"} ${customer.side === "single" ? "단면" : "양면"}`,
                     finishing: finishingList,
@@ -598,6 +598,7 @@ export default function ProductView({ product: initialProduct }) {
                     pages: booksSummary.length > 0 ? null : customer.pages,
                   },
                   price: price.total,
+                  estimatedWeight: price.estimatedWeight || null,
                   productionDays: 2,
                   paperWeight: customer.weight || 120,
                   paperCode: customer.paper,
