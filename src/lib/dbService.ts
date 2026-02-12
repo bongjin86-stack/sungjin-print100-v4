@@ -248,9 +248,38 @@ export function getPrintCostPerFace(faces: number): number {
 }
 
 /**
+ * 후가공 전체 구간 조회 (누적 계산용)
+ */
+export function getFinishingCostTiers(
+  finishingCode: string
+): Array<{
+  min_qty: number;
+  max_qty: number | null;
+  setup_cost: number;
+  cost_per_unit: number;
+  unit_type: string;
+}> | null {
+  if (!indexMaps) return null;
+  const ft = indexMaps.finishingType.get(finishingCode);
+  if (!ft) return null;
+  const costs = indexMaps.finishingCostByTypeId.get(ft.id);
+  if (!costs || costs.length === 0) return null;
+  return costs
+    .filter((c) => c.finishing_type_id === ft.id)
+    .sort((a, b) => a.min_qty - b.min_qty)
+    .map((c) => ({
+      min_qty: c.min_qty,
+      max_qty: c.max_qty,
+      setup_cost: c.setup_cost,
+      cost_per_unit: c.cost_per_unit,
+      unit_type: c.unit_type,
+    }));
+}
+
+/**
  * 후가공 비용 조회
  */
-export function getFinishingCost(finishingCode: string): {
+export function getFinishingCost(finishingCode: string, qty?: number): {
   setup_cost: number;
   cost_per_unit: number;
   unit_type: string;
@@ -260,7 +289,15 @@ export function getFinishingCost(finishingCode: string): {
   if (!ft) return null;
   const costs = indexMaps.finishingCostByTypeId.get(ft.id);
   if (!costs || costs.length === 0) return null;
-  const fc = costs[0];
+  // 수량 구간 매칭 (qty 없으면 첫 번째 구간)
+  const fc = qty
+    ? costs.find(
+        (c) =>
+          c.finishing_type_id === ft.id &&
+          qty >= c.min_qty &&
+          (c.max_qty === null || qty <= c.max_qty)
+      ) || costs[costs.length - 1]
+    : costs[0];
   return {
     setup_cost: fc.setup_cost,
     cost_per_unit: fc.cost_per_unit,

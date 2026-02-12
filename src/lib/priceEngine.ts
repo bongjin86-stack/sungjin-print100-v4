@@ -9,6 +9,7 @@ import {
   getCoatingCost,
   getFinishingCost,
   getFinishingCostByLines,
+  getFinishingCostTiers,
   getPaperCost,
   getPrintCostPerFace,
   getSizeInfo,
@@ -20,6 +21,39 @@ const PRICE_CONSTANTS = {
   CORNER_BATCH_SIZE: 100, // 귀도리 배치 단위
   DEFAULT_PUNCH_HOLES: 2, // 기본 타공 구멍 수
 } as const;
+
+/**
+ * 누적(마지널) 비용 계산
+ * 각 구간의 단가는 해당 구간 내 수량에만 적용
+ * 예: 1~50: 100원, 51~100: 12원 → 80매 = 50×100 + 30×12 = 5,360원
+ */
+function calculateCumulativeCost(
+  tiers: Array<{
+    min_qty: number;
+    max_qty: number | null;
+    setup_cost: number;
+    cost_per_unit: number;
+  }>,
+  qty: number
+): number {
+  if (tiers.length === 0) return 0;
+
+  const setupCost = tiers[0].setup_cost;
+  let total = setupCost;
+  let remaining = qty;
+
+  for (const tier of tiers) {
+    if (remaining <= 0) break;
+
+    const tierSize =
+      tier.max_qty !== null ? tier.max_qty - tier.min_qty + 1 : remaining;
+    const unitsInTier = Math.min(remaining, tierSize);
+    total += unitsInTier * tier.cost_per_unit;
+    remaining -= unitsInTier;
+  }
+
+  return total;
+}
 
 export interface PriceBreakdown {
   paper?: number;
@@ -114,7 +148,7 @@ function calculateFinishingCosts(
 
   // 귀도리
   if (customer.finishing?.corner) {
-    const cornerCost = getFinishingCost("corner_rounding");
+    const cornerCost = getFinishingCost("corner_rounding", qty);
 
     if (cornerCost) {
       const batches = Math.ceil(qty / PRICE_CONSTANTS.CORNER_BATCH_SIZE);
@@ -127,7 +161,7 @@ function calculateFinishingCosts(
 
   // 타공
   if (customer.finishing?.punch) {
-    const punchCost = getFinishingCost("punching");
+    const punchCost = getFinishingCost("punching", qty);
 
     if (punchCost) {
       const holes = customer.punchHoles || PRICE_CONSTANTS.DEFAULT_PUNCH_HOLES;
@@ -140,7 +174,7 @@ function calculateFinishingCosts(
 
   // 미싱
   if (customer.finishing?.mising) {
-    const misingCost = getFinishingCost("perforating");
+    const misingCost = getFinishingCost("perforating", qty);
 
     if (misingCost) {
       const misingTotal =
@@ -223,11 +257,10 @@ export function calculateSingleLayerPrice(
   breakdown.print = printTotal;
   total += printTotal;
 
-  // 3. 재단비
-  const cuttingCost = getFinishingCost("cutting");
-  if (cuttingCost) {
-    const cuttingTotal =
-      cuttingCost.setup_cost + cuttingCost.cost_per_unit * qty;
+  // 3. 재단비 (누적 구간 계산)
+  const cuttingTiers = getFinishingCostTiers("cutting");
+  if (cuttingTiers && cuttingTiers.length > 0) {
+    const cuttingTotal = calculateCumulativeCost(cuttingTiers, qty);
     breakdown.cutting = cuttingTotal;
     total += cuttingTotal;
   }
@@ -415,7 +448,7 @@ function calculateSpringExtras(
 
   // PP 커버
   if (customer.pp && customer.pp !== "none") {
-    const ppCost = getFinishingCost("pp_cover");
+    const ppCost = getFinishingCost("pp_cover", qty);
     if (ppCost) {
       const ppTotal = ppCost.setup_cost + ppCost.cost_per_unit * qty;
       breakdown.pp = ppTotal;

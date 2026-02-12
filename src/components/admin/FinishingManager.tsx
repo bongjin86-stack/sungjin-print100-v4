@@ -210,7 +210,7 @@ export default function FinishingPage() {
           ? parseInt(costFormData.setup_cost_double)
           : null,
         min_qty: parseInt(costFormData.min_qty),
-        max_qty: parseInt(costFormData.max_qty),
+        max_qty: costFormData.max_qty !== "" ? parseInt(costFormData.max_qty) : null,
         cost_per_unit: parseInt(costFormData.cost_per_unit),
         unit_type: costFormData.unit_type,
         notes: costFormData.notes || null,
@@ -227,19 +227,22 @@ export default function FinishingPage() {
     }
   };
 
+  const costFormRef = React.useRef<HTMLDivElement>(null);
+
   const startEditCost = (cost) => {
     setEditingCostId(cost.id);
     setCostFormData({
       finishing_type_id: cost.finishing_type_id,
-      setup_cost: cost.setup_cost || "",
-      setup_cost_double: cost.setup_cost_double || "",
-      min_qty: cost.min_qty,
-      max_qty: cost.max_qty,
-      cost_per_unit: cost.cost_per_unit,
+      setup_cost: cost.setup_cost ?? "",
+      setup_cost_double: cost.setup_cost_double ?? "",
+      min_qty: cost.min_qty ?? "",
+      max_qty: cost.max_qty ?? "",
+      cost_per_unit: cost.cost_per_unit ?? "",
       unit_type: cost.unit_type || "per_copy",
       notes: cost.notes || "",
       is_active: cost.is_active,
     });
+    setTimeout(() => costFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
   };
 
   const handleUpdateCost = async (e) => {
@@ -254,7 +257,7 @@ export default function FinishingPage() {
             ? parseInt(costFormData.setup_cost_double)
             : null,
           min_qty: parseInt(costFormData.min_qty),
-          max_qty: parseInt(costFormData.max_qty),
+          max_qty: costFormData.max_qty !== "" ? parseInt(costFormData.max_qty) : null,
           cost_per_unit: parseInt(costFormData.cost_per_unit),
           unit_type: costFormData.unit_type,
           notes: costFormData.notes || null,
@@ -495,7 +498,7 @@ export default function FinishingPage() {
 
       {/* Cost 추가/수정 폼 */}
       {(showCostForm || editingCostId) && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl mb-6 p-6">
+        <div ref={costFormRef} className="bg-blue-50 border border-blue-200 rounded-xl mb-6 p-6">
           <h3 className="font-semibold text-gray-900 mb-4">
             {editingCostId ? "후가공 비용 수정" : "새 후가공 비용 추가"}
           </h3>
@@ -543,7 +546,7 @@ export default function FinishingPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                최대 수량 *
+                최대 수량
               </label>
               <input
                 type="number"
@@ -552,8 +555,7 @@ export default function FinishingPage() {
                   setCostFormData({ ...costFormData, max_qty: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3455DB] focus:border-transparent"
-                placeholder="999999"
-                required
+                placeholder="비워두면 무제한"
               />
             </div>
             <div>
