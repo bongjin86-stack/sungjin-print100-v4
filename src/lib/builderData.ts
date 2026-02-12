@@ -1291,3 +1291,16 @@ export function getDefaultContent(name: string) {
     }
   );
 }
+
+/** 블록 구성으로 가격 계산용 product_type 추론 */
+export function inferProductType(product: { product_type?: string; blocks?: any[] }): string {
+  if (product.product_type) return product.product_type;
+  const blocks = product.blocks || [];
+  const pagesBlock = blocks.find((b: any) => b.on && b.type === "pages");
+  if (pagesBlock?.config?.bindingType === "saddle") return "saddle";
+  if (pagesBlock?.config?.bindingType === "leaf") {
+    const hasSpring = blocks.some((b: any) => b.on && b.type === "spring_options");
+    return hasSpring ? "spring" : "perfect";
+  }
+  return "flyer";
+}

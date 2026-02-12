@@ -17,7 +17,7 @@ import {
   getFoldUpdate,
   mapPrintOptionsToCustomer,
 } from "@/lib/blockDefaults";
-import { DB } from "@/lib/builderData";
+import { DB, inferProductType } from "@/lib/builderData";
 import { getBuilderData, loadPricingData } from "@/lib/dbService";
 import { getIconComponent } from "@/lib/highlightIcons";
 
@@ -101,7 +101,7 @@ export default function ProductView({ product: initialProduct }) {
           body: JSON.stringify({
             customer: mapPrintOptionsToCustomer(customer, product?.blocks),
             qty: customer.qty,
-            productType: product.product_type || product.id,
+            productType: inferProductType(product),
             allQtys,
             guidePriceTotal,
           }),
@@ -426,7 +426,7 @@ export default function ProductView({ product: initialProduct }) {
                 "checkoutProduct",
                 JSON.stringify({
                   name: product.name,
-                  type: product.product_type || product.id,
+                  type: inferProductType(product),
                   spec: {
                     size: customer.size?.startsWith("custom_")
                       ? `${customer.customWidth || 0}×${customer.customHeight || 0}mm`

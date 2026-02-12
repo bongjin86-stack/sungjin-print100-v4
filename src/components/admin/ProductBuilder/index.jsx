@@ -25,6 +25,7 @@ import {
   getDefaultConfig,
   getDefaultContent,
   getDefaultCustomer,
+  inferProductType,
   TEMPLATES as DEFAULT_TEMPLATES,
 } from "@/lib/builderData";
 import { getIconComponent, ICON_LIST } from "@/lib/highlightIcons";
@@ -552,7 +553,7 @@ export default function AdminBuilder() {
         sort_order: prod.order ?? 0,
         content: prod.content || {},
         blocks: prod.blocks || [],
-        product_type: prod.productType || null,
+        product_type: inferProductType(prod),
         is_published: true,
       }),
     })
