@@ -99,7 +99,9 @@ const { compact = false } = Astro.props;
     z-index: var(--z-sticky);
     height: var(--headerHeightMobile);
     background-color: var(--c-bg);
-    transition: transform var(--transition-slower) var(--ease-out-quart);
+    transition:
+      transform var(--transition-slower) var(--ease-out-quart),
+      height 0.4s ease;
 
     &.is-hidden {
       transform: translateY(-100%);
@@ -120,6 +122,11 @@ const { compact = false } = Astro.props;
   .header-logo {
     flex-shrink: 0;
     z-index: var(--z-fixed);
+
+    :global(svg),
+    :global(.logo-img) {
+      transition: height 0.4s ease;
+    }
   }
 
   .header-nav {
@@ -134,6 +141,7 @@ const { compact = false } = Astro.props;
     display: flex;
     align-items: center;
     gap: var(--sp-xl);
+    transition: gap 0.4s ease;
   }
 
   .nav-item {
@@ -150,7 +158,9 @@ const { compact = false } = Astro.props;
     font-size: var(--fs-base);
     font-weight: 500;
     text-decoration: none;
-    transition: color var(--transition-fast);
+    transition:
+      color var(--transition-fast),
+      font-size 0.4s ease;
 
     &::before {
       content: "";
@@ -229,8 +239,9 @@ const { compact = false } = Astro.props;
       height: 48px;
     }
 
-    /* Container 패딩 최소화 → 로고가 왼쪽 구석으로 밀착 */
+    /* Container 패딩 최소화 → 양쪽 끝으로 밀착 */
     :global(.container) {
+      max-width: 100%;
       padding: 0 var(--sp-sm);
 
       @media (min-width: 600px) {
@@ -243,6 +254,7 @@ const { compact = false } = Astro.props;
       :global(svg),
       :global(.logo-img) {
         height: 22px !important;
+        transition: height 0.4s ease;
 
         @media (min-width: 900px) {
           height: 26px !important;
@@ -250,16 +262,25 @@ const { compact = false } = Astro.props;
       }
     }
 
-    /* 데스크톱 네비 숨김 */
-    .header-nav {
-      @media (min-width: 1000px) {
-        display: none;
-      }
+    /* 네비 메뉴 축소 — 간격 좁히고 글씨 작게 */
+    .nav-list {
+      gap: var(--sp-md);
+      transition: gap 0.4s ease;
     }
 
-    /* 데스크톱에서도 햄버거 메뉴 버튼 표시 */
-    :global(.menu-button) {
-      display: grid !important;
+    .nav-link {
+      font-size: var(--fs-xs);
+      font-weight: 400;
+      transition:
+        font-size 0.4s ease,
+        color var(--transition-fast);
+    }
+
+    /* 문의하기 버튼 축소 */
+    :global(.menu-contact) {
+      font-size: var(--fs-xs) !important;
+      padding: var(--sp-xs) var(--sp-md) !important;
+      transition: all 0.4s ease !important;
     }
   }
 </style>
