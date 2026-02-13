@@ -45,7 +45,7 @@ export default function Edu100SectionManager() {
   const [editingSection, setEditingSection] = useState<Section | null>(null);
   const [addingCoverTo, setAddingCoverTo] = useState<string | null>(null);
   const [showAddSection, setShowAddSection] = useState(false);
-  const [blogPostCount, setBlogPostCount] = useState(0);
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
 
   // 데이터 로드
   const loadSections = async () => {
@@ -61,20 +61,20 @@ export default function Edu100SectionManager() {
     }
   };
 
-  // 공개 블로그 글 수 로드
-  const loadBlogCount = async () => {
+  // 공개 블로그 글 로드
+  const loadBlogPosts = async () => {
     try {
       const res = await fetch("/api/blog?published=true");
       const data = await res.json();
-      setBlogPostCount(Array.isArray(data) ? data.length : 0);
+      setBlogPosts(Array.isArray(data) ? data : []);
     } catch {
-      setBlogPostCount(0);
+      setBlogPosts([]);
     }
   };
 
   useEffect(() => {
     loadSections();
-    loadBlogCount();
+    loadBlogPosts();
   }, []);
 
   // 섹션 추가
@@ -250,7 +250,7 @@ export default function Edu100SectionManager() {
               section={section}
               index={idx}
               totalSections={sections.length}
-              blogPostCount={blogPostCount}
+              blogPosts={blogPosts}
               isEditing={editingSection?.id === section.id}
               editingData={editingSection?.id === section.id ? editingSection : null}
               addingCover={addingCoverTo === section.id}
@@ -281,7 +281,7 @@ interface SectionCardProps {
   section: Section;
   index: number;
   totalSections: number;
-  blogPostCount: number;
+  blogPosts: any[];
   isEditing: boolean;
   editingData: Section | null;
   addingCover: boolean;
@@ -301,7 +301,7 @@ function SectionCard({
   section,
   index,
   totalSections,
-  blogPostCount,
+  blogPosts,
   isEditing,
   editingData,
   addingCover,
@@ -413,7 +413,7 @@ function SectionCard({
           )}
           {section.type === "blog" && (
             <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
-              블로그 글 {blogPostCount}개
+              블로그 글 {blogPosts.length}개
             </span>
           )}
         </div>
@@ -524,18 +524,102 @@ function SectionCard({
         />
       )}
 
-      {/* 블로그 섹션 안내 (커버 관리 불필요 — 블로그 글 자동 표시) */}
+      {/* 블로그 섹션 — 공개 블로그 글 카드 목록 */}
       {section.type === "blog" && (
         <div style={{ padding: "1rem 1.5rem" }}>
-          <p style={{ fontSize: "0.8125rem", color: "#9ca3af" }}>
-            이 섹션은 공개된 블로그 글을 자동으로 표시합니다.
-            <a
-              href="/admin/blog"
-              style={{ color: "#4f46e5", marginLeft: "0.5rem", textDecoration: "underline" }}
+          {blogPosts.length > 0 ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                gap: "0.75rem",
+                marginBottom: "1rem",
+              }}
             >
-              블로그 관리 →
-            </a>
-          </p>
+              {blogPosts.map((post) => (
+                <a
+                  key={post.id}
+                  href={`/admin/blog/${post.id}`}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "0.375rem",
+                    overflow: "hidden",
+                    background: "white",
+                  }}
+                >
+                  <div
+                    style={{
+                      aspectRatio: "1/1",
+                      background: "#f3f4f6",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {post.image ? (
+                      <img
+                        src={post.image}
+                        alt={post.title}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#9ca3af",
+                          fontSize: "0.75rem",
+                        }}
+                      >
+                        No Image
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: "0.5rem" }}>
+                    <p
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#374151",
+                        fontWeight: 500,
+                        lineHeight: 1.3,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        margin: 0,
+                      }}
+                    >
+                      {post.title}
+                    </p>
+                    <p style={{ fontSize: "0.625rem", color: "#9ca3af", margin: "4px 0 0" }}>
+                      {new Date(post.pub_date).toLocaleDateString("ko-KR")}
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p style={{ fontSize: "0.8125rem", color: "#9ca3af", marginBottom: "0.75rem" }}>
+              공개된 블로그 글이 없습니다.
+            </p>
+          )}
+          <a
+            href="/admin/blog"
+            style={{
+              display: "inline-block",
+              padding: "0.375rem 0.75rem",
+              border: "1px dashed #d1d5db",
+              borderRadius: "0.375rem",
+              background: "white",
+              color: "#6b7280",
+              fontSize: "0.8125rem",
+              textDecoration: "none",
+            }}
+          >
+            블로그 관리 →
+          </a>
         </div>
       )}
 
