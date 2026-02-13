@@ -16,13 +16,35 @@ Astro.response.headers.set(
 
 const { slug } = Astro.params;
 
-// slug 또는 id로 조회
-const { data: post, error } = await supabase
-  .from("blog_posts")
-  .select("*")
-  .or(`slug.eq.${slug},id.eq.${slug}`)
-  .eq("is_published", true)
-  .single();
+// slug 또는 id로 조회 (한글 slug 안전 처리)
+const decodedSlug = decodeURIComponent(slug || "");
+
+// UUID 형식이면 id로, 아니면 slug로 조회
+const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(decodedSlug);
+
+let post: any = null;
+let error: any = null;
+
+if (isUuid) {
+  const result = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("id", decodedSlug)
+    .eq("is_published", true)
+    .single();
+  post = result.data;
+  error = result.error;
+} else {
+  // slug로 먼저 시도
+  const result = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("slug", decodedSlug)
+    .eq("is_published", true)
+    .single();
+  post = result.data;
+  error = result.error;
+}
 
 if (error || !post) {
   return Astro.redirect("/edu100");
