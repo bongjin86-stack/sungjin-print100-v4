@@ -256,6 +256,11 @@ const { compact = false } = Astro.props;
         display: none;
       }
     }
+
+    /* 데스크톱에서도 햄버거 메뉴 버튼 표시 */
+    :global(.menu-button) {
+      display: grid !important;
+    }
   }
 </style>
 
