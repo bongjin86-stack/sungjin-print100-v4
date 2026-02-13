@@ -6,18 +6,14 @@ import MobileMenu from "@/components/ui/MobileMenu.astro";
 import SiteLogo from "@/components/ui/SiteLogo.astro";
 import menuData from "@/config/menu.json";
 import siteConfig from "@/config/site.config.json";
-import { supabase } from "@/lib/supabase";
+import { getServices } from "@/lib/layoutCache";
 import type { MenuData, MenuItem } from "@/types/index.d.ts";
 
 const typedMenuData = menuData as MenuData;
 const contactMenu = typedMenuData.contact;
 
-// DB에서 활성 서비스 목록을 가져와 "서비스" 드롭다운을 동적으로 구성
-const { data: services } = await supabase
-  .from("services")
-  .select("title, slug")
-  .eq("is_active", true)
-  .order("sort_order", { ascending: true });
+// DB에서 활성 서비스 목록 (메모리 캐시, 5분 TTL)
+const services = await getServices();
 
 const mainMenu: MenuItem[] = typedMenuData.main.map((item) => {
   if (item.path === "/services/" && services && services.length > 0) {

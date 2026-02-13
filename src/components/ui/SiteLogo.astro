@@ -1,7 +1,7 @@
 ---
 import LogoImage from "@/assets/logo.svg";
 import siteConfig from "@/config/site.config.json";
-import { supabase } from "@/lib/supabase";
+import { getLogoUrl } from "@/lib/layoutCache";
 import type { SiteConfig } from "@/types/index.d.ts";
 
 interface Props {
@@ -14,20 +14,8 @@ const { h1, inverse, class: className, ...rest } = Astro.props;
 const typedSiteConfig = siteConfig as SiteConfig;
 const siteTitle = typedSiteConfig.site.title as string;
 
-// DB에서 로고 URL 조회
-let logoUrl: string | null = null;
-try {
-  const { data } = await supabase
-    .from("site_settings")
-    .select("value")
-    .eq("key", "logo_url")
-    .single();
-  if (data?.value) {
-    logoUrl = data.value;
-  }
-} catch {
-  // 없으면 기본 SVG 사용
-}
+// DB에서 로고 URL (메모리 캐시, 5분 TTL)
+const logoUrl = await getLogoUrl();
 ---
 
 {

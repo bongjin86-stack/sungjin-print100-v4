@@ -7,6 +7,12 @@ import "@/components/product/ProductView.css";
 
 export const prerender = false;
 
+// CDN 캐시: 5분 유지, 24시간 stale-while-revalidate
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, s-maxage=300, stale-while-revalidate=86400"
+);
+
 const { id } = Astro.params;
 
 // Supabase에서 상품 데이터 가져오기

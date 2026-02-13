@@ -10,7 +10,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   prefetch: {
     prefetchAll: true,
-    defaultStrategy: "hover",
+    defaultStrategy: "viewport",
   },
   site: "https://nagi-6tu.pages.dev",
   output: "server",

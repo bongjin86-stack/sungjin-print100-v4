@@ -1,6 +1,12 @@
 ---
 export const prerender = false;
 
+// CDN 캐시: 1시간 유지, 24시간 stale-while-revalidate
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, s-maxage=3600, stale-while-revalidate=86400"
+);
+
 import sampleImage1 from "@/assets/sample1.jpg";
 import sampleImage2 from "@/assets/sample2.jpg";
 import ContentImage from "@/components/sections/ContentImage.astro";
