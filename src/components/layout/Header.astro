@@ -94,9 +94,7 @@ const isHome = Astro.url.pathname === "/";
     z-index: var(--z-sticky);
     height: var(--headerHeightMobile);
     background-color: var(--c-bg);
-    transition:
-      transform var(--transition-slower) var(--ease-out-quart),
-      height 0.4s ease;
+    transition: transform var(--transition-slower) var(--ease-out-quart);
 
     &.is-hidden {
       transform: translateY(-100%);
@@ -117,11 +115,6 @@ const isHome = Astro.url.pathname === "/";
   .header-logo {
     flex-shrink: 0;
     z-index: var(--z-fixed);
-
-    :global(svg),
-    :global(.logo-img) {
-      transition: height 0.4s ease;
-    }
   }
 
   .header-nav {
@@ -136,7 +129,6 @@ const isHome = Astro.url.pathname === "/";
     display: flex;
     align-items: center;
     gap: var(--sp-xl);
-    transition: gap 0.4s ease;
   }
 
   .nav-item {
@@ -153,9 +145,7 @@ const isHome = Astro.url.pathname === "/";
     font-size: var(--fs-base);
     font-weight: 500;
     text-decoration: none;
-    transition:
-      color var(--transition-fast),
-      font-size 0.4s ease;
+    transition: color var(--transition-fast);
 
     &::before {
       content: "";
@@ -225,90 +215,14 @@ const isHome = Astro.url.pathname === "/";
       color: var(--c-link);
     }
   }
-
-  /* ── Compact mode (Edu+100 등 풀프레임 페이지) ── */
-  .header--compact {
-    height: 44px;
-
-    @media (min-width: 1000px) {
-      height: 48px;
-    }
-
-    /* Container 패딩 최소화 → 양쪽 끝으로 밀착 */
-    :global(.container) {
-      max-width: 100%;
-      padding: 0 var(--sp-sm);
-
-      @media (min-width: 600px) {
-        padding: 0 var(--sp-md);
-      }
-    }
-
-    /* 로고 축소 */
-    :global(.logo) {
-      :global(svg),
-      :global(.logo-img) {
-        height: 22px !important;
-        transition: height 0.4s ease;
-
-        @media (min-width: 900px) {
-          height: 26px !important;
-        }
-      }
-    }
-
-    /* 네비 메뉴 축소 — 간격 좁히고 글씨 작게 */
-    .nav-list {
-      gap: var(--sp-md);
-      transition: gap 0.4s ease;
-    }
-
-    .nav-link {
-      font-size: var(--fs-xs);
-      font-weight: 400;
-      transition:
-        font-size 0.4s ease,
-        color var(--transition-fast);
-    }
-
-    /* 문의하기 버튼 축소 */
-    :global(.menu-contact) {
-      font-size: var(--fs-xs) !important;
-      padding: var(--sp-xs) var(--sp-md) !important;
-      transition: all 0.4s ease !important;
-    }
-  }
 </style>
 
 <script>
-  // ── Compact mode: URL 기반 클래스 토글 ──
-  // transition:persist로 헤더 DOM이 유지되므로
-  // 페이지 전환 시 CSS transition이 실시간 작동
-  const COMPACT_PATHS = ["/edu100"];
-
-  function updateCompactMode() {
-    const header = document.getElementById("header");
-    if (!header) return;
-    const isCompact = COMPACT_PATHS.some((p) => window.location.pathname.startsWith(p));
-    if (isCompact) {
-      header.classList.add("header--compact");
-    } else {
-      header.classList.remove("header--compact");
-    }
-  }
-
-  // 초기 로드
-  updateCompactMode();
-
-  // Astro 페이지 전환 시 (ClientRouter)
-  document.addEventListener("astro:after-swap", updateCompactMode);
-
-  // ── 스크롤 시 헤더 자동 숨김 ──
+  const header = document.getElementById("header");
   let lastScroll = 0;
   let ticking = false;
 
   const updateHeader = () => {
-    const header = document.getElementById("header");
     const currentScroll = window.scrollY;
 
     if (currentScroll <= 0) {
