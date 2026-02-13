@@ -1,15 +1,15 @@
 import type { APIRoute } from "astro";
 
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "../../../../lib/supabase";
 
 export const prerender = false;
 
-// GET - 단일 조회
+// GET - 단일 섹션 + 커버
 export const GET: APIRoute = async ({ params }) => {
   const { id } = params;
 
-  const { data, error } = await supabase
-    .from("edu100_covers")
+  const { data: section, error } = await supabase
+    .from("edu100_sections")
     .select("*")
     .eq("id", id)
     .single();
@@ -21,41 +21,32 @@ export const GET: APIRoute = async ({ params }) => {
     });
   }
 
-  return new Response(JSON.stringify(data), {
+  const { data: covers } = await supabase
+    .from("edu100_covers")
+    .select("*")
+    .eq("section_id", id)
+    .order("sort_order", { ascending: true });
+
+  return new Response(JSON.stringify({ ...section, covers: covers || [] }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });
 };
 
-// PUT - 수정
+// PUT - 섹션 수정
 export const PUT: APIRoute = async ({ params, request }) => {
   const { id } = params;
   const body = await request.json();
-
-  const { title, subtitle, description, image, thumbnails, tag, linked_product_id, is_published, sort_order, fields, design_fee, section_id } = body;
-
-  if (!title) {
-    return new Response(JSON.stringify({ message: "제목은 필수입니다." }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  const { title, type, content, sort_order, is_published } = body;
 
   const { data, error } = await supabase
-    .from("edu100_covers")
+    .from("edu100_sections")
     .update({
-      title,
-      subtitle: subtitle || "",
-      description: description || "",
-      image: image || "",
-      thumbnails: thumbnails || [],
-      tag: tag || "",
-      linked_product_id: linked_product_id || null,
-      is_published: is_published ?? false,
+      title: title || "",
+      type: type || "gallery",
+      content: content || "",
       sort_order: sort_order ?? 0,
-      fields: fields || [],
-      design_fee: design_fee ?? 0,
-      section_id: section_id || null,
+      is_published: is_published ?? true,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
@@ -75,11 +66,17 @@ export const PUT: APIRoute = async ({ params, request }) => {
   });
 };
 
-// DELETE - 삭제
+// DELETE - 섹션 삭제 (소속 커버는 section_id = NULL)
 export const DELETE: APIRoute = async ({ params }) => {
   const { id } = params;
 
-  const { error } = await supabase.from("edu100_covers").delete().eq("id", id);
+  // 소속 커버의 section_id를 null로
+  await supabase
+    .from("edu100_covers")
+    .update({ section_id: null })
+    .eq("section_id", id);
+
+  const { error } = await supabase.from("edu100_sections").delete().eq("id", id);
 
   if (error) {
     return new Response(JSON.stringify({ message: error.message }), {

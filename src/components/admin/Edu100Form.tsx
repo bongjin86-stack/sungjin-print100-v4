@@ -14,6 +14,7 @@ interface CoverField {
 
 interface Edu100FormProps {
   mode: "create" | "edit";
+  sectionId?: string;
   initialData?: {
     id: string;
     title: string;
@@ -27,10 +28,11 @@ interface Edu100FormProps {
     sort_order?: number;
     fields?: CoverField[];
     design_fee?: number;
+    section_id?: string;
   };
 }
 
-export default function Edu100Form({ mode, initialData }: Edu100FormProps) {
+export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
@@ -117,6 +119,7 @@ export default function Edu100Form({ mode, initialData }: Edu100FormProps) {
     const payload = {
       ...formData,
       sort_order: Number(formData.sort_order) || 0,
+      section_id: sectionId || initialData?.section_id || null,
     };
 
     try {

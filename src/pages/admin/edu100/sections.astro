@@ -1,0 +1,44 @@
+---
+import Edu100SectionManager from "../../../components/admin/Edu100SectionManager";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+
+export const prerender = false;
+---
+
+<AdminLayout title="Edu+100 섹션 관리">
+  <div class="admin-header">
+    <h1>Edu+100 섹션 관리</h1>
+    <a href="/admin/edu100" class="btn-back">커버 목록</a>
+  </div>
+
+  <Edu100SectionManager client:only="react" />
+</AdminLayout>
+
+<style>
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .admin-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+
+  .btn-back {
+    background: #e5e7eb;
+    color: #374151;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .btn-back:hover {
+    background: #d1d5db;
+  }
+</style>

@@ -25,6 +25,7 @@ const { title, noindex, description, ogImage, articleDate } = Astro.props;
 const headerHeight = siteConfig.settings.header_height;
 const headerHeightMobile = siteConfig.settings.header_height_mobile;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const isCompactHeader = Astro.url.pathname.startsWith("/edu100");
 const siteLang = String(siteConfig.site.lang);
 const twitterCreator = String(siteConfig.social.twitter_creator);
 const defaultOgImage = String(siteConfig.site.og_image);
@@ -138,7 +139,7 @@ const websiteSchema = {
     </noscript>
   </head>
   <body>
-    <Header />
+    <Header compact={isCompactHeader} />
     <main>
       <slot />
     </main>

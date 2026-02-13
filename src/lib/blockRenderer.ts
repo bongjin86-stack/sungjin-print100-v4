@@ -88,8 +88,11 @@ function renderBlock(block: Block): string {
 
     case "image":
       const url = (block.props as any)?.url || "";
-      const alt = (block.props as any)?.caption || "";
-      return url ? `<img src="${url}" alt="${alt}" />` : "";
+      const caption = (block.props as any)?.caption || "";
+      if (!url) return "";
+      return caption
+        ? `<figure><img src="${url}" alt="${caption}" /><figcaption>${caption}</figcaption></figure>`
+        : `<img src="${url}" alt="" />`;
 
     default:
       return content ? `<p>${content}</p>` : "";
@@ -157,8 +160,9 @@ export function renderBlocksToHTML(content: string | Block[]): string {
     blocks = content;
   }
 
-  // 빈 블록 필터링
+  // 빈 블록 필터링 (이미지 등 props 기반 블록은 content 없이도 유효)
   const nonEmptyBlocks = blocks.filter((block) => {
+    if (block.type === "image") return !!(block.props as any)?.url;
     if (!block.content || block.content.length === 0) return false;
     return block.content.some((c) => c.text && c.text.trim() !== "");
   });

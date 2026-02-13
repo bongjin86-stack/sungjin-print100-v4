@@ -17,7 +17,10 @@ if (error) {
 <AdminLayout title="Edu+100 표지 관리">
   <div class="admin-header">
     <h1>Edu+100 표지 관리</h1>
-    <a href="/admin/edu100/new" class="btn-primary">새 표지 등록</a>
+    <div class="header-actions">
+      <a href="/admin/edu100/sections" class="btn-sections">섹션 관리</a>
+      <a href="/admin/edu100/new" class="btn-primary">새 표지 등록</a>
+    </div>
   </div>
 
   <div class="covers-list">
@@ -98,6 +101,26 @@ if (error) {
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--c-text);
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .btn-sections {
+    background: #e5e7eb;
+    color: #374151;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .btn-sections:hover {
+    background: #d1d5db;
   }
 
   .btn-primary {

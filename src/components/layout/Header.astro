@@ -35,9 +35,14 @@ const mainMenu: MenuItem[] = typedMenuData.main.map((item) => {
 const headerHeight = siteConfig.settings.header_height;
 const headerHeightMobile = siteConfig.settings.header_height_mobile;
 const isHome = Astro.url.pathname === "/";
+
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
 ---
 
-<header class="header" id="header">
+<header class:list={["header", { "header--compact": compact }]} id="header">
   <Container>
     <div class="header-inner">
       <SiteLogo h1={isHome} class="header-logo" />
@@ -213,6 +218,38 @@ const isHome = Astro.url.pathname === "/";
     &:hover {
       background-color: var(--c-bg-secondary);
       color: var(--c-link);
+    }
+  }
+
+  /* ── Compact mode (Edu+100 등 풀프레임 페이지) ── */
+  .header--compact {
+    height: 44px;
+
+    @media (min-width: 1000px) {
+      height: 48px;
+    }
+
+    .header-inner {
+      /* 로고와 모바일 메뉴 버튼만 표시 */
+    }
+
+    /* 로고 축소 */
+    :global(.logo) {
+      :global(svg),
+      :global(.logo-img) {
+        height: 24px !important;
+
+        @media (min-width: 900px) {
+          height: 28px !important;
+        }
+      }
+    }
+
+    /* 데스크톱 네비 숨김 */
+    .header-nav {
+      @media (min-width: 1000px) {
+        display: none;
+      }
     }
   }
 </style>

@@ -158,6 +158,14 @@ function BlockNoteEditorInner({
         const newEditor = coreModule.BlockNoteEditor.create({
           schema,
           initialContent: initialBlocks,
+          uploadFile: async (file: File) => {
+            const formData = new FormData();
+            formData.append("file", file);
+            const res = await fetch("/api/upload", { method: "POST", body: formData });
+            if (!res.ok) throw new Error("업로드 실패");
+            const data = await res.json();
+            return data.url;
+          },
         });
 
         setEditor(newEditor);
@@ -427,6 +435,14 @@ export function renderBlocksToHTML(content: string): string {
           return `<li>${blockContent}</li>`;
         case "numberedListItem":
           return `<li>${blockContent}</li>`;
+        case "image": {
+          const url = block.props?.url || "";
+          const caption = block.props?.caption || "";
+          if (!url) return "";
+          return caption
+            ? `<figure><img src="${url}" alt="${caption}" /><figcaption>${caption}</figcaption></figure>`
+            : `<img src="${url}" alt="" />`;
+        }
         case "paragraph":
         default:
           return blockContent ? `<p>${blockContent}</p>` : "";

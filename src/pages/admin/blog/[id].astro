@@ -1,0 +1,65 @@
+---
+export const prerender = false;
+
+import BlogForm from "../../../components/admin/BlogForm";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
+
+const { id } = Astro.params;
+
+const { data: post, error } = await supabase
+  .from("blog_posts")
+  .select("*")
+  .eq("id", id)
+  .single();
+
+if (error || !post) {
+  return Astro.redirect("/admin/blog");
+}
+
+const formattedPost = {
+  ...post,
+  pub_date: new Date(post.pub_date).toISOString().split("T")[0],
+  tags: post.tags || [],
+};
+---
+
+<AdminLayout title="블로그 글 수정">
+  <div class="blog-edit-page">
+    <div class="page-header">
+      <a href="/admin/blog" class="back-link">&larr; 목록으로</a>
+    </div>
+
+    <div class="form-card">
+      <BlogForm mode="edit" initialData={formattedPost} client:load />
+    </div>
+  </div>
+
+  <style>
+    .blog-edit-page {
+      max-width: 900px;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+    }
+
+    .back-link {
+      color: var(--c-text-sub);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--c-text);
+    }
+
+    .form-card {
+      background: var(--c-bg);
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: var(--shadow-base);
+    }
+  </style>
+</AdminLayout>
