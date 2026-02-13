@@ -44,28 +44,29 @@ if (gallerySectionIds.length > 0) {
   allCovers = covers || [];
 }
 
-// blog 타입 섹션이 있으면 블로그 포스트 조회
-const hasBlogSection = sectionList.some((s) => s.type === "blog");
-let blogPosts: any[] = [];
+// blog 타입 섹션이 있으면 블로그 포스트 조회 (section_id로 배정된 글만)
+const blogSectionIds = sectionList.filter((s) => s.type === "blog").map((s) => s.id);
+let allBlogPosts: any[] = [];
 
-if (hasBlogSection) {
+if (blogSectionIds.length > 0) {
   const { data: posts, error: blogError } = await supabase
     .from("blog_posts")
     .select("*")
+    .in("section_id", blogSectionIds)
     .eq("is_published", true)
     .order("pub_date", { ascending: false });
 
   if (blogError) {
     console.error("Error fetching blog posts:", blogError);
   }
-  blogPosts = posts || [];
+  allBlogPosts = posts || [];
 }
 
 // 섹션에 데이터 매핑
 const sectionsWithData = sectionList.map((section) => ({
   ...section,
   covers: section.type === "gallery" ? allCovers.filter((c) => c.section_id === section.id) : [],
-  posts: section.type === "blog" ? blogPosts : [],
+  posts: section.type === "blog" ? allBlogPosts.filter((p) => p.section_id === section.id) : [],
 }));
 
 // 모달용 전체 커버 (gallery 섹션만)

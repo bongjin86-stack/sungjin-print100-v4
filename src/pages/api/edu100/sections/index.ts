@@ -26,10 +26,23 @@ export const GET: APIRoute = async () => {
     .in("section_id", sectionIds)
     .order("sort_order", { ascending: true });
 
-  // 섹션에 커버 매핑
+  // blog 섹션용 블로그 글 조회
+  const hasBlogSection = (sections || []).some((s) => s.type === "blog");
+  let blogPosts: any[] = [];
+  if (hasBlogSection) {
+    const { data: posts } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .in("section_id", sectionIds)
+      .order("pub_date", { ascending: false });
+    blogPosts = posts || [];
+  }
+
+  // 섹션에 커버 + 블로그 글 매핑
   const result = (sections || []).map((section) => ({
     ...section,
     covers: (covers || []).filter((c) => c.section_id === section.id),
+    posts: section.type === "blog" ? blogPosts.filter((p) => p.section_id === section.id) : [],
   }));
 
   return new Response(JSON.stringify(result), {

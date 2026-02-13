@@ -17,6 +17,15 @@ interface Cover {
   design_fee?: number;
 }
 
+interface BlogPost {
+  id: string;
+  title: string;
+  image?: string;
+  pub_date: string;
+  is_published: boolean;
+  section_id?: string;
+}
+
 interface Section {
   id: string;
   title: string;
@@ -25,6 +34,7 @@ interface Section {
   sort_order: number;
   is_published: boolean;
   covers: Cover[];
+  posts: BlogPost[];
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -45,9 +55,7 @@ export default function Edu100SectionManager() {
   const [editingSection, setEditingSection] = useState<Section | null>(null);
   const [addingCoverTo, setAddingCoverTo] = useState<string | null>(null);
   const [showAddSection, setShowAddSection] = useState(false);
-  const [blogPosts, setBlogPosts] = useState<any[]>([]);
-
-  // 데이터 로드
+  // 데이터 로드 (sections API가 posts도 포함)
   const loadSections = async () => {
     setLoading(true);
     try {
@@ -61,20 +69,8 @@ export default function Edu100SectionManager() {
     }
   };
 
-  // 공개 블로그 글 로드
-  const loadBlogPosts = async () => {
-    try {
-      const res = await fetch("/api/blog?published=true");
-      const data = await res.json();
-      setBlogPosts(Array.isArray(data) ? data : []);
-    } catch {
-      setBlogPosts([]);
-    }
-  };
-
   useEffect(() => {
     loadSections();
-    loadBlogPosts();
   }, []);
 
   // 섹션 추가
@@ -250,7 +246,6 @@ export default function Edu100SectionManager() {
               section={section}
               index={idx}
               totalSections={sections.length}
-              blogPosts={blogPosts}
               isEditing={editingSection?.id === section.id}
               editingData={editingSection?.id === section.id ? editingSection : null}
               addingCover={addingCoverTo === section.id}
@@ -281,7 +276,6 @@ interface SectionCardProps {
   section: Section;
   index: number;
   totalSections: number;
-  blogPosts: any[];
   isEditing: boolean;
   editingData: Section | null;
   addingCover: boolean;
@@ -301,7 +295,6 @@ function SectionCard({
   section,
   index,
   totalSections,
-  blogPosts,
   isEditing,
   editingData,
   addingCover,
@@ -413,7 +406,7 @@ function SectionCard({
           )}
           {section.type === "blog" && (
             <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
-              블로그 글 {blogPosts.length}개
+              {(section.posts || []).length}개
             </span>
           )}
         </div>
@@ -524,10 +517,10 @@ function SectionCard({
         />
       )}
 
-      {/* 블로그 섹션 — 공개 블로그 글 카드 목록 */}
+      {/* 블로그 섹션 — 갤러리와 동일한 시스템 (배정/해제) */}
       {section.type === "blog" && (
         <div style={{ padding: "1rem 1.5rem" }}>
-          {blogPosts.length > 0 ? (
+          {(section.posts || []).length > 0 ? (
             <div
               style={{
                 display: "grid",
@@ -536,23 +529,13 @@ function SectionCard({
                 marginBottom: "1rem",
               }}
             >
-              {blogPosts.map((post) => (
-                <a
-                  key={post.id}
-                  href={`/admin/blog/${post.id}`}
-                  style={{
-                    textDecoration: "none",
-                    color: "inherit",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "0.375rem",
-                    overflow: "hidden",
-                    background: "white",
-                  }}
-                >
+              {(section.posts || []).map((post) => (
+                <div key={post.id} style={{ position: "relative" }}>
                   <div
                     style={{
                       aspectRatio: "1/1",
                       background: "#f3f4f6",
+                      borderRadius: "0.375rem",
                       overflow: "hidden",
                     }}
                   >
@@ -578,48 +561,108 @@ function SectionCard({
                       </div>
                     )}
                   </div>
-                  <div style={{ padding: "0.5rem" }}>
-                    <p
+                  <p
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#374151",
+                      marginTop: "0.375rem",
+                      lineHeight: 1.3,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {post.title}
+                  </p>
+                  {/* 편집/삭제(해제) 오버레이 */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "0.25rem",
+                      right: "0.25rem",
+                      display: "flex",
+                      gap: "0.25rem",
+                    }}
+                  >
+                    <a
+                      href={`/admin/blog/${post.id}`}
                       style={{
-                        fontSize: "0.75rem",
-                        color: "#374151",
-                        fontWeight: 500,
-                        lineHeight: 1.3,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        margin: 0,
+                        width: "1.25rem",
+                        height: "1.25rem",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: "50%",
+                        background: "rgba(0,0,0,0.5)",
+                        color: "white",
+                        fontSize: "0.625rem",
+                        textDecoration: "none",
                       }}
+                      title="편집"
                     >
-                      {post.title}
-                    </p>
-                    <p style={{ fontSize: "0.625rem", color: "#9ca3af", margin: "4px 0 0" }}>
-                      {new Date(post.pub_date).toLocaleDateString("ko-KR")}
-                    </p>
+                      ✎
+                    </a>
+                    <button
+                      onClick={async () => {
+                        // 섹션에서 해제 (section_id = null)
+                        await fetch(`/api/blog/${post.id}`, {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ ...post, section_id: null }),
+                        });
+                        onCoverAdded(); // reload
+                      }}
+                      style={{
+                        width: "1.25rem",
+                        height: "1.25rem",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: "50%",
+                        background: "rgba(220,38,38,0.7)",
+                        color: "white",
+                        fontSize: "0.625rem",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
+                      title="섹션에서 제거"
+                    >
+                      ✕
+                    </button>
                   </div>
-                </a>
+                </div>
               ))}
             </div>
           ) : (
             <p style={{ fontSize: "0.8125rem", color: "#9ca3af", marginBottom: "0.75rem" }}>
-              공개된 블로그 글이 없습니다.
+              배정된 블로그 글이 없습니다.
             </p>
           )}
-          <a
-            href="/admin/blog"
-            style={{
-              display: "inline-block",
-              padding: "0.375rem 0.75rem",
-              border: "1px dashed #d1d5db",
-              borderRadius: "0.375rem",
-              background: "white",
-              color: "#6b7280",
-              fontSize: "0.8125rem",
-              textDecoration: "none",
-            }}
-          >
-            블로그 관리 →
-          </a>
+
+          {/* 블로그 추가 */}
+          {!addingCover ? (
+            <button
+              onClick={onAddCover}
+              style={{
+                padding: "0.375rem 0.75rem",
+                border: "1px dashed #d1d5db",
+                borderRadius: "0.375rem",
+                background: "white",
+                color: "#6b7280",
+                fontSize: "0.8125rem",
+                cursor: "pointer",
+              }}
+            >
+              + 블로그 추가
+            </button>
+          ) : (
+            <QuickBlogForm
+              sectionId={section.id}
+              currentPostIds={(section.posts || []).map((p) => p.id)}
+              onCancel={onCancelAddCover}
+              onSaved={onCoverAdded}
+            />
+          )}
         </div>
       )}
 
@@ -963,6 +1006,213 @@ function QuickCoverForm({ sectionId, currentCoverIds, onCancel, onSaved }: Quick
                   </p>
                 )}
                 {cover.section_id && (
+                  <p style={{ fontSize: "0.5625rem", color: "#9ca3af", margin: "2px 0 0" }}>
+                    다른 섹션 배정됨
+                  </p>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── 블로그 글 선택 + 섹션 배정 (QuickCoverForm과 동일 패턴) ───
+
+interface QuickBlogFormProps {
+  sectionId: string;
+  currentPostIds: string[];
+  onCancel: () => void;
+  onSaved: () => void;
+}
+
+function QuickBlogForm({ sectionId, currentPostIds, onCancel, onSaved }: QuickBlogFormProps) {
+  const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"unassigned" | "all">("unassigned");
+
+  useEffect(() => {
+    fetch("/api/blog")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setAllPosts(data);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = allPosts.filter((p) => {
+    if (currentPostIds.includes(p.id)) return false;
+    if (filter === "unassigned") return !p.section_id;
+    return true;
+  });
+
+  const handleAssign = async (postId: string) => {
+    setSaving(postId);
+    try {
+      const post = allPosts.find((p) => p.id === postId);
+      if (!post) return;
+      const res = await fetch(`/api/blog/${postId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...post, section_id: sectionId }),
+      });
+      if (res.ok) {
+        onSaved();
+      } else {
+        alert("배정 실패");
+      }
+    } catch {
+      alert("배정 실패");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        padding: "1rem",
+        border: "1px solid #e5e7eb",
+        borderRadius: "0.5rem",
+        background: "#fafafa",
+      }}
+    >
+      {/* 헤더 + 필터 */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+        <span style={{ fontSize: "0.875rem", fontWeight: 500, color: "#374151" }}>
+          블로그 글 선택
+        </span>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <button
+            onClick={() => setFilter("unassigned")}
+            style={{
+              padding: "0.25rem 0.625rem",
+              border: "1px solid #e5e7eb",
+              borderRadius: "0.25rem",
+              background: filter === "unassigned" ? "#111827" : "white",
+              color: filter === "unassigned" ? "white" : "#6b7280",
+              fontSize: "0.75rem",
+              cursor: "pointer",
+            }}
+          >
+            미배정
+          </button>
+          <button
+            onClick={() => setFilter("all")}
+            style={{
+              padding: "0.25rem 0.625rem",
+              border: "1px solid #e5e7eb",
+              borderRadius: "0.25rem",
+              background: filter === "all" ? "#111827" : "white",
+              color: filter === "all" ? "white" : "#6b7280",
+              fontSize: "0.75rem",
+              cursor: "pointer",
+            }}
+          >
+            전체
+          </button>
+          <button
+            onClick={onCancel}
+            style={{
+              padding: "0.25rem 0.5rem",
+              border: "none",
+              background: "none",
+              color: "#9ca3af",
+              fontSize: "0.8125rem",
+              cursor: "pointer",
+            }}
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <p style={{ fontSize: "0.8125rem", color: "#9ca3af", textAlign: "center", padding: "1rem" }}>
+          로딩 중...
+        </p>
+      ) : filtered.length === 0 ? (
+        <p style={{ fontSize: "0.8125rem", color: "#9ca3af", textAlign: "center", padding: "1rem" }}>
+          {filter === "unassigned" ? "미배정 블로그 글이 없습니다." : "추가할 블로그 글이 없습니다."}
+        </p>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+            gap: "0.5rem",
+            maxHeight: "300px",
+            overflowY: "auto",
+          }}
+        >
+          {filtered.map((post) => (
+            <button
+              key={post.id}
+              onClick={() => handleAssign(post.id)}
+              disabled={saving === post.id}
+              style={{
+                border: "1px solid #e5e7eb",
+                borderRadius: "0.375rem",
+                background: "white",
+                padding: 0,
+                cursor: saving === post.id ? "wait" : "pointer",
+                opacity: saving === post.id ? 0.5 : 1,
+                textAlign: "left",
+                overflow: "hidden",
+              }}
+              title={post.title}
+            >
+              <div style={{ aspectRatio: "1/1", background: "#f3f4f6", overflow: "hidden" }}>
+                {post.image ? (
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#d1d5db",
+                      fontSize: "0.625rem",
+                    }}
+                  >
+                    No Image
+                  </div>
+                )}
+              </div>
+              <div style={{ padding: "0.375rem" }}>
+                <p
+                  style={{
+                    fontSize: "0.6875rem",
+                    color: "#374151",
+                    fontWeight: 500,
+                    lineHeight: 1.3,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    margin: 0,
+                  }}
+                >
+                  {post.title}
+                </p>
+                <p style={{ fontSize: "0.625rem", color: "#6b7280", margin: "2px 0 0" }}>
+                  {new Date(post.pub_date).toLocaleDateString("ko-KR")}
+                </p>
+                {!post.is_published && (
+                  <p style={{ fontSize: "0.5625rem", color: "#ef4444", margin: "2px 0 0" }}>
+                    비공개
+                  </p>
+                )}
+                {post.section_id && (
                   <p style={{ fontSize: "0.5625rem", color: "#9ca3af", margin: "2px 0 0" }}>
                     다른 섹션 배정됨
                   </p>

@@ -39,7 +39,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
   try {
     const { id } = params;
     const body = await request.json();
-    const { title, excerpt, content, image, tags, is_published, pub_date } = body;
+    const { title, excerpt, content, image, tags, is_published, pub_date, section_id } = body;
 
     if (!title || !content) {
       return new Response(
@@ -48,18 +48,24 @@ export const PUT: APIRoute = async ({ params, request }) => {
       );
     }
 
+    const updateData: Record<string, any> = {
+      title,
+      excerpt: excerpt || "",
+      content,
+      image: image || "",
+      tags: tags || [],
+      is_published: is_published ?? false,
+      pub_date: pub_date || new Date().toISOString().split("T")[0],
+      updated_at: new Date().toISOString(),
+    };
+    // section_id가 명시적으로 전달된 경우에만 업데이트 (null 허용)
+    if (section_id !== undefined) {
+      updateData.section_id = section_id;
+    }
+
     const { data, error } = await supabase
       .from("blog_posts")
-      .update({
-        title,
-        excerpt: excerpt || "",
-        content,
-        image: image || "",
-        tags: tags || [],
-        is_published: is_published ?? false,
-        pub_date: pub_date || new Date().toISOString().split("T")[0],
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("id", id)
       .select()
       .single();
