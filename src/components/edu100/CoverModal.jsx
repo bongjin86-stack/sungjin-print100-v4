@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import { renderBlocksToHTML } from "../admin/BlockNoteEditor";
 
 export default function CoverModal({ cover, onClose }) {
   const [selectedImage, setSelectedImage] = useState(0);
@@ -52,7 +54,7 @@ export default function CoverModal({ cover, onClose }) {
           {cover.description && (
             <div
               className="edu100-modal-desc"
-              dangerouslySetInnerHTML={{ __html: cover.description }}
+              dangerouslySetInnerHTML={{ __html: renderBlocksToHTML(cover.description) }}
             />
           )}
 
