@@ -35,14 +35,9 @@ const mainMenu: MenuItem[] = typedMenuData.main.map((item) => {
 const headerHeight = siteConfig.settings.header_height;
 const headerHeightMobile = siteConfig.settings.header_height_mobile;
 const isHome = Astro.url.pathname === "/";
-
-interface Props {
-  compact?: boolean;
-}
-const { compact = false } = Astro.props;
 ---
 
-<header class:list={["header", { "header--compact": compact }]} id="header">
+<header class="header" id="header">
   <Container>
     <div class="header-inner">
       <SiteLogo h1={isHome} class="header-logo" />
@@ -286,11 +281,34 @@ const { compact = false } = Astro.props;
 </style>
 
 <script>
-  const header = document.getElementById("header");
+  // ── Compact mode: URL 기반 클래스 토글 ──
+  // transition:persist로 헤더 DOM이 유지되므로
+  // 페이지 전환 시 CSS transition이 실시간 작동
+  const COMPACT_PATHS = ["/edu100"];
+
+  function updateCompactMode() {
+    const header = document.getElementById("header");
+    if (!header) return;
+    const isCompact = COMPACT_PATHS.some((p) => window.location.pathname.startsWith(p));
+    if (isCompact) {
+      header.classList.add("header--compact");
+    } else {
+      header.classList.remove("header--compact");
+    }
+  }
+
+  // 초기 로드
+  updateCompactMode();
+
+  // Astro 페이지 전환 시 (ClientRouter)
+  document.addEventListener("astro:after-swap", updateCompactMode);
+
+  // ── 스크롤 시 헤더 자동 숨김 ──
   let lastScroll = 0;
   let ticking = false;
 
   const updateHeader = () => {
+    const header = document.getElementById("header");
     const currentScroll = window.scrollY;
 
     if (currentScroll <= 0) {
