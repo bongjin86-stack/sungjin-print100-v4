@@ -606,9 +606,9 @@ function SectionCard({
                       onClick={async () => {
                         // 섹션에서 해제 (section_id = null)
                         await fetch(`/api/blog/${post.id}`, {
-                          method: "PUT",
+                          method: "PATCH",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ ...post, section_id: null }),
+                          body: JSON.stringify({ section_id: null }),
                         });
                         onCoverAdded(); // reload
                       }}
@@ -1053,17 +1053,16 @@ function QuickBlogForm({ sectionId, currentPostIds, onCancel, onSaved }: QuickBl
   const handleAssign = async (postId: string) => {
     setSaving(postId);
     try {
-      const post = allPosts.find((p) => p.id === postId);
-      if (!post) return;
       const res = await fetch(`/api/blog/${postId}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...post, section_id: sectionId }),
+        body: JSON.stringify({ section_id: sectionId }),
       });
       if (res.ok) {
         onSaved();
       } else {
-        alert("배정 실패");
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "배정 실패");
       }
     } catch {
       alert("배정 실패");
