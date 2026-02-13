@@ -229,18 +229,23 @@ const { compact = false } = Astro.props;
       height: 48px;
     }
 
-    .header-inner {
-      /* 로고와 모바일 메뉴 버튼만 표시 */
+    /* Container 패딩 최소화 → 로고가 왼쪽 구석으로 밀착 */
+    :global(.container) {
+      padding: 0 var(--sp-sm);
+
+      @media (min-width: 600px) {
+        padding: 0 var(--sp-md);
+      }
     }
 
     /* 로고 축소 */
     :global(.logo) {
       :global(svg),
       :global(.logo-img) {
-        height: 24px !important;
+        height: 22px !important;
 
         @media (min-width: 900px) {
-          height: 28px !important;
+          height: 26px !important;
         }
       }
     }
