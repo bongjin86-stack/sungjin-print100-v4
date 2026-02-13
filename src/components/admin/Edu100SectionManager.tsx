@@ -45,6 +45,7 @@ export default function Edu100SectionManager() {
   const [editingSection, setEditingSection] = useState<Section | null>(null);
   const [addingCoverTo, setAddingCoverTo] = useState<string | null>(null);
   const [showAddSection, setShowAddSection] = useState(false);
+  const [blogPostCount, setBlogPostCount] = useState(0);
 
   // 데이터 로드
   const loadSections = async () => {
@@ -60,8 +61,20 @@ export default function Edu100SectionManager() {
     }
   };
 
+  // 공개 블로그 글 수 로드
+  const loadBlogCount = async () => {
+    try {
+      const res = await fetch("/api/blog?published=true");
+      const data = await res.json();
+      setBlogPostCount(Array.isArray(data) ? data.length : 0);
+    } catch {
+      setBlogPostCount(0);
+    }
+  };
+
   useEffect(() => {
     loadSections();
+    loadBlogCount();
   }, []);
 
   // 섹션 추가
@@ -237,6 +250,7 @@ export default function Edu100SectionManager() {
               section={section}
               index={idx}
               totalSections={sections.length}
+              blogPostCount={blogPostCount}
               isEditing={editingSection?.id === section.id}
               editingData={editingSection?.id === section.id ? editingSection : null}
               addingCover={addingCoverTo === section.id}
@@ -267,6 +281,7 @@ interface SectionCardProps {
   section: Section;
   index: number;
   totalSections: number;
+  blogPostCount: number;
   isEditing: boolean;
   editingData: Section | null;
   addingCover: boolean;
@@ -286,6 +301,7 @@ function SectionCard({
   section,
   index,
   totalSections,
+  blogPostCount,
   isEditing,
   editingData,
   addingCover,
@@ -389,10 +405,15 @@ function SectionCard({
             {section.is_published ? "공개" : "비공개"}
           </span>
 
-          {/* 커버 수 (text 아닌 경우) */}
-          {section.type !== "text" && (
+          {/* 항목 수 */}
+          {section.type === "gallery" && (
             <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
               {section.covers.length}개
+            </span>
+          )}
+          {section.type === "blog" && (
+            <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
+              블로그 글 {blogPostCount}개
             </span>
           )}
         </div>
