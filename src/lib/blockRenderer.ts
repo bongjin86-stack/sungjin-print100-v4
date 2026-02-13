@@ -89,10 +89,12 @@ function renderBlock(block: Block): string {
     case "image":
       const url = (block.props as any)?.url || "";
       const caption = (block.props as any)?.caption || "";
+      const previewWidth = (block.props as any)?.previewWidth;
       if (!url) return "";
+      const widthStyle = previewWidth ? ` style="width:${previewWidth}px;max-width:100%"` : "";
       return caption
-        ? `<figure><img src="${url}" alt="${caption}" /><figcaption>${caption}</figcaption></figure>`
-        : `<img src="${url}" alt="" />`;
+        ? `<figure${widthStyle}><img src="${url}" alt="${caption}"${widthStyle} /><figcaption>${caption}</figcaption></figure>`
+        : `<img src="${url}" alt=""${widthStyle} />`;
 
     default:
       return content ? `<p>${content}</p>` : "";

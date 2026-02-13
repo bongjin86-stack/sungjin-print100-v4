@@ -8,13 +8,6 @@ const { data: blogList, error } = await supabase
   .select("*")
   .order("pub_date", { ascending: false });
 
-const categories: Record<string, string> = {
-  general: "일반",
-  design: "디자인",
-  printing: "인쇄",
-  guide: "가이드",
-  news: "소식",
-};
 ---
 
 <AdminLayout title="블로그 관리">
@@ -37,7 +30,6 @@ const categories: Record<string, string> = {
             <thead>
               <tr>
                 <th>제목</th>
-                <th>카테고리</th>
                 <th>상태</th>
                 <th>발행일</th>
                 <th>관리</th>
@@ -54,11 +46,6 @@ const categories: Record<string, string> = {
                     {post.excerpt && (
                       <p class="blog-excerpt">{post.excerpt.substring(0, 60)}...</p>
                     )}
-                  </td>
-                  <td>
-                    <span class={`category-badge category-${post.category}`}>
-                      {categories[post.category] || post.category}
-                    </span>
                   </td>
                   <td>
                     <span class={`status-badge ${post.is_published ? "published" : "draft"}`}>
@@ -166,20 +153,6 @@ const categories: Record<string, string> = {
     .has-image {
       font-size: 0.75rem;
     }
-
-    .category-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-
-    .category-general { background: #f3f4f6; color: #374151; }
-    .category-design { background: #fce7f3; color: #be185d; }
-    .category-printing { background: #dbeafe; color: #1d4ed8; }
-    .category-guide { background: #d1fae5; color: #059669; }
-    .category-news { background: #e0e7ff; color: #4338ca; }
 
     .status-badge {
       display: inline-block;

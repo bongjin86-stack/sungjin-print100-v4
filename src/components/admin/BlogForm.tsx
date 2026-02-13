@@ -9,7 +9,6 @@ interface BlogData {
   excerpt: string;
   content: string;
   image: string;
-  category: string;
   tags: string[];
   is_published: boolean;
   pub_date: string;
@@ -20,21 +19,12 @@ interface BlogFormProps {
   mode: "create" | "edit";
 }
 
-const categories = [
-  { id: "general", name: "일반" },
-  { id: "design", name: "디자인" },
-  { id: "printing", name: "인쇄" },
-  { id: "guide", name: "가이드" },
-  { id: "news", name: "소식" },
-];
-
 export default function BlogForm({ initialData, mode }: BlogFormProps) {
   const [formData, setFormData] = useState<BlogData>({
     title: initialData?.title || "",
     excerpt: initialData?.excerpt || "",
     content: initialData?.content || "",
     image: initialData?.image || "",
-    category: initialData?.category || "general",
     tags: initialData?.tags || [],
     is_published: initialData?.is_published ?? false,
     pub_date: initialData?.pub_date || new Date().toISOString().split("T")[0],
@@ -160,24 +150,6 @@ export default function BlogForm({ initialData, mode }: BlogFormProps) {
         </div>
 
         <div style={styles.formRow}>
-          {/* 카테고리 */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>카테고리</label>
-            <select
-              value={formData.category}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, category: e.target.value }))
-              }
-              style={styles.select}
-            >
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* 발행일 */}
           <div style={styles.formGroup}>
             <label style={styles.label}>발행일</label>

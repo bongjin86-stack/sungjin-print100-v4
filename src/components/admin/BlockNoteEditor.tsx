@@ -438,10 +438,12 @@ export function renderBlocksToHTML(content: string): string {
         case "image": {
           const url = block.props?.url || "";
           const caption = block.props?.caption || "";
+          const pw = block.props?.previewWidth;
           if (!url) return "";
+          const ws = pw ? ` style="width:${pw}px;max-width:100%"` : "";
           return caption
-            ? `<figure><img src="${url}" alt="${caption}" /><figcaption>${caption}</figcaption></figure>`
-            : `<img src="${url}" alt="" />`;
+            ? `<figure${ws}><img src="${url}" alt="${caption}"${ws} /><figcaption>${caption}</figcaption></figure>`
+            : `<img src="${url}" alt=""${ws} />`;
         }
         case "paragraph":
         default:

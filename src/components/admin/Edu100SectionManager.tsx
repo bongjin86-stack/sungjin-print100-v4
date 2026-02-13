@@ -503,14 +503,29 @@ function SectionCard({
         />
       )}
 
-      {/* 커버 목록 (blog, gallery만) */}
-      {section.type !== "text" && (
+      {/* 블로그 섹션 안내 (커버 관리 불필요 — 블로그 글 자동 표시) */}
+      {section.type === "blog" && (
+        <div style={{ padding: "1rem 1.5rem" }}>
+          <p style={{ fontSize: "0.8125rem", color: "#9ca3af" }}>
+            이 섹션은 공개된 블로그 글을 자동으로 표시합니다.
+            <a
+              href="/admin/blog"
+              style={{ color: "#4f46e5", marginLeft: "0.5rem", textDecoration: "underline" }}
+            >
+              블로그 관리 →
+            </a>
+          </p>
+        </div>
+      )}
+
+      {/* 커버 목록 (gallery만) */}
+      {section.type === "gallery" && (
         <div style={{ padding: "1rem 1.5rem" }}>
           {section.covers.length > 0 ? (
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: `repeat(auto-fill, minmax(${section.type === "blog" ? "160px" : "100px"}, 1fr))`,
+                gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
                 gap: "0.75rem",
                 marginBottom: "1rem",
               }}

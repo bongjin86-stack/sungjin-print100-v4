@@ -31,14 +31,6 @@ if (error || !post) {
 const contentHtml = post.content ? renderBlocksToHTML(post.content) : "";
 const pubDate = new Date(post.pub_date);
 
-const categories: Record<string, string> = {
-  general: "일반",
-  design: "디자인",
-  printing: "인쇄",
-  guide: "가이드",
-  news: "소식",
-};
-
 // Schema.org BlogPosting (네이버 SEO)
 const blogSchema = {
   "@context": "https://schema.org",
@@ -85,7 +77,6 @@ const blogSchema = {
         {/* 헤더 */}
         <header class="blog-header">
           <div class="blog-meta">
-            <span class="blog-category">{categories[post.category] || post.category}</span>
             <time datetime={pubDate.toISOString()}>
               {pubDate.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}
             </time>
@@ -168,14 +159,6 @@ const blogSchema = {
     margin-bottom: var(--sp-md);
     font-size: var(--fs-sm);
     color: var(--c-text-sub);
-  }
-
-  .blog-category {
-    padding: 4px 12px;
-    background: var(--c-bg-secondary);
-    border-radius: var(--radius-full);
-    font-size: var(--fs-xs);
-    font-weight: 500;
   }
 
   .blog-title {

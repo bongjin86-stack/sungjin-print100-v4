@@ -19,7 +19,7 @@ function generateSlug(title: string): string {
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { title, excerpt, content, image, category, tags, is_published, pub_date } = body;
+    const { title, excerpt, content, image, tags, is_published, pub_date } = body;
 
     if (!title || !content) {
       return new Response(
@@ -47,7 +47,6 @@ export const POST: APIRoute = async ({ request }) => {
         excerpt: excerpt || "",
         content,
         image: image || "",
-        category: category || "general",
         tags: tags || [],
         is_published: is_published ?? false,
         pub_date: pub_date || new Date().toISOString().split("T")[0],
