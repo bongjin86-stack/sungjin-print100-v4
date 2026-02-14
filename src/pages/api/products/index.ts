@@ -21,7 +21,8 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       });
     }
     // 토큰 유효성 실제 검증
-    const { data: userData, error: authError } = await supabase.auth.getUser(accessToken);
+    const { data: userData, error: authError } =
+      await supabase.auth.getUser(accessToken);
     if (authError || !userData?.user) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,

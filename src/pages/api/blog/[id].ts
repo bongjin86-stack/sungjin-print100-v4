@@ -17,7 +17,10 @@ export const GET: APIRoute = async ({ params }) => {
 
     if (error) {
       return new Response(
-        JSON.stringify({ message: "조회에 실패했습니다.", error: error.message }),
+        JSON.stringify({
+          message: "조회에 실패했습니다.",
+          error: error.message,
+        }),
         { status: 404, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -39,7 +42,16 @@ export const PUT: APIRoute = async ({ params, request }) => {
   try {
     const { id } = params;
     const body = await request.json();
-    const { title, excerpt, content, image, tags, is_published, pub_date, section_id } = body;
+    const {
+      title,
+      excerpt,
+      content,
+      image,
+      tags,
+      is_published,
+      pub_date,
+      section_id,
+    } = body;
 
     if (!title || !content) {
       return new Response(
@@ -73,7 +85,10 @@ export const PUT: APIRoute = async ({ params, request }) => {
     if (error) {
       console.error("Supabase error:", error);
       return new Response(
-        JSON.stringify({ message: "수정에 실패했습니다.", error: error.message }),
+        JSON.stringify({
+          message: "수정에 실패했습니다.",
+          error: error.message,
+        }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -99,7 +114,9 @@ export const PATCH: APIRoute = async ({ params, request }) => {
 
     // 허용된 필드만 업데이트
     const allowedFields = ["section_id", "is_published", "sort_order"];
-    const updateData: Record<string, any> = { updated_at: new Date().toISOString() };
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
@@ -117,7 +134,10 @@ export const PATCH: APIRoute = async ({ params, request }) => {
     if (error) {
       console.error("Supabase error:", error);
       return new Response(
-        JSON.stringify({ message: "수정에 실패했습니다.", error: error.message }),
+        JSON.stringify({
+          message: "수정에 실패했습니다.",
+          error: error.message,
+        }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -145,7 +165,10 @@ export const DELETE: APIRoute = async ({ params }) => {
     if (error) {
       console.error("Supabase error:", error);
       return new Response(
-        JSON.stringify({ message: "삭제에 실패했습니다.", error: error.message }),
+        JSON.stringify({
+          message: "삭제에 실패했습니다.",
+          error: error.message,
+        }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }

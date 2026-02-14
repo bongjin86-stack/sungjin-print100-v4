@@ -19,7 +19,8 @@ function generateSlug(title: string): string {
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { title, excerpt, content, image, tags, is_published, pub_date } = body;
+    const { title, excerpt, content, image, tags, is_published, pub_date } =
+      body;
 
     if (!title || !content) {
       return new Response(
@@ -41,23 +42,28 @@ export const POST: APIRoute = async ({ request }) => {
 
     const { data, error } = await supabase
       .from("blog_posts")
-      .insert([{
-        title,
-        slug,
-        excerpt: excerpt || "",
-        content,
-        image: image || "",
-        tags: tags || [],
-        is_published: is_published ?? false,
-        pub_date: pub_date || new Date().toISOString().split("T")[0],
-      }])
+      .insert([
+        {
+          title,
+          slug,
+          excerpt: excerpt || "",
+          content,
+          image: image || "",
+          tags: tags || [],
+          is_published: is_published ?? false,
+          pub_date: pub_date || new Date().toISOString().split("T")[0],
+        },
+      ])
       .select()
       .single();
 
     if (error) {
       console.error("Supabase error:", error);
       return new Response(
-        JSON.stringify({ message: "저장에 실패했습니다.", error: error.message }),
+        JSON.stringify({
+          message: "저장에 실패했습니다.",
+          error: error.message,
+        }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -93,7 +99,10 @@ export const GET: APIRoute = async ({ url }) => {
 
     if (error) {
       return new Response(
-        JSON.stringify({ message: "조회에 실패했습니다.", error: error.message }),
+        JSON.stringify({
+          message: "조회에 실패했습니다.",
+          error: error.message,
+        }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }

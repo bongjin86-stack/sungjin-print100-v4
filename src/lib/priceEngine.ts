@@ -623,8 +623,14 @@ export function calculatePrice(
     );
   } else if (productType === "outsourced") {
     return {
-      total: 0, breakdown: {}, perUnit: 0, unitPrice: 0,
-      sheets: 0, faces: 0, upCount: 0, baseSheet: "outsourced",
+      total: 0,
+      breakdown: {},
+      perUnit: 0,
+      unitPrice: 0,
+      sheets: 0,
+      faces: 0,
+      upCount: 0,
+      baseSheet: "outsourced",
       estimatedWeight: 0,
     } as SingleLayerResult;
   } else {

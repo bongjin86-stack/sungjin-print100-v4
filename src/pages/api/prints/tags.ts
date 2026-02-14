@@ -19,9 +19,9 @@ export const GET: APIRoute = async () => {
     });
   }
 
-  const uniqueTags = [...new Set(
-    (data || []).map((p) => p.tag).filter(Boolean)
-  )].sort();
+  const uniqueTags = [
+    ...new Set((data || []).map((p) => p.tag).filter(Boolean)),
+  ].sort();
 
   return new Response(JSON.stringify(uniqueTags), {
     status: 200,
@@ -63,10 +63,10 @@ export const DELETE: APIRoute = async ({ request }) => {
   const { tag } = await request.json();
 
   if (!tag) {
-    return new Response(
-      JSON.stringify({ message: "tag가 필요합니다." }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ message: "tag가 필요합니다." }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   const { error } = await supabase

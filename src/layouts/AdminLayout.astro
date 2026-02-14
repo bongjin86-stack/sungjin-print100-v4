@@ -131,7 +131,11 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
             collapsibleGroups.map((group) => {
               const hasActive = group.items.some((item) => isActive(item.href));
               return (
-                <div class="nav-group" data-group={group.key} data-has-active={hasActive ? "true" : "false"}>
+                <div
+                  class="nav-group"
+                  data-group={group.key}
+                  data-has-active={hasActive ? "true" : "false"}
+                >
                   <button class="nav-group-toggle" type="button">
                     <span class="nav-group-arrow">&#9656;</span>
                     <span>{group.title}</span>
@@ -229,35 +233,41 @@ const dashboardItem = { href: "/admin", label: "대시보드" };
           // 접히는 메뉴 그룹 토글
           const STORAGE_KEY = "admin-nav-collapsed";
           function getCollapsed() {
-            try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; }
+            try {
+              return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+            } catch {
+              return {};
+            }
           }
           function saveCollapsed(state) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
           }
 
-          document.querySelectorAll(".nav-group[data-group]").forEach((group) => {
-            const key = group.dataset.group;
-            const hasActive = group.dataset.hasActive === "true";
-            const toggle = group.querySelector(".nav-group-toggle");
-            const list = group.querySelector(".nav-group-list");
-            const arrow = group.querySelector(".nav-group-arrow");
-            const collapsed = getCollapsed();
+          document
+            .querySelectorAll(".nav-group[data-group]")
+            .forEach((group) => {
+              const key = group.dataset.group;
+              const hasActive = group.dataset.hasActive === "true";
+              const toggle = group.querySelector(".nav-group-toggle");
+              const list = group.querySelector(".nav-group-list");
+              const arrow = group.querySelector(".nav-group-arrow");
+              const collapsed = getCollapsed();
 
-            // 초기 상태: 활성 페이지 포함 시 열림, 아니면 저장된 상태 (기본 닫힘)
-            const isOpen = hasActive || collapsed[key] === false;
-            if (isOpen) {
-              list.classList.add("open");
-              arrow.classList.add("open");
-            }
+              // 초기 상태: 활성 페이지 포함 시 열림, 아니면 저장된 상태 (기본 닫힘)
+              const isOpen = hasActive || collapsed[key] === false;
+              if (isOpen) {
+                list.classList.add("open");
+                arrow.classList.add("open");
+              }
 
-            toggle.addEventListener("click", () => {
-              const nowOpen = list.classList.toggle("open");
-              arrow.classList.toggle("open");
-              const state = getCollapsed();
-              state[key] = !nowOpen;
-              saveCollapsed(state);
+              toggle.addEventListener("click", () => {
+                const nowOpen = list.classList.toggle("open");
+                arrow.classList.toggle("open");
+                const state = getCollapsed();
+                state[key] = !nowOpen;
+                saveCollapsed(state);
+              });
             });
-          });
         </script>
       </aside>
 

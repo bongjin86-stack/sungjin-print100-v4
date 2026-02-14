@@ -20,7 +20,10 @@ const { slug } = Astro.params;
 const decodedSlug = decodeURIComponent(slug || "");
 
 // UUID 형식이면 id로, 아니면 slug로 조회
-const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(decodedSlug);
+const isUuid =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    decodedSlug
+  );
 
 let post: any = null;
 let error: any = null;
@@ -84,7 +87,11 @@ const blogSchema = {
   articleDate={pubDate}
 >
   {/* Schema.org JSON-LD for SEO */}
-  <script type="application/ld+json" set:html={JSON.stringify(blogSchema)} slot="head" />
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify(blogSchema)}
+    slot="head"
+  />
 
   <Section>
     <Container size="medium">
@@ -100,39 +107,47 @@ const blogSchema = {
         <header class="blog-header">
           <div class="blog-meta">
             <time datetime={pubDate.toISOString()}>
-              {pubDate.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}
+              {
+                pubDate.toLocaleDateString("ko-KR", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })
+              }
             </time>
           </div>
           <h1 class="blog-title">{post.title}</h1>
-          {post.excerpt && (
-            <p class="blog-excerpt">{post.excerpt}</p>
-          )}
+          {post.excerpt && <p class="blog-excerpt">{post.excerpt}</p>}
         </header>
 
         {/* 대표 이미지 */}
-        {post.image && (
-          <div class="blog-hero-image">
-            <img
-              src={post.image}
-              alt={post.title}
-              width="1200"
-              height="675"
-              loading="eager"
-            />
-          </div>
-        )}
+        {
+          post.image && (
+            <div class="blog-hero-image">
+              <img
+                src={post.image}
+                alt={post.title}
+                width="1200"
+                height="675"
+                loading="eager"
+              />
+            </div>
+          )
+        }
 
         {/* 본문 */}
         <div class="blog-content" set:html={contentHtml} />
 
         {/* 태그 */}
-        {post.tags && post.tags.length > 0 && (
-          <div class="blog-tags">
-            {post.tags.map((tag: string) => (
-              <span class="blog-tag">#{tag}</span>
-            ))}
-          </div>
-        )}
+        {
+          post.tags && post.tags.length > 0 && (
+            <div class="blog-tags">
+              {post.tags.map((tag: string) => (
+                <span class="blog-tag">#{tag}</span>
+              ))}
+            </div>
+          )
+        }
 
         {/* 하단 */}
         <div class="blog-footer">
@@ -231,17 +246,29 @@ const blogSchema = {
       color: var(--c-text);
     }
 
-    :global(h1) { font-size: var(--fs-2xl); }
-    :global(h2) { font-size: var(--fs-xl); }
-    :global(h3) { font-size: var(--fs-lg); }
+    :global(h1) {
+      font-size: var(--fs-2xl);
+    }
+    :global(h2) {
+      font-size: var(--fs-xl);
+    }
+    :global(h3) {
+      font-size: var(--fs-lg);
+    }
 
     :global(p) {
       margin-bottom: var(--sp-lg);
     }
 
-    :global(strong) { font-weight: 600; }
-    :global(em) { font-style: italic; }
-    :global(u) { text-decoration: underline; }
+    :global(strong) {
+      font-weight: 600;
+    }
+    :global(em) {
+      font-style: italic;
+    }
+    :global(u) {
+      text-decoration: underline;
+    }
 
     :global(ul),
     :global(ol) {

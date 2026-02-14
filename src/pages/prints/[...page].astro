@@ -30,9 +30,9 @@ const { data: allPublished } = await supabase
   .eq("is_published", true)
   .neq("tag", "");
 
-const uniqueTags = [...new Set(
-  (allPublished || []).map((p) => p.tag).filter(Boolean)
-)].sort();
+const uniqueTags = [
+  ...new Set((allPublished || []).map((p) => p.tag).filter(Boolean)),
+].sort();
 
 const categoryList = uniqueTags.map((tag) => ({
   id: tag,
@@ -66,10 +66,7 @@ const pageTitle =
     : `Prints - 인쇄물 (${currentPage}페이지)`;
 ---
 
-<Layout
-  title={pageTitle}
-  description="다양한 인쇄물을 소개합니다."
->
+<Layout title={pageTitle} description="다양한 인쇄물을 소개합니다.">
   <PageHero title="Prints" subtitle="인쇄물" />
 
   <Section class="prints-section">
@@ -96,7 +93,9 @@ const pageTitle =
                 </div>
                 <div class="print-card-content">
                   <h3 class="print-card-title">{item.title}</h3>
-                  <p class="print-card-client">{item.client || item.subtitle}</p>
+                  <p class="print-card-client">
+                    {item.client || item.subtitle}
+                  </p>
                   {item.tag && (
                     <span class="print-card-category">{item.tag}</span>
                   )}

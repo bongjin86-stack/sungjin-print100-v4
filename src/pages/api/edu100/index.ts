@@ -28,7 +28,20 @@ export const GET: APIRoute = async () => {
 export const POST: APIRoute = async ({ request }) => {
   const body = await request.json();
 
-  const { title, subtitle, description, image, thumbnails, tag, linked_product_id, is_published, sort_order, fields, design_fee, section_id } = body;
+  const {
+    title,
+    subtitle,
+    description,
+    image,
+    thumbnails,
+    tag,
+    linked_product_id,
+    is_published,
+    sort_order,
+    fields,
+    design_fee,
+    section_id,
+  } = body;
 
   if (!title) {
     return new Response(JSON.stringify({ message: "제목은 필수입니다." }), {

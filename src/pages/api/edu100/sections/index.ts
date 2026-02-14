@@ -42,7 +42,10 @@ export const GET: APIRoute = async () => {
   const result = (sections || []).map((section) => ({
     ...section,
     covers: (covers || []).filter((c) => c.section_id === section.id),
-    posts: section.type === "blog" ? blogPosts.filter((p) => p.section_id === section.id) : [],
+    posts:
+      section.type === "blog"
+        ? blogPosts.filter((p) => p.section_id === section.id)
+        : [],
   }));
 
   return new Response(JSON.stringify(result), {

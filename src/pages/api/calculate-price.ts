@@ -21,8 +21,16 @@ interface OutsourcedInput {
 }
 
 function calculateOutsourcedPrice(
-  oCfg: { pagePrice: number; bindingFee: number; qtyDiscounts: Array<{ minQty: number; percent: number }> },
-  booksCfg: { pagePrice?: number; bindingFee?: number; freeDesignMinQty?: number } | null,
+  oCfg: {
+    pagePrice: number;
+    bindingFee: number;
+    qtyDiscounts: Array<{ minQty: number; percent: number }>;
+  },
+  booksCfg: {
+    pagePrice?: number;
+    bindingFee?: number;
+    freeDesignMinQty?: number;
+  } | null,
   input: OutsourcedInput
 ) {
   const oPagePrice = oCfg.pagePrice ?? 40;
@@ -70,8 +78,20 @@ function calculateOutsourcedPrice(
     const unitPrice = totalQty > 0 ? Math.round(grandTotal / totalQty) : 0;
     const estimatedWeight = totalWeightG / 1000;
     return {
-      selected: { total: grandTotal, unitPrice, perUnit: unitPrice, estimatedWeight },
-      byQty: { [totalQty]: { total: grandTotal, unitPrice, perUnit: unitPrice, estimatedWeight } },
+      selected: {
+        total: grandTotal,
+        unitPrice,
+        perUnit: unitPrice,
+        estimatedWeight,
+      },
+      byQty: {
+        [totalQty]: {
+          total: grandTotal,
+          unitPrice,
+          perUnit: unitPrice,
+          estimatedWeight,
+        },
+      },
     };
   }
 
@@ -116,10 +136,10 @@ export const POST: APIRoute = async ({ request }) => {
         .single();
 
       if (!product) {
-        return new Response(
-          JSON.stringify({ error: "Product not found" }),
-          { status: 404, headers: { "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Product not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        });
       }
 
       const oCfg = product.content?.outsourced_config;
@@ -174,7 +194,11 @@ export const POST: APIRoute = async ({ request }) => {
       byQty = {};
       for (const q of allQtys) {
         try {
-          const result = calculatePrice(customer, q, productType || "flyer") as Record<string, unknown>;
+          const result = calculatePrice(
+            customer,
+            q,
+            productType || "flyer"
+          ) as Record<string, unknown>;
           if (guidePrice > 0) {
             result.guidePriceTotal = guidePrice;
             result.total = ((result.total as number) || 0) + guidePrice;
@@ -202,14 +226,19 @@ export const POST: APIRoute = async ({ request }) => {
     if (byQty) {
       safeByQty = {};
       for (const [q, v] of Object.entries(byQty)) {
-        safeByQty[Number(q)] = v ? sanitize(v as Record<string, unknown>) : null;
+        safeByQty[Number(q)] = v
+          ? sanitize(v as Record<string, unknown>)
+          : null;
       }
     }
 
-    return new Response(JSON.stringify({ selected: safeSelected, byQty: safeByQty }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ selected: safeSelected, byQty: safeByQty }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (err: unknown) {
     const message =
       err instanceof Error ? err.message : "Price calculation failed";

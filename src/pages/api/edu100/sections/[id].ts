@@ -76,7 +76,10 @@ export const DELETE: APIRoute = async ({ params }) => {
     .update({ section_id: null })
     .eq("section_id", id);
 
-  const { error } = await supabase.from("edu100_sections").delete().eq("id", id);
+  const { error } = await supabase
+    .from("edu100_sections")
+    .delete()
+    .eq("id", id);
 
   if (error) {
     return new Response(JSON.stringify({ message: error.message }), {

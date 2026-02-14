@@ -250,9 +250,7 @@ export function getPrintCostPerFace(faces: number): number {
 /**
  * 후가공 전체 구간 조회 (누적 계산용)
  */
-export function getFinishingCostTiers(
-  finishingCode: string
-): Array<{
+export function getFinishingCostTiers(finishingCode: string): Array<{
   min_qty: number;
   max_qty: number | null;
   setup_cost: number;
@@ -279,7 +277,10 @@ export function getFinishingCostTiers(
 /**
  * 후가공 비용 조회
  */
-export function getFinishingCost(finishingCode: string, qty?: number): {
+export function getFinishingCost(
+  finishingCode: string,
+  qty?: number
+): {
   setup_cost: number;
   cost_per_unit: number;
   unit_type: string;

@@ -195,49 +195,49 @@ export async function createOrder(
 
     const dbOrder = {
       order_number: orderNumber,
-    status:
-      orderData.paymentMethod === "bank_transfer" ? "pending" : "confirmed",
+      status:
+        orderData.paymentMethod === "bank_transfer" ? "pending" : "confirmed",
 
-    customer_email: orderData.email,
-    customer_phone: orderData.phone,
+      customer_email: orderData.email,
+      customer_phone: orderData.phone,
 
-    delivery_type: orderData.deliveryType,
-    recipient: orderData.recipient || null,
-    postcode: orderData.postcode || null,
-    address: orderData.address || null,
-    address_detail: orderData.addressDetail || null,
-    delivery_note: orderData.deliveryNote || null,
+      delivery_type: orderData.deliveryType,
+      recipient: orderData.recipient || null,
+      postcode: orderData.postcode || null,
+      address: orderData.address || null,
+      address_detail: orderData.addressDetail || null,
+      delivery_note: orderData.deliveryNote || null,
 
-    quick_payment_type: orderData.quickPaymentType || null,
-    quick_cost: orderData.quickCost || 0,
+      quick_payment_type: orderData.quickPaymentType || null,
+      quick_cost: orderData.quickCost || 0,
 
-    tax_document_type: orderData.taxDocumentType || "none",
-    tax_business_number: orderData.taxBusinessNumber || null,
-    tax_company_name: orderData.taxCompanyName || null,
-    tax_ceo_name: orderData.taxCeoName || null,
-    tax_email: orderData.taxEmail || null,
-    tax_phone: orderData.taxPhone || null,
+      tax_document_type: orderData.taxDocumentType || "none",
+      tax_business_number: orderData.taxBusinessNumber || null,
+      tax_company_name: orderData.taxCompanyName || null,
+      tax_ceo_name: orderData.taxCeoName || null,
+      tax_email: orderData.taxEmail || null,
+      tax_phone: orderData.taxPhone || null,
 
-    payment_method: orderData.paymentMethod,
-    payment_status:
-      orderData.paymentMethod === "bank_transfer" ? "pending" : "paid",
-    product_amount: orderData.productAmount,
-    shipping_cost: orderData.shippingCost || 0,
-    total_amount: orderData.totalAmount,
+      payment_method: orderData.paymentMethod,
+      payment_status:
+        orderData.paymentMethod === "bank_transfer" ? "pending" : "paid",
+      product_amount: orderData.productAmount,
+      shipping_cost: orderData.shippingCost || 0,
+      total_amount: orderData.totalAmount,
 
-    file_status: orderData.file
-      ? "uploaded"
-      : orderData.fileSkipped
-        ? "skipped"
-        : "pending",
-    file_url: orderData.file?.url || null,
-    file_path: orderData.file?.path || null,
-    file_name: orderData.file?.fileName || null,
+      file_status: orderData.file
+        ? "uploaded"
+        : orderData.fileSkipped
+          ? "skipped"
+          : "pending",
+      file_url: orderData.file?.url || null,
+      file_path: orderData.file?.path || null,
+      file_name: orderData.file?.fileName || null,
 
-    request: orderData.request || null,
+      request: orderData.request || null,
 
-    items: orderData.items,
-  };
+      items: orderData.items,
+    };
 
     const { data, error } = await supabase
       .from("orders")
@@ -250,7 +250,8 @@ export async function createOrder(
     }
 
     // 주문번호 중복 충돌이면 재시도
-    const isDuplicate = error.code === "23505" || error.message?.includes("duplicate");
+    const isDuplicate =
+      error.code === "23505" || error.message?.includes("duplicate");
     if (!isDuplicate || attempt === MAX_RETRIES - 1) {
       console.error("주문 생성 실패:", error);
       throw new Error("주문 생성에 실패했습니다.");
@@ -291,8 +292,16 @@ export async function getOrders(
   }
 
   // sortBy 컬럼 화이트리스트
-  const ALLOWED_SORT_COLUMNS = ["created_at", "updated_at", "order_number", "total_amount", "status"];
-  const safeSortBy = ALLOWED_SORT_COLUMNS.includes(sortBy) ? sortBy : "created_at";
+  const ALLOWED_SORT_COLUMNS = [
+    "created_at",
+    "updated_at",
+    "order_number",
+    "total_amount",
+    "status",
+  ];
+  const safeSortBy = ALLOWED_SORT_COLUMNS.includes(sortBy)
+    ? sortBy
+    : "created_at";
   query = query.order(safeSortBy, { ascending: order === "asc" });
 
   const from = (page - 1) * limit;
@@ -317,14 +326,22 @@ export async function getOrders(
 
 async function getOrderStatusCounts(): Promise<StatusCounts> {
   const statuses: OrderStatus[] = [
-    "pending", "confirmed", "in_production", "shipped", "completed", "canceled",
+    "pending",
+    "confirmed",
+    "in_production",
+    "shipped",
+    "completed",
+    "canceled",
   ];
 
   // head:true로 행 데이터 없이 count만 조회 (1000행 제한 없음)
   const [allResult, ...statusResults] = await Promise.all([
     supabase.from("orders").select("*", { count: "exact", head: true }),
     ...statuses.map((s) =>
-      supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", s)
+      supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("status", s)
     ),
   ]);
 
@@ -446,7 +463,11 @@ export async function deleteOrder(id: number): Promise<boolean> {
       .from("uploads")
       .remove([order.file_path]);
     if (storageError) {
-      console.warn("파일 삭제 실패 (수동 정리 필요):", order.file_path, storageError);
+      console.warn(
+        "파일 삭제 실패 (수동 정리 필요):",
+        order.file_path,
+        storageError
+      );
     }
   }
 

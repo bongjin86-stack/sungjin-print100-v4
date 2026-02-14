@@ -21,7 +21,9 @@ const tagCounts: Record<string, number> = {};
     tagCounts[p.tag] = (tagCounts[p.tag] || 0) + 1;
   }
 });
-const tagList = Object.entries(tagCounts).sort(([a], [b]) => a.localeCompare(b));
+const tagList = Object.entries(tagCounts).sort(([a], [b]) =>
+  a.localeCompare(b)
+);
 ---
 
 <AdminLayout title="Prints 관리">
@@ -34,20 +36,29 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) => a.localeCompare(b))
   <div class="tag-manager">
     <h2>태그 관리</h2>
     <div class="tag-list" id="tagList">
-      {tagList.length > 0 ? (
-        tagList.map(([tag, count]) => (
-          <div class="tag-item" data-tag={tag}>
-            <span class="tag-name">{tag}</span>
-            <span class="tag-count">{count}개</span>
-            <button class="tag-rename" data-tag={tag} title="이름 변경">&#9998;</button>
-            <button class="tag-delete" data-tag={tag} title="삭제">&times;</button>
-          </div>
-        ))
-      ) : (
-        <p class="tag-empty">등록된 태그가 없습니다.</p>
-      )}
+      {
+        tagList.length > 0 ? (
+          tagList.map(([tag, count]) => (
+            <div class="tag-item" data-tag={tag}>
+              <span class="tag-name">{tag}</span>
+              <span class="tag-count">{count}개</span>
+              <button class="tag-rename" data-tag={tag} title="이름 변경">
+                &#9998;
+              </button>
+              <button class="tag-delete" data-tag={tag} title="삭제">
+                &times;
+              </button>
+            </div>
+          ))
+        ) : (
+          <p class="tag-empty">등록된 태그가 없습니다.</p>
+        )
+      }
     </div>
-    <p class="tag-hint">Prints 작성/수정 시 새 태그를 직접 입력하면 자동으로 등록됩니다. 삭제하면 해당 태그를 사용 중인 Prints에서도 제거됩니다.</p>
+    <p class="tag-hint">
+      Prints 작성/수정 시 새 태그를 직접 입력하면 자동으로 등록됩니다. 삭제하면
+      해당 태그를 사용 중인 Prints에서도 제거됩니다.
+    </p>
   </div>
 
   <div class="prints-list">
@@ -85,9 +96,7 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) => a.localeCompare(b))
                     {item.is_published ? "공개" : "비공개"}
                   </span>
                 </td>
-                <td>
-                  {new Date(item.created_at).toLocaleDateString("ko-KR")}
-                </td>
+                <td>{new Date(item.created_at).toLocaleDateString("ko-KR")}</td>
                 <td class="actions">
                   <a href={`/admin/prints/${item.id}`} class="btn-edit">
                     수정
@@ -294,7 +303,9 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) => a.localeCompare(b))
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 0.15s, background 0.15s;
+    transition:
+      opacity 0.15s,
+      background 0.15s;
   }
 
   .tag-item:hover .tag-rename,
@@ -352,7 +363,11 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) => a.localeCompare(b))
   document.querySelectorAll(".tag-delete").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       const tag = (e.target as HTMLElement).dataset.tag;
-      if (confirm(`"${tag}" 태그를 삭제하시겠습니까?\n이 태그를 사용 중인 Prints에서도 제거됩니다.`)) {
+      if (
+        confirm(
+          `"${tag}" 태그를 삭제하시겠습니까?\n이 태그를 사용 중인 Prints에서도 제거됩니다.`
+        )
+      ) {
         const res = await fetch("/api/prints/tags", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
@@ -386,5 +401,4 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) => a.localeCompare(b))
       }
     });
   });
-
 </script>

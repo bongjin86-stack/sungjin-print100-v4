@@ -28,24 +28,41 @@ export function usePriceCalculation(
       const allQtys = qtyBlock?.config?.options || [];
       try {
         // fileSpec 추가금
-        const sizeBlock = currentProduct?.blocks?.find((b) => b.on && b.type === "size");
+        const sizeBlock = currentProduct?.blocks?.find(
+          (b) => b.on && b.type === "size"
+        );
         const fileSpecPrice = sizeBlock?.config?.trimEnabled
-          ? (sizeBlock.config.fileSpecPrices || {})[customer.fileSpec || "with_bleed"] || 0
+          ? (sizeBlock.config.fileSpecPrices || {})[
+              customer.fileSpec || "with_bleed"
+            ] || 0
           : 0;
 
         // 가이드 블록 가격 합산
-        const guidePriceTotal = Object.entries(customer.guides || {}).reduce((sum, [blockId, state]) => {
-          const guideBlock = currentProduct?.blocks?.find((b) => String(b.id) === String(blockId) && b.on && b.type === "guide");
-          const opt = guideBlock?.config?.options?.find((o) => o.id === state.selected);
-          return sum + (opt?.price || 0);
-        }, 0);
+        const guidePriceTotal = Object.entries(customer.guides || {}).reduce(
+          (sum, [blockId, state]) => {
+            const guideBlock = currentProduct?.blocks?.find(
+              (b) =>
+                String(b.id) === String(blockId) && b.on && b.type === "guide"
+            );
+            const opt = guideBlock?.config?.options?.find(
+              (o) => o.id === state.selected
+            );
+            return sum + (opt?.price || 0);
+          },
+          0
+        );
 
-        const productType = currentProduct?.product_type || currentProduct?.productType || currentTemplateId;
+        const productType =
+          currentProduct?.product_type ||
+          currentProduct?.productType ||
+          currentTemplateId;
 
         // 외주 상품: 클라이언트에서 직접 계산 (priceEngine 안 거침)
         const oCfg = currentProduct?.outsourced_config;
         if (productType === "outsourced" && oCfg) {
-          const pagesBlock = currentProduct?.blocks?.find((b) => b.on && b.type === "pages");
+          const pagesBlock = currentProduct?.blocks?.find(
+            (b) => b.on && b.type === "pages"
+          );
           const oPages = customer.pages || pagesBlock?.config?.default || 100;
           const oPagePrice = oCfg.pagePrice ?? 40;
           const oBindingFee = oCfg.bindingFee ?? 1500;
@@ -61,7 +78,13 @@ export function usePriceCalculation(
             const basePerCopy = perCopy + guidePriceTotal;
             const total = Math.round(basePerCopy * q * (1 - discountPct / 100));
             const unitPrice = Math.round(total / q);
-            byQty[q] = { total, unitPrice, perUnit: unitPrice, sheets: 0, faces: 0 };
+            byQty[q] = {
+              total,
+              unitPrice,
+              perUnit: unitPrice,
+              sheets: 0,
+              faces: 0,
+            };
           }
           const sel = byQty[customer.qty] || {};
           setServerPrice(sel);

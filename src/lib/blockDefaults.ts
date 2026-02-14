@@ -98,9 +98,7 @@ export function getCoatingWeight(
   if (cfg?.coating?.linkedPaper) {
     const linkedId = cfg.coating.linkedPaper;
     // ID 타입 불일치 방지 (select value는 string, block.id는 number일 수 있음)
-    const linkedBlock = blocks?.find(
-      (b) => String(b.id) === String(linkedId)
-    );
+    const linkedBlock = blocks?.find((b) => String(b.id) === String(linkedId));
     if (linkedBlock) {
       if (
         linkedBlock.type === "inner_layer_saddle" ||
@@ -122,9 +120,7 @@ export function getCoatingWeight(
     // cover 역할 블록이 실제로 존재하는지 확인
     const hasCoverBlock = blocks?.some(
       (b) =>
-        b.on &&
-        b.type === "paper" &&
-        getPaperBlockRole(b, blocks) === "cover"
+        b.on && b.type === "paper" && getPaperBlockRole(b, blocks) === "cover"
     );
     if (hasCoverBlock) {
       return customer.coverWeight || 80;
@@ -147,13 +143,9 @@ export function getPaperBlockRole(
     return block.config.role;
   }
   // 2. 폴백: 다른 블록의 linkedBlocks 역추적 (하위 호환)
-  if (
-    allBlocks.some((b) => b.config?.linkedBlocks?.coverPaper === block.id)
-  )
+  if (allBlocks.some((b) => b.config?.linkedBlocks?.coverPaper === block.id))
     return "cover";
-  if (
-    allBlocks.some((b) => b.config?.linkedBlocks?.innerPaper === block.id)
-  )
+  if (allBlocks.some((b) => b.config?.linkedBlocks?.innerPaper === block.id))
     return "inner";
   // 3. 자동 감지: 활성 paper 블록이 2개 이상이면 순서 기반 할당
   const enabledPapers = allBlocks.filter((b) => b.on && b.type === "paper");

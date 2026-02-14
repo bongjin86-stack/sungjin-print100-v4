@@ -15,9 +15,8 @@ interface CacheEntry<T> {
 }
 
 // 서비스 목록 (Header 드롭다운)
-let servicesCache: CacheEntry<
-  Array<{ title: string; slug: string }>
-> | null = null;
+let servicesCache: CacheEntry<Array<{ title: string; slug: string }>> | null =
+  null;
 
 // 사이트 설정 (Footer 회사정보)
 let siteSettingsCache: CacheEntry<Record<string, string>> | null = null;

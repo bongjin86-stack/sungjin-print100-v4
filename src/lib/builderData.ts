@@ -959,9 +959,27 @@ export const TEMPLATES: Record<string, Template> = {
         hidden: false,
         config: {
           options: [
-            { id: "next2", label: "2영업일", enabled: true, percent: 0, deadline: "12:00" },
-            { id: "next3", label: "3영업일", enabled: true, percent: -5, deadline: "12:00" },
-            { id: "next5", label: "5영업일", enabled: true, percent: -10, deadline: "12:00" },
+            {
+              id: "next2",
+              label: "2영업일",
+              enabled: true,
+              percent: 0,
+              deadline: "12:00",
+            },
+            {
+              id: "next3",
+              label: "3영업일",
+              enabled: true,
+              percent: -5,
+              deadline: "12:00",
+            },
+            {
+              id: "next5",
+              label: "5영업일",
+              enabled: true,
+              percent: -10,
+              deadline: "12:00",
+            },
           ],
           default: "next3",
         },
@@ -1039,7 +1057,10 @@ export const DB = {
     b5: { name: "B5", multiplier: 2, width: 182, height: 257 },
     a5: { name: "A5", multiplier: 4, width: 148, height: 210 },
     postcard: { name: "엽서", multiplier: 8, width: 100, height: 148 },
-  } as Record<string, { name: string; multiplier: number; width: number; height: number }>,
+  } as Record<
+    string,
+    { name: string; multiplier: number; width: number; height: number }
+  >,
   printCosts: [
     { min: 1, max: 1, cost: 500 },
     { min: 2, max: 2, cost: 480 },
@@ -1350,9 +1371,27 @@ export function getDefaultConfig(type: string): BlockConfig {
         message:
           "주문 전 궁금한 점이 있으시면 아래에서 확인하시거나, 카톡으로 편하게 문의하세요.",
         faqs: [
-          { id: "faq_1", emoji: "📄", text: "어떤 파일 형식으로 보내야 하나요?", answer: "AI, PDF, PSD, JPG 등 대부분의 파일 형식을 지원합니다. 가장 좋은 품질을 위해 AI 또는 PDF 파일을 권장합니다." },
-          { id: "faq_2", emoji: "🎨", text: "모니터와 인쇄 색상이 다를 수 있나요?", answer: "네, 모니터는 RGB, 인쇄는 CMYK 색상 체계를 사용하므로 차이가 발생할 수 있습니다. 중요한 색상은 별색(팬톤) 지정을 권장합니다." },
-          { id: "faq_3", emoji: "📐", text: "재단 여백은 어떻게 잡아야 하나요?", answer: "사방 2~3mm의 재단 여백을 포함해 주세요. 중요한 텍스트나 이미지는 재단선 안쪽 3mm 이상 여유를 두시면 안전합니다." },
+          {
+            id: "faq_1",
+            emoji: "📄",
+            text: "어떤 파일 형식으로 보내야 하나요?",
+            answer:
+              "AI, PDF, PSD, JPG 등 대부분의 파일 형식을 지원합니다. 가장 좋은 품질을 위해 AI 또는 PDF 파일을 권장합니다.",
+          },
+          {
+            id: "faq_2",
+            emoji: "🎨",
+            text: "모니터와 인쇄 색상이 다를 수 있나요?",
+            answer:
+              "네, 모니터는 RGB, 인쇄는 CMYK 색상 체계를 사용하므로 차이가 발생할 수 있습니다. 중요한 색상은 별색(팬톤) 지정을 권장합니다.",
+          },
+          {
+            id: "faq_3",
+            emoji: "📐",
+            text: "재단 여백은 어떻게 잡아야 하나요?",
+            answer:
+              "사방 2~3mm의 재단 여백을 포함해 주세요. 중요한 텍스트나 이미지는 재단선 안쪽 3mm 이상 여유를 두시면 안전합니다.",
+          },
         ],
         kakaoUrl: "https://pf.kakao.com/_sungjinprint",
         ctaText: "카카오톡으로 상담하기",
@@ -1364,9 +1403,24 @@ export function getDefaultConfig(type: string): BlockConfig {
         sourceTable: "edu100_covers",
         sourceTag: "",
         tiers: [
-          { id: "type_a", label: "A타입 - 텍스트만 변경", price: 0, minQty: 20 },
-          { id: "type_b", label: "B타입 - 색상+소스 변경", price: 5000, minQty: 100 },
-          { id: "type_c", label: "C타입 - 고객 파일 사용", price: 0, minQty: 20 },
+          {
+            id: "type_a",
+            label: "A타입 - 텍스트만 변경",
+            price: 0,
+            minQty: 20,
+          },
+          {
+            id: "type_b",
+            label: "B타입 - 색상+소스 변경",
+            price: 5000,
+            minQty: 100,
+          },
+          {
+            id: "type_c",
+            label: "C타입 - 고객 파일 사용",
+            price: 0,
+            minQty: 20,
+          },
         ],
         defaultTier: "type_a",
         showImageInLeft: true,
@@ -1528,13 +1582,18 @@ export function getDefaultContent(name: string) {
 }
 
 /** 블록 구성으로 가격 계산용 product_type 추론 */
-export function inferProductType(product: { product_type?: string; blocks?: any[] }): string {
+export function inferProductType(product: {
+  product_type?: string;
+  blocks?: any[];
+}): string {
   if (product.product_type) return product.product_type;
   const blocks = product.blocks || [];
   const pagesBlock = blocks.find((b: any) => b.on && b.type === "pages");
   if (pagesBlock?.config?.bindingType === "saddle") return "saddle";
   if (pagesBlock?.config?.bindingType === "leaf") {
-    const hasSpring = blocks.some((b: any) => b.on && b.type === "spring_options");
+    const hasSpring = blocks.some(
+      (b: any) => b.on && b.type === "spring_options"
+    );
     return hasSpring ? "spring" : "perfect";
   }
   return "flyer";

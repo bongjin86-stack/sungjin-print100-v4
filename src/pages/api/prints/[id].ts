@@ -85,10 +85,13 @@ export const PUT: APIRoute = async ({ params, request }) => {
 
   if (error) {
     console.error("PUT /api/prints error:", error);
-    return new Response(JSON.stringify({ message: error.message, details: error }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ message: error.message, details: error }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   return new Response(JSON.stringify(data), {

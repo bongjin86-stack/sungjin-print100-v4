@@ -301,9 +301,9 @@
   gap: 0.5rem;
   width: 100%;
   padding: 0.875rem;
-  background: #FAE100;
-  color: #3C1E1E;
-  border: 2px solid #FAE100;
+  background: #fae100;
+  color: #3c1e1e;
+  border: 2px solid #fae100;
   border-radius: var(--radius-4xl, 1.5rem);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -1524,7 +1524,9 @@
   padding: 1rem 1.125rem;
   cursor: pointer;
   background: #fff;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 .pv-fs-card:hover {
   border-color: var(--c-border, #d9d9d9);

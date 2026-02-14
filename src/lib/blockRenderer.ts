@@ -91,7 +91,9 @@ function renderBlock(block: Block): string {
       const caption = (block.props as any)?.caption || "";
       const previewWidth = (block.props as any)?.previewWidth;
       if (!url) return "";
-      const widthStyle = previewWidth ? ` style="width:${previewWidth}px;max-width:100%"` : "";
+      const widthStyle = previewWidth
+        ? ` style="width:${previewWidth}px;max-width:100%"`
+        : "";
       return caption
         ? `<figure${widthStyle}><img src="${url}" alt="${caption}"${widthStyle} /><figcaption>${caption}</figcaption></figure>`
         : `<img src="${url}" alt=""${widthStyle} />`;

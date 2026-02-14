@@ -27,9 +27,9 @@ const { data: allPublished } = await supabase
   .eq("is_published", true)
   .neq("tag", "");
 
-const uniqueTags = [...new Set(
-  (allPublished || []).map((p) => p.tag).filter(Boolean)
-)].sort();
+const uniqueTags = [
+  ...new Set((allPublished || []).map((p) => p.tag).filter(Boolean)),
+].sort();
 
 const categoryList = uniqueTags.map((tag) => ({
   id: tag,

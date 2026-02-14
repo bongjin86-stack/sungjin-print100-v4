@@ -27,7 +27,9 @@ if (secError) {
 const sectionList = sections || [];
 
 // gallery 타입 섹션의 커버를 한번에 조회
-const gallerySectionIds = sectionList.filter((s) => s.type === "gallery").map((s) => s.id);
+const gallerySectionIds = sectionList
+  .filter((s) => s.type === "gallery")
+  .map((s) => s.id);
 let allCovers: any[] = [];
 
 if (gallerySectionIds.length > 0) {
@@ -45,7 +47,9 @@ if (gallerySectionIds.length > 0) {
 }
 
 // blog 타입 섹션이 있으면 블로그 포스트 조회 (section_id로 배정된 글만)
-const blogSectionIds = sectionList.filter((s) => s.type === "blog").map((s) => s.id);
+const blogSectionIds = sectionList
+  .filter((s) => s.type === "blog")
+  .map((s) => s.id);
 let allBlogPosts: any[] = [];
 
 if (blogSectionIds.length > 0) {
@@ -65,26 +69,88 @@ if (blogSectionIds.length > 0) {
 // 섹션에 데이터 매핑
 const sectionsWithData = sectionList.map((section) => ({
   ...section,
-  covers: section.type === "gallery" ? allCovers.filter((c) => c.section_id === section.id) : [],
-  posts: section.type === "blog" ? allBlogPosts.filter((p) => p.section_id === section.id) : [],
+  covers:
+    section.type === "gallery"
+      ? allCovers.filter((c) => c.section_id === section.id)
+      : [],
+  posts:
+    section.type === "blog"
+      ? allBlogPosts.filter((p) => p.section_id === section.id)
+      : [],
 }));
 
 // 모달용 전체 커버 (gallery 섹션만)
 const allCoversList = sectionsWithData.flatMap((s) => s.covers || []);
 ---
 
-<Layout title="Edu+100 - 표지 갤러리" description="다양한 교재 표지 디자인을 살펴보세요.">
+<Layout
+  title="Edu+100 - 표지 갤러리"
+  description="다양한 교재 표지 디자인을 살펴보세요."
+>
   <div class="edu100-page">
-    {sectionsWithData.map((section) => {
-      if (section.type === "text") {
-        return (
-          <div class="edu100-text-section">
-            <div class="edu100-text-content" set:html={renderBlocksToHTML(section.content || "")} />
-          </div>
-        );
-      }
+    {
+      sectionsWithData.map((section) => {
+        if (section.type === "text") {
+          return (
+            <div class="edu100-text-section">
+              <div
+                class="edu100-text-content"
+                set:html={renderBlocksToHTML(section.content || "")}
+              />
+            </div>
+          );
+        }
 
-      if (section.type === "blog") {
+        if (section.type === "blog") {
+          return (
+            <div class="edu100-row-section">
+              {section.title && (
+                <div class="edu100-section-header">
+                  <span class="edu100-section-title">{section.title}</span>
+                </div>
+              )}
+              <div class="edu100-grid-4">
+                {section.posts.map((post: any) => (
+                  <article class="edu100-card">
+                    <a
+                      class="edu100-card-link"
+                      href={`/blog/${post.slug || post.id}`}
+                    >
+                      <div class="edu100-card-image">
+                        {post.image ? (
+                          <img
+                            src={post.image}
+                            alt={post.title}
+                            width="600"
+                            height="600"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div class="edu100-card-placeholder">No Image</div>
+                        )}
+                      </div>
+                      <div class="edu100-card-content">
+                        <h3 class="edu100-card-title">{post.title}</h3>
+                        {post.excerpt && (
+                          <p class="edu100-card-subtitle">
+                            {post.excerpt.length > 50
+                              ? post.excerpt.substring(0, 50) + "..."
+                              : post.excerpt}
+                          </p>
+                        )}
+                        <p class="edu100-card-tag">
+                          {new Date(post.pub_date).toLocaleDateString("ko-KR")}
+                        </p>
+                      </div>
+                    </a>
+                  </article>
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        // gallery (6열)
         return (
           <div class="edu100-row-section">
             {section.title && (
@@ -92,87 +158,54 @@ const allCoversList = sectionsWithData.flatMap((s) => s.covers || []);
                 <span class="edu100-section-title">{section.title}</span>
               </div>
             )}
-            <div class="edu100-grid-4">
-              {section.posts.map((post: any) => (
+            <div class="edu100-grid-6">
+              {section.covers.map((cover: any) => (
                 <article class="edu100-card">
-                  <a class="edu100-card-link" href={`/blog/${post.slug || post.id}`}>
+                  <div
+                    class="edu100-card-link"
+                    data-cover-id={cover.id}
+                    style="cursor:pointer"
+                  >
                     <div class="edu100-card-image">
-                      {post.image ? (
+                      {cover.image ? (
                         <img
-                          src={post.image}
-                          alt={post.title}
+                          src={cover.image}
+                          alt={cover.title}
                           width="600"
-                          height="600"
+                          height="750"
                           loading="lazy"
                         />
                       ) : (
                         <div class="edu100-card-placeholder">No Image</div>
                       )}
                     </div>
-                    <div class="edu100-card-content">
-                      <h3 class="edu100-card-title">{post.title}</h3>
-                      {post.excerpt && (
-                        <p class="edu100-card-subtitle">{post.excerpt.length > 50 ? post.excerpt.substring(0, 50) + "..." : post.excerpt}</p>
-                      )}
-                      <p class="edu100-card-tag">
-                        {new Date(post.pub_date).toLocaleDateString("ko-KR")}
-                      </p>
+                    <div class="edu100-card-content -compact">
+                      <div class="edu100-card-row">
+                        <h3 class="edu100-card-title">{cover.title}</h3>
+                        {cover.tag && (
+                          <span class="edu100-card-category">{cover.tag}</span>
+                        )}
+                        {(cover.design_fee ?? 0) > 0 && (
+                          <span class="edu100-card-fee">
+                            +{Number(cover.design_fee).toLocaleString()}원
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </a>
+                  </div>
                 </article>
               ))}
             </div>
           </div>
         );
-      }
+      })
+    }
 
-      // gallery (6열)
-      return (
-        <div class="edu100-row-section">
-          {section.title && (
-            <div class="edu100-section-header">
-              <span class="edu100-section-title">{section.title}</span>
-            </div>
-          )}
-          <div class="edu100-grid-6">
-            {section.covers.map((cover: any) => (
-              <article class="edu100-card">
-                <div class="edu100-card-link" data-cover-id={cover.id} style="cursor:pointer">
-                  <div class="edu100-card-image">
-                    {cover.image ? (
-                      <img
-                        src={cover.image}
-                        alt={cover.title}
-                        width="600"
-                        height="750"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div class="edu100-card-placeholder">No Image</div>
-                    )}
-                  </div>
-                  <div class="edu100-card-content -compact">
-                    <div class="edu100-card-row">
-                      <h3 class="edu100-card-title">{cover.title}</h3>
-                      {cover.tag && (
-                        <span class="edu100-card-category">{cover.tag}</span>
-                      )}
-                      {(cover.design_fee ?? 0) > 0 && (
-                        <span class="edu100-card-fee">+{Number(cover.design_fee).toLocaleString()}원</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      );
-    })}
-
-    {sectionsWithData.length === 0 && (
-      <p class="edu100-empty">등록된 섹션이 없습니다.</p>
-    )}
+    {
+      sectionsWithData.length === 0 && (
+        <p class="edu100-empty">등록된 섹션이 없습니다.</p>
+      )
+    }
   </div>
 
   <CTA />
@@ -210,21 +243,36 @@ const allCoversList = sectionsWithData.flatMap((s) => s.covers || []);
       margin-bottom: 0.5em;
     }
 
-    :global(h1), :global(h2), :global(h3) {
+    :global(h1),
+    :global(h2),
+    :global(h3) {
       font-weight: 700;
       line-height: 1.2;
       margin-bottom: 0.5em;
     }
 
-    :global(h1) { font-size: clamp(1.75rem, 3.5vw, 2.75rem); }
-    :global(h2) { font-size: clamp(1.5rem, 3vw, 2.25rem); }
-    :global(h3) { font-size: clamp(1.25rem, 2.5vw, 1.75rem); }
+    :global(h1) {
+      font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+    }
+    :global(h2) {
+      font-size: clamp(1.5rem, 3vw, 2.25rem);
+    }
+    :global(h3) {
+      font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    }
 
-    :global(strong) { font-weight: 700; }
-    :global(em) { font-style: italic; }
-    :global(u) { text-decoration: underline; }
+    :global(strong) {
+      font-weight: 700;
+    }
+    :global(em) {
+      font-style: italic;
+    }
+    :global(u) {
+      text-decoration: underline;
+    }
 
-    :global(ul), :global(ol) {
+    :global(ul),
+    :global(ol) {
       padding-left: 1.5rem;
       margin-bottom: 0.75em;
       font-size: clamp(1rem, 2vw, 1.5rem);
@@ -493,7 +541,8 @@ const allCoversList = sectionsWithData.flatMap((s) => s.covers || []);
       margin-bottom: var(--sp-sm);
     }
 
-    strong, b {
+    strong,
+    b {
       font-weight: 600;
     }
   }

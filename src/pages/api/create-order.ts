@@ -61,32 +61,51 @@ export const POST: APIRoute = async ({ request }) => {
           if (oCfg) {
             const qtyDiscounts = oCfg.qtyDiscounts || [];
             const findDiscount = (q: number) => {
-              const d = [...qtyDiscounts].sort((a: { minQty: number }, b: { minQty: number }) => b.minQty - a.minQty).find((d: { minQty: number }) => q >= d.minQty);
+              const d = [...qtyDiscounts]
+                .sort(
+                  (a: { minQty: number }, b: { minQty: number }) =>
+                    b.minQty - a.minQty
+                )
+                .find((d: { minQty: number }) => q >= d.minQty);
               return d?.percent || 0;
             };
-            const booksBlock = (product.blocks || []).find((b: { on: boolean; type: string }) => b.on && b.type === "books");
+            const booksBlock = (product.blocks || []).find(
+              (b: { on: boolean; type: string }) => b.on && b.type === "books"
+            );
             const booksCfg = booksBlock?.config || {};
             const books = priceInput.books || [];
             const guidePrice = Number(priceInput.guidePriceTotal) || 0;
 
             if (books.length > 0) {
               const bPagePrice = booksCfg.pagePrice ?? oCfg.pagePrice ?? 40;
-              const bBindingFee = booksCfg.bindingFee ?? oCfg.bindingFee ?? 1500;
-              const totalQty = books.reduce((s: number, b: { qty?: number }) => s + (b.qty || 1), 0);
+              const bBindingFee =
+                booksCfg.bindingFee ?? oCfg.bindingFee ?? 1500;
+              const totalQty = books.reduce(
+                (s: number, b: { qty?: number }) => s + (b.qty || 1),
+                0
+              );
               const discountPct = findDiscount(totalQty);
               let total = 0;
               for (const book of books) {
                 const pg = book.pages || 100;
                 const bq = book.qty || 1;
-                total += Math.round((pg * bPagePrice + bBindingFee + guidePrice) * bq * (1 - discountPct / 100));
+                total += Math.round(
+                  (pg * bPagePrice + bBindingFee + guidePrice) *
+                    bq *
+                    (1 - discountPct / 100)
+                );
               }
               const freeDesignMinQty = booksCfg.freeDesignMinQty ?? 100;
               const designFee = Number(priceInput.designFee) || 0;
-              if (designFee > 0 && totalQty < freeDesignMinQty) total += designFee;
+              if (designFee > 0 && totalQty < freeDesignMinQty)
+                total += designFee;
               finalPrice = total;
             } else {
               const oPages = priceInput.pages || 100;
-              const perCopy = oPages * (oCfg.pagePrice ?? 40) + (oCfg.bindingFee ?? 1500) + guidePrice;
+              const perCopy =
+                oPages * (oCfg.pagePrice ?? 40) +
+                (oCfg.bindingFee ?? 1500) +
+                guidePrice;
               const discountPct = findDiscount(qty);
               finalPrice = Math.round(perCopy * qty * (1 - discountPct / 100));
             }
@@ -99,7 +118,11 @@ export const POST: APIRoute = async ({ request }) => {
       }
     } else {
       await loadPricingData();
-      const serverResult = calculatePrice(customer, qty, productType || "flyer");
+      const serverResult = calculatePrice(
+        customer,
+        qty,
+        productType || "flyer"
+      );
       // 가이드 블록 가격 합산 (calculate-price API와 동일하게 처리)
       const guidePrice = Number(priceInput.guidePriceTotal) || 0;
       const serverPrice = serverResult.total + guidePrice;
@@ -107,7 +130,8 @@ export const POST: APIRoute = async ({ request }) => {
       // Price discrepancy check
       // Only reject if submitted price is significantly LOWER than server price
       if (submittedPrice < serverPrice) {
-        const discrepancy = ((serverPrice - submittedPrice) / serverPrice) * 100;
+        const discrepancy =
+          ((serverPrice - submittedPrice) / serverPrice) * 100;
 
         if (discrepancy > MAX_PRICE_DISCREPANCY_PERCENT) {
           return new Response(
@@ -129,9 +153,7 @@ export const POST: APIRoute = async ({ request }) => {
       ...orderData,
       productAmount: finalPrice,
       totalAmount:
-        finalPrice +
-        (orderData.shippingCost || 0) +
-        (orderData.quickCost || 0),
+        finalPrice + (orderData.shippingCost || 0) + (orderData.quickCost || 0),
     };
 
     const result = await createOrder(verifiedOrderData);

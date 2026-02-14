@@ -7,7 +7,6 @@ const { data: blogList, error } = await supabase
   .from("blog_posts")
   .select("*")
   .order("pub_date", { ascending: false });
-
 ---
 
 <AdminLayout title="블로그 관리">
@@ -41,21 +40,33 @@ const { data: blogList, error } = await supabase
                   <td class="blog-title-cell">
                     <a href={`/admin/blog/${post.id}`}>
                       {post.title}
-                      {post.image && <span class="has-image" title="이미지 있음">🖼</span>}
+                      {post.image && (
+                        <span class="has-image" title="이미지 있음">
+                          🖼
+                        </span>
+                      )}
                     </a>
                     {post.excerpt && (
-                      <p class="blog-excerpt">{post.excerpt.substring(0, 60)}...</p>
+                      <p class="blog-excerpt">
+                        {post.excerpt.substring(0, 60)}...
+                      </p>
                     )}
                   </td>
                   <td>
-                    <span class={`status-badge ${post.is_published ? "published" : "draft"}`}>
+                    <span
+                      class={`status-badge ${post.is_published ? "published" : "draft"}`}
+                    >
                       {post.is_published ? "공개" : "비공개"}
                     </span>
                   </td>
                   <td>{new Date(post.pub_date).toLocaleDateString("ko-KR")}</td>
                   <td class="actions-cell">
-                    <a href={`/admin/blog/${post.id}`} class="btn-edit">수정</a>
-                    <button class="btn-delete" data-id={post.id}>삭제</button>
+                    <a href={`/admin/blog/${post.id}`} class="btn-edit">
+                      수정
+                    </a>
+                    <button class="btn-delete" data-id={post.id}>
+                      삭제
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -66,7 +77,9 @@ const { data: blogList, error } = await supabase
             <div class="empty-icon">📝</div>
             <h3>등록된 블로그 글이 없습니다</h3>
             <p>새 블로그 글을 작성해보세요.</p>
-            <a href="/admin/blog/new" class="btn-primary">글 작성하기</a>
+            <a href="/admin/blog/new" class="btn-primary">
+              글 작성하기
+            </a>
           </div>
         )
       }
