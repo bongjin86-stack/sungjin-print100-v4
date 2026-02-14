@@ -6,16 +6,59 @@ import SectionTitle from "@/components/ui/SectionTitle.astro";
 
 import { supabase } from "../../lib/supabase";
 
-// DB에서 works 가져오기
-const { data: works, error } = await supabase
-  .from("works")
-  .select("*")
-  .eq("is_published", true)
-  .order("created_at", { ascending: false })
-  .limit(4);
+// 랜딩 페이지 설정에서 Works 설정 가져오기
+const { data: settings } = await supabase
+  .from("site_settings")
+  .select("key, value")
+  .in("key", ["landing_works_ids", "landing_works_count"]);
 
-if (error) {
-  console.error("Error fetching works:", error);
+const configMap: Record<string, string> = {};
+(settings || []).forEach((s: { key: string; value: string }) => {
+  configMap[s.key] = s.value;
+});
+
+let workIds: string[] = [];
+try {
+  workIds = JSON.parse(configMap.landing_works_ids || "[]");
+} catch {
+  workIds = [];
+}
+
+const maxCount = parseInt(configMap.landing_works_count || "4", 10);
+
+// 선택된 작품 또는 최신 작품 가져오기
+let works: any[] = [];
+
+if (workIds.length > 0) {
+  // 관리자가 선택한 순서대로 가져오기
+  const { data } = await supabase
+    .from("works")
+    .select("*")
+    .in("id", workIds)
+    .eq("is_published", true);
+
+  if (data) {
+    // 관리자가 설정한 순서 유지
+    const dataMap = new Map(data.map((d: any) => [d.id, d]));
+    works = workIds
+      .map((id) => dataMap.get(id))
+      .filter(Boolean)
+      .slice(0, maxCount);
+  }
+} else {
+  // 기본: 최신 published works
+  const { data, error } = await supabase
+    .from("works")
+    .select("*")
+    .eq("is_published", true)
+    .order("created_at", { ascending: false })
+    .limit(maxCount);
+
+  if (error) {
+    console.error("Error fetching works:", error);
+  }
+
+  works = data || [];
 }
 ---
 

@@ -10,6 +10,7 @@ import Service from "@/components/sections/Service.astro";
 import Works from "@/components/sections/WorksDB.astro";
 import siteConfig from "@/config/site.config.json";
 import Layout from "@/layouts/Layout.astro";
+import { supabase } from "@/lib/supabase";
 
 export const prerender = false;
 
@@ -21,18 +22,66 @@ Astro.response.headers.set(
 
 const siteTitle = String(siteConfig.site.title);
 const siteDescription = String(siteConfig.site.description);
+
+// 섹션 순서 가져오기
+const defaultOrder = [
+  "hero",
+  "partners",
+  "service",
+  "products",
+  "works",
+  "edu100",
+  "about",
+  "news",
+  "cta",
+];
+
+let sectionOrder = defaultOrder;
+try {
+  const { data } = await supabase
+    .from("site_settings")
+    .select("value")
+    .eq("key", "landing_section_order")
+    .single();
+
+  if (data?.value) {
+    const parsed = JSON.parse(data.value);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      sectionOrder = parsed;
+    }
+  }
+} catch {
+  // 기본 순서 사용
+}
 ---
 
 <Layout title={siteTitle} description={siteDescription}>
-  <Hero />
-  <Partners />
-  <Service />
-  <PrintsShowcase />
-  <Works />
-  <Edu100Showcase />
-  <About />
-  <News />
-  <CTA />
+  {
+    sectionOrder.map((section) => {
+      switch (section) {
+        case "hero":
+          return <Hero />;
+        case "partners":
+          return <Partners />;
+        case "service":
+          return <Service />;
+        case "products":
+          return <PrintsShowcase />;
+        case "works":
+          return <Works />;
+        case "edu100":
+          return <Edu100Showcase />;
+        case "about":
+          return <About />;
+        case "news":
+          return <News />;
+        case "cta":
+          return <CTA />;
+        default:
+          return null;
+      }
+    })
+  }
 </Layout>
 
 <script>

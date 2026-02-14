@@ -13,12 +13,52 @@ const { data: works, error } = await supabase
 if (error) {
   console.error("Error fetching works:", error);
 }
+
+// 고유 태그 목록 + 사용 수
+const tagCounts: Record<string, number> = {};
+(works || []).forEach((w) => {
+  if (w.tag) {
+    tagCounts[w.tag] = (tagCounts[w.tag] || 0) + 1;
+  }
+});
+const tagList = Object.entries(tagCounts).sort(([a], [b]) =>
+  a.localeCompare(b)
+);
 ---
 
 <AdminLayout title="Works 관리">
   <div class="admin-header">
     <h1>Works 관리</h1>
     <a href="/admin/works/new" class="btn-primary">새 Works 작성</a>
+  </div>
+
+  <!-- 태그 관리 -->
+  <div class="tag-manager">
+    <h2>태그 관리</h2>
+    <div class="tag-list" id="tagList">
+      {
+        tagList.length > 0 ? (
+          tagList.map(([tag, count]) => (
+            <div class="tag-item" data-tag={tag}>
+              <span class="tag-name">{tag}</span>
+              <span class="tag-count">{count}개</span>
+              <button class="tag-rename" data-tag={tag} title="이름 변경">
+                &#9998;
+              </button>
+              <button class="tag-delete" data-tag={tag} title="삭제">
+                &times;
+              </button>
+            </div>
+          ))
+        ) : (
+          <p class="tag-empty">등록된 태그가 없습니다.</p>
+        )
+      }
+    </div>
+    <p class="tag-hint">
+      Works 작성/수정 시 새 태그를 직접 입력하면 자동으로 등록됩니다. 삭제하면
+      해당 태그를 사용 중인 Works에서도 제거됩니다.
+    </p>
   </div>
 
   <div class="works-list">
@@ -199,9 +239,104 @@ if (error) {
     color: var(--c-text-sub);
     margin-bottom: 1rem;
   }
+
+  .tag-manager {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .tag-manager h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--c-text);
+    margin-bottom: 1rem;
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .tag-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: #f3f4f6;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+  }
+
+  .tag-name {
+    font-weight: 500;
+    color: var(--c-text);
+  }
+
+  .tag-count {
+    color: var(--c-text-sub);
+    font-size: 0.75rem;
+  }
+
+  .tag-rename,
+  .tag-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition:
+      opacity 0.15s,
+      background 0.15s;
+  }
+
+  .tag-item:hover .tag-rename,
+  .tag-item:hover .tag-delete {
+    opacity: 1;
+  }
+
+  .tag-rename {
+    color: #6b7280;
+    font-size: 0.8rem;
+  }
+
+  .tag-rename:hover {
+    background: #e5e7eb;
+  }
+
+  .tag-delete {
+    color: #991b1b;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .tag-delete:hover {
+    background: #fee2e2;
+  }
+
+  .tag-empty {
+    color: var(--c-text-sub);
+    font-size: 0.875rem;
+  }
+
+  .tag-hint {
+    color: var(--c-text-sub);
+    font-size: 0.75rem;
+  }
 </style>
 
 <script>
+  // Works 삭제
   document.querySelectorAll(".btn-delete").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       const id = (e.target as HTMLElement).dataset.id;
@@ -211,6 +346,49 @@ if (error) {
           window.location.reload();
         } else {
           alert("삭제에 실패했습니다.");
+        }
+      }
+    });
+  });
+
+  // 태그 삭제
+  document.querySelectorAll(".tag-delete").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      const tag = (e.target as HTMLElement).dataset.tag;
+      if (
+        confirm(
+          `"${tag}" 태그를 삭제하시겠습니까?\n이 태그를 사용 중인 Works에서도 제거됩니다.`
+        )
+      ) {
+        const res = await fetch("/api/works/tags", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tag }),
+        });
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          alert("태그 삭제에 실패했습니다.");
+        }
+      }
+    });
+  });
+
+  // 태그 수정
+  document.querySelectorAll(".tag-rename").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      const oldTag = (e.target as HTMLElement).dataset.tag;
+      const newTag = prompt(`"${oldTag}" 태그의 새 이름:`, oldTag);
+      if (newTag && newTag !== oldTag) {
+        const res = await fetch("/api/works/tags", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oldTag, newTag }),
+        });
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          alert("태그 수정에 실패했습니다.");
         }
       }
     });

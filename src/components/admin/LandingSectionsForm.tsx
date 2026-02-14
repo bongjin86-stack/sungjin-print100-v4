@@ -6,7 +6,38 @@ import { uploadImage } from "@/lib/supabase";
 import { adminFormStyles as styles } from "./adminFormStyles";
 import HeroForm from "./HeroForm";
 
-type TabType = "hero" | "about" | "products" | "edu100" | "cta";
+type TabType =
+  | "hero"
+  | "order"
+  | "about"
+  | "products"
+  | "works"
+  | "edu100"
+  | "cta";
+
+const DEFAULT_SECTION_ORDER = [
+  "hero",
+  "partners",
+  "service",
+  "products",
+  "works",
+  "edu100",
+  "about",
+  "news",
+  "cta",
+];
+
+const SECTION_LABELS: Record<string, string> = {
+  hero: "Hero (히어로)",
+  partners: "Partners (파트너)",
+  service: "Service (서비스 소개)",
+  products: "Products (인쇄 상품)",
+  works: "Works (제작실적)",
+  edu100: "Edu+100 (교재인쇄)",
+  about: "About (회사 소개)",
+  news: "News (뉴스)",
+  cta: "CTA (문의하기)",
+};
 
 interface FormData {
   // About 섹션
@@ -21,6 +52,9 @@ interface FormData {
   // Products 섹션
   landing_products_ids: string;
   landing_products_count: string;
+  // Works 섹션
+  landing_works_ids: string;
+  landing_works_count: string;
   // EDU+100 섹션
   landing_edu100_images: string;
   landing_edu100_speed: string;
@@ -29,9 +63,19 @@ interface FormData {
   landing_edu100_text: string;
   landing_edu100_button_text: string;
   landing_edu100_button_link: string;
+  // 섹션 순서
+  landing_section_order: string;
 }
 
 interface PrintItem {
+  id: string;
+  title: string;
+  image: string | null;
+  tag: string | null;
+  is_published: boolean;
+}
+
+interface WorkItem {
   id: string;
   title: string;
   image: string | null;
@@ -52,6 +96,8 @@ const defaultValues: FormData = {
   landing_cta_button_link: "/contact",
   landing_products_ids: "[]",
   landing_products_count: "6",
+  landing_works_ids: "[]",
+  landing_works_count: "4",
   landing_edu100_images: "[]",
   landing_edu100_speed: "3000",
   landing_edu100_title: "Edu+100",
@@ -60,6 +106,7 @@ const defaultValues: FormData = {
     "학원, 학교, 기업교육에 최적화된 교재 인쇄 서비스입니다.\n다양한 표지 디자인 갤러리에서 원하는 디자인을 선택하고,\n간편하게 주문할 수 있습니다.",
   landing_edu100_button_text: "자세히 보기",
   landing_edu100_button_link: "/edu100",
+  landing_section_order: JSON.stringify(DEFAULT_SECTION_ORDER),
 };
 
 export default function LandingSectionsForm() {
@@ -76,6 +123,15 @@ export default function LandingSectionsForm() {
   const [allPrints, setAllPrints] = useState<PrintItem[]>([]);
   const [selectedPrintIds, setSelectedPrintIds] = useState<string[]>([]);
 
+  // Works 탭 상태
+  const [allWorks, setAllWorks] = useState<WorkItem[]>([]);
+  const [selectedWorkIds, setSelectedWorkIds] = useState<string[]>([]);
+
+  // 섹션 순서 상태
+  const [sectionOrder, setSectionOrder] = useState<string[]>(
+    DEFAULT_SECTION_ORDER
+  );
+
   // EDU+100 이미지 업로드 상태
   const [edu100Images, setEdu100Images] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -84,6 +140,7 @@ export default function LandingSectionsForm() {
   useEffect(() => {
     loadSettings();
     loadPrints();
+    loadWorks();
   }, []);
 
   const loadSettings = async () => {
@@ -124,6 +181,10 @@ export default function LandingSectionsForm() {
           landing_products_count:
             configMap.landing_products_count ||
             defaultValues.landing_products_count,
+          landing_works_ids:
+            configMap.landing_works_ids || defaultValues.landing_works_ids,
+          landing_works_count:
+            configMap.landing_works_count || defaultValues.landing_works_count,
           landing_edu100_images:
             configMap.landing_edu100_images ||
             defaultValues.landing_edu100_images,
@@ -144,6 +205,9 @@ export default function LandingSectionsForm() {
           landing_edu100_button_link:
             configMap.landing_edu100_button_link ||
             defaultValues.landing_edu100_button_link,
+          landing_section_order:
+            configMap.landing_section_order ||
+            defaultValues.landing_section_order,
         };
 
         setFormData(newFormData);
@@ -156,10 +220,27 @@ export default function LandingSectionsForm() {
         }
 
         try {
+          const ids = JSON.parse(newFormData.landing_works_ids || "[]");
+          setSelectedWorkIds(Array.isArray(ids) ? ids : []);
+        } catch {
+          setSelectedWorkIds([]);
+        }
+
+        try {
           const imgs = JSON.parse(newFormData.landing_edu100_images || "[]");
           setEdu100Images(Array.isArray(imgs) ? imgs : []);
         } catch {
           setEdu100Images([]);
+        }
+
+        try {
+          const order = JSON.parse(
+            newFormData.landing_section_order ||
+              JSON.stringify(DEFAULT_SECTION_ORDER)
+          );
+          setSectionOrder(Array.isArray(order) ? order : DEFAULT_SECTION_ORDER);
+        } catch {
+          setSectionOrder(DEFAULT_SECTION_ORDER);
         }
       }
     } catch (error) {
@@ -181,6 +262,21 @@ export default function LandingSectionsForm() {
       setAllPrints(data || []);
     } catch (error) {
       console.error("prints 로드 실패:", error);
+    }
+  };
+
+  const loadWorks = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("works")
+        .select("id, title, image, tag, is_published")
+        .eq("is_published", true)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setAllWorks(data || []);
+    } catch (error) {
+      console.error("works 로드 실패:", error);
     }
   };
 
@@ -223,6 +319,49 @@ export default function LandingSectionsForm() {
           {
             key: "landing_products_count",
             value: formData.landing_products_count,
+            updated_at: new Date().toISOString(),
+          },
+        ];
+        const { error } = await supabase
+          .from("site_settings")
+          .upsert(updates, { onConflict: "key" });
+
+        if (error) throw error;
+        setMessage({ type: "success", text: "저장되었습니다." });
+        setTimeout(() => setMessage(null), 3000);
+        setSaving(false);
+        return;
+      } else if (activeTab === "works") {
+        const idsJson = JSON.stringify(selectedWorkIds);
+        setFormData((prev) => ({ ...prev, landing_works_ids: idsJson }));
+        const updates = [
+          {
+            key: "landing_works_ids",
+            value: idsJson,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            key: "landing_works_count",
+            value: formData.landing_works_count,
+            updated_at: new Date().toISOString(),
+          },
+        ];
+        const { error } = await supabase
+          .from("site_settings")
+          .upsert(updates, { onConflict: "key" });
+
+        if (error) throw error;
+        setMessage({ type: "success", text: "저장되었습니다." });
+        setTimeout(() => setMessage(null), 3000);
+        setSaving(false);
+        return;
+      } else if (activeTab === "order") {
+        const orderJson = JSON.stringify(sectionOrder);
+        setFormData((prev) => ({ ...prev, landing_section_order: orderJson }));
+        const updates = [
+          {
+            key: "landing_section_order",
+            value: orderJson,
             updated_at: new Date().toISOString(),
           },
         ];
@@ -315,6 +454,45 @@ export default function LandingSectionsForm() {
     setSelectedPrintIds((prev) => prev.filter((id) => id !== printId));
   }, []);
 
+  // ─── Works 탭 핸들러 ───
+  const toggleWork = useCallback((workId: string) => {
+    setSelectedWorkIds((prev) => {
+      if (prev.includes(workId)) {
+        return prev.filter((id) => id !== workId);
+      }
+      return [...prev, workId];
+    });
+  }, []);
+
+  const moveWork = useCallback((index: number, direction: -1 | 1) => {
+    setSelectedWorkIds((prev) => {
+      const newArr = [...prev];
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= newArr.length) return prev;
+      [newArr[index], newArr[newIndex]] = [newArr[newIndex], newArr[index]];
+      return newArr;
+    });
+  }, []);
+
+  const removeWork = useCallback((workId: string) => {
+    setSelectedWorkIds((prev) => prev.filter((id) => id !== workId));
+  }, []);
+
+  // ─── 섹션 순서 핸들러 ───
+  const moveSection = useCallback((index: number, direction: -1 | 1) => {
+    setSectionOrder((prev) => {
+      const newArr = [...prev];
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= newArr.length) return prev;
+      [newArr[index], newArr[newIndex]] = [newArr[newIndex], newArr[index]];
+      return newArr;
+    });
+  }, []);
+
+  const resetSectionOrder = useCallback(() => {
+    setSectionOrder(DEFAULT_SECTION_ORDER);
+  }, []);
+
   // ─── EDU+100 이미지 핸들러 ───
   const handleEdu100ImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -361,6 +539,10 @@ export default function LandingSectionsForm() {
     .map((id) => allPrints.find((p) => p.id === id))
     .filter(Boolean) as PrintItem[];
 
+  const selectedWorksInfo = selectedWorkIds
+    .map((id) => allWorks.find((w) => w.id === id))
+    .filter(Boolean) as WorkItem[];
+
   return (
     <div style={styles.form}>
       {/* 탭 네비게이션 */}
@@ -368,7 +550,9 @@ export default function LandingSectionsForm() {
         {(
           [
             ["hero", "Hero"],
+            ["order", "순서"],
             ["products", "Products"],
+            ["works", "Works"],
             ["edu100", "Edu+100"],
             ["about", "About"],
             ["cta", "CTA"],
@@ -383,7 +567,7 @@ export default function LandingSectionsForm() {
               ...(activeTab === key ? localStyles.tabActive : {}),
             }}
           >
-            {label} 섹션
+            {label} {key !== "order" ? "섹션" : ""}
           </button>
         ))}
       </div>
@@ -404,6 +588,63 @@ export default function LandingSectionsForm() {
           }
         >
           {message.text}
+        </div>
+      )}
+
+      {/* 섹션 순서 */}
+      {activeTab === "order" && (
+        <div style={styles.formGrid}>
+          <div style={localStyles.sectionHeader}>
+            <h3 style={localStyles.sectionTitle}>섹션 순서 관리</h3>
+            <p style={localStyles.sectionDesc}>
+              랜딩 페이지에 표시되는 섹션의 순서를 변경합니다. 위/아래 버튼으로
+              순서를 조정하세요.
+            </p>
+          </div>
+
+          <div style={localStyles.orderList}>
+            {sectionOrder.map((key, index) => (
+              <div key={key} style={localStyles.orderItem}>
+                <span style={localStyles.orderIndex}>{index + 1}</span>
+                <span style={localStyles.orderLabel}>
+                  {SECTION_LABELS[key] || key}
+                </span>
+                <div style={localStyles.selectedActions}>
+                  <button
+                    type="button"
+                    onClick={() => moveSection(index, -1)}
+                    disabled={index === 0}
+                    style={localStyles.moveBtn}
+                    title="위로"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveSection(index, 1)}
+                    disabled={index === sectionOrder.length - 1}
+                    style={localStyles.moveBtn}
+                    title="아래로"
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={resetSectionOrder}
+            style={{
+              ...localStyles.moveBtn,
+              padding: "0.5rem 1rem",
+              fontSize: "0.8125rem",
+              marginTop: "0.5rem",
+            }}
+          >
+            기본 순서로 초기화
+          </button>
         </div>
       )}
 
@@ -503,6 +744,137 @@ export default function LandingSectionsForm() {
                   <div
                     key={item.id}
                     onClick={() => togglePrint(item.id)}
+                    style={{
+                      ...localStyles.printCard,
+                      ...(isSelected ? localStyles.printCardSelected : {}),
+                    }}
+                  >
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        style={localStyles.printCardImage}
+                      />
+                    ) : (
+                      <div style={localStyles.printCardPlaceholder}>
+                        No Image
+                      </div>
+                    )}
+                    <div style={localStyles.printCardInfo}>
+                      <span style={localStyles.printCardTitle}>
+                        {item.title}
+                      </span>
+                      {item.tag && (
+                        <span style={localStyles.printCardTag}>{item.tag}</span>
+                      )}
+                    </div>
+                    {isSelected && (
+                      <div style={localStyles.printCardCheck}>✓</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Works 섹션 */}
+      {activeTab === "works" && (
+        <div style={styles.formGrid}>
+          <div style={localStyles.sectionHeader}>
+            <h3 style={localStyles.sectionTitle}>Works 섹션</h3>
+            <p style={localStyles.sectionDesc}>
+              랜딩 페이지에 노출할 제작실적을 선택하고 순서를 설정합니다.
+            </p>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>노출 개수</label>
+            <select
+              name="landing_works_count"
+              value={formData.landing_works_count}
+              onChange={handleChange}
+              style={styles.select}
+            >
+              {[2, 3, 4, 6, 8].map((n) => (
+                <option key={n} value={n}>
+                  {n}개
+                </option>
+              ))}
+            </select>
+            <p style={styles.hint}>
+              랜딩 페이지에 표시할 최대 작품 수입니다. 선택된 작품이 없으면 최신
+              작품이 자동으로 표시됩니다.
+            </p>
+          </div>
+
+          {selectedWorksInfo.length > 0 && (
+            <div style={styles.formGroup}>
+              <label style={styles.label}>
+                선택된 작품 ({selectedWorksInfo.length}개)
+              </label>
+              <div style={localStyles.selectedList}>
+                {selectedWorksInfo.map((item, index) => (
+                  <div key={item.id} style={localStyles.selectedItem}>
+                    <span style={localStyles.selectedIndex}>{index + 1}</span>
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        style={localStyles.selectedThumb}
+                      />
+                    )}
+                    <span style={localStyles.selectedName}>{item.title}</span>
+                    {item.tag && (
+                      <span style={localStyles.selectedTag}>{item.tag}</span>
+                    )}
+                    <div style={localStyles.selectedActions}>
+                      <button
+                        type="button"
+                        onClick={() => moveWork(index, -1)}
+                        disabled={index === 0}
+                        style={localStyles.moveBtn}
+                        title="위로"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveWork(index, 1)}
+                        disabled={index === selectedWorksInfo.length - 1}
+                        style={localStyles.moveBtn}
+                        title="아래로"
+                      >
+                        ▼
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeWork(item.id)}
+                        style={localStyles.removeBtn}
+                        title="제거"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>작품 선택</label>
+            <p style={styles.hint}>
+              클릭하여 랜딩 페이지에 노출할 작품을 선택/해제합니다.
+            </p>
+            <div style={localStyles.printGrid}>
+              {allWorks.map((item) => {
+                const isSelected = selectedWorkIds.includes(item.id);
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => toggleWork(item.id)}
                     style={{
                       ...localStyles.printCard,
                       ...(isSelected ? localStyles.printCardSelected : {}),
@@ -992,6 +1364,37 @@ const localStyles: Record<string, React.CSSProperties> = {
     fontSize: "1.25rem",
     lineHeight: 1.8,
     color: "#374151",
+  },
+  orderList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.5rem",
+    padding: "0.75rem",
+    background: "#f9fafb",
+    borderRadius: "0.5rem",
+    border: "1px solid #e5e7eb",
+  },
+  orderItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.75rem",
+    padding: "0.625rem 0.75rem",
+    background: "white",
+    borderRadius: "0.375rem",
+    border: "1px solid #e5e7eb",
+  },
+  orderIndex: {
+    fontSize: "0.75rem",
+    fontWeight: 600,
+    color: "#9ca3af",
+    minWidth: "1.5rem",
+    textAlign: "center",
+  },
+  orderLabel: {
+    flex: 1,
+    fontSize: "0.875rem",
+    fontWeight: 500,
+    color: "#111827",
   },
   selectedList: {
     display: "flex",

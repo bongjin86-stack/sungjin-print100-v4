@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { adminFormStyles as baseStyles } from "./adminFormStyles";
 import BlockNoteEditor from "./BlockNoteEditor";
@@ -58,6 +58,8 @@ function parseAchievements(
 
 export default function WorksForm({ mode, initialData }: WorksFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingTags, setExistingTags] = useState<string[]>([]);
+  const [isCustomTag, setIsCustomTag] = useState(false);
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
     subtitle: initialData?.subtitle || "",
@@ -71,6 +73,25 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
     content: initialData?.content || "",
     is_published: initialData?.is_published ?? true,
   });
+
+  // 기존 태그 로드
+  useEffect(() => {
+    fetch("/api/works/tags")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const tags = [
+            ...new Set(data.map((t: string) => t).filter(Boolean)),
+          ].sort() as string[];
+          setExistingTags(tags);
+          // 기존 태그에 없는 값이면 직접 입력 모드로 전환
+          if (initialData?.tag && !tags.includes(initialData.tag)) {
+            setIsCustomTag(true);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // 리스트 형태로 관리
   const [supportList, setSupportList] = useState<string[]>(
@@ -232,14 +253,60 @@ export default function WorksForm({ mode, initialData }: WorksFormProps) {
 
           <div style={styles.formGroup}>
             <label style={styles.label}>태그</label>
-            <input
-              type="text"
-              name="tag"
-              value={formData.tag}
-              onChange={handleChange}
-              placeholder="웹 개발"
-              style={styles.input}
-            />
+            {isCustomTag ? (
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <input
+                  type="text"
+                  name="tag"
+                  value={formData.tag}
+                  onChange={handleChange}
+                  placeholder="새 태그 입력"
+                  style={{ ...styles.input, flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsCustomTag(false)}
+                  style={{
+                    ...styles.addButton,
+                    whiteSpace: "nowrap",
+                    padding: "0.5rem 0.75rem",
+                    fontSize: "0.8125rem",
+                  }}
+                >
+                  목록에서 선택
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <select
+                  value={
+                    existingTags.includes(formData.tag) ? formData.tag : ""
+                  }
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "__custom__") {
+                      setIsCustomTag(true);
+                      setFormData((prev) => ({ ...prev, tag: "" }));
+                    } else {
+                      setFormData((prev) => ({ ...prev, tag: v }));
+                    }
+                  }}
+                  style={{ ...styles.select, flex: 1 }}
+                >
+                  <option value="">태그 선택</option>
+                  {existingTags.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                  <option value="__custom__">+ 직접 입력</option>
+                </select>
+              </div>
+            )}
+            <p style={styles.hint}>
+              기존 태그를 선택하거나 "직접 입력"으로 새 태그를 추가할 수
+              있습니다.
+            </p>
           </div>
         </div>
 
