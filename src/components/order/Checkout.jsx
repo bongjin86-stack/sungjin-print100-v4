@@ -78,7 +78,11 @@ export default function Checkout() {
       const w = product.estimatedWeight;
       const BOX_MAX_KG = 20;
       const boxCount = Math.max(1, Math.ceil(w / BOX_MAX_KG));
-      return { boxCount, totalWeight: Math.round(w * 10) / 10, needsFreight: w > 30 };
+      return {
+        boxCount,
+        totalWeight: Math.round(w * 10) / 10,
+        needsFreight: w > 30,
+      };
     }
     if (product.isBinding) {
       return calculateBindingPackaging(

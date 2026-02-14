@@ -162,80 +162,108 @@ export default function CustomerOrderStatus({ uuid }) {
               <div className="space-y-4">
                 {order.items?.map((item, index) => {
                   const itemHasBooks = item.booksSummary?.length > 0;
-                  const itemBooks = itemHasBooks ? item.booksSummary.filter(b => b.designFee == null) : [];
+                  const itemBooks = itemHasBooks
+                    ? item.booksSummary.filter((b) => b.designFee == null)
+                    : [];
                   const isHex = (v) => /^#[0-9a-fA-F]{3,8}$/.test(String(v));
                   return (
-                  <div key={index}>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {item.productName}
-                        </p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {item.spec?.size} · {item.spec?.quantity}부
-                          {itemHasBooks && ` (${itemBooks.length}종)`}
-                          {!itemHasBooks && item.spec?.pages && ` · ${item.spec.pages}p`}
-                        </p>
-                        {item.spec?.finishing?.length > 0 && (
-                          <p className="text-sm text-gray-500">
-                            후가공: {item.spec.finishing.join(", ")}
+                    <div key={index}>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {item.productName}
                           </p>
-                        )}
+                          <p className="text-sm text-gray-500 mt-1">
+                            {item.spec?.size} · {item.spec?.quantity}부
+                            {itemHasBooks && ` (${itemBooks.length}종)`}
+                            {!itemHasBooks &&
+                              item.spec?.pages &&
+                              ` · ${item.spec.pages}p`}
+                          </p>
+                          {item.spec?.finishing?.length > 0 && (
+                            <p className="text-sm text-gray-500">
+                              후가공: {item.spec.finishing.join(", ")}
+                            </p>
+                          )}
+                        </div>
+                        <span className="font-semibold text-gray-900">
+                          {`\u20A9${item.price?.toLocaleString()}`}
+                        </span>
                       </div>
-                      <span className="font-semibold text-gray-900">
-                        {`\u20A9${item.price?.toLocaleString()}`}
-                      </span>
-                    </div>
 
-                    {/* 시리즈 주문 */}
-                    {itemHasBooks && (
-                      <div className="mt-3 space-y-2">
-                        {itemBooks.map((book) => {
-                          const fields = Object.entries(book.fields || {}).filter(([, v]) => v && String(v).trim());
-                          return (
-                            <div key={book.index} className="bg-gray-50 rounded-lg p-2.5">
-                              <div className="flex justify-between items-center mb-0.5">
-                                <span className="text-sm font-semibold">{book.index}권</span>
-                                <span className="text-xs text-gray-500">{book.pages}p · {book.qty}부</span>
-                              </div>
-                              {fields.length > 0 && (
-                                <div className="space-y-0.5">
-                                  {fields.map(([label, value]) => (
-                                    <div key={label} className="flex items-center gap-1.5 text-xs text-gray-600">
-                                      <span className="text-gray-400">{label}:</span>
-                                      {isHex(value) ? (
-                                        <span className="inline-block w-3 h-3 rounded-full border border-gray-300" style={{backgroundColor: String(value)}} />
-                                      ) : (
-                                        <span>{String(value)}</span>
-                                      )}
-                                    </div>
-                                  ))}
+                      {/* 시리즈 주문 */}
+                      {itemHasBooks && (
+                        <div className="mt-3 space-y-2">
+                          {itemBooks.map((book) => {
+                            const fields = Object.entries(
+                              book.fields || {}
+                            ).filter(([, v]) => v && String(v).trim());
+                            return (
+                              <div
+                                key={book.index}
+                                className="bg-gray-50 rounded-lg p-2.5"
+                              >
+                                <div className="flex justify-between items-center mb-0.5">
+                                  <span className="text-sm font-semibold">
+                                    {book.index}권
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {book.pages}p · {book.qty}부
+                                  </span>
                                 </div>
+                                {fields.length > 0 && (
+                                  <div className="space-y-0.5">
+                                    {fields.map(([label, value]) => (
+                                      <div
+                                        key={label}
+                                        className="flex items-center gap-1.5 text-xs text-gray-600"
+                                      >
+                                        <span className="text-gray-400">
+                                          {label}:
+                                        </span>
+                                        {isHex(value) ? (
+                                          <span
+                                            className="inline-block w-3 h-3 rounded-full border border-gray-300"
+                                            style={{
+                                              backgroundColor: String(value),
+                                            }}
+                                          />
+                                        ) : (
+                                          <span>{String(value)}</span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* 텍스트 입력 내용 */}
+                      {!itemHasBooks && item.textInputs?.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          {item.textInputs.map((ti, i) => (
+                            <div key={i}>
+                              <p className="text-xs text-gray-500">
+                                {ti.label}
+                              </p>
+                              {isHex(ti.value) ? (
+                                <span
+                                  className="inline-block w-4 h-4 rounded-full border border-gray-300 mt-1"
+                                  style={{ backgroundColor: ti.value }}
+                                />
+                              ) : (
+                                <p className="text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 rounded-lg p-2 mt-1">
+                                  {ti.value}
+                                </p>
                               )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* 텍스트 입력 내용 */}
-                    {!itemHasBooks && item.textInputs?.length > 0 && (
-                      <div className="mt-3 space-y-2">
-                        {item.textInputs.map((ti, i) => (
-                          <div key={i}>
-                            <p className="text-xs text-gray-500">{ti.label}</p>
-                            {isHex(ti.value) ? (
-                              <span className="inline-block w-4 h-4 rounded-full border border-gray-300 mt-1" style={{backgroundColor: ti.value}} />
-                            ) : (
-                              <p className="text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 rounded-lg p-2 mt-1">
-                                {ti.value}
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>

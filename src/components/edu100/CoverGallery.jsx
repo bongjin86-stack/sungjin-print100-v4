@@ -27,5 +27,7 @@ export default function CoverGalleryClient({ covers }) {
 
   if (!selectedCover) return null;
 
-  return <CoverModal cover={selectedCover} onClose={() => setSelectedCover(null)} />;
+  return (
+    <CoverModal cover={selectedCover} onClose={() => setSelectedCover(null)} />
+  );
 }

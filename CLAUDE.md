@@ -164,29 +164,29 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 
 ## Routing
 
-| Path                   | Component           | Purpose                                         |
-| ---------------------- | ------------------- | ----------------------------------------------- |
-| `/`                    | Landing page        | Public homepage                                 |
-| `/product/:id`         | ProductView         | Customer product page                           |
-| `/upload`              | Upload              | File upload                                     |
-| `/checkout`            | Checkout            | Order form                                      |
-| `/order-complete`      | OrderComplete       | Order confirmation                              |
-| `/order/:uuid`         | CustomerOrderStatus | Order tracking                                  |
-| `/admin`               | Admin dashboard     | Admin area (auth required)                      |
-| `/admin/login`         | Login page          | Admin authentication                            |
-| `/admin/builder`       | ProductBuilder      | Product creation/editing                        |
-| `/admin/orders`        | AdminOrders         | Order management                                |
-| `/admin/products`      | Product list        | Product management                              |
-| `/admin/db/*`          | DB managers         | Papers, sizes, finishing, etc.                  |
-| `/admin/settings`      | Site settings       | General settings                                |
-| `/edu100`              | CoverGallery        | Edu100 표지 갤러리 (모달 + 필터)                |
-| `/api/edu100`          | API                 | Edu100 표지 CRUD (GET/POST)                     |
-| `/api/edu100/:id`      | API                 | Edu100 단일 표지 (GET/PUT/DELETE)               |
-| `/admin/edu100`        | Admin               | Edu100 표지 관리                                |
-| `/api/calculate-price` | API                 | Server-side price calculation (public, outsourced 포함) |
-| `/api/create-order`    | API                 | Order creation with price verification (public) |
-| `/api/auth/set-cookies`| API                 | httpOnly 쿠키 설정 (public POST)                |
-| `/api/auth/clear-cookies`| API               | 쿠키 삭제 (public POST)                         |
+| Path                      | Component           | Purpose                                                 |
+| ------------------------- | ------------------- | ------------------------------------------------------- |
+| `/`                       | Landing page        | Public homepage                                         |
+| `/product/:id`            | ProductView         | Customer product page                                   |
+| `/upload`                 | Upload              | File upload                                             |
+| `/checkout`               | Checkout            | Order form                                              |
+| `/order-complete`         | OrderComplete       | Order confirmation                                      |
+| `/order/:uuid`            | CustomerOrderStatus | Order tracking                                          |
+| `/admin`                  | Admin dashboard     | Admin area (auth required)                              |
+| `/admin/login`            | Login page          | Admin authentication                                    |
+| `/admin/builder`          | ProductBuilder      | Product creation/editing                                |
+| `/admin/orders`           | AdminOrders         | Order management                                        |
+| `/admin/products`         | Product list        | Product management                                      |
+| `/admin/db/*`             | DB managers         | Papers, sizes, finishing, etc.                          |
+| `/admin/settings`         | Site settings       | General settings                                        |
+| `/edu100`                 | CoverGallery        | Edu100 표지 갤러리 (모달 + 필터)                        |
+| `/api/edu100`             | API                 | Edu100 표지 CRUD (GET/POST)                             |
+| `/api/edu100/:id`         | API                 | Edu100 단일 표지 (GET/PUT/DELETE)                       |
+| `/admin/edu100`           | Admin               | Edu100 표지 관리                                        |
+| `/api/calculate-price`    | API                 | Server-side price calculation (public, outsourced 포함) |
+| `/api/create-order`       | API                 | Order creation with price verification (public)         |
+| `/api/auth/set-cookies`   | API                 | httpOnly 쿠키 설정 (public POST)                        |
+| `/api/auth/clear-cookies` | API                 | 쿠키 삭제 (public POST)                                 |
 
 ## Security (v2.3.0)
 
@@ -266,15 +266,15 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 
 ### 파일 구조
 
-| 파일 | 역할 |
-|------|------|
-| `src/components/admin/Edu100Form.tsx` | 관리자 표지 등록/수정 폼 (빌더 동일 이미지 포맷) |
-| `src/components/edu100/CoverGallery.jsx` | 갤러리 모달 열기/닫기 (이벤트 위임) |
-| `src/components/edu100/CoverModal.jsx` | 표지 상세 모달 (이미지 네비게이션 + 설명 + 주문 링크) |
-| `src/pages/edu100/[...page].astro` | 고객 갤러리 페이지 + 모달 스타일 |
-| `src/pages/api/edu100/index.ts` | GET (목록) / POST (생성) |
-| `src/pages/api/edu100/[id].ts` | GET / PUT / DELETE |
-| `src/pages/admin/edu100/*.astro` | 관리자 CRUD 페이지 |
+| 파일                                     | 역할                                                  |
+| ---------------------------------------- | ----------------------------------------------------- |
+| `src/components/admin/Edu100Form.tsx`    | 관리자 표지 등록/수정 폼 (빌더 동일 이미지 포맷)      |
+| `src/components/edu100/CoverGallery.jsx` | 갤러리 모달 열기/닫기 (이벤트 위임)                   |
+| `src/components/edu100/CoverModal.jsx`   | 표지 상세 모달 (이미지 네비게이션 + 설명 + 주문 링크) |
+| `src/pages/edu100/[...page].astro`       | 고객 갤러리 페이지 + 모달 스타일                      |
+| `src/pages/api/edu100/index.ts`          | GET (목록) / POST (생성)                              |
+| `src/pages/api/edu100/[id].ts`           | GET / PUT / DELETE                                    |
+| `src/pages/admin/edu100/*.astro`         | 관리자 CRUD 페이지                                    |
 
 ### 주요 동작
 

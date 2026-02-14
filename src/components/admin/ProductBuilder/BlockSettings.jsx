@@ -53,7 +53,9 @@ function BlockSettings({
       return (
         <div>
           {/* 사이즈 모드 선택 */}
-          <label className="text-xs text-gray-500 block mb-2">사이즈 모드</label>
+          <label className="text-xs text-gray-500 block mb-2">
+            사이즈 모드
+          </label>
           <select
             value={cfg.mode || "preset"}
             onChange={(e) => updateCfg(block.id, "mode", e.target.value)}
@@ -118,7 +120,11 @@ function BlockSettings({
                     value={opt.maxSum}
                     onChange={(e) => {
                       const newOpts = [...(cfg.customOptions || [])];
-                      newOpts[idx] = { ...newOpts[idx], maxSum: Number(e.target.value), label: `${e.target.value}mm` };
+                      newOpts[idx] = {
+                        ...newOpts[idx],
+                        maxSum: Number(e.target.value),
+                        label: `${e.target.value}mm`,
+                      };
                       updateCfg(block.id, "customOptions", newOpts);
                     }}
                     className="input input-bordered input-sm w-24"
@@ -131,7 +137,10 @@ function BlockSettings({
                     value={opt.multiplier}
                     onChange={(e) => {
                       const newOpts = [...(cfg.customOptions || [])];
-                      newOpts[idx] = { ...newOpts[idx], multiplier: Number(e.target.value) };
+                      newOpts[idx] = {
+                        ...newOpts[idx],
+                        multiplier: Number(e.target.value),
+                      };
                       updateCfg(block.id, "customOptions", newOpts);
                     }}
                     className="input input-bordered input-sm w-16"
@@ -140,7 +149,9 @@ function BlockSettings({
                   <button
                     className="btn btn-ghost btn-sm text-error"
                     onClick={() => {
-                      const newOpts = (cfg.customOptions || []).filter((_, i) => i !== idx);
+                      const newOpts = (cfg.customOptions || []).filter(
+                        (_, i) => i !== idx
+                      );
                       updateCfg(block.id, "customOptions", newOpts);
                     }}
                   >
@@ -151,7 +162,10 @@ function BlockSettings({
               <button
                 className="btn btn-ghost btn-sm text-primary"
                 onClick={() => {
-                  const newOpts = [...(cfg.customOptions || []), { label: "300mm", maxSum: 300, multiplier: 4 }];
+                  const newOpts = [
+                    ...(cfg.customOptions || []),
+                    { label: "300mm", maxSum: 300, multiplier: 4 },
+                  ];
                   updateCfg(block.id, "customOptions", newOpts);
                 }}
               >
@@ -166,7 +180,9 @@ function BlockSettings({
               <input
                 type="checkbox"
                 checked={cfg.trimEnabled || false}
-                onChange={(e) => updateCfg(block.id, "trimEnabled", e.target.checked)}
+                onChange={(e) =>
+                  updateCfg(block.id, "trimEnabled", e.target.checked)
+                }
                 className="checkbox checkbox-sm"
               />
               재단 상품 (사이즈 아래 주의사항 표시)
@@ -180,17 +196,26 @@ function BlockSettings({
                     value={cfg.bleed ?? 2}
                     min={1}
                     max={10}
-                    onChange={(e) => updateCfg(block.id, "bleed", Number(e.target.value))}
+                    onChange={(e) =>
+                      updateCfg(block.id, "bleed", Number(e.target.value))
+                    }
                     className="input input-bordered input-sm w-16"
                   />
                   <span className="text-xs text-gray-400">mm (상하좌우)</span>
                 </div>
                 <div className="p-3 bg-white rounded-lg border border-gray-200">
-                  <span className="text-xs font-medium text-gray-700 block mb-1">주의사항 내용</span>
-                  <p className="text-xs text-gray-400 mb-2">비워두면 기본 텍스트가 표시됩니다. 글머리 기호(•)로 작성하면 목록으로 표시돼요.</p>
+                  <span className="text-xs font-medium text-gray-700 block mb-1">
+                    주의사항 내용
+                  </span>
+                  <p className="text-xs text-gray-400 mb-2">
+                    비워두면 기본 텍스트가 표시됩니다. 글머리 기호(•)로 작성하면
+                    목록으로 표시돼요.
+                  </p>
                   <BlockNoteEditor
                     initialContent={cfg.trimNotice ?? ""}
-                    onChange={(html) => updateCfg(block.id, "trimNotice", html || undefined)}
+                    onChange={(html) =>
+                      updateCfg(block.id, "trimNotice", html || undefined)
+                    }
                     height="120px"
                     placeholder="• 재단 여백(2mm)을 포함한 사이즈로 제공해 주시면 가장 좋아요&#10;• 정사이즈 파일 제공 시, 가장자리에 이미지가 닿아 있으면 살짝 확대 후 재단하며 1~2mm 잘릴 수 있어요&#10;• 선택한 사이즈와 다른 파일은 비율에 맞게 조정하며, 여백이 생기거나 일부가 잘릴 수 있어요"
                   />
@@ -210,7 +235,9 @@ function BlockSettings({
           <div>
             {/* 용지 역할 — 표지/내지 구분 */}
             <div className="mb-3 p-3 bg-white rounded-lg border border-gray-200">
-              <label className="text-xs text-gray-500 block mb-1">용지 역할</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                용지 역할
+              </label>
               <select
                 value={cfg.role || "default"}
                 onChange={(e) =>
@@ -228,17 +255,24 @@ function BlockSettings({
               </select>
             </div>
             <p className="text-xs text-info bg-info/10 px-3 py-2 rounded-lg mb-3">
-              더블클릭으로 기본값 설정 (★ 표시). 용지명을 자유롭게 수정 가능합니다.
+              더블클릭으로 기본값 설정 (★ 표시). 용지명을 자유롭게 수정
+              가능합니다.
             </p>
             {cp.map((p, i) => {
               const isDefault = isDefaultPaperFn(p.id);
               return (
-                <div key={p.id || i} className="mb-2 p-3 bg-white rounded-lg border border-gray-200">
+                <div
+                  key={p.id || i}
+                  className="mb-2 p-3 bg-white rounded-lg border border-gray-200"
+                >
                   <div
                     className="flex items-center gap-2 text-sm font-medium"
                     onDoubleClick={(e) => {
                       if (e.target.tagName === "INPUT") return;
-                      updateCfg(block.id, "default", { paper: p.id, weight: p.weights?.[0] || 0 });
+                      updateCfg(block.id, "default", {
+                        paper: p.id,
+                        weight: p.weights?.[0] || 0,
+                      });
                     }}
                   >
                     <input
@@ -247,7 +281,9 @@ function BlockSettings({
                       onChange={(e) => {
                         const val = e.target.value;
                         updateCfg(block.id, "customPapers", (prev) =>
-                          (prev || []).map((pp, j) => j === i ? { ...pp, name: val } : pp)
+                          (prev || []).map((pp, j) =>
+                            j === i ? { ...pp, name: val } : pp
+                          )
                         );
                       }}
                       className="input input-bordered input-xs flex-1"
@@ -257,11 +293,17 @@ function BlockSettings({
                     {/* 이미지 */}
                     {p.image ? (
                       <div className="relative w-8 h-8 rounded overflow-hidden border flex-shrink-0">
-                        <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          className="w-full h-full object-cover"
+                        />
                         <button
                           onClick={() => {
                             updateCfg(block.id, "customPapers", (prev) =>
-                              (prev || []).map((pp, j) => j === i ? { ...pp, image: null } : pp)
+                              (prev || []).map((pp, j) =>
+                                j === i ? { ...pp, image: null } : pp
+                              )
                             );
                           }}
                           className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-3.5 h-3.5 text-[9px] flex items-center justify-center"
@@ -282,7 +324,9 @@ function BlockSettings({
                             try {
                               const url = await uploadImage(file, "products");
                               updateCfg(block.id, "customPapers", (prev) =>
-                                (prev || []).map((pp, j) => j === i ? { ...pp, image: url } : pp)
+                                (prev || []).map((pp, j) =>
+                                  j === i ? { ...pp, image: url } : pp
+                                )
                               );
                             } catch (err) {
                               console.error("이미지 업로드 실패:", err);
@@ -292,9 +336,11 @@ function BlockSettings({
                       </label>
                     )}
                     <button
-                      onClick={() => updateCfg(block.id, "customPapers", (prev) =>
-                        (prev || []).filter((_, j) => j !== i)
-                      )}
+                      onClick={() =>
+                        updateCfg(block.id, "customPapers", (prev) =>
+                          (prev || []).filter((_, j) => j !== i)
+                        )
+                      }
                       className="btn btn-xs btn-ghost text-red-400 flex-shrink-0"
                     >
                       ✕
@@ -306,7 +352,12 @@ function BlockSettings({
                       <span
                         key={wi}
                         className="group/wt flex items-center gap-1 text-xs bg-gray-50 px-2 py-1 rounded cursor-pointer hover:bg-gray-100 select-none"
-                        onDoubleClick={() => updateCfg(block.id, "default", { paper: p.id, weight: w })}
+                        onDoubleClick={() =>
+                          updateCfg(block.id, "default", {
+                            paper: p.id,
+                            weight: w,
+                          })
+                        }
                       >
                         {w}g
                         {isDefault && cfg.default?.weight === w && (
@@ -316,9 +367,15 @@ function BlockSettings({
                           onClick={(e) => {
                             e.stopPropagation();
                             updateCfg(block.id, "customPapers", (prev) =>
-                              (prev || []).map((pp, j) => j === i
-                                ? { ...pp, weights: (pp.weights || []).filter((v) => v !== w) }
-                                : pp
+                              (prev || []).map((pp, j) =>
+                                j === i
+                                  ? {
+                                      ...pp,
+                                      weights: (pp.weights || []).filter(
+                                        (v) => v !== w
+                                      ),
+                                    }
+                                  : pp
                               )
                             );
                           }}
@@ -339,9 +396,15 @@ function BlockSettings({
                           const val = Number(e.target.value);
                           if (val > 0) {
                             updateCfg(block.id, "customPapers", (prev) =>
-                              (prev || []).map((pp, j) => j === i
-                                ? { ...pp, weights: (pp.weights || []).includes(val) ? pp.weights : [...(pp.weights || []), val] }
-                                : pp
+                              (prev || []).map((pp, j) =>
+                                j === i
+                                  ? {
+                                      ...pp,
+                                      weights: (pp.weights || []).includes(val)
+                                        ? pp.weights
+                                        : [...(pp.weights || []), val],
+                                    }
+                                  : pp
                               )
                             );
                             e.target.value = "";
@@ -351,13 +414,21 @@ function BlockSettings({
                     />
                     <button
                       onClick={() => {
-                        const input = document.getElementById(`wt-input-${p.id}`);
+                        const input = document.getElementById(
+                          `wt-input-${p.id}`
+                        );
                         const val = Number(input?.value);
                         if (val > 0) {
                           updateCfg(block.id, "customPapers", (prev) =>
-                            (prev || []).map((pp, j) => j === i
-                              ? { ...pp, weights: (pp.weights || []).includes(val) ? pp.weights : [...(pp.weights || []), val] }
-                              : pp
+                            (prev || []).map((pp, j) =>
+                              j === i
+                                ? {
+                                    ...pp,
+                                    weights: (pp.weights || []).includes(val)
+                                      ? pp.weights
+                                      : [...(pp.weights || []), val],
+                                  }
+                                : pp
                             )
                           );
                           if (input) input.value = "";
@@ -390,7 +461,9 @@ function BlockSettings({
         <div>
           {/* 용지 역할 — 제본 상품에서 표지/내지 구분 */}
           <div className="mb-3 p-3 bg-white rounded-lg border border-gray-200">
-            <label className="text-xs text-gray-500 block mb-1">용지 역할</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              용지 역할
+            </label>
             <select
               value={cfg.role || "default"}
               onChange={(e) =>
@@ -407,7 +480,8 @@ function BlockSettings({
               <option value="inner">내지 용지</option>
             </select>
             <p className="text-xs text-gray-400 mt-1">
-              제본 상품에서 동일 용지 블록을 여러 개 사용할 때 역할을 지정합니다.
+              제본 상품에서 동일 용지 블록을 여러 개 사용할 때 역할을
+              지정합니다.
             </p>
           </div>
           <p className="text-xs text-info bg-info/10 px-3 py-2 rounded-lg mb-3">
@@ -1704,21 +1778,29 @@ function BlockSettings({
             </div>
           )}
           <div className="divider my-3" />
-          <label className="text-xs text-gray-500 block mb-2">고객센터 문의 안내</label>
+          <label className="text-xs text-gray-500 block mb-2">
+            고객센터 문의 안내
+          </label>
           <div className="flex gap-3 mb-3">
             <label className="flex-1">
-              <span className="text-xs text-gray-500">문의 기준 수량 (0=사용안함)</span>
+              <span className="text-xs text-gray-500">
+                문의 기준 수량 (0=사용안함)
+              </span>
               <input
                 type="number"
                 className="input input-bordered input-sm w-full"
                 value={cfg.contactThreshold ?? 0}
                 onChange={(e) =>
-                  updateCfg(block.id, "contactThreshold", parseInt(e.target.value) || 0)
+                  updateCfg(
+                    block.id,
+                    "contactThreshold",
+                    parseInt(e.target.value) || 0
+                  )
                 }
               />
             </label>
           </div>
-          {(cfg.contactThreshold > 0) && (
+          {cfg.contactThreshold > 0 && (
             <label className="flex-1">
               <span className="text-xs text-gray-500">안내 문구</span>
               <input
@@ -1890,21 +1972,82 @@ function BlockSettings({
           )}
 
           {/* 연동 블록 선택 UI - bindingType이 설정된 경우 + 외주 아닐 때만 */}
-          {block.type === "pages" && block.source !== "outsourced" && cfg.bindingType && (
-            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-              <label className="text-xs text-amber-700 font-medium block mb-3">
-                연동 블록 선택 (필수)
-              </label>
-              <p className="text-xs text-amber-600 mb-3">
-                페이지 수에 따라 용지/인쇄 비용을 계산할 블록을 선택하세요.
-              </p>
+          {block.type === "pages" &&
+            block.source !== "outsourced" &&
+            cfg.bindingType && (
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <label className="text-xs text-amber-700 font-medium block mb-3">
+                  연동 블록 선택 (필수)
+                </label>
+                <p className="text-xs text-amber-600 mb-3">
+                  페이지 수에 따라 용지/인쇄 비용을 계산할 블록을 선택하세요.
+                </p>
 
-              {/* 중철일 때: 내지 블록만 선택 (표지는 별도 계산됨) */}
-              {cfg.bindingType === "saddle" && (
-                <div className="space-y-3">
-                  <p className="text-xs text-gray-500">
-                    표지는 별도 옵션에서 자동 계산됩니다. 내지만 연동하세요.
-                  </p>
+                {/* 중철일 때: 내지 블록만 선택 (표지는 별도 계산됨) */}
+                {cfg.bindingType === "saddle" && (
+                  <div className="space-y-3">
+                    <p className="text-xs text-gray-500">
+                      표지는 별도 옵션에서 자동 계산됩니다. 내지만 연동하세요.
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-500 block mb-1">
+                          내지 용지 블록
+                        </label>
+                        <select
+                          value={cfg.linkedBlocks?.innerPaper || ""}
+                          onChange={(e) =>
+                            updateCfg(block.id, "linkedBlocks", {
+                              ...cfg.linkedBlocks,
+                              innerPaper: parseInt(e.target.value) || null,
+                            })
+                          }
+                          className={`select select-bordered select-sm w-full ${!cfg.linkedBlocks?.innerPaper ? "border-error" : ""}`}
+                        >
+                          <option value="">선택하세요</option>
+                          {allBlocks
+                            ?.filter(
+                              (b) => b.type === "paper" && b.id !== block.id
+                            )
+                            .map((b) => (
+                              <option key={b.id} value={b.id}>
+                                {b.label} (ID: {b.id})
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 block mb-1">
+                          내지 인쇄 블록
+                        </label>
+                        <select
+                          value={cfg.linkedBlocks?.innerPrint || ""}
+                          onChange={(e) =>
+                            updateCfg(block.id, "linkedBlocks", {
+                              ...cfg.linkedBlocks,
+                              innerPrint: parseInt(e.target.value) || null,
+                            })
+                          }
+                          className={`select select-bordered select-sm w-full ${!cfg.linkedBlocks?.innerPrint ? "border-error" : ""}`}
+                        >
+                          <option value="">선택하세요</option>
+                          {allBlocks
+                            ?.filter(
+                              (b) => b.type === "print" && b.id !== block.id
+                            )
+                            .map((b) => (
+                              <option key={b.id} value={b.id}>
+                                {b.label} (ID: {b.id})
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 낱장(무선/스프링)일 때: 내지 블록만 선택 (2개) */}
+                {cfg.bindingType === "leaf" && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs text-gray-500 block mb-1">
@@ -1959,88 +2102,33 @@ function BlockSettings({
                       </select>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* 낱장(무선/스프링)일 때: 내지 블록만 선택 (2개) */}
-              {cfg.bindingType === "leaf" && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-500 block mb-1">
-                      내지 용지 블록
-                    </label>
-                    <select
-                      value={cfg.linkedBlocks?.innerPaper || ""}
-                      onChange={(e) =>
-                        updateCfg(block.id, "linkedBlocks", {
-                          ...cfg.linkedBlocks,
-                          innerPaper: parseInt(e.target.value) || null,
-                        })
-                      }
-                      className={`select select-bordered select-sm w-full ${!cfg.linkedBlocks?.innerPaper ? "border-error" : ""}`}
-                    >
-                      <option value="">선택하세요</option>
-                      {allBlocks
-                        ?.filter((b) => b.type === "paper" && b.id !== block.id)
-                        .map((b) => (
-                          <option key={b.id} value={b.id}>
-                            {b.label} (ID: {b.id})
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 block mb-1">
-                      내지 인쇄 블록
-                    </label>
-                    <select
-                      value={cfg.linkedBlocks?.innerPrint || ""}
-                      onChange={(e) =>
-                        updateCfg(block.id, "linkedBlocks", {
-                          ...cfg.linkedBlocks,
-                          innerPrint: parseInt(e.target.value) || null,
-                        })
-                      }
-                      className={`select select-bordered select-sm w-full ${!cfg.linkedBlocks?.innerPrint ? "border-error" : ""}`}
-                    >
-                      <option value="">선택하세요</option>
-                      {allBlocks
-                        ?.filter((b) => b.type === "print" && b.id !== block.id)
-                        .map((b) => (
-                          <option key={b.id} value={b.id}>
-                            {b.label} (ID: {b.id})
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                </div>
-              )}
+                {/* 연동 상태 표시 */}
+                {(() => {
+                  const hasAllLinks =
+                    cfg.bindingType === "saddle"
+                      ? cfg.linkedBlocks?.coverPaper &&
+                        cfg.linkedBlocks?.coverPrint &&
+                        cfg.linkedBlocks?.innerPaper &&
+                        cfg.linkedBlocks?.innerPrint
+                      : cfg.linkedBlocks?.innerPaper &&
+                        cfg.linkedBlocks?.innerPrint;
 
-              {/* 연동 상태 표시 */}
-              {(() => {
-                const hasAllLinks =
-                  cfg.bindingType === "saddle"
-                    ? cfg.linkedBlocks?.coverPaper &&
-                      cfg.linkedBlocks?.coverPrint &&
-                      cfg.linkedBlocks?.innerPaper &&
-                      cfg.linkedBlocks?.innerPrint
-                    : cfg.linkedBlocks?.innerPaper &&
-                      cfg.linkedBlocks?.innerPrint;
-
-                return !hasAllLinks ? (
-                  <div className="mt-3 p-2 bg-error/10 rounded border border-error/30">
-                    <p className="text-xs text-error">
-                      모든 연동 블록을 선택해야 가격 계산이 정상 작동합니다.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-3 p-2 bg-success/10 rounded border border-success/30">
-                    <p className="text-xs text-success">연동 설정 완료</p>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
+                  return !hasAllLinks ? (
+                    <div className="mt-3 p-2 bg-error/10 rounded border border-error/30">
+                      <p className="text-xs text-error">
+                        모든 연동 블록을 선택해야 가격 계산이 정상 작동합니다.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-3 p-2 bg-success/10 rounded border border-success/30">
+                      <p className="text-xs text-success">연동 설정 완료</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
         </div>
       );
 
@@ -2364,7 +2452,12 @@ function BlockSettings({
         const newId = `opt_${Date.now()}`;
         const newOptions = [
           ...guideOptions,
-          { id: newId, label: `옵션 ${guideOptions.length + 1}`, hint: "", price: 0 },
+          {
+            id: newId,
+            label: `옵션 ${guideOptions.length + 1}`,
+            hint: "",
+            price: 0,
+          },
         ];
         updateCfg(block.id, "options", newOptions);
       };
@@ -2384,7 +2477,9 @@ function BlockSettings({
         <div className="space-y-4">
           {/* 섹션 제목 */}
           <div>
-            <label className="text-xs text-gray-500 block mb-1">섹션 제목</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              섹션 제목
+            </label>
             <input
               type="text"
               value={cfg.title || ""}
@@ -2414,11 +2509,15 @@ function BlockSettings({
                     className={`p-3 rounded-lg border ${isDefault ? "border-blue-300 bg-blue-50/50" : "border-gray-200 bg-gray-50"}`}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold text-gray-400 w-5">{idx + 1}</span>
+                      <span className="text-xs font-bold text-gray-400 w-5">
+                        {idx + 1}
+                      </span>
                       <input
                         type="text"
                         value={opt.label || ""}
-                        onChange={(e) => updateGuideOption(idx, "label", e.target.value)}
+                        onChange={(e) =>
+                          updateGuideOption(idx, "label", e.target.value)
+                        }
                         className="input input-bordered input-sm flex-1"
                         placeholder="옵션 라벨"
                       />
@@ -2426,7 +2525,13 @@ function BlockSettings({
                         <input
                           type="number"
                           value={opt.price || 0}
-                          onChange={(e) => updateGuideOption(idx, "price", Number(e.target.value))}
+                          onChange={(e) =>
+                            updateGuideOption(
+                              idx,
+                              "price",
+                              Number(e.target.value)
+                            )
+                          }
                           className="input input-bordered input-sm w-24 text-right"
                         />
                         <span className="text-xs text-gray-400">원</span>
@@ -2444,7 +2549,9 @@ function BlockSettings({
                           type="radio"
                           name={`guide-default-${block.id}`}
                           checked={isDefault}
-                          onChange={() => updateCfg(block.id, "default", opt.id)}
+                          onChange={() =>
+                            updateCfg(block.id, "default", opt.id)
+                          }
                           className="radio radio-xs"
                         />
                         <span className="text-xs text-gray-500">기본값</span>
@@ -2472,7 +2579,9 @@ function BlockSettings({
       return (
         <div className="space-y-4">
           <div>
-            <label className="text-xs text-gray-500 block mb-1">상담 제목</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              상담 제목
+            </label>
             <input
               type="text"
               value={cfg.title || ""}
@@ -2483,7 +2592,9 @@ function BlockSettings({
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 block mb-1">안내 메시지</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              안내 메시지
+            </label>
             <textarea
               value={cfg.message || ""}
               onChange={(e) => updateCfg(block.id, "message", e.target.value)}
@@ -2494,7 +2605,9 @@ function BlockSettings({
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 block mb-1">카카오톡 URL</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              카카오톡 URL
+            </label>
             <input
               type="url"
               value={cfg.kakaoUrl || ""}
@@ -2505,7 +2618,9 @@ function BlockSettings({
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 block mb-1">버튼 텍스트</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              버튼 텍스트
+            </label>
             <input
               type="text"
               value={cfg.ctaText || ""}
@@ -2516,23 +2631,31 @@ function BlockSettings({
           </div>
 
           <div className="border-t pt-3">
-            <label className="text-xs text-gray-500 block mb-2">상담 가능 시간</label>
+            <label className="text-xs text-gray-500 block mb-2">
+              상담 가능 시간
+            </label>
             <div className="flex items-center gap-2 mb-1">
               <input
                 type="time"
                 value={cfg.openTime || "09:00"}
-                onChange={(e) => updateCfg(block.id, "openTime", e.target.value)}
+                onChange={(e) =>
+                  updateCfg(block.id, "openTime", e.target.value)
+                }
                 className="input input-bordered input-sm"
               />
               <span className="text-xs text-gray-400">~</span>
               <input
                 type="time"
                 value={cfg.closeTime || "18:00"}
-                onChange={(e) => updateCfg(block.id, "closeTime", e.target.value)}
+                onChange={(e) =>
+                  updateCfg(block.id, "closeTime", e.target.value)
+                }
                 className="input input-bordered input-sm"
               />
             </div>
-            <p className="text-[11px] text-gray-400 mb-0">주말/공휴일은 출고일과 동일하게 자동 휴무 처리됩니다.</p>
+            <p className="text-[11px] text-gray-400 mb-0">
+              주말/공휴일은 출고일과 동일하게 자동 휴무 처리됩니다.
+            </p>
           </div>
 
           <div className="border-t pt-3">
@@ -2553,7 +2676,10 @@ function BlockSettings({
               </button>
             </div>
             {faqs.map((faq, i) => (
-              <div key={faq.id} className="mb-3 border border-gray-200 rounded-lg p-2">
+              <div
+                key={faq.id}
+                className="mb-3 border border-gray-200 rounded-lg p-2"
+              >
                 <div className="flex items-center gap-1 mb-1">
                   <input
                     type="text"
@@ -2614,16 +2740,22 @@ function BlockSettings({
       return (
         <div className="space-y-4">
           <div>
-            <label className="text-xs text-gray-500 block mb-1">소스 테이블</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              소스 테이블
+            </label>
             <input
               type="text"
               value={cfg.sourceTable || "edu100_covers"}
-              onChange={(e) => updateCfg(block.id, "sourceTable", e.target.value)}
+              onChange={(e) =>
+                updateCfg(block.id, "sourceTable", e.target.value)
+              }
               className="input input-bordered input-sm w-full"
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500 block mb-1">태그 필터 (비우면 전체)</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              태그 필터 (비우면 전체)
+            </label>
             <input
               type="text"
               value={cfg.sourceTag || ""}
@@ -2634,10 +2766,15 @@ function BlockSettings({
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 block mb-1">변경 타입 목록</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              변경 타입 목록
+            </label>
             <div className="space-y-2">
               {tiers.map((tier, i) => (
-                <div key={tier.id || i} className="flex gap-2 items-center bg-white p-2 rounded border">
+                <div
+                  key={tier.id || i}
+                  className="flex gap-2 items-center bg-white p-2 rounded border"
+                >
                   <input
                     type="text"
                     value={tier.id}
@@ -2665,7 +2802,10 @@ function BlockSettings({
                     value={tier.price}
                     onChange={(e) => {
                       const updated = [...tiers];
-                      updated[i] = { ...updated[i], price: Number(e.target.value) };
+                      updated[i] = {
+                        ...updated[i],
+                        price: Number(e.target.value),
+                      };
                       updateCfg(block.id, "tiers", updated);
                     }}
                     className="input input-bordered input-xs w-24"
@@ -2676,14 +2816,23 @@ function BlockSettings({
                     value={tier.minQty}
                     onChange={(e) => {
                       const updated = [...tiers];
-                      updated[i] = { ...updated[i], minQty: Number(e.target.value) };
+                      updated[i] = {
+                        ...updated[i],
+                        minQty: Number(e.target.value),
+                      };
                       updateCfg(block.id, "tiers", updated);
                     }}
                     className="input input-bordered input-xs w-20"
                     placeholder="최소수량"
                   />
                   <button
-                    onClick={() => updateCfg(block.id, "tiers", tiers.filter((_, j) => j !== i))}
+                    onClick={() =>
+                      updateCfg(
+                        block.id,
+                        "tiers",
+                        tiers.filter((_, j) => j !== i)
+                      )
+                    }
                     className="btn btn-xs btn-ghost text-red-400"
                   >
                     ✕
@@ -2694,7 +2843,12 @@ function BlockSettings({
                 onClick={() =>
                   updateCfg(block.id, "tiers", [
                     ...tiers,
-                    { id: `type_${tiers.length + 1}`, label: "", price: 0, minQty: 20 },
+                    {
+                      id: `type_${tiers.length + 1}`,
+                      label: "",
+                      price: 0,
+                      minQty: 20,
+                    },
                   ])
                 }
                 className="btn btn-xs btn-outline"
@@ -2705,14 +2859,20 @@ function BlockSettings({
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 block mb-1">기본 타입</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              기본 타입
+            </label>
             <select
               value={cfg.defaultTier || ""}
-              onChange={(e) => updateCfg(block.id, "defaultTier", e.target.value)}
+              onChange={(e) =>
+                updateCfg(block.id, "defaultTier", e.target.value)
+              }
               className="select select-bordered select-sm w-full"
             >
               {tiers.map((t) => (
-                <option key={t.id} value={t.id}>{t.label || t.id}</option>
+                <option key={t.id} value={t.id}>
+                  {t.label || t.id}
+                </option>
               ))}
             </select>
           </div>
@@ -2721,7 +2881,9 @@ function BlockSettings({
             <input
               type="checkbox"
               checked={cfg.showImageInLeft ?? true}
-              onChange={(e) => updateCfg(block.id, "showImageInLeft", e.target.checked)}
+              onChange={(e) =>
+                updateCfg(block.id, "showImageInLeft", e.target.checked)
+              }
               className="checkbox checkbox-xs"
             />
             선택한 디자인 이미지를 왼쪽 컬럼에 표시
@@ -2734,7 +2896,9 @@ function BlockSettings({
       return (
         <div className="space-y-3">
           <div>
-            <label className="text-xs text-gray-500 block mb-1">입력 소스</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              입력 소스
+            </label>
             <select
               value={cfg.source || "manual"}
               onChange={(e) => updateCfg(block.id, "source", e.target.value)}
@@ -2747,33 +2911,45 @@ function BlockSettings({
           {(cfg.source || "manual") === "manual" ? (
             <>
               <div>
-                <label className="text-xs text-gray-500 block mb-1">안내 문구 (placeholder)</label>
+                <label className="text-xs text-gray-500 block mb-1">
+                  안내 문구 (placeholder)
+                </label>
                 <input
                   type="text"
                   value={cfg.placeholder || ""}
-                  onChange={(e) => updateCfg(block.id, "placeholder", e.target.value)}
+                  onChange={(e) =>
+                    updateCfg(block.id, "placeholder", e.target.value)
+                  }
                   className="input input-bordered input-sm w-full"
                   placeholder="예: 표지에 넣을 내용을 입력해주세요"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-gray-500 block mb-1">최대 글자수</label>
+                  <label className="text-xs text-gray-500 block mb-1">
+                    최대 글자수
+                  </label>
                   <input
                     type="number"
                     value={cfg.maxLength || 500}
-                    onChange={(e) => updateCfg(block.id, "maxLength", Number(e.target.value))}
+                    onChange={(e) =>
+                      updateCfg(block.id, "maxLength", Number(e.target.value))
+                    }
                     className="input input-bordered input-sm w-full"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 block mb-1">줄 수</label>
+                  <label className="text-xs text-gray-500 block mb-1">
+                    줄 수
+                  </label>
                   <input
                     type="number"
                     value={cfg.rows || 3}
                     min={1}
                     max={10}
-                    onChange={(e) => updateCfg(block.id, "rows", Number(e.target.value))}
+                    onChange={(e) =>
+                      updateCfg(block.id, "rows", Number(e.target.value))
+                    }
                     className="input input-bordered input-sm w-full"
                   />
                 </div>
@@ -2781,8 +2957,9 @@ function BlockSettings({
             </>
           ) : (
             <p className="text-xs text-info bg-info/10 px-3 py-2 rounded-lg">
-              edu100 커버의 fields 배열에서 라벨/placeholder를 자동으로 가져옵니다.
-              고객이 디자인을 선택하면 해당 커버의 필드가 표시됩니다.
+              edu100 커버의 fields 배열에서 라벨/placeholder를 자동으로
+              가져옵니다. 고객이 디자인을 선택하면 해당 커버의 필드가
+              표시됩니다.
             </p>
           )}
         </div>
@@ -2793,108 +2970,154 @@ function BlockSettings({
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500 block mb-1">최소 권수</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                최소 권수
+              </label>
               <input
                 type="number"
                 value={cfg.minBooks ?? 1}
                 min={1}
-                onChange={(e) => updateCfg(block.id, "minBooks", Number(e.target.value))}
+                onChange={(e) =>
+                  updateCfg(block.id, "minBooks", Number(e.target.value))
+                }
                 className="input input-bordered input-sm w-full"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">최대 권수</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                최대 권수
+              </label>
               <input
                 type="number"
                 value={cfg.maxBooks ?? 10}
                 min={1}
-                onChange={(e) => updateCfg(block.id, "maxBooks", Number(e.target.value))}
+                onChange={(e) =>
+                  updateCfg(block.id, "maxBooks", Number(e.target.value))
+                }
                 className="input input-bordered input-sm w-full"
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500 block mb-1">기본 페이지 수</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                기본 페이지 수
+              </label>
               <input
                 type="number"
                 value={cfg.defaultPages ?? 100}
                 min={4}
-                onChange={(e) => updateCfg(block.id, "defaultPages", Number(e.target.value))}
+                onChange={(e) =>
+                  updateCfg(block.id, "defaultPages", Number(e.target.value))
+                }
                 className="input input-bordered input-sm w-full"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">기본 수량</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                기본 수량
+              </label>
               <input
                 type="number"
                 value={cfg.defaultQty ?? 30}
                 min={1}
-                onChange={(e) => updateCfg(block.id, "defaultQty", Number(e.target.value))}
+                onChange={(e) =>
+                  updateCfg(block.id, "defaultQty", Number(e.target.value))
+                }
                 className="input input-bordered input-sm w-full"
               />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-gray-500 block mb-1">페이지 최소</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                페이지 최소
+              </label>
               <input
                 type="number"
                 value={cfg.pagesMin ?? 4}
                 min={2}
-                onChange={(e) => updateCfg(block.id, "pagesMin", Number(e.target.value))}
+                onChange={(e) =>
+                  updateCfg(block.id, "pagesMin", Number(e.target.value))
+                }
                 className="input input-bordered input-sm w-full"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">페이지 최대</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                페이지 최대
+              </label>
               <input
                 type="number"
                 value={cfg.pagesMax ?? 500}
-                onChange={(e) => updateCfg(block.id, "pagesMax", Number(e.target.value))}
+                onChange={(e) =>
+                  updateCfg(block.id, "pagesMax", Number(e.target.value))
+                }
                 className="input input-bordered input-sm w-full"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">페이지 단위</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                페이지 단위
+              </label>
               <input
                 type="number"
                 value={cfg.pagesStep ?? 2}
                 min={1}
-                onChange={(e) => updateCfg(block.id, "pagesStep", Number(e.target.value))}
+                onChange={(e) =>
+                  updateCfg(block.id, "pagesStep", Number(e.target.value))
+                }
                 className="input input-bordered input-sm w-full"
               />
             </div>
           </div>
-          <p className="text-xs text-gray-400 mt-2 mb-1 font-semibold">가격 설정</p>
+          <p className="text-xs text-gray-400 mt-2 mb-1 font-semibold">
+            가격 설정
+          </p>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-gray-500 block mb-1">페이지 단가</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                페이지 단가
+              </label>
               <input
                 type="number"
                 value={cfg.pagePrice ?? 40}
                 min={0}
-                onChange={(e) => updateCfg(block.id, "pagePrice", Number(e.target.value))}
+                onChange={(e) =>
+                  updateCfg(block.id, "pagePrice", Number(e.target.value))
+                }
                 className="input input-bordered input-sm w-full"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">제본 비용</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                제본 비용
+              </label>
               <input
                 type="number"
                 value={cfg.bindingFee ?? 1500}
                 min={0}
-                onChange={(e) => updateCfg(block.id, "bindingFee", Number(e.target.value))}
+                onChange={(e) =>
+                  updateCfg(block.id, "bindingFee", Number(e.target.value))
+                }
                 className="input input-bordered input-sm w-full"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">무료 디자인 최소 수량</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                무료 디자인 최소 수량
+              </label>
               <input
                 type="number"
                 value={cfg.freeDesignMinQty ?? 100}
                 min={0}
-                onChange={(e) => updateCfg(block.id, "freeDesignMinQty", Number(e.target.value))}
+                onChange={(e) =>
+                  updateCfg(
+                    block.id,
+                    "freeDesignMinQty",
+                    Number(e.target.value)
+                  )
+                }
                 className="input input-bordered input-sm w-full"
               />
             </div>

@@ -17,7 +17,13 @@ function applyRound(value, cfg) {
   return Math.round(value / unit) * unit;
 }
 
-function PriceBoxInner({ price, customer, blocks, isPreview = false, onOrderClick }) {
+function PriceBoxInner({
+  price,
+  customer,
+  blocks,
+  isPreview = false,
+  onOrderClick,
+}) {
   const roundConfig = blocks?.find((b) => b.type === "quantity")?.config;
   const total = price?.total || 0;
   const rawTotalWithVat = Math.round(total * 1.1);
@@ -51,8 +57,8 @@ function PriceBoxInner({ price, customer, blocks, isPreview = false, onOrderClic
               ` · 1부당 두께 약 ${price.totalThickness.toFixed(1)}mm`}
           </p>
           <p className="pv-price-breakdown">
-            (공급가: {total.toLocaleString()}원 + 부가세:{" "}
-            {vat.toLocaleString()}원)
+            (공급가: {total.toLocaleString()}원 + 부가세: {vat.toLocaleString()}
+            원)
           </p>
         </div>
 

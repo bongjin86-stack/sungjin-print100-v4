@@ -32,7 +32,11 @@ interface Edu100FormProps {
   };
 }
 
-export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormProps) {
+export default function Edu100Form({
+  mode,
+  initialData,
+  sectionId,
+}: Edu100FormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
@@ -69,17 +73,22 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
   }, []);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+      [name]:
+        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }));
   };
 
   // 메인 이미지 업로드
-  const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMainImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
@@ -94,14 +103,19 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
   };
 
   // 썸네일 업로드
-  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleThumbnailUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       setImageUploading(true);
       const url = await uploadImage(file, "edu100");
       setFormData((prev) => {
-        const newThumbnails = [...(prev.thumbnails || [null, null, null, null])];
+        const newThumbnails = [
+          ...(prev.thumbnails || [null, null, null, null]),
+        ];
         newThumbnails[index] = url;
         return { ...prev, thumbnails: newThumbnails };
       });
@@ -123,7 +137,8 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
     };
 
     try {
-      const url = mode === "create" ? "/api/edu100" : `/api/edu100/${initialData?.id}`;
+      const url =
+        mode === "create" ? "/api/edu100" : `/api/edu100/${initialData?.id}`;
       const method = mode === "create" ? "POST" : "PUT";
 
       const res = await fetch(url, {
@@ -185,7 +200,15 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
                 />
               ) : (
                 <>
-                  <div style={{ fontSize: "2.5rem", color: "#d1d5db", marginBottom: "0.5rem" }}>+</div>
+                  <div
+                    style={{
+                      fontSize: "2.5rem",
+                      color: "#d1d5db",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    +
+                  </div>
                   <p style={{ fontSize: "0.875rem", color: "#9ca3af" }}>
                     {imageUploading ? "업로드 중..." : "메인 이미지"}
                   </p>
@@ -222,7 +245,13 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
           </div>
 
           {/* 썸네일 4개 */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.5rem" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: "0.5rem",
+            }}
+          >
             {[0, 1, 2, 3].map((idx) => (
               <div key={idx} style={{ position: "relative" }}>
                 <input
@@ -251,10 +280,16 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
                     <img
                       src={formData.thumbnails[idx]!}
                       alt={`썸네일${idx + 1}`}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
                     />
                   ) : (
-                    <span style={{ fontSize: "1.25rem", color: "#d1d5db" }}>+</span>
+                    <span style={{ fontSize: "1.25rem", color: "#d1d5db" }}>
+                      +
+                    </span>
                   )}
                 </div>
                 {formData.thumbnails?.[idx] && (
@@ -321,7 +356,13 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
 
         <div style={styles.formGroup}>
           <label style={styles.label}>설명</label>
-          <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0 0 0.5rem" }}>
+          <p
+            style={{
+              fontSize: "0.75rem",
+              color: "#9ca3af",
+              margin: "0 0 0.5rem",
+            }}
+          >
             슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.
           </p>
           <BlockNoteEditor
@@ -396,7 +437,13 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
         {/* 디자인 비용 */}
         <div style={styles.formGroup}>
           <label style={styles.label}>디자인 비용 (원)</label>
-          <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0 0 0.5rem" }}>
+          <p
+            style={{
+              fontSize: "0.75rem",
+              color: "#9ca3af",
+              margin: "0 0 0.5rem",
+            }}
+          >
             시리즈 총합 수량 미달 시 청구할 디자인 비용. 0이면 무료.
           </p>
           <input
@@ -413,7 +460,13 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
         {/* 고객 입력 필드 */}
         <div style={styles.formGroup}>
           <label style={styles.label}>고객 입력 필드</label>
-          <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0 0 0.5rem" }}>
+          <p
+            style={{
+              fontSize: "0.75rem",
+              color: "#9ca3af",
+              margin: "0 0 0.5rem",
+            }}
+          >
             고객이 주문 시 입력할 항목을 정의합니다 (예: 제목, 부제목, 색상 등)
           </p>
           {(formData.fields || []).map((field: CoverField, idx: number) => {
@@ -435,7 +488,14 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
                 }}
               >
                 {/* 상단: 라벨 + 타입 + 삭제 */}
-                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.5rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    alignItems: "center",
+                    marginBottom: "0.5rem",
+                  }}
+                >
                   <input
                     type="text"
                     value={field.label}
@@ -449,14 +509,21 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
                       const newType = e.target.value as CoverField["type"];
                       const patch: Partial<CoverField> = { type: newType };
                       if (newType === "color" || newType === "select") {
-                        patch.options = field.options?.length ? field.options : [];
+                        patch.options = field.options?.length
+                          ? field.options
+                          : [];
                         patch.placeholder = undefined;
                       } else {
                         patch.placeholder = field.placeholder || "";
                       }
                       updateField(patch);
                     }}
-                    style={{ ...styles.select, width: "auto", minWidth: "90px", flexShrink: 0 }}
+                    style={{
+                      ...styles.select,
+                      width: "auto",
+                      minWidth: "90px",
+                      flexShrink: 0,
+                    }}
                   >
                     <option value="text">텍스트</option>
                     <option value="color">색상</option>
@@ -490,7 +557,9 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
                   <input
                     type="text"
                     value={field.placeholder || ""}
-                    onChange={(e) => updateField({ placeholder: e.target.value })}
+                    onChange={(e) =>
+                      updateField({ placeholder: e.target.value })
+                    }
                     placeholder="안내 문구 (예: 표지 제목을 입력하세요)"
                     style={{ ...styles.input, width: "100%" }}
                   />
@@ -498,36 +567,80 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
 
                 {fieldType === "color" && (
                   <div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                      {(field.options || []).map((hex: string, cIdx: number) => (
-                        <div key={cIdx} style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                          <input
-                            type="color"
-                            value={hex}
-                            onChange={(e) => {
-                              const newOpts = [...(field.options || [])];
-                              newOpts[cIdx] = e.target.value;
-                              updateField({ options: newOpts });
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "0.5rem",
+                        marginBottom: "0.5rem",
+                      }}
+                    >
+                      {(field.options || []).map(
+                        (hex: string, cIdx: number) => (
+                          <div
+                            key={cIdx}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.25rem",
                             }}
-                            style={{ width: "2rem", height: "2rem", border: "none", padding: 0, cursor: "pointer", borderRadius: "0.25rem" }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newOpts = (field.options || []).filter((_: string, i: number) => i !== cIdx);
-                              updateField({ options: newOpts });
-                            }}
-                            style={{ background: "none", border: "none", color: "#9ca3af", cursor: "pointer", fontSize: "0.75rem", padding: "0" }}
                           >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
+                            <input
+                              type="color"
+                              value={hex}
+                              onChange={(e) => {
+                                const newOpts = [...(field.options || [])];
+                                newOpts[cIdx] = e.target.value;
+                                updateField({ options: newOpts });
+                              }}
+                              style={{
+                                width: "2rem",
+                                height: "2rem",
+                                border: "none",
+                                padding: 0,
+                                cursor: "pointer",
+                                borderRadius: "0.25rem",
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newOpts = (field.options || []).filter(
+                                  (_: string, i: number) => i !== cIdx
+                                );
+                                updateField({ options: newOpts });
+                              }}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: "#9ca3af",
+                                cursor: "pointer",
+                                fontSize: "0.75rem",
+                                padding: "0",
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        )
+                      )}
                     </div>
                     <button
                       type="button"
-                      onClick={() => updateField({ options: [...(field.options || []), "#3B82F6"] })}
-                      style={{ fontSize: "0.75rem", color: "#6b7280", background: "none", border: "1px dashed #d1d5db", borderRadius: "0.25rem", padding: "0.25rem 0.5rem", cursor: "pointer" }}
+                      onClick={() =>
+                        updateField({
+                          options: [...(field.options || []), "#3B82F6"],
+                        })
+                      }
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#6b7280",
+                        background: "none",
+                        border: "1px dashed #d1d5db",
+                        borderRadius: "0.25rem",
+                        padding: "0.25rem 0.5rem",
+                        cursor: "pointer",
+                      }}
                     >
                       + 색상 추가
                     </button>
@@ -536,37 +649,72 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
 
                 {fieldType === "select" && (
                   <div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginBottom: "0.5rem" }}>
-                      {(field.options || []).map((opt: string, oIdx: number) => (
-                        <div key={oIdx} style={{ display: "flex", gap: "0.25rem", alignItems: "center" }}>
-                          <input
-                            type="text"
-                            value={opt}
-                            onChange={(e) => {
-                              const newOpts = [...(field.options || [])];
-                              newOpts[oIdx] = e.target.value;
-                              updateField({ options: newOpts });
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.25rem",
+                        marginBottom: "0.5rem",
+                      }}
+                    >
+                      {(field.options || []).map(
+                        (opt: string, oIdx: number) => (
+                          <div
+                            key={oIdx}
+                            style={{
+                              display: "flex",
+                              gap: "0.25rem",
+                              alignItems: "center",
                             }}
-                            placeholder="옵션명"
-                            style={{ ...styles.input, flex: 1 }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newOpts = (field.options || []).filter((_: string, i: number) => i !== oIdx);
-                              updateField({ options: newOpts });
-                            }}
-                            style={{ background: "none", border: "none", color: "#9ca3af", cursor: "pointer", fontSize: "0.75rem", padding: "0" }}
                           >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
+                            <input
+                              type="text"
+                              value={opt}
+                              onChange={(e) => {
+                                const newOpts = [...(field.options || [])];
+                                newOpts[oIdx] = e.target.value;
+                                updateField({ options: newOpts });
+                              }}
+                              placeholder="옵션명"
+                              style={{ ...styles.input, flex: 1 }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newOpts = (field.options || []).filter(
+                                  (_: string, i: number) => i !== oIdx
+                                );
+                                updateField({ options: newOpts });
+                              }}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: "#9ca3af",
+                                cursor: "pointer",
+                                fontSize: "0.75rem",
+                                padding: "0",
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        )
+                      )}
                     </div>
                     <button
                       type="button"
-                      onClick={() => updateField({ options: [...(field.options || []), ""] })}
-                      style={{ fontSize: "0.75rem", color: "#6b7280", background: "none", border: "1px dashed #d1d5db", borderRadius: "0.25rem", padding: "0.25rem 0.5rem", cursor: "pointer" }}
+                      onClick={() =>
+                        updateField({ options: [...(field.options || []), ""] })
+                      }
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#6b7280",
+                        background: "none",
+                        border: "1px dashed #d1d5db",
+                        borderRadius: "0.25rem",
+                        padding: "0.25rem 0.5rem",
+                        cursor: "pointer",
+                      }}
                     >
                       + 옵션 추가
                     </button>
@@ -578,7 +726,10 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
           <button
             type="button"
             onClick={() => {
-              const newFields = [...(formData.fields || []), { label: "", placeholder: "", type: "text" }];
+              const newFields = [
+                ...(formData.fields || []),
+                { label: "", placeholder: "", type: "text" },
+              ];
               setFormData((prev) => ({ ...prev, fields: newFields }));
             }}
             style={{
@@ -604,8 +755,16 @@ export default function Edu100Form({ mode, initialData, sectionId }: Edu100FormP
         >
           취소
         </button>
-        <button type="submit" disabled={isSubmitting} style={styles.submitButton}>
-          {isSubmitting ? "저장 중..." : mode === "create" ? "등록하기" : "수정하기"}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          style={styles.submitButton}
+        >
+          {isSubmitting
+            ? "저장 중..."
+            : mode === "create"
+              ? "등록하기"
+              : "수정하기"}
         </button>
       </div>
     </form>

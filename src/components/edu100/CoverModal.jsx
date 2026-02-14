@@ -54,7 +54,9 @@ export default function CoverModal({ cover, onClose }) {
           {cover.description && (
             <div
               className="edu100-modal-desc"
-              dangerouslySetInnerHTML={{ __html: renderBlocksToHTML(cover.description) }}
+              dangerouslySetInnerHTML={{
+                __html: renderBlocksToHTML(cover.description),
+              }}
             />
           )}
 

@@ -24,30 +24,41 @@ import {
   getSpringOptionsDefaults,
   TEMPLATES,
 } from "@/lib/builderData";
-import { formatBusinessDate, getBusinessDate, isBusinessDay } from "@/lib/businessDays";
+import {
+  formatBusinessDate,
+  getBusinessDate,
+  isBusinessDay,
+} from "@/lib/businessDays";
 
 /** BlockNote JSON → 구조화된 렌더링 (trim notice용) */
 function renderNoticeBody(notice) {
   if (!notice) return null;
   let parsed = notice;
   if (typeof parsed === "string") {
-    try { parsed = JSON.parse(parsed); } catch { return null; }
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return null;
+    }
   }
   if (!Array.isArray(parsed) || parsed.length === 0) return null;
-  const items = parsed.map((block, bIdx) => {
-    const textParts = (block.content || [])
-      .filter((c) => c.type === "text" && c.text)
-      .map((c, cIdx) => {
-        let el = c.text;
-        const s = c.styles || {};
-        if (s.bold) el = <strong key={`${bIdx}-${cIdx}`}>{el}</strong>;
-        if (s.italic) el = <em key={`${bIdx}-${cIdx}`}>{el}</em>;
-        return <span key={`${bIdx}-${cIdx}`}>{el}</span>;
-      });
-    if (!textParts.length) return null;
-    if (block.type === "bulletListItem") return <li key={block.id || bIdx}>{textParts}</li>;
-    return <p key={block.id || bIdx}>{textParts}</p>;
-  }).filter(Boolean);
+  const items = parsed
+    .map((block, bIdx) => {
+      const textParts = (block.content || [])
+        .filter((c) => c.type === "text" && c.text)
+        .map((c, cIdx) => {
+          let el = c.text;
+          const s = c.styles || {};
+          if (s.bold) el = <strong key={`${bIdx}-${cIdx}`}>{el}</strong>;
+          if (s.italic) el = <em key={`${bIdx}-${cIdx}`}>{el}</em>;
+          return <span key={`${bIdx}-${cIdx}`}>{el}</span>;
+        });
+      if (!textParts.length) return null;
+      if (block.type === "bulletListItem")
+        return <li key={block.id || bIdx}>{textParts}</li>;
+      return <p key={block.id || bIdx}>{textParts}</p>;
+    })
+    .filter(Boolean);
   if (items.length === 0) return null;
   const hasBullets = parsed.some((b) => b.type === "bulletListItem");
   return hasBullets ? <ul>{items}</ul> : <div>{items}</div>;
@@ -65,8 +76,16 @@ const DEFAULT_PAPER_SWATCH =
   "linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)";
 
 function QuantityTable({
-  displayQtys, isCustomQty, customer, setCustomer,
-  qtyPrices, qtyMin, qtyMax, cfg, productType, allBlocks,
+  displayQtys,
+  isCustomQty,
+  customer,
+  setCustomer,
+  qtyPrices,
+  qtyMin,
+  qtyMax,
+  cfg,
+  productType,
+  allBlocks,
 }) {
   const [customPrice, setCustomPrice] = useState(null);
 
@@ -116,11 +135,11 @@ function QuantityTable({
                 <tr
                   key={q}
                   className={`${isSelected ? "selected" : ""} ${isCustom ? "custom" : ""}`}
-                  onClick={() =>
-                    setCustomer((prev) => ({ ...prev, qty: q }))
-                  }
+                  onClick={() => setCustomer((prev) => ({ ...prev, qty: q }))}
                 >
-                  <td>{q}부{isCustom && " ✎"}</td>
+                  <td>
+                    {q}부{isCustom && " ✎"}
+                  </td>
                   {cfg.showUnitPrice !== false && (
                     <td className="unit-price">
                       1부당 {unitPrice.toLocaleString()}원
@@ -155,8 +174,17 @@ function QuantityTable({
   );
 }
 
-function CustomQtyInput({ qtyMin, qtyMax, isCustomQty, customerQty, setCustomer, onCustomPrice }) {
-  const [inputVal, setInputVal] = useState(isCustomQty ? String(customerQty) : "");
+function CustomQtyInput({
+  qtyMin,
+  qtyMax,
+  isCustomQty,
+  customerQty,
+  setCustomer,
+  onCustomPrice,
+}) {
+  const [inputVal, setInputVal] = useState(
+    isCustomQty ? String(customerQty) : ""
+  );
   const debounceRef = useRef(null);
 
   // 블러/엔터 시 min/max 클램핑 적용
@@ -185,7 +213,9 @@ function CustomQtyInput({ qtyMin, qtyMax, isCustomQty, customerQty, setCustomer,
   };
 
   useEffect(() => {
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, []);
 
   return (
@@ -211,11 +241,13 @@ function CustomQtyInput({ qtyMin, qtyMax, isCustomQty, customerQty, setCustomer,
         />
         <span className="pv-custom-qty-unit">부</span>
       </div>
-      {inputVal && parseInt(inputVal) > 0 && (parseInt(inputVal) < qtyMin || parseInt(inputVal) > qtyMax) && (
-        <p className="pv-custom-qty-error">
-          {qtyMin}~{qtyMax}부 사이로 입력해주세요
-        </p>
-      )}
+      {inputVal &&
+        parseInt(inputVal) > 0 &&
+        (parseInt(inputVal) < qtyMin || parseInt(inputVal) > qtyMax) && (
+          <p className="pv-custom-qty-error">
+            {qtyMin}~{qtyMax}부 사이로 입력해주세요
+          </p>
+        )}
     </div>
   );
 }
@@ -259,7 +291,14 @@ function getConsultStatus(cfg) {
 }
 
 /** 디자인 선택 블록 — 표지 디자인 카드 그리드 + 변경 타입 라디오 */
-function DesignSelectBlock({ cfg, tiers, designs, selectedDesign, designTier, setCustomer }) {
+function DesignSelectBlock({
+  cfg,
+  tiers,
+  designs,
+  selectedDesign,
+  designTier,
+  setCustomer,
+}) {
   const [loaded, setLoaded] = useState(false);
   const [designList, setDesignList] = useState(designs || []);
 
@@ -296,28 +335,73 @@ function DesignSelectBlock({ cfg, tiers, designs, selectedDesign, designTier, se
     <div>
       {/* 디자인 카드 그리드 */}
       {designList.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: "0.75rem", marginBottom: "1rem" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+            gap: "0.75rem",
+            marginBottom: "1rem",
+          }}
+        >
           {designList.map((d) => {
             const isSelected = selectedDesign?.id === d.id;
             return (
               <div
                 key={d.id}
-                onClick={() => setCustomer((prev) => ({ ...prev, selectedDesign: d }))}
+                onClick={() =>
+                  setCustomer((prev) => ({ ...prev, selectedDesign: d }))
+                }
                 style={{
                   cursor: "pointer",
                   borderRadius: "0.5rem",
                   overflow: "hidden",
-                  border: isSelected ? "2px solid #000" : "2px solid transparent",
-                  boxShadow: isSelected ? "0 0 0 1px #000" : "0 1px 3px rgba(0,0,0,0.08)",
+                  border: isSelected
+                    ? "2px solid #000"
+                    : "2px solid transparent",
+                  boxShadow: isSelected
+                    ? "0 0 0 1px #000"
+                    : "0 1px 3px rgba(0,0,0,0.08)",
                   transition: "all 0.15s",
                 }}
               >
                 {d.image ? (
-                  <img src={d.image} alt={d.title} style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }} />
+                  <img
+                    src={d.image}
+                    alt={d.title}
+                    style={{
+                      width: "100%",
+                      aspectRatio: "3/4",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
                 ) : (
-                  <div style={{ width: "100%", aspectRatio: "3/4", background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", color: "#999" }}>No img</div>
+                  <div
+                    style={{
+                      width: "100%",
+                      aspectRatio: "3/4",
+                      background: "#f3f4f6",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "0.7rem",
+                      color: "#999",
+                    }}
+                  >
+                    No img
+                  </div>
                 )}
-                <div style={{ padding: "0.375rem", fontSize: "0.7rem", fontWeight: isSelected ? 600 : 400, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <div
+                  style={{
+                    padding: "0.375rem",
+                    fontSize: "0.7rem",
+                    fontWeight: isSelected ? 600 : 400,
+                    textAlign: "center",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   {d.title}
                 </div>
               </div>
@@ -327,20 +411,31 @@ function DesignSelectBlock({ cfg, tiers, designs, selectedDesign, designTier, se
       )}
 
       {designList.length === 0 && loaded && (
-        <p style={{ color: "#999", fontSize: "0.875rem", padding: "1rem 0" }}>등록된 디자인이 없습니다.</p>
+        <p style={{ color: "#999", fontSize: "0.875rem", padding: "1rem 0" }}>
+          등록된 디자인이 없습니다.
+        </p>
       )}
 
       {/* 변경 타입 라디오 */}
       {tiers.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+        >
           {tiers.map((tier) => (
             <label
               key={tier.id}
               style={{
-                display: "flex", alignItems: "center", gap: "0.5rem",
-                padding: "0.625rem 0.75rem", borderRadius: "0.5rem",
-                border: designTier === tier.id ? "2px solid #000" : "1px solid #e5e7eb",
-                cursor: "pointer", fontSize: "0.875rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.625rem 0.75rem",
+                borderRadius: "0.5rem",
+                border:
+                  designTier === tier.id
+                    ? "2px solid #000"
+                    : "1px solid #e5e7eb",
+                cursor: "pointer",
+                fontSize: "0.875rem",
                 background: designTier === tier.id ? "#fafafa" : "white",
                 transition: "all 0.15s",
               }}
@@ -349,12 +444,16 @@ function DesignSelectBlock({ cfg, tiers, designs, selectedDesign, designTier, se
                 type="radio"
                 name="designTier"
                 checked={designTier === tier.id}
-                onChange={() => setCustomer((prev) => ({ ...prev, designTier: tier.id }))}
+                onChange={() =>
+                  setCustomer((prev) => ({ ...prev, designTier: tier.id }))
+                }
                 style={{ accentColor: "#000" }}
               />
               <span style={{ flex: 1 }}>{tier.label}</span>
               {tier.price > 0 && (
-                <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>+{tier.price.toLocaleString()}원</span>
+                <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>
+                  +{tier.price.toLocaleString()}원
+                </span>
               )}
             </label>
           ))}
@@ -380,7 +479,9 @@ function ConsultationBlock({ cfg, faqs }) {
       <div className="pv-consult-header">
         <div className="pv-consult-avatar">SJ</div>
         <div className="pv-consult-info">
-          <div className="pv-consult-name">{cfg.title || "성진프린트 상담"}</div>
+          <div className="pv-consult-name">
+            {cfg.title || "성진프린트 상담"}
+          </div>
           {status.isOpen ? (
             <div className="pv-consult-status">
               <span className="pv-consult-dot" />
@@ -409,12 +510,23 @@ function ConsultationBlock({ cfg, faqs }) {
                 className={`pv-consult-reply${openFaq === faq.id ? " active" : ""}`}
                 onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)}
               >
-                <span>{faq.emoji}&nbsp;&nbsp;{faq.text}</span>
+                <span>
+                  {faq.emoji}&nbsp;&nbsp;{faq.text}
+                </span>
                 <svg
                   className={`pv-consult-chevron${openFaq === faq.id ? " open" : ""}`}
-                  width="16" height="16" viewBox="0 0 16 16" fill="none"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
                 >
-                  <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path
+                    d="M4 6l4 4 4-4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
               {openFaq === faq.id && faq.answer && (
@@ -466,21 +578,35 @@ function PreviewBlockInner({
       const bleed = cfg.bleed ?? 2;
 
       // 현재 치수 (preset 또는 custom 입력값)
-      const curWidth = sizeMode === "custom" ? (customer.customWidth || 0) : (selectedSizeInfo?.width || 0);
-      const curHeight = sizeMode === "custom" ? (customer.customHeight || 0) : (selectedSizeInfo?.height || 0);
+      const curWidth =
+        sizeMode === "custom"
+          ? customer.customWidth || 0
+          : selectedSizeInfo?.width || 0;
+      const curHeight =
+        sizeMode === "custom"
+          ? customer.customHeight || 0
+          : selectedSizeInfo?.height || 0;
       const bleedWidth = curWidth + bleed * 2;
       const bleedHeight = curHeight + bleed * 2;
 
       // custom 모드: 합계 검증
-      const customSum = (customer.customWidth || 0) + (customer.customHeight || 0);
+      const customSum =
+        (customer.customWidth || 0) + (customer.customHeight || 0);
       const selectedCustomOpt = (cfg.customOptions || []).find(
         (o) => customer.size === `custom_${o.maxSum}`
       );
       const maxPrintW = 305;
       const maxPrintH = 455;
-      const customSizeOverMax = sizeMode === "custom" && customer.customWidth && customer.customHeight &&
-        (Math.min(customer.customWidth, customer.customHeight) > maxPrintW || Math.max(customer.customWidth, customer.customHeight) > maxPrintH);
-      const customSumOver = sizeMode === "custom" && selectedCustomOpt && customSum > selectedCustomOpt.maxSum;
+      const customSizeOverMax =
+        sizeMode === "custom" &&
+        customer.customWidth &&
+        customer.customHeight &&
+        (Math.min(customer.customWidth, customer.customHeight) > maxPrintW ||
+          Math.max(customer.customWidth, customer.customHeight) > maxPrintH);
+      const customSumOver =
+        sizeMode === "custom" &&
+        selectedCustomOpt &&
+        customSum > selectedCustomOpt.maxSum;
 
       return (
         <div className="pv-block">
@@ -496,7 +622,8 @@ function PreviewBlockInner({
                     disabled={isDisabled}
                     className={`pv-btn ${customer.size === s ? "active" : ""} ${isDisabled ? "disabled" : ""}`}
                     onClick={() =>
-                      !isDisabled && setCustomer((prev) => ({ ...prev, size: s }))
+                      !isDisabled &&
+                      setCustomer((prev) => ({ ...prev, size: s }))
                     }
                   >
                     {allSizes[s]?.name || s.toUpperCase()}
@@ -519,7 +646,8 @@ function PreviewBlockInner({
                       disabled={isDisabled}
                       className={`pv-btn ${customer.size === code ? "active" : ""} ${isDisabled ? "disabled" : ""}`}
                       onClick={() =>
-                        !isDisabled && setCustomer((prev) => ({ ...prev, size: code }))
+                        !isDisabled &&
+                        setCustomer((prev) => ({ ...prev, size: code }))
                       }
                     >
                       {opt.label}
@@ -531,7 +659,9 @@ function PreviewBlockInner({
               {/* 가로/세로 직접 입력 */}
               {customer.size?.startsWith("custom_") && (
                 <div className="pv-size-input-section">
-                  <p className="pv-size-input-label">실제 사이즈를 입력해 주세요:</p>
+                  <p className="pv-size-input-label">
+                    실제 사이즈를 입력해 주세요:
+                  </p>
                   <div className="pv-size-input-row">
                     <label className="pv-size-input-field">
                       <span>가로</span>
@@ -541,7 +671,10 @@ function PreviewBlockInner({
                         placeholder="mm"
                         min={10}
                         onChange={(e) =>
-                          setCustomer((prev) => ({ ...prev, customWidth: Number(e.target.value) }))
+                          setCustomer((prev) => ({
+                            ...prev,
+                            customWidth: Number(e.target.value),
+                          }))
                         }
                       />
                       <span>mm</span>
@@ -555,7 +688,10 @@ function PreviewBlockInner({
                         placeholder="mm"
                         min={10}
                         onChange={(e) =>
-                          setCustomer((prev) => ({ ...prev, customHeight: Number(e.target.value) }))
+                          setCustomer((prev) => ({
+                            ...prev,
+                            customHeight: Number(e.target.value),
+                          }))
                         }
                       />
                       <span>mm</span>
@@ -563,13 +699,14 @@ function PreviewBlockInner({
                   </div>
                   {/* 합계 표시 */}
                   {customer.customWidth > 0 && customer.customHeight > 0 && (
-                    <p className={`pv-size-sum ${customSumOver ? "error" : ""}`}>
+                    <p
+                      className={`pv-size-sum ${customSumOver ? "error" : ""}`}
+                    >
                       가로+세로 합: {customSum}mm
-                      {selectedCustomOpt && (
-                        customSumOver
+                      {selectedCustomOpt &&
+                        (customSumOver
                           ? ` (${selectedCustomOpt.maxSum}mm 초과)`
-                          : ` (${selectedCustomOpt.maxSum}mm 이내 ✓)`
-                      )}
+                          : ` (${selectedCustomOpt.maxSum}mm 이내 ✓)`)}
                     </p>
                   )}
                   {/* 인쇄 가능 영역 초과 경고 */}
@@ -584,40 +721,56 @@ function PreviewBlockInner({
           )}
 
           {/* 재단 상품 주의사항 */}
-          {cfg.trimEnabled && customer.size && curWidth > 0 && curHeight > 0 && (
-            <div className="pv-trim-notice">
-              <div className="pv-trim-notice-size">
-                {selectedSizeInfo?.name || customer.size} ({curWidth}×{curHeight}mm)
-                {" / "}재단 여백 포함 시 {bleedWidth}×{bleedHeight}mm
+          {cfg.trimEnabled &&
+            customer.size &&
+            curWidth > 0 &&
+            curHeight > 0 && (
+              <div className="pv-trim-notice">
+                <div className="pv-trim-notice-size">
+                  {selectedSizeInfo?.name || customer.size} ({curWidth}×
+                  {curHeight}mm)
+                  {" / "}재단 여백 포함 시 {bleedWidth}×{bleedHeight}mm
+                </div>
+                <div className="pv-trim-notice-body">
+                  <p className="pv-trim-notice-title">주의사항</p>
+                  {renderNoticeBody(cfg.trimNotice) || (
+                    <ul>
+                      <li>
+                        재단 여백({bleed}mm)을 포함한 사이즈로 제공해 주시면
+                        가장 좋아요
+                      </li>
+                      <li>
+                        정사이즈({curWidth}×{curHeight}mm) 파일 제공 시,
+                        가장자리에 이미지가 닿아 있으면 살짝 확대 후 재단하며
+                        1~2mm 잘릴 수 있어요
+                      </li>
+                      <li>
+                        선택한 사이즈와 다른 파일은 비율에 맞게 조정하며, 여백이
+                        생기거나 일부가 잘릴 수 있어요
+                      </li>
+                    </ul>
+                  )}
+                </div>
               </div>
-              <div className="pv-trim-notice-body">
-                <p className="pv-trim-notice-title">주의사항</p>
-                {renderNoticeBody(cfg.trimNotice) || (
-                  <ul>
-                    <li>재단 여백({bleed}mm)을 포함한 사이즈로 제공해 주시면 가장 좋아요</li>
-                    <li>정사이즈({curWidth}×{curHeight}mm) 파일 제공 시, 가장자리에 이미지가 닿아 있으면 살짝 확대 후 재단하며 1~2mm 잘릴 수 있어요</li>
-                    <li>선택한 사이즈와 다른 파일은 비율에 맞게 조정하며, 여백이 생기거나 일부가 잘릴 수 있어요</li>
-                  </ul>
-                )}
-              </div>
-            </div>
-          )}
+            )}
         </div>
       );
     }
 
     case "paper": {
       const role = getPaperBlockRole(block, allBlocks);
-      const paperField = role === "cover"
-        ? "coverPaper"
-        : role === "inner"
-          ? "innerPaper"
-          : "paper";
-      const weightField = role === "cover"
-        ? "coverWeight"
-        : role === "inner"
-          ? "innerWeight"
-          : "weight";
+      const paperField =
+        role === "cover"
+          ? "coverPaper"
+          : role === "inner"
+            ? "innerPaper"
+            : "paper";
+      const weightField =
+        role === "cover"
+          ? "coverWeight"
+          : role === "inner"
+            ? "innerWeight"
+            : "weight";
 
       const handlePaperSelect = (code, w) => {
         if (isDisabled) return;
@@ -640,11 +793,18 @@ function PreviewBlockInner({
                   <div
                     key={cp.id}
                     className={`pv-paper-item ${isSelected ? "active" : ""} ${isDisabled ? "disabled" : ""}`}
-                    onClick={() => handlePaperSelect(cp.id, cp.weights?.[0] || 0)}
+                    onClick={() =>
+                      handlePaperSelect(cp.id, cp.weights?.[0] || 0)
+                    }
                   >
                     <div className="pv-paper-thumb">
                       {cp.image ? (
-                        <img src={cp.image} alt={cp.name} loading="lazy" decoding="async" />
+                        <img
+                          src={cp.image}
+                          alt={cp.name}
+                          loading="lazy"
+                          decoding="async"
+                        />
                       ) : (
                         <div
                           className="pv-paper-swatch"
@@ -653,7 +813,9 @@ function PreviewBlockInner({
                       )}
                     </div>
                     <div className="pv-paper-info">
-                      <p className={`pv-paper-name ${isSelected ? "active" : ""}`}>
+                      <p
+                        className={`pv-paper-name ${isSelected ? "active" : ""}`}
+                      >
                         {cp.name}
                       </p>
                     </div>
@@ -1452,7 +1614,9 @@ function PreviewBlockInner({
             })}
           </div>
           {(() => {
-            const selectedOpt = cfg.options?.find((o) => o.id === customer.delivery);
+            const selectedOpt = cfg.options?.find(
+              (o) => o.id === customer.delivery
+            );
             return selectedOpt?.message ? (
               <p className="pv-delivery-warning">{selectedOpt.message}</p>
             ) : null;
@@ -1760,7 +1924,9 @@ function PreviewBlockInner({
 
     case "quantity": {
       const isCustomQty =
-        cfg.allowCustom && customer.qty > 0 && !cfg.options?.includes(customer.qty);
+        cfg.allowCustom &&
+        customer.qty > 0 &&
+        !cfg.options?.includes(customer.qty);
       const qtyMin = cfg.min ?? 10;
       const qtyMax = cfg.max ?? 5000;
 
@@ -1824,7 +1990,9 @@ function PreviewBlockInner({
           return (
             <div className="pv-block">
               <p className="pv-block-label">{block.label}</p>
-              <p className="text-xs text-gray-400">디자인을 선택하면 입력 필드가 표시됩니다.</p>
+              <p className="text-xs text-gray-400">
+                디자인을 선택하면 입력 필드가 표시됩니다.
+              </p>
             </div>
           );
         }
@@ -1834,7 +2002,10 @@ function PreviewBlockInner({
             ...prev,
             textInputs: {
               ...(prev.textInputs || {}),
-              [block.id]: { ...((prev.textInputs || {})[block.id] || {}), [label]: value },
+              [block.id]: {
+                ...((prev.textInputs || {})[block.id] || {}),
+                [label]: value,
+              },
             },
           }));
         };
@@ -1842,21 +2013,56 @@ function PreviewBlockInner({
           <div className="pv-block">
             <style>{`.pv-book-input::placeholder { color: #d1d5db; }`}</style>
             <p className="pv-block-label">{block.label}</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.625rem",
+              }}
+            >
               {coverFields.map((field) => {
                 const ft = field.type || "text";
                 const val = fieldValues[field.label] || "";
                 if (ft === "color") {
                   return (
                     <div key={field.label}>
-                      <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
-                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <label
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#6b7280",
+                          display: "block",
+                          marginBottom: "0.375rem",
+                        }}
+                      >
+                        {field.label}
+                      </label>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "0.5rem",
+                          flexWrap: "wrap",
+                        }}
+                      >
                         {(field.options || []).map((hex) => (
-                          <button key={hex} type="button" onClick={() => updateCoverField(field.label, hex)} style={{
-                            width: "2rem", height: "2rem", borderRadius: "50%", background: hex,
-                            border: val === hex ? "2.5px solid #222" : "2px solid #e5e7eb",
-                            cursor: "pointer", outline: val === hex ? "2px solid white" : "none", outlineOffset: "-4px",
-                          }} title={hex} />
+                          <button
+                            key={hex}
+                            type="button"
+                            onClick={() => updateCoverField(field.label, hex)}
+                            style={{
+                              width: "2rem",
+                              height: "2rem",
+                              borderRadius: "50%",
+                              background: hex,
+                              border:
+                                val === hex
+                                  ? "2.5px solid #222"
+                                  : "2px solid #e5e7eb",
+                              cursor: "pointer",
+                              outline: val === hex ? "2px solid white" : "none",
+                              outlineOffset: "-4px",
+                            }}
+                            title={hex}
+                          />
                         ))}
                       </div>
                     </div>
@@ -1865,15 +2071,41 @@ function PreviewBlockInner({
                 if (ft === "select") {
                   return (
                     <div key={field.label}>
-                      <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
-                      <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}>
+                      <label
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#6b7280",
+                          display: "block",
+                          marginBottom: "0.375rem",
+                        }}
+                      >
+                        {field.label}
+                      </label>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "0.375rem",
+                          flexWrap: "wrap",
+                        }}
+                      >
                         {(field.options || []).map((opt) => (
-                          <button key={opt} type="button" onClick={() => updateCoverField(field.label, opt)} style={{
-                            padding: "0.375rem 0.75rem", borderRadius: "1.5rem",
-                            border: val === opt ? "1.5px solid #222" : "1px solid #d1d5db",
-                            background: val === opt ? "#222" : "white", color: val === opt ? "white" : "#374151",
-                            fontSize: "0.8rem", cursor: "pointer",
-                          }}>
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => updateCoverField(field.label, opt)}
+                            style={{
+                              padding: "0.375rem 0.75rem",
+                              borderRadius: "1.5rem",
+                              border:
+                                val === opt
+                                  ? "1.5px solid #222"
+                                  : "1px solid #d1d5db",
+                              background: val === opt ? "#222" : "white",
+                              color: val === opt ? "white" : "#374151",
+                              fontSize: "0.8rem",
+                              cursor: "pointer",
+                            }}
+                          >
                             {opt}
                           </button>
                         ))}
@@ -1883,15 +2115,42 @@ function PreviewBlockInner({
                 }
                 return (
                   <div key={field.label}>
-                    <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
+                    <label
+                      style={{
+                        fontSize: "0.8rem",
+                        color: "#6b7280",
+                        display: "block",
+                        marginBottom: "0.375rem",
+                      }}
+                    >
+                      {field.label}
+                    </label>
                     <input
-                      type="text" value={val}
-                      onChange={(e) => updateCoverField(field.label, e.target.value)}
-                      placeholder={field.placeholder || `${field.label}을(를) 입력하세요`}
+                      type="text"
+                      value={val}
+                      onChange={(e) =>
+                        updateCoverField(field.label, e.target.value)
+                      }
+                      placeholder={
+                        field.placeholder || `${field.label}을(를) 입력하세요`
+                      }
                       className="pv-book-input"
-                      style={{ width: "100%", border: "1px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.625rem 0.75rem", fontSize: "0.875rem", outline: "none", background: "white", color: "#111" }}
-                      onFocus={(e) => { e.target.style.borderColor = "#9ca3af"; }}
-                      onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; }}
+                      style={{
+                        width: "100%",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "0.5rem",
+                        padding: "0.625rem 0.75rem",
+                        fontSize: "0.875rem",
+                        outline: "none",
+                        background: "white",
+                        color: "#111",
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = "#9ca3af";
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = "#e5e7eb";
+                      }}
                     />
                   </div>
                 );
@@ -1902,14 +2161,17 @@ function PreviewBlockInner({
       }
 
       // manual 모드: 기존 단일 textarea
-      const value = typeof textInputs[block.id] === "string" ? textInputs[block.id] : "";
+      const value =
+        typeof textInputs[block.id] === "string" ? textInputs[block.id] : "";
       return (
         <div className="pv-block">
           <p className="pv-block-label">{block.label}</p>
           <textarea
             value={value}
             onChange={(e) => {
-              const val = cfg.maxLength ? e.target.value.slice(0, cfg.maxLength) : e.target.value;
+              const val = cfg.maxLength
+                ? e.target.value.slice(0, cfg.maxLength)
+                : e.target.value;
               setCustomer((prev) => ({
                 ...prev,
                 textInputs: { ...(prev.textInputs || {}), [block.id]: val },
@@ -1946,23 +2208,45 @@ function PreviewBlockInner({
       const designFee = designCover?.design_fee ?? 0;
 
       // 가이드 블록 가격 합산 (에폭시 등)
-      const guidePriceTotal = Object.entries(customer.guides || {}).reduce((sum, [blockId, state]) => {
-        const guideBlock = allBlocks.find((b) => String(b.id) === String(blockId) && b.type === "guide");
-        const opt = guideBlock?.config?.options?.find((o) => o.id === state?.selected);
-        return sum + (opt?.price || 0);
-      }, 0);
-      const activeGuideLabels = Object.entries(customer.guides || {}).reduce((arr, [blockId, state]) => {
-        const guideBlock = allBlocks.find((b) => String(b.id) === String(blockId) && b.type === "guide");
-        const opt = guideBlock?.config?.options?.find((o) => o.id === state?.selected);
-        if (opt?.price > 0) arr.push({ label: opt.label, price: opt.price });
-        return arr;
-      }, []);
+      const guidePriceTotal = Object.entries(customer.guides || {}).reduce(
+        (sum, [blockId, state]) => {
+          const guideBlock = allBlocks.find(
+            (b) => String(b.id) === String(blockId) && b.type === "guide"
+          );
+          const opt = guideBlock?.config?.options?.find(
+            (o) => o.id === state?.selected
+          );
+          return sum + (opt?.price || 0);
+        },
+        0
+      );
+      const activeGuideLabels = Object.entries(customer.guides || {}).reduce(
+        (arr, [blockId, state]) => {
+          const guideBlock = allBlocks.find(
+            (b) => String(b.id) === String(blockId) && b.type === "guide"
+          );
+          const opt = guideBlock?.config?.options?.find(
+            (o) => o.id === state?.selected
+          );
+          if (opt?.price > 0) arr.push({ label: opt.label, price: opt.price });
+          return arr;
+        },
+        []
+      );
 
       const addBook = () => {
         if (books.length >= maxBooks) return;
         setCustomer((prev) => ({
           ...prev,
-          books: [...(prev.books || []), { id: Date.now(), fields: {}, pages: defaultPages, qty: defaultQty }],
+          books: [
+            ...(prev.books || []),
+            {
+              id: Date.now(),
+              fields: {},
+              pages: defaultPages,
+              qty: defaultQty,
+            },
+          ],
         }));
       };
 
@@ -1987,7 +2271,9 @@ function PreviewBlockInner({
         setCustomer((prev) => ({
           ...prev,
           books: (prev.books || []).map((b) =>
-            b.id === bookId ? { ...b, fields: { ...b.fields, [label]: value } } : b
+            b.id === bookId
+              ? { ...b, fields: { ...b.fields, [label]: value } }
+              : b
           ),
         }));
       };
@@ -2001,7 +2287,16 @@ function PreviewBlockInner({
           const colors = field.options || [];
           return (
             <div key={field.label} style={{ marginBottom: "0.25rem" }}>
-              <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
+              <label
+                style={{
+                  fontSize: "0.8rem",
+                  color: "#6b7280",
+                  display: "block",
+                  marginBottom: "0.375rem",
+                }}
+              >
+                {field.label}
+              </label>
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                 {colors.map((hex) => (
                   <button
@@ -2013,7 +2308,10 @@ function PreviewBlockInner({
                       height: "2rem",
                       borderRadius: "50%",
                       background: hex,
-                      border: currentVal === hex ? "2.5px solid #222" : "2px solid #e5e7eb",
+                      border:
+                        currentVal === hex
+                          ? "2.5px solid #222"
+                          : "2px solid #e5e7eb",
                       cursor: "pointer",
                       outline: currentVal === hex ? "2px solid white" : "none",
                       outlineOffset: "-4px",
@@ -2031,8 +2329,19 @@ function PreviewBlockInner({
           const options = field.options || [];
           return (
             <div key={field.label} style={{ marginBottom: "0.25rem" }}>
-              <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
-              <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}>
+              <label
+                style={{
+                  fontSize: "0.8rem",
+                  color: "#6b7280",
+                  display: "block",
+                  marginBottom: "0.375rem",
+                }}
+              >
+                {field.label}
+              </label>
+              <div
+                style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}
+              >
                 {options.map((opt) => (
                   <button
                     key={opt}
@@ -2041,7 +2350,10 @@ function PreviewBlockInner({
                     style={{
                       padding: "0.375rem 0.75rem",
                       borderRadius: "1.5rem",
-                      border: currentVal === opt ? "1.5px solid #222" : "1px solid #d1d5db",
+                      border:
+                        currentVal === opt
+                          ? "1.5px solid #222"
+                          : "1px solid #d1d5db",
                       background: currentVal === opt ? "#222" : "white",
                       color: currentVal === opt ? "white" : "#374151",
                       fontSize: "0.8rem",
@@ -2060,12 +2372,25 @@ function PreviewBlockInner({
         // text (default)
         return (
           <div key={field.label} style={{ marginBottom: "0.25rem" }}>
-            <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>{field.label}</label>
+            <label
+              style={{
+                fontSize: "0.8rem",
+                color: "#6b7280",
+                display: "block",
+                marginBottom: "0.375rem",
+              }}
+            >
+              {field.label}
+            </label>
             <input
               type="text"
               value={currentVal}
-              onChange={(e) => updateBookField(book.id, field.label, e.target.value)}
-              placeholder={field.placeholder || `${field.label}을(를) 입력하세요`}
+              onChange={(e) =>
+                updateBookField(book.id, field.label, e.target.value)
+              }
+              placeholder={
+                field.placeholder || `${field.label}을(를) 입력하세요`
+              }
               className="pv-book-input"
               style={{
                 width: "100%",
@@ -2078,8 +2403,12 @@ function PreviewBlockInner({
                 color: "#111",
                 transition: "border 0.15s",
               }}
-              onFocus={(e) => { e.target.style.borderColor = "#9ca3af"; }}
-              onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "#9ca3af";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "#e5e7eb";
+              }}
             />
           </div>
         );
@@ -2101,7 +2430,9 @@ function PreviewBlockInner({
         <div className="pv-block">
           <style>{`.pv-book-input::placeholder { color: #d1d5db; }`}</style>
           <p className="pv-block-label">{block.label}</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+          >
             {books.map((book, idx) => (
               <div
                 key={book.id}
@@ -2113,18 +2444,32 @@ function PreviewBlockInner({
                 }}
               >
                 {/* 헤더 */}
-                <div style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "0.625rem 0.875rem",
-                  background: "#f9fafb",
-                  borderBottom: "1px solid #f0f0f0",
-                }}>
-                  <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#222" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "0.625rem 0.875rem",
+                    background: "#f9fafb",
+                    borderBottom: "1px solid #f0f0f0",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "0.875rem",
+                      fontWeight: 600,
+                      color: "#222",
+                    }}
+                  >
                     {idx + 1}권
                   </span>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
                     <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
                       {bookCosts[idx]?.subtotal?.toLocaleString()}원
                     </span>
@@ -2144,21 +2489,46 @@ function PreviewBlockInner({
                   </div>
                 </div>
                 {/* 본문 */}
-                <div style={{ padding: "0.875rem", display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+                <div
+                  style={{
+                    padding: "0.875rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.625rem",
+                  }}
+                >
                   {/* 커버 필드 */}
                   {coverFields.map((field) => renderField(field, book))}
 
                   {/* 페이지 수 + 수량 */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginTop: coverFields.length > 0 ? "0.25rem" : 0 }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "0.5rem",
+                      marginTop: coverFields.length > 0 ? "0.25rem" : 0,
+                    }}
+                  >
                     <div>
-                      <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>페이지 수</label>
+                      <label
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#6b7280",
+                          display: "block",
+                          marginBottom: "0.375rem",
+                        }}
+                      >
+                        페이지 수
+                      </label>
                       <input
                         type="number"
                         value={book.pages}
                         min={pagesMin}
                         max={pagesMax}
                         step={pagesStep}
-                        onChange={(e) => updateBook(book.id, "pages", Number(e.target.value))}
+                        onChange={(e) =>
+                          updateBook(book.id, "pages", Number(e.target.value))
+                        }
                         onBlur={(e) => {
                           e.target.style.borderColor = "#e5e7eb";
                           let v = Number(e.target.value) || pagesMin;
@@ -2178,16 +2548,29 @@ function PreviewBlockInner({
                           outline: "none",
                           background: "white",
                         }}
-                        onFocus={(e) => { e.target.style.borderColor = "#9ca3af"; }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = "#9ca3af";
+                        }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: "0.8rem", color: "#6b7280", display: "block", marginBottom: "0.375rem" }}>수량</label>
+                      <label
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#6b7280",
+                          display: "block",
+                          marginBottom: "0.375rem",
+                        }}
+                      >
+                        수량
+                      </label>
                       <input
                         type="number"
                         value={book.qty}
                         min={1}
-                        onChange={(e) => updateBook(book.id, "qty", Number(e.target.value))}
+                        onChange={(e) =>
+                          updateBook(book.id, "qty", Number(e.target.value))
+                        }
                         onBlur={(e) => {
                           e.target.style.borderColor = "#e5e7eb";
                           const v = Math.max(1, Number(e.target.value) || 1);
@@ -2203,7 +2586,9 @@ function PreviewBlockInner({
                           outline: "none",
                           background: "white",
                         }}
-                        onFocus={(e) => { e.target.style.borderColor = "#9ca3af"; }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = "#9ca3af";
+                        }}
                       />
                     </div>
                   </div>
@@ -2223,8 +2608,12 @@ function PreviewBlockInner({
                   fontSize: "0.875rem",
                   transition: "border-color 0.15s",
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#9ca3af"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#9ca3af";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#d1d5db";
+                }}
               >
                 + 시리즈 추가
               </button>
@@ -2232,39 +2621,104 @@ function PreviewBlockInner({
 
             {/* 가격 요약 */}
             {books.length > 0 && (
-              <div style={{
-                borderRadius: "0.875rem",
-                border: "1px solid #e5e7eb",
-                background: "#fafafa",
-                padding: "0.875rem",
-              }}>
-                <p style={{ fontSize: "0.8rem", fontWeight: 600, color: "#222", marginBottom: "0.5rem" }}>주문 요약</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+              <div
+                style={{
+                  borderRadius: "0.875rem",
+                  border: "1px solid #e5e7eb",
+                  background: "#fafafa",
+                  padding: "0.875rem",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    color: "#222",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  주문 요약
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.25rem",
+                  }}
+                >
                   {books.map((book, idx) => (
-                    <div key={book.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#6b7280" }}>
-                      <span>{idx + 1}권 ({bookCosts[idx]?.pages}p × {bookCosts[idx]?.qty}부)</span>
-                      <span>{bookCosts[idx]?.subtotal?.toLocaleString()}원</span>
+                    <div
+                      key={book.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.8rem",
+                        color: "#6b7280",
+                      }}
+                    >
+                      <span>
+                        {idx + 1}권 ({bookCosts[idx]?.pages}p ×{" "}
+                        {bookCosts[idx]?.qty}부)
+                      </span>
+                      <span>
+                        {bookCosts[idx]?.subtotal?.toLocaleString()}원
+                      </span>
                     </div>
                   ))}
                   {activeGuideLabels.map((g) => (
-                    <div key={g.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#6b7280" }}>
-                      <span>{g.label} (권당 +{g.price.toLocaleString()}원)</span>
+                    <div
+                      key={g.label}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.8rem",
+                        color: "#6b7280",
+                      }}
+                    >
+                      <span>
+                        {g.label} (권당 +{g.price.toLocaleString()}원)
+                      </span>
                       <span>포함</span>
                     </div>
                   ))}
                   {showDesignFee && (
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#ef4444" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.8rem",
+                        color: "#ef4444",
+                      }}
+                    >
                       <span>디자인 비용 ({freeDesignMinQty}부 미만)</span>
                       <span>+{designFee.toLocaleString()}원</span>
                     </div>
                   )}
                   {designFee > 0 && !showDesignFee && (
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#16a34a" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.8rem",
+                        color: "#16a34a",
+                      }}
+                    >
                       <span>디자인 비용 ({freeDesignMinQty}부 이상 무료)</span>
                       <span>0원</span>
                     </div>
                   )}
-                  <div style={{ borderTop: "1px solid #e5e7eb", marginTop: "0.375rem", paddingTop: "0.375rem", display: "flex", justifyContent: "space-between", fontSize: "0.875rem", fontWeight: 600, color: "#111" }}>
+                  <div
+                    style={{
+                      borderTop: "1px solid #e5e7eb",
+                      marginTop: "0.375rem",
+                      paddingTop: "0.375rem",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: "0.875rem",
+                      fontWeight: 600,
+                      color: "#111",
+                    }}
+                  >
                     <span>합계 ({totalQty}부)</span>
                     <span>{grandTotal.toLocaleString()}원</span>
                   </div>

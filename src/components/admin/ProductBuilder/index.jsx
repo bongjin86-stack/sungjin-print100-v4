@@ -48,7 +48,11 @@ function renderBuilderHint(hint) {
   if (!hint) return null;
   let parsed = hint;
   if (typeof parsed === "string") {
-    try { parsed = JSON.parse(parsed); } catch { parsed = null; }
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      parsed = null;
+    }
   }
   if (Array.isArray(parsed)) {
     const items = parsed
@@ -60,11 +64,17 @@ function renderBuilderHint(hint) {
             const s = c.styles || {};
             if (s.bold) el = <strong key={`b${i}`}>{el}</strong>;
             if (s.italic) el = <em key={`i${i}`}>{el}</em>;
-            if (s.fontSize) el = <span key={`fs${i}`} style={{ fontSize: s.fontSize }}>{el}</span>;
+            if (s.fontSize)
+              el = (
+                <span key={`fs${i}`} style={{ fontSize: s.fontSize }}>
+                  {el}
+                </span>
+              );
             return <span key={i}>{el}</span>;
           });
         if (!textParts?.length) return null;
-        if (block.type === "bulletListItem") return <li key={block.id}>{textParts}</li>;
+        if (block.type === "bulletListItem")
+          return <li key={block.id}>{textParts}</li>;
         if (block.type === "heading") {
           const Tag = `h${block.props?.level || 3}`;
           return <Tag key={block.id}>{textParts}</Tag>;
@@ -73,8 +83,14 @@ function renderBuilderHint(hint) {
       })
       .filter(Boolean);
     if (items.length > 0) {
-      const hasList = parsed.some((b) => b.type === "bulletListItem" || b.type === "numberedListItem");
-      return <div className="pv-fs-card-hint">{hasList ? <ul>{items}</ul> : <div>{items}</div>}</div>;
+      const hasList = parsed.some(
+        (b) => b.type === "bulletListItem" || b.type === "numberedListItem"
+      );
+      return (
+        <div className="pv-fs-card-hint">
+          {hasList ? <ul>{items}</ul> : <div>{items}</div>}
+        </div>
+      );
     }
   }
   // 폴백: plain text
@@ -128,7 +144,10 @@ export default function AdminBuilder() {
         order: templates.length,
         name: "새 상품",
         content: { ...baseTemplate.content, title: "" },
-        blocks: baseTemplate.blocks.map((b) => ({ ...b, config: { ...b.config } })),
+        blocks: baseTemplate.blocks.map((b) => ({
+          ...b,
+          config: { ...b.config },
+        })),
       };
     }
     return {
@@ -378,7 +397,6 @@ export default function AdminBuilder() {
 
   const linkStatus = checkLinkRules(currentProduct?.blocks, customer);
 
-
   // 접지 선택 핸들러 (getFoldUpdate 래퍼)
   const handleFoldSelect = (foldOpt, cfg) => {
     const foldUpdate = getFoldUpdate(foldOpt, cfg, customer);
@@ -451,13 +469,19 @@ export default function AdminBuilder() {
           id: newId,
           name: template.name + " (새 상품)",
           content: { ...template.content, title: "" },
-          blocks: template.blocks.map((b) => ({ ...b, config: { ...b.config } })),
+          blocks: template.blocks.map((b) => ({
+            ...b,
+            config: { ...b.config },
+          })),
         });
         history.replaceState(null, "", `?new=true&base=${id}`);
       } else {
         setCurrentProduct({
           ...template,
-          blocks: template.blocks.map((b) => ({ ...b, config: { ...b.config } })),
+          blocks: template.blocks.map((b) => ({
+            ...b,
+            config: { ...b.config },
+          })),
         });
       }
       setSelectedBlockId(null);
@@ -555,7 +579,9 @@ export default function AdminBuilder() {
         sort_order: prod.order ?? 0,
         content: {
           ...(prod.content || {}),
-          ...(prod.outsourced_config ? { outsourced_config: prod.outsourced_config } : {}),
+          ...(prod.outsourced_config
+            ? { outsourced_config: prod.outsourced_config }
+            : {}),
         },
         blocks: prod.blocks || [],
         product_type: inferProductType(prod),
@@ -577,7 +603,9 @@ export default function AdminBuilder() {
     setTemplates((prev) => {
       const exists = prev.some((t) => t.id === currentProduct.id);
       if (exists) {
-        return prev.map((t) => (t.id === currentProduct.id ? { ...currentProduct } : t));
+        return prev.map((t) =>
+          t.id === currentProduct.id ? { ...currentProduct } : t
+        );
       }
       return [...prev, { ...currentProduct }];
     });
@@ -625,25 +653,37 @@ export default function AdminBuilder() {
     setCurrentProduct((prev) => {
       // 용지 블록: 이미 하나 있으면 자동 역할 배정
       if (newBlock.type === "paper") {
-        const existingPaper = prev.blocks.find((b) => b.type === "paper" && b.on);
+        const existingPaper = prev.blocks.find(
+          (b) => b.type === "paper" && b.on
+        );
         if (existingPaper && !existingPaper.config?.role) {
           // 기존 블록을 표지로, 새 블록을 내지로
           return {
             ...prev,
             product_type: prev.product_type || "outsourced",
-            outsourced_config: prev.outsourced_config || tmpl?.outsourced_config || {},
+            outsourced_config:
+              prev.outsourced_config || tmpl?.outsourced_config || {},
             blocks: [
               ...prev.blocks.map((b) =>
                 b.id === existingPaper.id
-                  ? { ...b, label: b.label === "용지" ? "표지 용지" : b.label, config: { ...b.config, role: "cover" } }
+                  ? {
+                      ...b,
+                      label: b.label === "용지" ? "표지 용지" : b.label,
+                      config: { ...b.config, role: "cover" },
+                    }
                   : b
               ),
-              { ...newBlock, label: "내지 용지", config: { ...newBlock.config, role: "inner" } },
+              {
+                ...newBlock,
+                label: "내지 용지",
+                config: { ...newBlock.config, role: "inner" },
+              },
             ],
           };
         } else if (existingPaper) {
           // 기존이 cover면 새 블록은 inner, 그 반대도
-          const newRole = existingPaper.config.role === "cover" ? "inner" : "cover";
+          const newRole =
+            existingPaper.config.role === "cover" ? "inner" : "cover";
           const newLabel = newRole === "inner" ? "내지 용지" : "표지 용지";
           newBlock.config.role = newRole;
           newBlock.label = newLabel;
@@ -652,7 +692,8 @@ export default function AdminBuilder() {
       return {
         ...prev,
         product_type: prev.product_type || "outsourced",
-        outsourced_config: prev.outsourced_config || tmpl?.outsourced_config || {},
+        outsourced_config:
+          prev.outsourced_config || tmpl?.outsourced_config || {},
         blocks: [...prev.blocks, newBlock],
       };
     });
@@ -722,7 +763,10 @@ export default function AdminBuilder() {
       ...prev,
       blocks: prev.blocks.map((b) => {
         if (b.id !== blockId) return b;
-        const val = typeof valueOrFn === "function" ? valueOrFn(b.config[key]) : valueOrFn;
+        const val =
+          typeof valueOrFn === "function"
+            ? valueOrFn(b.config[key])
+            : valueOrFn;
         return { ...b, config: { ...b.config, [key]: val } };
       }),
     }));
@@ -839,7 +883,9 @@ export default function AdminBuilder() {
     setTemplates((prev) => {
       const exists = prev.some((t) => t.id === currentProduct.id);
       if (exists) {
-        return prev.map((t) => (t.id === currentProduct.id ? { ...currentProduct } : t));
+        return prev.map((t) =>
+          t.id === currentProduct.id ? { ...currentProduct } : t
+        );
       }
       return [...prev, { ...currentProduct }];
     });
@@ -854,7 +900,9 @@ export default function AdminBuilder() {
     setTemplates((prev) => {
       const exists = prev.some((t) => t.id === currentProduct.id);
       if (exists) {
-        return prev.map((t) => (t.id === currentProduct.id ? { ...currentProduct } : t));
+        return prev.map((t) =>
+          t.id === currentProduct.id ? { ...currentProduct } : t
+        );
       }
       return [...prev, { ...currentProduct }];
     });
@@ -1064,216 +1112,262 @@ export default function AdminBuilder() {
           <div className="pv-grid">
             {/* 왼쪽: 이미지 + 가이드 */}
             <div className="pv-left-col">
-             <div className="pv-images" style={{ position: 'static', maxHeight: 'none' }}>
-              {/* 메인 이미지 */}
-              <input
-                ref={mainImageRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleMainImageUpload}
-              />
-              <div className="relative group/main">
-                <div
-                  className={`pv-main-image cursor-pointer border border-dashed border-gray-200 hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
-                  onClick={() => mainImageRef.current?.click()}
-                >
-                  {content.mainImage ? (
-                    <img src={content.mainImage} alt="메인" />
-                  ) : (
-                    <div className="pv-no-image">
-                      <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>+</div>
-                      <p>{imageUploading ? "업로드 중..." : "메인 이미지"}</p>
-                    </div>
-                  )}
-                </div>
-                {content.mainImage && (
-                  <button
-                    type="button"
-                    className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-black/40 text-white text-xs hover:bg-red-500 transition-colors opacity-0 group-hover/main:opacity-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrentProduct((prev) => ({
-                        ...prev,
-                        content: { ...prev.content, mainImage: null },
-                      }));
-                    }}
+              <div
+                className="pv-images"
+                style={{ position: "static", maxHeight: "none" }}
+              >
+                {/* 메인 이미지 */}
+                <input
+                  ref={mainImageRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleMainImageUpload}
+                />
+                <div className="relative group/main">
+                  <div
+                    className={`pv-main-image cursor-pointer border border-dashed border-gray-200 hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
+                    onClick={() => mainImageRef.current?.click()}
                   >
-                    ✕
-                  </button>
-                )}
-              </div>
-
-              {/* 썸네일 4개 */}
-              <div className="pv-thumbnails">
-                {[0, 1, 2, 3].map((idx) => (
-                  <div key={idx} className="relative group/thumb">
-                    <input
-                      ref={thumbImageRefs[idx]}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleThumbnailUpload(e, idx)}
-                    />
-                    <div
-                      className={`pv-thumb cursor-pointer border-dashed hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
-                      style={{ borderStyle: 'dashed' }}
-                      onClick={() => thumbImageRefs[idx].current?.click()}
-                    >
-                      {content.thumbnails?.[idx] ? (
-                        <img
-                          src={content.thumbnails[idx]}
-                          alt={`썸네일${idx + 1}`}
-                        />
-                      ) : (
-                        <span style={{ fontSize: '1.25rem', color: '#d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>+</span>
-                      )}
-                    </div>
-                    {content.thumbnails?.[idx] && (
-                      <button
-                        type="button"
-                        className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-full bg-black/40 text-white text-[10px] hover:bg-red-500 transition-colors opacity-0 group-hover/thumb:opacity-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const newThumbnails = [...(content.thumbnails || [])];
-                          newThumbnails[idx] = null;
-                          setCurrentProduct((prev) => ({
-                            ...prev,
-                            content: { ...prev.content, thumbnails: newThumbnails },
-                          }));
-                        }}
-                      >
-                        ✕
-                      </button>
+                    {content.mainImage ? (
+                      <img src={content.mainImage} alt="메인" />
+                    ) : (
+                      <div className="pv-no-image">
+                        <div
+                          style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}
+                        >
+                          +
+                        </div>
+                        <p>{imageUploading ? "업로드 중..." : "메인 이미지"}</p>
+                      </div>
                     )}
                   </div>
-                ))}
-              </div>
+                  {content.mainImage && (
+                    <button
+                      type="button"
+                      className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-black/40 text-white text-xs hover:bg-red-500 transition-colors opacity-0 group-hover/main:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentProduct((prev) => ({
+                          ...prev,
+                          content: { ...prev.content, mainImage: null },
+                        }));
+                      }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
 
-              {/* 하이라이트 카드 */}
-              {content.highlights?.length > 0 && (
-              <div className="pv-highlights relative group/hl">
-                <button
-                  type="button"
-                  className="absolute -top-3 right-0 text-xs text-gray-300 hover:text-red-400 transition-colors hidden group-hover/hl:block bg-white px-1"
-                  onClick={() =>
-                    setCurrentProduct((prev) => ({
-                      ...prev,
-                      content: { ...prev.content, highlights: [], featuresHtml: null, features: null },
-                    }))
-                  }
-                >
-                  주요특징 삭제
-                </button>
-                {content.highlights.map((h, idx) => {
-                  const IconComp = getIconComponent(h.icon);
-                  const updateHighlight = (field, value) => {
-                    const newHighlights = [...content.highlights];
-                    newHighlights[idx] = { ...h, [field]: value };
-                    setCurrentProduct((prev) => ({
-                      ...prev,
-                      content: { ...prev.content, highlights: newHighlights },
-                    }));
-                  };
-                  return (
-                    <div key={idx} className="pv-highlight-card group/card relative">
-                      <button
-                        type="button"
-                        className="absolute -top-1 -right-1 text-gray-300 hover:text-red-400 text-xs hidden group-hover/card:block"
-                        onClick={() => {
-                          const newHighlights = content.highlights.filter((_, i) => i !== idx);
-                          setCurrentProduct((prev) => ({
-                            ...prev,
-                            content: { ...prev.content, highlights: newHighlights },
-                          }));
-                        }}
+                {/* 썸네일 4개 */}
+                <div className="pv-thumbnails">
+                  {[0, 1, 2, 3].map((idx) => (
+                    <div key={idx} className="relative group/thumb">
+                      <input
+                        ref={thumbImageRefs[idx]}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleThumbnailUpload(e, idx)}
+                      />
+                      <div
+                        className={`pv-thumb cursor-pointer border-dashed hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
+                        style={{ borderStyle: "dashed" }}
+                        onClick={() => thumbImageRefs[idx].current?.click()}
                       >
-                        ✕
-                      </button>
-                      {/* 아이콘 선택 */}
-                      <div className="pv-highlight-icon relative group">
+                        {content.thumbnails?.[idx] ? (
+                          <img
+                            src={content.thumbnails[idx]}
+                            alt={`썸네일${idx + 1}`}
+                          />
+                        ) : (
+                          <span
+                            style={{
+                              fontSize: "1.25rem",
+                              color: "#d1d5db",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: "100%",
+                              height: "100%",
+                            }}
+                          >
+                            +
+                          </span>
+                        )}
+                      </div>
+                      {content.thumbnails?.[idx] && (
                         <button
                           type="button"
-                          className="flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+                          className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-full bg-black/40 text-white text-[10px] hover:bg-red-500 transition-colors opacity-0 group-hover/thumb:opacity-100"
                           onClick={(e) => {
-                            const dropdown = e.currentTarget.nextElementSibling;
-                            dropdown.classList.toggle("hidden");
+                            e.stopPropagation();
+                            const newThumbnails = [
+                              ...(content.thumbnails || []),
+                            ];
+                            newThumbnails[idx] = null;
+                            setCurrentProduct((prev) => ({
+                              ...prev,
+                              content: {
+                                ...prev.content,
+                                thumbnails: newThumbnails,
+                              },
+                            }));
                           }}
                         >
-                          <IconComp
-                            size={32}
-                            strokeWidth={1.3}
-                            className="text-[#222828]"
-                          />
+                          ✕
                         </button>
-                        <div className="hidden absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-2 grid grid-cols-5 gap-1 w-[200px]">
-                          {ICON_LIST.map(({ id, label, Component }) => (
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* 하이라이트 카드 */}
+                {content.highlights?.length > 0 && (
+                  <div className="pv-highlights relative group/hl">
+                    <button
+                      type="button"
+                      className="absolute -top-3 right-0 text-xs text-gray-300 hover:text-red-400 transition-colors hidden group-hover/hl:block bg-white px-1"
+                      onClick={() =>
+                        setCurrentProduct((prev) => ({
+                          ...prev,
+                          content: {
+                            ...prev.content,
+                            highlights: [],
+                            featuresHtml: null,
+                            features: null,
+                          },
+                        }))
+                      }
+                    >
+                      주요특징 삭제
+                    </button>
+                    {content.highlights.map((h, idx) => {
+                      const IconComp = getIconComponent(h.icon);
+                      const updateHighlight = (field, value) => {
+                        const newHighlights = [...content.highlights];
+                        newHighlights[idx] = { ...h, [field]: value };
+                        setCurrentProduct((prev) => ({
+                          ...prev,
+                          content: {
+                            ...prev.content,
+                            highlights: newHighlights,
+                          },
+                        }));
+                      };
+                      return (
+                        <div
+                          key={idx}
+                          className="pv-highlight-card group/card relative"
+                        >
+                          <button
+                            type="button"
+                            className="absolute -top-1 -right-1 text-gray-300 hover:text-red-400 text-xs hidden group-hover/card:block"
+                            onClick={() => {
+                              const newHighlights = content.highlights.filter(
+                                (_, i) => i !== idx
+                              );
+                              setCurrentProduct((prev) => ({
+                                ...prev,
+                                content: {
+                                  ...prev.content,
+                                  highlights: newHighlights,
+                                },
+                              }));
+                            }}
+                          >
+                            ✕
+                          </button>
+                          {/* 아이콘 선택 */}
+                          <div className="pv-highlight-icon relative group">
                             <button
-                              key={id}
                               type="button"
-                              title={label}
-                              className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${h.icon === id ? "bg-[#222828] text-white" : "hover:bg-gray-100 text-[#222828]"}`}
+                              className="flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
                               onClick={(e) => {
-                                updateHighlight("icon", id);
-                                e.currentTarget.parentElement.classList.add(
-                                  "hidden"
-                                );
+                                const dropdown =
+                                  e.currentTarget.nextElementSibling;
+                                dropdown.classList.toggle("hidden");
                               }}
                             >
-                              <Component size={16} strokeWidth={1.5} />
+                              <IconComp
+                                size={32}
+                                strokeWidth={1.3}
+                                className="text-[#222828]"
+                              />
                             </button>
-                          ))}
+                            <div className="hidden absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-2 grid grid-cols-5 gap-1 w-[200px]">
+                              {ICON_LIST.map(({ id, label, Component }) => (
+                                <button
+                                  key={id}
+                                  type="button"
+                                  title={label}
+                                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${h.icon === id ? "bg-[#222828] text-white" : "hover:bg-gray-100 text-[#222828]"}`}
+                                  onClick={(e) => {
+                                    updateHighlight("icon", id);
+                                    e.currentTarget.parentElement.classList.add(
+                                      "hidden"
+                                    );
+                                  }}
+                                >
+                                  <Component size={16} strokeWidth={1.5} />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          {/* 텍스트 */}
+                          <div className="pv-highlight-text">
+                            <input
+                              type="text"
+                              value={h.title || ""}
+                              onChange={(e) =>
+                                updateHighlight("title", e.target.value)
+                              }
+                              className="pv-highlight-title block w-full bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none"
+                              style={{ marginBottom: 0 }}
+                              placeholder="제목"
+                            />
+                            <input
+                              type="text"
+                              value={h.desc || ""}
+                              onChange={(e) =>
+                                updateHighlight("desc", e.target.value)
+                              }
+                              className="pv-highlight-desc block w-full bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none"
+                              style={{ margin: 0 }}
+                              placeholder="설명"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      {/* 텍스트 */}
-                      <div className="pv-highlight-text">
-                        <input
-                          type="text"
-                          value={h.title || ""}
-                          onChange={(e) =>
-                            updateHighlight("title", e.target.value)
-                          }
-                          className="pv-highlight-title block w-full bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none"
-                          style={{ marginBottom: 0 }}
-                          placeholder="제목"
-                        />
-                        <input
-                          type="text"
-                          value={h.desc || ""}
-                          onChange={(e) =>
-                            updateHighlight("desc", e.target.value)
-                          }
-                          className="pv-highlight-desc block w-full bg-transparent border-b border-transparent hover:border-gray-200 focus:border-[#222828] outline-none"
-                          style={{ margin: 0 }}
-                          placeholder="설명"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 상담 블록 (왼쪽 컬럼에 렌더링) */}
+                {currentProduct?.blocks
+                  ?.filter(
+                    (b) => b.on && !b.hidden && b.type === "consultation"
+                  )
+                  .map((block) => (
+                    <PreviewBlock
+                      key={block.id}
+                      block={block}
+                      customer={customer}
+                      setCustomer={setCustomer}
+                      qtyPrices={{}}
+                      linkStatus={{}}
+                      handleFoldSelect={() => {}}
+                      productType={
+                        currentProduct.product_type || currentProduct.id
+                      }
+                      allBlocks={currentProduct?.blocks || []}
+                      designCover={null}
+                    />
+                  ))}
               </div>
-              )}
-
-              {/* 상담 블록 (왼쪽 컬럼에 렌더링) */}
-              {currentProduct?.blocks
-                ?.filter((b) => b.on && !b.hidden && b.type === "consultation")
-                .map((block) => (
-                  <PreviewBlock
-                    key={block.id}
-                    block={block}
-                    customer={customer}
-                    setCustomer={setCustomer}
-                    qtyPrices={{}}
-                    linkStatus={{}}
-                    handleFoldSelect={() => {}}
-                    productType={currentProduct.product_type || currentProduct.id}
-                    allBlocks={currentProduct?.blocks || []}
-                    designCover={null}
-                  />
-                ))}
-
-             </div>{/* /pv-images */}
-            </div>{/* /pv-left-col */}
+              {/* /pv-images */}
+            </div>
+            {/* /pv-left-col */}
 
             {/* 오른쪽: 옵션 영역 */}
             <div className="pv-options">
@@ -1308,57 +1402,64 @@ export default function AdminBuilder() {
               />
 
               {/* 주요 특징 - 노션 스타일 에디터 */}
-              {(content.featuresHtml || content.features?.length || content.highlights?.length) ? (
-              <div className="mb-5">
-                <div className="flex items-center justify-between mb-2.5">
-                  <p className="pv-features-label">주요 특징</p>
-                  <button
-                    type="button"
-                    className="text-xs text-gray-300 hover:text-red-400 transition-colors"
-                    onClick={() =>
+              {content.featuresHtml ||
+              content.features?.length ||
+              content.highlights?.length ? (
+                <div className="mb-5">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <p className="pv-features-label">주요 특징</p>
+                    <button
+                      type="button"
+                      className="text-xs text-gray-300 hover:text-red-400 transition-colors"
+                      onClick={() =>
+                        setCurrentProduct((prev) => ({
+                          ...prev,
+                          content: {
+                            ...prev.content,
+                            featuresHtml: null,
+                            features: null,
+                            highlights: [],
+                          },
+                        }))
+                      }
+                    >
+                      전체 삭제
+                    </button>
+                  </div>
+                  <BlockNoteEditor
+                    initialContent={
+                      content.featuresHtml ||
+                      content.features?.map((f) => `- ${f}`).join("\n") ||
+                      ""
+                    }
+                    onChange={(html) =>
                       setCurrentProduct((prev) => ({
                         ...prev,
-                        content: { ...prev.content, featuresHtml: null, features: null, highlights: [] },
+                        content: { ...prev.content, featuresHtml: html },
                       }))
                     }
-                  >
-                    전체 삭제
-                  </button>
+                  />
                 </div>
-                <BlockNoteEditor
-                  initialContent={
-                    content.featuresHtml ||
-                    content.features?.map((f) => `- ${f}`).join("\n") ||
-                    ""
-                  }
-                  onChange={(html) =>
+              ) : (
+                <button
+                  type="button"
+                  className="mb-4 w-full p-3 border border-dashed border-gray-200 rounded-xl text-gray-400 hover:text-gray-500 hover:border-gray-300 transition-colors text-sm text-center"
+                  onClick={() =>
                     setCurrentProduct((prev) => ({
                       ...prev,
-                      content: { ...prev.content, featuresHtml: html },
+                      content: {
+                        ...prev.content,
+                        featuresHtml: "<ul><li></li></ul>",
+                        highlights: [
+                          { icon: "Printer", title: "", desc: "" },
+                          { icon: "Sparkles", title: "", desc: "" },
+                        ],
+                      },
                     }))
                   }
-                />
-              </div>
-              ) : (
-              <button
-                type="button"
-                className="mb-4 w-full p-3 border border-dashed border-gray-200 rounded-xl text-gray-400 hover:text-gray-500 hover:border-gray-300 transition-colors text-sm text-center"
-                onClick={() =>
-                  setCurrentProduct((prev) => ({
-                    ...prev,
-                    content: {
-                      ...prev.content,
-                      featuresHtml: "<ul><li></li></ul>",
-                      highlights: [
-                        { icon: "Printer", title: "", desc: "" },
-                        { icon: "Sparkles", title: "", desc: "" },
-                      ],
-                    },
-                  }))
-                }
-              >
-                + 주요 특징 추가
-              </button>
+                >
+                  + 주요 특징 추가
+                </button>
               )}
 
               {/* 블록 빌더 순서대로 렌더링 (consultation은 왼쪽 컬럼) */}
@@ -1373,19 +1474,34 @@ export default function AdminBuilder() {
                       confirmed: false,
                     };
                     const isOpen = !guideState.confirmed;
-                    const selectedOpt = gOptions.find((o) => o.id === guideState.selected);
+                    const selectedOpt = gOptions.find(
+                      (o) => o.id === guideState.selected
+                    );
 
                     return (
                       <div key={block.id} className="pv-file-spec-section">
                         <div className="flex items-center">
-                          <span className="pv-addons-title" style={{ marginBottom: 0 }}>{gCfg.title || block.label}</span>
+                          <span
+                            className="pv-addons-title"
+                            style={{ marginBottom: 0 }}
+                          >
+                            {gCfg.title || block.label}
+                          </span>
                           {!isOpen && (
                             <button
                               className="text-xs text-gray-400 font-medium ml-auto hover:text-gray-700 transition-colors"
-                              onClick={() => setCustomer((prev) => ({
-                                ...prev,
-                                guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
-                              }))}
+                              onClick={() =>
+                                setCustomer((prev) => ({
+                                  ...prev,
+                                  guides: {
+                                    ...prev.guides,
+                                    [block.id]: {
+                                      ...guideState,
+                                      confirmed: false,
+                                    },
+                                  },
+                                }))
+                              }
                             >
                               변경
                             </button>
@@ -1399,18 +1515,34 @@ export default function AdminBuilder() {
                                 <div
                                   key={opt.id}
                                   className={`pv-fs-card ${isCurrent ? "selected" : ""}`}
-                                  onClick={() => setCustomer((prev) => ({
-                                    ...prev,
-                                    guides: { ...prev.guides, [block.id]: { selected: opt.id, confirmed: true } },
-                                  }))}
+                                  onClick={() =>
+                                    setCustomer((prev) => ({
+                                      ...prev,
+                                      guides: {
+                                        ...prev.guides,
+                                        [block.id]: {
+                                          selected: opt.id,
+                                          confirmed: true,
+                                        },
+                                      },
+                                    }))
+                                  }
                                 >
                                   <div className="pv-fs-card-header">
-                                    <span className={`pv-fs-num ${isCurrent ? "active" : ""}`}>{idx + 1}</span>
+                                    <span
+                                      className={`pv-fs-num ${isCurrent ? "active" : ""}`}
+                                    >
+                                      {idx + 1}
+                                    </span>
                                     <div className="pv-fs-card-title">
                                       <div className="pv-fs-card-label-row">
-                                        <span className="pv-fs-card-label">{opt.label}</span>
+                                        <span className="pv-fs-card-label">
+                                          {opt.label}
+                                        </span>
                                         {opt.price > 0 && (
-                                          <span className="pv-fs-card-price">+{opt.price.toLocaleString()}원</span>
+                                          <span className="pv-fs-card-price">
+                                            +{opt.price.toLocaleString()}원
+                                          </span>
                                         )}
                                       </div>
                                       {opt.hint && renderBuilderHint(opt.hint)}
@@ -1418,33 +1550,79 @@ export default function AdminBuilder() {
                                   </div>
                                   {isCurrent && (
                                     <span className="pv-fs-card-check">
-                                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                      <svg
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 12 12"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M2.5 6L5 8.5L9.5 3.5"
+                                          stroke="white"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
                                     </span>
                                   )}
                                 </div>
                               );
                             })}
                           </div>
-                        ) : selectedOpt && (
-                          <div style={{ marginTop: '0.75rem' }}>
-                            <div
-                              className="pv-fs-card selected cursor-pointer"
-                              onClick={() => setCustomer((prev) => ({
-                                ...prev,
-                                guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
-                              }))}
-                            >
-                              <div className="pv-fs-card-header">
-                                <span className="pv-fs-check" style={{ width: '1.25rem', height: '1.25rem' }}>
-                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                </span>
-                                <span className="pv-fs-card-label">{selectedOpt.label}</span>
-                                {selectedOpt.price > 0 && (
-                                  <span className="pv-fs-card-price">+{selectedOpt.price.toLocaleString()}원</span>
-                                )}
+                        ) : (
+                          selectedOpt && (
+                            <div style={{ marginTop: "0.75rem" }}>
+                              <div
+                                className="pv-fs-card selected cursor-pointer"
+                                onClick={() =>
+                                  setCustomer((prev) => ({
+                                    ...prev,
+                                    guides: {
+                                      ...prev.guides,
+                                      [block.id]: {
+                                        ...guideState,
+                                        confirmed: false,
+                                      },
+                                    },
+                                  }))
+                                }
+                              >
+                                <div className="pv-fs-card-header">
+                                  <span
+                                    className="pv-fs-check"
+                                    style={{
+                                      width: "1.25rem",
+                                      height: "1.25rem",
+                                    }}
+                                  >
+                                    <svg
+                                      width="12"
+                                      height="12"
+                                      viewBox="0 0 12 12"
+                                      fill="none"
+                                    >
+                                      <path
+                                        d="M2.5 6L5 8.5L9.5 3.5"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  </span>
+                                  <span className="pv-fs-card-label">
+                                    {selectedOpt.label}
+                                  </span>
+                                  {selectedOpt.price > 0 && (
+                                    <span className="pv-fs-card-price">
+                                      +{selectedOpt.price.toLocaleString()}원
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          )
                         )}
                       </div>
                     );
@@ -1482,110 +1660,162 @@ export default function AdminBuilder() {
         </div>
 
         {/* 외주 단가 설정 (outsourced 상품일 때만 표시) */}
-        {currentProduct.product_type === "outsourced" && currentProduct.outsourced_config && (
-          <div className="card bg-white shadow-xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg">🏭</span>
-              <div>
-                <h2 className="font-bold text-gray-900">외주 단가 설정</h2>
-                <p className="text-xs text-gray-500">고정 단가 기반 가격 계산</p>
+        {currentProduct.product_type === "outsourced" &&
+          currentProduct.outsourced_config && (
+            <div className="card bg-white shadow-xl p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-lg">🏭</span>
+                <div>
+                  <h2 className="font-bold text-gray-900">외주 단가 설정</h2>
+                  <p className="text-xs text-gray-500">
+                    고정 단가 기반 가격 계산
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">
+                    페이지 단가 (원)
+                  </label>
+                  <input
+                    type="number"
+                    value={currentProduct.outsourced_config.pagePrice ?? 40}
+                    onChange={(e) =>
+                      setCurrentProduct((prev) => ({
+                        ...prev,
+                        outsourced_config: {
+                          ...prev.outsourced_config,
+                          pagePrice: Number(e.target.value),
+                        },
+                      }))
+                    }
+                    className="input input-bordered input-sm w-full"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">
+                    제본비 (원/권)
+                  </label>
+                  <input
+                    type="number"
+                    value={currentProduct.outsourced_config.bindingFee ?? 1500}
+                    onChange={(e) =>
+                      setCurrentProduct((prev) => ({
+                        ...prev,
+                        outsourced_config: {
+                          ...prev.outsourced_config,
+                          bindingFee: Number(e.target.value),
+                        },
+                      }))
+                    }
+                    className="input input-bordered input-sm w-full"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                권당 가격 = 페이지 수(pages 블록) × 페이지 단가 + 제본비
+              </p>
+              {/* 수량 할인 */}
+              <div className="mt-4">
+                <label className="text-xs text-gray-500 block mb-2">
+                  수량 할인
+                </label>
+                <div className="space-y-2">
+                  {(currentProduct.outsourced_config.qtyDiscounts || []).map(
+                    (qd, i) => (
+                      <div key={i} className="flex gap-2 items-center">
+                        <input
+                          type="number"
+                          value={qd.minQty}
+                          onChange={(e) => {
+                            const updated = [
+                              ...(currentProduct.outsourced_config
+                                .qtyDiscounts || []),
+                            ];
+                            updated[i] = {
+                              ...updated[i],
+                              minQty: Number(e.target.value),
+                            };
+                            setCurrentProduct((prev) => ({
+                              ...prev,
+                              outsourced_config: {
+                                ...prev.outsourced_config,
+                                qtyDiscounts: updated,
+                              },
+                            }));
+                          }}
+                          className="input input-bordered input-xs w-20"
+                          placeholder="최소수량"
+                        />
+                        <span className="text-xs text-gray-400">부 이상 →</span>
+                        <input
+                          type="number"
+                          value={qd.percent}
+                          onChange={(e) => {
+                            const updated = [
+                              ...(currentProduct.outsourced_config
+                                .qtyDiscounts || []),
+                            ];
+                            updated[i] = {
+                              ...updated[i],
+                              percent: Number(e.target.value),
+                            };
+                            setCurrentProduct((prev) => ({
+                              ...prev,
+                              outsourced_config: {
+                                ...prev.outsourced_config,
+                                qtyDiscounts: updated,
+                              },
+                            }));
+                          }}
+                          className="input input-bordered input-xs w-16"
+                          placeholder="%"
+                        />
+                        <span className="text-xs text-gray-400">% 할인</span>
+                        <button
+                          onClick={() => {
+                            const updated = (
+                              currentProduct.outsourced_config.qtyDiscounts ||
+                              []
+                            ).filter((_, j) => j !== i);
+                            setCurrentProduct((prev) => ({
+                              ...prev,
+                              outsourced_config: {
+                                ...prev.outsourced_config,
+                                qtyDiscounts: updated,
+                              },
+                            }));
+                          }}
+                          className="btn btn-xs btn-ghost text-red-400"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )
+                  )}
+                  <button
+                    onClick={() => {
+                      const updated = [
+                        ...(currentProduct.outsourced_config.qtyDiscounts ||
+                          []),
+                        { minQty: 0, percent: 0 },
+                      ];
+                      setCurrentProduct((prev) => ({
+                        ...prev,
+                        outsourced_config: {
+                          ...prev.outsourced_config,
+                          qtyDiscounts: updated,
+                        },
+                      }));
+                    }}
+                    className="btn btn-xs btn-outline"
+                  >
+                    + 할인 구간
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-gray-500 block mb-1">페이지 단가 (원)</label>
-                <input
-                  type="number"
-                  value={currentProduct.outsourced_config.pagePrice ?? 40}
-                  onChange={(e) => setCurrentProduct((prev) => ({
-                    ...prev,
-                    outsourced_config: { ...prev.outsourced_config, pagePrice: Number(e.target.value) },
-                  }))}
-                  className="input input-bordered input-sm w-full"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-500 block mb-1">제본비 (원/권)</label>
-                <input
-                  type="number"
-                  value={currentProduct.outsourced_config.bindingFee ?? 1500}
-                  onChange={(e) => setCurrentProduct((prev) => ({
-                    ...prev,
-                    outsourced_config: { ...prev.outsourced_config, bindingFee: Number(e.target.value) },
-                  }))}
-                  className="input input-bordered input-sm w-full"
-                />
-              </div>
-            </div>
-            <p className="text-xs text-gray-400 mt-2">
-              권당 가격 = 페이지 수(pages 블록) × 페이지 단가 + 제본비
-            </p>
-            {/* 수량 할인 */}
-            <div className="mt-4">
-              <label className="text-xs text-gray-500 block mb-2">수량 할인</label>
-              <div className="space-y-2">
-                {(currentProduct.outsourced_config.qtyDiscounts || []).map((qd, i) => (
-                  <div key={i} className="flex gap-2 items-center">
-                    <input
-                      type="number"
-                      value={qd.minQty}
-                      onChange={(e) => {
-                        const updated = [...(currentProduct.outsourced_config.qtyDiscounts || [])];
-                        updated[i] = { ...updated[i], minQty: Number(e.target.value) };
-                        setCurrentProduct((prev) => ({
-                          ...prev,
-                          outsourced_config: { ...prev.outsourced_config, qtyDiscounts: updated },
-                        }));
-                      }}
-                      className="input input-bordered input-xs w-20"
-                      placeholder="최소수량"
-                    />
-                    <span className="text-xs text-gray-400">부 이상 →</span>
-                    <input
-                      type="number"
-                      value={qd.percent}
-                      onChange={(e) => {
-                        const updated = [...(currentProduct.outsourced_config.qtyDiscounts || [])];
-                        updated[i] = { ...updated[i], percent: Number(e.target.value) };
-                        setCurrentProduct((prev) => ({
-                          ...prev,
-                          outsourced_config: { ...prev.outsourced_config, qtyDiscounts: updated },
-                        }));
-                      }}
-                      className="input input-bordered input-xs w-16"
-                      placeholder="%"
-                    />
-                    <span className="text-xs text-gray-400">% 할인</span>
-                    <button
-                      onClick={() => {
-                        const updated = (currentProduct.outsourced_config.qtyDiscounts || []).filter((_, j) => j !== i);
-                        setCurrentProduct((prev) => ({
-                          ...prev,
-                          outsourced_config: { ...prev.outsourced_config, qtyDiscounts: updated },
-                        }));
-                      }}
-                      className="btn btn-xs btn-ghost text-red-400"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-                <button
-                  onClick={() => {
-                    const updated = [...(currentProduct.outsourced_config.qtyDiscounts || []), { minQty: 0, percent: 0 }];
-                    setCurrentProduct((prev) => ({
-                      ...prev,
-                      outsourced_config: { ...prev.outsourced_config, qtyDiscounts: updated },
-                    }));
-                  }}
-                  className="btn btn-xs btn-outline"
-                >
-                  + 할인 구간
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+          )}
 
         {/* 블록 빌더 */}
         <div className="card bg-white shadow-xl p-6">
@@ -1623,8 +1853,14 @@ export default function AdminBuilder() {
                 index={idx}
                 isDragOver={dragOverIdx === idx}
                 onBlockDragStart={() => handleBlockDragStart(idx)}
-                onBlockDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }}
-                onBlockDrop={(e) => { e.preventDefault(); handleBlockDrop(idx); }}
+                onBlockDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOverIdx(idx);
+                }}
+                onBlockDrop={(e) => {
+                  e.preventDefault();
+                  handleBlockDrop(idx);
+                }}
                 onBlockDragEnd={handleBlockDragEnd}
                 isEditing={selectedBlockId === block.id}
                 toggleBlock={toggleBlock}
@@ -1717,31 +1953,34 @@ export default function AdminBuilder() {
                 </button>
               </div>
               <p className="text-xs text-gray-500 mb-3">
-                외주 상품용 프리셋 블록입니다. 추가하면 product_type이 outsourced로 설정됩니다.
+                외주 상품용 프리셋 블록입니다. 추가하면 product_type이
+                outsourced로 설정됩니다.
               </p>
               <div className="grid grid-cols-3 gap-3">
-                {(DEFAULT_TEMPLATES.outsourced?.blocks || []).map((tmplBlock) => {
-                  const info = BLOCK_TYPES[tmplBlock.type] || {};
-                  return (
-                    <button
-                      key={tmplBlock.id}
-                      onClick={() => addOutsourcedBlock(tmplBlock)}
-                      className="p-4 rounded-lg border border-orange-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all text-left"
-                    >
-                      <div
-                        className={`w-10 h-10 rounded-lg bg-gradient-to-br ${info.color || "from-orange-100 to-orange-200"} flex items-center justify-center text-xl mb-2`}
+                {(DEFAULT_TEMPLATES.outsourced?.blocks || []).map(
+                  (tmplBlock) => {
+                    const info = BLOCK_TYPES[tmplBlock.type] || {};
+                    return (
+                      <button
+                        key={tmplBlock.id}
+                        onClick={() => addOutsourcedBlock(tmplBlock)}
+                        className="p-4 rounded-lg border border-orange-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all text-left"
                       >
-                        {info.icon || "🏭"}
-                      </div>
-                      <p className="font-medium text-sm text-gray-700">
-                        {tmplBlock.label}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {info.desc || ""}
-                      </p>
-                    </button>
-                  );
-                })}
+                        <div
+                          className={`w-10 h-10 rounded-lg bg-gradient-to-br ${info.color || "from-orange-100 to-orange-200"} flex items-center justify-center text-xl mb-2`}
+                        >
+                          {info.icon || "🏭"}
+                        </div>
+                        <p className="font-medium text-sm text-gray-700">
+                          {tmplBlock.label}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {info.desc || ""}
+                        </p>
+                      </button>
+                    );
+                  }
+                )}
               </div>
             </div>
           </div>

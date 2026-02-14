@@ -235,7 +235,9 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
 
   // 카드 컴포넌트
   const Card = ({ title, icon, children, className = "" }) => (
-    <div className={`bg-white border border-gray-200 rounded-xl overflow-hidden ${className}`}>
+    <div
+      className={`bg-white border border-gray-200 rounded-xl overflow-hidden ${className}`}
+    >
       {title && (
         <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
           {icon && <span className="text-gray-400">{icon}</span>}
@@ -331,11 +333,24 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
               {/* ════ 왼쪽 컬럼 (3/5) ════ */}
               <div className="lg:col-span-3 space-y-5">
                 {/* 상품 카드 */}
-                <Card title="주문 상품" icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                }>
+                <Card
+                  title="주문 상품"
+                  icon={
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                      />
+                    </svg>
+                  }
+                >
                   <div className="flex gap-4">
                     {/* 상품 이미지 */}
                     <div className="w-28 h-28 shrink-0 rounded-lg overflow-hidden border border-gray-100 bg-gray-50">
@@ -347,8 +362,18 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-300">
-                          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          <svg
+                            className="w-8 h-8"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
                           </svg>
                         </div>
                       )}
@@ -361,18 +386,28 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                       </h5>
                       {(() => {
                         const booksExist = item.booksSummary?.length > 0;
-                        const booksCount = booksExist ? item.booksSummary.filter(b => b.designFee == null).length : 0;
+                        const booksCount = booksExist
+                          ? item.booksSummary.filter((b) => b.designFee == null)
+                              .length
+                          : 0;
                         return (
                           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
                             {item.spec?.size && <span>{item.spec.size}</span>}
-                            {!booksExist && item.spec?.paper && <span>{item.spec.paper}</span>}
-                            {!booksExist && item.spec?.color && <span>{item.spec.color}</span>}
+                            {!booksExist && item.spec?.paper && (
+                              <span>{item.spec.paper}</span>
+                            )}
+                            {!booksExist && item.spec?.color && (
+                              <span>{item.spec.color}</span>
+                            )}
                             {item.spec?.quantity && (
                               <span className="font-medium text-gray-900">
-                                {item.spec.quantity}부{booksExist ? ` (${booksCount}종)` : ""}
+                                {item.spec.quantity}부
+                                {booksExist ? ` (${booksCount}종)` : ""}
                               </span>
                             )}
-                            {!booksExist && item.spec?.pages && <span>{item.spec.pages}p</span>}
+                            {!booksExist && item.spec?.pages && (
+                              <span>{item.spec.pages}p</span>
+                            )}
                           </div>
                         );
                       })()}
@@ -390,7 +425,11 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                       )}
                       {item.productionDays && (
                         <p className="mt-1.5 text-xs text-gray-500">
-                          출고 예정: {calculateReleaseDateFrom(order.created_at, item.productionDays)}
+                          출고 예정:{" "}
+                          {calculateReleaseDateFrom(
+                            order.created_at,
+                            item.productionDays
+                          )}
                         </p>
                       )}
                     </div>
@@ -399,75 +438,144 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
 
                 {/* 시리즈 주문이 있으면 테이블로 표시, 없으면 기존 입력 내용 */}
                 {item.booksSummary?.length > 0 ? (
-                  <Card title="시리즈 주문" icon={
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  }>
+                  <Card
+                    title="시리즈 주문"
+                    icon={
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                        />
+                      </svg>
+                    }
+                  >
                     <div className="space-y-2.5">
-                      {item.booksSummary.filter((b) => b.designFee == null).map((book) => {
-                        const fields = Object.entries(book.fields || {})
-                          .filter(([, v]) => v && String(v).trim());
-                        const isHex = (v) => /^#[0-9a-fA-F]{3,8}$/.test(String(v));
-                        return (
-                          <div key={book.index} className="bg-gray-50 rounded-lg p-3">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="font-semibold text-gray-900">{book.index}권</span>
-                              <span className="font-semibold text-gray-900">{formatPrice(book.subtotal)}</span>
-                            </div>
-                            {fields.length > 0 && (
-                              <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 mb-2">
-                                {fields.map(([label, value]) => (
-                                  <div key={label} className="contents">
-                                    <span className="text-xs text-gray-400">{label}</span>
-                                    {isHex(value) ? (
-                                      <span className="inline-block w-4 h-4 rounded-full border border-gray-300" style={{backgroundColor: String(value)}} />
-                                    ) : (
-                                      <span className="text-sm text-gray-700">{String(value)}</span>
-                                    )}
-                                  </div>
-                                ))}
+                      {item.booksSummary
+                        .filter((b) => b.designFee == null)
+                        .map((book) => {
+                          const fields = Object.entries(
+                            book.fields || {}
+                          ).filter(([, v]) => v && String(v).trim());
+                          const isHex = (v) =>
+                            /^#[0-9a-fA-F]{3,8}$/.test(String(v));
+                          return (
+                            <div
+                              key={book.index}
+                              className="bg-gray-50 rounded-lg p-3"
+                            >
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="font-semibold text-gray-900">
+                                  {book.index}권
+                                </span>
+                                <span className="font-semibold text-gray-900">
+                                  {formatPrice(book.subtotal)}
+                                </span>
                               </div>
-                            )}
-                            <div className="flex gap-3 text-xs text-gray-400 pt-1.5 border-t border-gray-200/60">
-                              <span>{book.pages}p</span>
-                              <span>{book.qty}부</span>
-                              <span>권당 {formatPrice(book.perCopy)}</span>
+                              {fields.length > 0 && (
+                                <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 mb-2">
+                                  {fields.map(([label, value]) => (
+                                    <div key={label} className="contents">
+                                      <span className="text-xs text-gray-400">
+                                        {label}
+                                      </span>
+                                      {isHex(value) ? (
+                                        <span
+                                          className="inline-block w-4 h-4 rounded-full border border-gray-300"
+                                          style={{
+                                            backgroundColor: String(value),
+                                          }}
+                                        />
+                                      ) : (
+                                        <span className="text-sm text-gray-700">
+                                          {String(value)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <div className="flex gap-3 text-xs text-gray-400 pt-1.5 border-t border-gray-200/60">
+                                <span>{book.pages}p</span>
+                                <span>{book.qty}부</span>
+                                <span>권당 {formatPrice(book.perCopy)}</span>
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
                     </div>
                     {/* 디자인 비용 */}
-                    {item.booksSummary.filter((b) => b.designFee != null).map((df, i) => (
-                      <div key={`df-${i}`} className="flex justify-between items-center pt-3 mt-1">
-                        <span className="text-xs text-gray-500">디자인 비용</span>
-                        <span className="text-sm font-medium text-gray-700">{formatPrice(df.designFee)}</span>
-                      </div>
-                    ))}
+                    {item.booksSummary
+                      .filter((b) => b.designFee != null)
+                      .map((df, i) => (
+                        <div
+                          key={`df-${i}`}
+                          className="flex justify-between items-center pt-3 mt-1"
+                        >
+                          <span className="text-xs text-gray-500">
+                            디자인 비용
+                          </span>
+                          <span className="text-sm font-medium text-gray-700">
+                            {formatPrice(df.designFee)}
+                          </span>
+                        </div>
+                      ))}
                     {/* 합계 */}
                     {(() => {
-                      const books = item.booksSummary.filter((b) => b.designFee == null);
-                      const totalQty = books.reduce((s, b) => s + (b.qty || 0), 0);
-                      const totalAmt = books.reduce((s, b) => s + (b.subtotal || 0), 0);
+                      const books = item.booksSummary.filter(
+                        (b) => b.designFee == null
+                      );
+                      const totalQty = books.reduce(
+                        (s, b) => s + (b.qty || 0),
+                        0
+                      );
+                      const totalAmt = books.reduce(
+                        (s, b) => s + (b.subtotal || 0),
+                        0
+                      );
                       return (
                         <div className="flex justify-between items-center pt-3 mt-1 border-t border-gray-200">
-                          <span className="font-semibold text-gray-900">합계 {books.length}종 / {totalQty}부</span>
-                          <span className="font-bold text-gray-900">{formatPrice(totalAmt)}</span>
+                          <span className="font-semibold text-gray-900">
+                            합계 {books.length}종 / {totalQty}부
+                          </span>
+                          <span className="font-bold text-gray-900">
+                            {formatPrice(totalAmt)}
+                          </span>
                         </div>
                       );
                     })()}
                   </Card>
                 ) : item.textInputs?.length > 0 ? (
-                  <Card title="입력 내용" icon={
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  }>
+                  <Card
+                    title="입력 내용"
+                    icon={
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                    }
+                  >
                     <div className="space-y-3">
                       {item.textInputs.map((ti, i) => (
                         <div key={i}>
-                          <p className="text-xs font-medium text-gray-500 mb-1">{ti.label}</p>
+                          <p className="text-xs font-medium text-gray-500 mb-1">
+                            {ti.label}
+                          </p>
                           <p className="text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
                             {ti.value}
                           </p>
@@ -478,16 +586,32 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                 ) : null}
 
                 {/* 파일 상태 + 요청사항 */}
-                <Card title="인쇄 파일" icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                }>
+                <Card
+                  title="인쇄 파일"
+                  icon={
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  }
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-600">상태:</span>
                       <span className="text-sm font-medium">
-                        {getFileStatusDisplay(order.file_status, order.file_url)}
+                        {getFileStatusDisplay(
+                          order.file_status,
+                          order.file_url
+                        )}
                       </span>
                     </div>
                     {order.file_name && (
@@ -498,19 +622,36 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                   </div>
                   {order.request && (
                     <div className="mt-3 pt-3 border-t border-gray-100">
-                      <p className="text-xs font-medium text-gray-500 mb-1">요청사항</p>
-                      <p className="text-sm text-gray-900 whitespace-pre-wrap">{order.request}</p>
+                      <p className="text-xs font-medium text-gray-500 mb-1">
+                        요청사항
+                      </p>
+                      <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                        {order.request}
+                      </p>
                     </div>
                   )}
                 </Card>
 
                 {/* 배송 추적 / 송장번호 입력 */}
                 {order.delivery_type === "delivery" && (
-                  <Card title="배송 추적" icon={
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                    </svg>
-                  }>
+                  <Card
+                    title="배송 추적"
+                    icon={
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"
+                        />
+                      </svg>
+                    }
+                  >
                     {order.tracking_number ? (
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-700">
@@ -531,7 +672,8 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                           배송 조회
                         </a>
                       </div>
-                    ) : order.status !== "completed" && order.status !== "canceled" ? (
+                    ) : order.status !== "completed" &&
+                      order.status !== "canceled" ? (
                       <>
                         <div className="flex gap-2">
                           <select
@@ -574,32 +716,65 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
               {/* ════ 오른쪽 컬럼 (2/5) ════ */}
               <div className="lg:col-span-2 space-y-5">
                 {/* 고객 정보 */}
-                <Card title="고객 정보" icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                }>
+                <Card
+                  title="고객 정보"
+                  icon={
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  }
+                >
                   <InfoRow label="이메일" value={order.customer_email} />
                   <InfoRow label="연락처" value={order.customer_phone} />
                 </Card>
 
                 {/* 배송 정보 */}
-                <Card title="배송 정보" icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                }>
+                <Card
+                  title="배송 정보"
+                  icon={
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                  }
+                >
                   <InfoRow
                     label="배송 유형"
                     value={
-                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
-                        order.delivery_type === "quick"
-                          ? "bg-orange-100 text-orange-700"
-                          : order.delivery_type === "pickup"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-gray-100 text-gray-700"
-                      }`}>
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
+                          order.delivery_type === "quick"
+                            ? "bg-orange-100 text-orange-700"
+                            : order.delivery_type === "pickup"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
                         {getDeliveryTypeLabel(order.delivery_type)}
                       </span>
                     }
@@ -608,16 +783,24 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                     <>
                       <InfoRow label="수령인" value={order.recipient} />
                       <div className="py-1.5">
-                        <span className="text-sm text-gray-500 block">주소</span>
+                        <span className="text-sm text-gray-500 block">
+                          주소
+                        </span>
                         <p className="text-sm text-gray-900 mt-0.5">
                           {order.address || "-"}
                           {order.address_detail && (
-                            <span className="text-gray-500"> {order.address_detail}</span>
+                            <span className="text-gray-500">
+                              {" "}
+                              {order.address_detail}
+                            </span>
                           )}
                         </p>
                       </div>
                       {order.delivery_note && (
-                        <InfoRow label="배송 메모" value={order.delivery_note} />
+                        <InfoRow
+                          label="배송 메모"
+                          value={order.delivery_note}
+                        />
                       )}
                     </>
                   )}
@@ -625,35 +808,66 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                     <>
                       <InfoRow
                         label="결제 방식"
-                        value={order.quick_payment_type === "cod" ? "착불" : "선불"}
+                        value={
+                          order.quick_payment_type === "cod" ? "착불" : "선불"
+                        }
                       />
-                      {order.quick_payment_type === "prepaid" && order.quick_cost > 0 && (
-                        <InfoRow label="퀵 비용" value={formatPrice(order.quick_cost)} />
-                      )}
+                      {order.quick_payment_type === "prepaid" &&
+                        order.quick_cost > 0 && (
+                          <InfoRow
+                            label="퀵 비용"
+                            value={formatPrice(order.quick_cost)}
+                          />
+                        )}
                     </>
                   )}
                 </Card>
 
                 {/* 결제 요약 */}
-                <Card title="결제 정보" icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                }>
-                  <InfoRow label="상품 금액" value={formatPrice(order.product_amount)} />
+                <Card
+                  title="결제 정보"
+                  icon={
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                      />
+                    </svg>
+                  }
+                >
+                  <InfoRow
+                    label="상품 금액"
+                    value={formatPrice(order.product_amount)}
+                  />
                   <InfoRow
                     label="부가세"
                     value={formatPrice(Math.round(order.product_amount * 0.1))}
                   />
                   <InfoRow
                     label="배송비"
-                    value={order.shipping_cost === 0 ? "무료" : formatPrice(order.shipping_cost)}
+                    value={
+                      order.shipping_cost === 0
+                        ? "무료"
+                        : formatPrice(order.shipping_cost)
+                    }
                   />
                   {order.quick_cost > 0 && (
-                    <InfoRow label="퀵 비용" value={formatPrice(order.quick_cost)} />
+                    <InfoRow
+                      label="퀵 비용"
+                      value={formatPrice(order.quick_cost)}
+                    />
                   )}
                   <div className="flex justify-between items-center pt-2 mt-1 border-t border-gray-100">
-                    <span className="text-sm font-semibold text-gray-900">총 결제금액</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      총 결제금액
+                    </span>
                     <span className="text-lg font-bold text-gray-900">
                       {formatPrice(order.total_amount)}
                     </span>
@@ -668,36 +882,49 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                     <div className="flex justify-between items-center py-1.5">
                       <span className="text-sm text-gray-500">입금 상태</span>
                       <div className="flex items-center gap-2">
-                        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
-                          order.payment_status === "paid"
-                            ? "bg-green-100 text-green-700"
+                        <span
+                          className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
+                            order.payment_status === "paid"
+                              ? "bg-green-100 text-green-700"
+                              : order.payment_status === "refunded"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {order.payment_status === "paid"
+                            ? "입금완료"
                             : order.payment_status === "refunded"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
-                        }`}>
-                          {order.payment_status === "paid" ? "입금완료" : order.payment_status === "refunded" ? "환불" : "입금대기"}
+                              ? "환불"
+                              : "입금대기"}
                         </span>
-                        {order.payment_status !== "paid" && order.payment_status !== "refunded" && (
-                          <button
-                            onClick={async () => {
-                              if (!confirm("입금 확인 처리하시겠습니까?")) return;
-                              setIsSaving(true);
-                              try {
-                                await updateOrder(order.id, { payment_status: "paid" });
-                                setOrder((prev) => ({ ...prev, payment_status: "paid" }));
-                                onUpdate?.();
-                              } catch (err) {
-                                setError(err.message);
-                              } finally {
-                                setIsSaving(false);
-                              }
-                            }}
-                            disabled={isSaving}
-                            className="text-xs text-green-600 hover:text-green-700 font-medium hover:underline disabled:opacity-50"
-                          >
-                            입금확인
-                          </button>
-                        )}
+                        {order.payment_status !== "paid" &&
+                          order.payment_status !== "refunded" && (
+                            <button
+                              onClick={async () => {
+                                if (!confirm("입금 확인 처리하시겠습니까?"))
+                                  return;
+                                setIsSaving(true);
+                                try {
+                                  await updateOrder(order.id, {
+                                    payment_status: "paid",
+                                  });
+                                  setOrder((prev) => ({
+                                    ...prev,
+                                    payment_status: "paid",
+                                  }));
+                                  onUpdate?.();
+                                } catch (err) {
+                                  setError(err.message);
+                                } finally {
+                                  setIsSaving(false);
+                                }
+                              }}
+                              disabled={isSaving}
+                              className="text-xs text-green-600 hover:text-green-700 font-medium hover:underline disabled:opacity-50"
+                            >
+                              입금확인
+                            </button>
+                          )}
                       </div>
                     </div>
                     {order.payment_method === "bank_transfer" && (
@@ -713,36 +940,72 @@ export default function OrderDetailModal({ orderId, onClose, onUpdate }) {
                 </Card>
 
                 {/* 증빙서류 */}
-                {order.tax_document_type && order.tax_document_type !== "none" && (
-                  <Card title="증빙서류" icon={
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z" />
-                    </svg>
-                  }>
-                    <InfoRow
-                      label="유형"
-                      value={getTaxDocumentTypeLabel(order.tax_document_type)}
-                    />
-                    {order.tax_document_type === "tax_invoice" && (
-                      <>
-                        <InfoRow label="사업자번호" value={order.tax_business_number} />
-                        <InfoRow label="상호" value={order.tax_company_name} />
-                        <InfoRow label="대표자명" value={order.tax_ceo_name} />
-                        <InfoRow label="이메일" value={order.tax_email} />
-                      </>
-                    )}
-                    {order.tax_document_type === "cash_receipt" && (
-                      <InfoRow label="휴대폰" value={order.tax_phone} />
-                    )}
-                  </Card>
-                )}
+                {order.tax_document_type &&
+                  order.tax_document_type !== "none" && (
+                    <Card
+                      title="증빙서류"
+                      icon={
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z"
+                          />
+                        </svg>
+                      }
+                    >
+                      <InfoRow
+                        label="유형"
+                        value={getTaxDocumentTypeLabel(order.tax_document_type)}
+                      />
+                      {order.tax_document_type === "tax_invoice" && (
+                        <>
+                          <InfoRow
+                            label="사업자번호"
+                            value={order.tax_business_number}
+                          />
+                          <InfoRow
+                            label="상호"
+                            value={order.tax_company_name}
+                          />
+                          <InfoRow
+                            label="대표자명"
+                            value={order.tax_ceo_name}
+                          />
+                          <InfoRow label="이메일" value={order.tax_email} />
+                        </>
+                      )}
+                      {order.tax_document_type === "cash_receipt" && (
+                        <InfoRow label="휴대폰" value={order.tax_phone} />
+                      )}
+                    </Card>
+                  )}
 
                 {/* 관리자 메모 */}
-                <Card title="관리자 메모" icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                  </svg>
-                }>
+                <Card
+                  title="관리자 메모"
+                  icon={
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                      />
+                    </svg>
+                  }
+                >
                   <textarea
                     value={adminNotes}
                     onChange={(e) => setAdminNotes(e.target.value)}

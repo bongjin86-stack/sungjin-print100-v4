@@ -77,9 +77,7 @@ function parseAchievements(
 }
 
 // field_labels 파싱
-function parseFieldLabels(
-  value: unknown
-): Record<string, string> {
+function parseFieldLabels(value: unknown): Record<string, string> {
   if (!value) return { ...DEFAULT_LABELS };
   if (typeof value === "object" && !Array.isArray(value))
     return { ...DEFAULT_LABELS, ...(value as Record<string, string>) };
@@ -106,7 +104,8 @@ function EditableLabel({
 }) {
   const [focused, setFocused] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const defaultVal = DEFAULT_LABELS[labelKey as keyof typeof DEFAULT_LABELS] || "";
+  const defaultVal =
+    DEFAULT_LABELS[labelKey as keyof typeof DEFAULT_LABELS] || "";
   const active = focused || hovered;
   return (
     <input
@@ -187,9 +186,11 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          const tags = [...new Set(
-            data.map((p: { tag?: string }) => p.tag).filter(Boolean)
-          )].sort() as string[];
+          const tags = [
+            ...new Set(
+              data.map((p: { tag?: string }) => p.tag).filter(Boolean)
+            ),
+          ].sort() as string[];
           setExistingTags(tags);
           // 기존 태그에 없는 값이면 직접 입력 모드로 전환
           if (initialData?.tag && !tags.includes(initialData.tag)) {
@@ -279,9 +280,7 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
 
     try {
       const url =
-        mode === "create"
-          ? "/api/prints"
-          : `/api/prints/${initialData?.id}`;
+        mode === "create" ? "/api/prints" : `/api/prints/${initialData?.id}`;
       const method = mode === "create" ? "POST" : "PUT";
 
       const res = await fetch(url, {
@@ -336,7 +335,11 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
         <div style={styles.formRow}>
           <div style={styles.formGroup}>
             <label style={styles.label}>
-              <EditableLabel labelKey="meta1_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+              <EditableLabel
+                labelKey="meta1_label"
+                fieldLabels={fieldLabels}
+                onLabelChange={handleLabelChange}
+              />
             </label>
             <input
               type="text"
@@ -350,21 +353,34 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
 
           <div style={styles.formGroup}>
             <label style={styles.label}>
-              <EditableLabel labelKey="meta2_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+              <EditableLabel
+                labelKey="meta2_label"
+                fieldLabels={fieldLabels}
+                onLabelChange={handleLabelChange}
+              />
             </label>
             {isCustomTag ? (
               <div style={{ display: "flex", gap: "0.5rem" }}>
                 <input
                   type="text"
                   value={formData.tag}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, tag: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, tag: e.target.value }))
+                  }
                   placeholder="새 태그 입력"
                   style={{ ...styles.input, flex: 1 }}
                 />
                 <button
                   type="button"
-                  onClick={() => { setIsCustomTag(false); }}
-                  style={{ ...styles.cancelButton, padding: "0.375rem 0.75rem", fontSize: "0.8125rem", whiteSpace: "nowrap" as const }}
+                  onClick={() => {
+                    setIsCustomTag(false);
+                  }}
+                  style={{
+                    ...styles.cancelButton,
+                    padding: "0.375rem 0.75rem",
+                    fontSize: "0.8125rem",
+                    whiteSpace: "nowrap" as const,
+                  }}
                 >
                   목록에서 선택
                 </button>
@@ -372,7 +388,9 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
             ) : (
               <div style={{ display: "flex", gap: "0.5rem" }}>
                 <select
-                  value={existingTags.includes(formData.tag) ? formData.tag : ""}
+                  value={
+                    existingTags.includes(formData.tag) ? formData.tag : ""
+                  }
                   onChange={(e) => {
                     const v = e.target.value;
                     if (v === "__custom__") {
@@ -386,18 +404,27 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
                 >
                   <option value="">태그 선택</option>
                   {existingTags.map((t) => (
-                    <option key={t} value={t}>{t}</option>
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
                   ))}
                   <option value="__custom__">+ 직접 입력</option>
                 </select>
               </div>
             )}
-            <p style={styles.hint}>기존 태그를 선택하거나 "직접 입력"으로 새 태그를 추가할 수 있습니다.</p>
+            <p style={styles.hint}>
+              기존 태그를 선택하거나 "직접 입력"으로 새 태그를 추가할 수
+              있습니다.
+            </p>
           </div>
 
           <div style={styles.formGroup}>
             <label style={styles.label}>
-              <EditableLabel labelKey="meta3_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+              <EditableLabel
+                labelKey="meta3_label"
+                fieldLabels={fieldLabels}
+                onLabelChange={handleLabelChange}
+              />
             </label>
             <input
               type="text"
@@ -432,7 +459,11 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
 
         <div style={styles.formGroup}>
           <label style={styles.label}>
-            <EditableLabel labelKey="overview_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+            <EditableLabel
+              labelKey="overview_label"
+              fieldLabels={fieldLabels}
+              onLabelChange={handleLabelChange}
+            />
           </label>
           <textarea
             name="overview"
@@ -447,7 +478,11 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
         {/* Support 리스트 에디터 */}
         <div style={styles.formGroup}>
           <label style={styles.label}>
-            <EditableLabel labelKey="support_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+            <EditableLabel
+              labelKey="support_label"
+              fieldLabels={fieldLabels}
+              onLabelChange={handleLabelChange}
+            />
           </label>
           <p style={styles.hint}>항목별로 입력하세요.</p>
           <div style={styles.listEditor}>
@@ -482,7 +517,11 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
         {/* Achievements 리스트 에디터 */}
         <div style={styles.formGroup}>
           <label style={styles.label}>
-            <EditableLabel labelKey="achievements_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+            <EditableLabel
+              labelKey="achievements_label"
+              fieldLabels={fieldLabels}
+              onLabelChange={handleLabelChange}
+            />
           </label>
           <p style={styles.hint}>제목/설명 형태로 입력하세요.</p>
           <div style={styles.listEditor}>
@@ -562,8 +601,22 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
           </select>
 
           {formData.linked_product_id && (
-            <div style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+            <div
+              style={{
+                marginTop: "0.75rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.75rem",
+              }}
+            >
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  cursor: "pointer",
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={formData.redirect_to_product}
@@ -575,13 +628,29 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
                   }
                   style={{ width: "1rem", height: "1rem", cursor: "pointer" }}
                 />
-                <span style={{ fontSize: "0.875rem", color: "#374151", fontWeight: 500 }}>
+                <span
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "#374151",
+                    fontWeight: 500,
+                  }}
+                >
                   상품 페이지로 바로 이동
                 </span>
               </label>
               {formData.redirect_to_product && (
-                <p style={{ fontSize: "0.75rem", color: "#b91c1c", background: "#fef2f2", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", margin: 0 }}>
-                  고객이 이 Prints를 클릭하면 상세 페이지 없이 바로 상품 페이지로 이동합니다.
+                <p
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#b91c1c",
+                    background: "#fef2f2",
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: "0.375rem",
+                    margin: 0,
+                  }}
+                >
+                  고객이 이 Prints를 클릭하면 상세 페이지 없이 바로 상품
+                  페이지로 이동합니다.
                 </p>
               )}
               {!formData.redirect_to_product && (
@@ -622,7 +691,11 @@ export default function PrintsForm({ mode, initialData }: PrintsFormProps) {
 
       <div style={styles.editorSection}>
         <label style={styles.label}>
-          <EditableLabel labelKey="content_label" fieldLabels={fieldLabels} onLabelChange={handleLabelChange} />
+          <EditableLabel
+            labelKey="content_label"
+            fieldLabels={fieldLabels}
+            onLabelChange={handleLabelChange}
+          />
         </label>
         <p style={styles.hint}>
           슬래시(/)를 입력하면 다양한 블록을 추가할 수 있습니다.

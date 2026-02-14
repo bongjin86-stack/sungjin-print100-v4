@@ -75,7 +75,10 @@ export default function Edu100SectionManager() {
 
   // 섹션 추가
   const handleAddSection = async (type: string) => {
-    const maxOrder = sections.reduce((max, s) => Math.max(max, s.sort_order), -1);
+    const maxOrder = sections.reduce(
+      (max, s) => Math.max(max, s.sort_order),
+      -1
+    );
     const res = await fetch("/api/edu100/sections", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -95,7 +98,10 @@ export default function Edu100SectionManager() {
 
   // 섹션 삭제
   const handleDeleteSection = async (id: string) => {
-    if (!confirm("이 섹션을 삭제하시겠습니까? 소속 커버는 미분류로 이동합니다.")) return;
+    if (
+      !confirm("이 섹션을 삭제하시겠습니까? 소속 커버는 미분류로 이동합니다.")
+    )
+      return;
     const res = await fetch(`/api/edu100/sections/${id}`, { method: "DELETE" });
     if (res.ok) loadSections();
   };
@@ -154,7 +160,11 @@ export default function Edu100SectionManager() {
   };
 
   if (loading) {
-    return <div style={{ padding: "2rem", textAlign: "center", color: "#9ca3af" }}>로딩 중...</div>;
+    return (
+      <div style={{ padding: "2rem", textAlign: "center", color: "#9ca3af" }}>
+        로딩 중...
+      </div>
+    );
   }
 
   return (
@@ -185,7 +195,13 @@ export default function Edu100SectionManager() {
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             }}
           >
-            <span style={{ fontSize: "0.875rem", fontWeight: 500, color: "#374151" }}>
+            <span
+              style={{
+                fontSize: "0.875rem",
+                fontWeight: 500,
+                color: "#374151",
+              }}
+            >
               타입 선택:
             </span>
             {(["text", "blog", "gallery"] as const).map((type) => (
@@ -233,7 +249,9 @@ export default function Edu100SectionManager() {
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
         >
-          <p style={{ color: "#9ca3af", marginBottom: "1rem" }}>등록된 섹션이 없습니다.</p>
+          <p style={{ color: "#9ca3af", marginBottom: "1rem" }}>
+            등록된 섹션이 없습니다.
+          </p>
           <p style={{ color: "#9ca3af", fontSize: "0.875rem" }}>
             "줄 추가" 버튼으로 첫 섹션을 만들어보세요.
           </p>
@@ -247,7 +265,9 @@ export default function Edu100SectionManager() {
               index={idx}
               totalSections={sections.length}
               isEditing={editingSection?.id === section.id}
-              editingData={editingSection?.id === section.id ? editingSection : null}
+              editingData={
+                editingSection?.id === section.id ? editingSection : null
+              }
               addingCover={addingCoverTo === section.id}
               onEdit={() => setEditingSection({ ...section })}
               onCancelEdit={() => setEditingSection(null)}
@@ -381,8 +401,11 @@ function SectionCard({
           </span>
 
           {/* 제목 */}
-          <span style={{ fontWeight: 600, fontSize: "0.9375rem", color: "#111827" }}>
-            {section.title || (section.type === "text" ? "(텍스트 섹션)" : "(제목 없음)")}
+          <span
+            style={{ fontWeight: 600, fontSize: "0.9375rem", color: "#111827" }}
+          >
+            {section.title ||
+              (section.type === "text" ? "(텍스트 섹션)" : "(제목 없음)")}
           </span>
 
           {/* 공개/비공개 */}
@@ -446,7 +469,13 @@ function SectionCard({
 
       {/* 편집 모드 */}
       {isEditing && editingData && (
-        <div style={{ padding: "1.5rem", borderBottom: "1px solid #f3f4f6", background: "#fafafa" }}>
+        <div
+          style={{
+            padding: "1.5rem",
+            borderBottom: "1px solid #f3f4f6",
+            background: "#fafafa",
+          }}
+        >
           <div style={{ display: "grid", gap: "1rem" }}>
             {editingData.type !== "text" && (
               <div style={styles.formGroup}>
@@ -454,7 +483,9 @@ function SectionCard({
                 <input
                   type="text"
                   value={editingData.title}
-                  onChange={(e) => onEditingChange({ ...editingData, title: e.target.value })}
+                  onChange={(e) =>
+                    onEditingChange({ ...editingData, title: e.target.value })
+                  }
                   placeholder="예: News, Counterprint Books"
                   style={styles.input}
                 />
@@ -466,7 +497,9 @@ function SectionCard({
                 <label style={styles.label}>텍스트 내용</label>
                 <BlockNoteEditor
                   initialContent={editingData.content}
-                  onChange={(content) => onEditingChange({ ...editingData, content })}
+                  onChange={(content) =>
+                    onEditingChange({ ...editingData, content })
+                  }
                   height="200px"
                   placeholder="소개 텍스트를 입력하세요..."
                 />
@@ -492,11 +525,20 @@ function SectionCard({
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "0.5rem",
+                justifyContent: "flex-end",
+              }}
+            >
               <button onClick={onCancelEdit} style={styles.cancelButton}>
                 취소
               </button>
-              <button onClick={() => onSave(editingData)} style={styles.submitButton}>
+              <button
+                onClick={() => onSave(editingData)}
+                style={styles.submitButton}
+              >
                 저장
               </button>
             </div>
@@ -513,7 +555,9 @@ function SectionCard({
             fontSize: "0.875rem",
             borderBottom: "1px solid #f3f4f6",
           }}
-          dangerouslySetInnerHTML={{ __html: renderBlocksToHTML(section.content).substring(0, 500) }}
+          dangerouslySetInnerHTML={{
+            __html: renderBlocksToHTML(section.content).substring(0, 500),
+          }}
         />
       )}
 
@@ -543,7 +587,11 @@ function SectionCard({
                       <img
                         src={post.image}
                         alt={post.title}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
                       />
                     ) : (
                       <div
@@ -634,7 +682,13 @@ function SectionCard({
               ))}
             </div>
           ) : (
-            <p style={{ fontSize: "0.8125rem", color: "#9ca3af", marginBottom: "0.75rem" }}>
+            <p
+              style={{
+                fontSize: "0.8125rem",
+                color: "#9ca3af",
+                marginBottom: "0.75rem",
+              }}
+            >
               배정된 블로그 글이 없습니다.
             </p>
           )}
@@ -692,7 +746,11 @@ function SectionCard({
                       <img
                         src={cover.image}
                         alt={cover.title}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
                       />
                     ) : (
                       <div
@@ -775,7 +833,13 @@ function SectionCard({
               ))}
             </div>
           ) : (
-            <p style={{ fontSize: "0.8125rem", color: "#9ca3af", marginBottom: "0.75rem" }}>
+            <p
+              style={{
+                fontSize: "0.8125rem",
+                color: "#9ca3af",
+                marginBottom: "0.75rem",
+              }}
+            >
               등록된 커버가 없습니다.
             </p>
           )}
@@ -819,7 +883,12 @@ interface QuickCoverFormProps {
   onSaved: () => void;
 }
 
-function QuickCoverForm({ sectionId, currentCoverIds, onCancel, onSaved }: QuickCoverFormProps) {
+function QuickCoverForm({
+  sectionId,
+  currentCoverIds,
+  onCancel,
+  onSaved,
+}: QuickCoverFormProps) {
   const [allCovers, setAllCovers] = useState<Cover[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
@@ -873,8 +942,17 @@ function QuickCoverForm({ sectionId, currentCoverIds, onCancel, onSaved }: Quick
       }}
     >
       {/* 헤더 + 필터 */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-        <span style={{ fontSize: "0.875rem", fontWeight: 500, color: "#374151" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "0.75rem",
+        }}
+      >
+        <span
+          style={{ fontSize: "0.875rem", fontWeight: 500, color: "#374151" }}
+        >
           표지 선택
         </span>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
@@ -923,12 +1001,28 @@ function QuickCoverForm({ sectionId, currentCoverIds, onCancel, onSaved }: Quick
       </div>
 
       {loading ? (
-        <p style={{ fontSize: "0.8125rem", color: "#9ca3af", textAlign: "center", padding: "1rem" }}>
+        <p
+          style={{
+            fontSize: "0.8125rem",
+            color: "#9ca3af",
+            textAlign: "center",
+            padding: "1rem",
+          }}
+        >
           로딩 중...
         </p>
       ) : filtered.length === 0 ? (
-        <p style={{ fontSize: "0.8125rem", color: "#9ca3af", textAlign: "center", padding: "1rem" }}>
-          {filter === "unassigned" ? "미배정 표지가 없습니다." : "추가할 표지가 없습니다."}
+        <p
+          style={{
+            fontSize: "0.8125rem",
+            color: "#9ca3af",
+            textAlign: "center",
+            padding: "1rem",
+          }}
+        >
+          {filter === "unassigned"
+            ? "미배정 표지가 없습니다."
+            : "추가할 표지가 없습니다."}
         </p>
       ) : (
         <div
@@ -957,12 +1051,22 @@ function QuickCoverForm({ sectionId, currentCoverIds, onCancel, onSaved }: Quick
               }}
               title={cover.title}
             >
-              <div style={{ aspectRatio: "1/1", background: "#f3f4f6", overflow: "hidden" }}>
+              <div
+                style={{
+                  aspectRatio: "1/1",
+                  background: "#f3f4f6",
+                  overflow: "hidden",
+                }}
+              >
                 {cover.image ? (
                   <img
                     src={cover.image}
                     alt={cover.title}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
                   />
                 ) : (
                   <div
@@ -996,17 +1100,35 @@ function QuickCoverForm({ sectionId, currentCoverIds, onCancel, onSaved }: Quick
                   {cover.title}
                 </p>
                 {cover.tag && (
-                  <p style={{ fontSize: "0.625rem", color: "#6b7280", margin: "2px 0 0" }}>
+                  <p
+                    style={{
+                      fontSize: "0.625rem",
+                      color: "#6b7280",
+                      margin: "2px 0 0",
+                    }}
+                  >
                     {cover.tag}
                   </p>
                 )}
                 {(cover.design_fee ?? 0) > 0 && (
-                  <p style={{ fontSize: "0.625rem", color: "#92400e", margin: "2px 0 0" }}>
+                  <p
+                    style={{
+                      fontSize: "0.625rem",
+                      color: "#92400e",
+                      margin: "2px 0 0",
+                    }}
+                  >
                     디자인비 {(cover.design_fee ?? 0).toLocaleString()}원
                   </p>
                 )}
                 {cover.section_id && (
-                  <p style={{ fontSize: "0.5625rem", color: "#9ca3af", margin: "2px 0 0" }}>
+                  <p
+                    style={{
+                      fontSize: "0.5625rem",
+                      color: "#9ca3af",
+                      margin: "2px 0 0",
+                    }}
+                  >
                     다른 섹션 배정됨
                   </p>
                 )}
@@ -1028,7 +1150,12 @@ interface QuickBlogFormProps {
   onSaved: () => void;
 }
 
-function QuickBlogForm({ sectionId, currentPostIds, onCancel, onSaved }: QuickBlogFormProps) {
+function QuickBlogForm({
+  sectionId,
+  currentPostIds,
+  onCancel,
+  onSaved,
+}: QuickBlogFormProps) {
   const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
@@ -1081,8 +1208,17 @@ function QuickBlogForm({ sectionId, currentPostIds, onCancel, onSaved }: QuickBl
       }}
     >
       {/* 헤더 + 필터 */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-        <span style={{ fontSize: "0.875rem", fontWeight: 500, color: "#374151" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "0.75rem",
+        }}
+      >
+        <span
+          style={{ fontSize: "0.875rem", fontWeight: 500, color: "#374151" }}
+        >
           블로그 글 선택
         </span>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
@@ -1131,12 +1267,28 @@ function QuickBlogForm({ sectionId, currentPostIds, onCancel, onSaved }: QuickBl
       </div>
 
       {loading ? (
-        <p style={{ fontSize: "0.8125rem", color: "#9ca3af", textAlign: "center", padding: "1rem" }}>
+        <p
+          style={{
+            fontSize: "0.8125rem",
+            color: "#9ca3af",
+            textAlign: "center",
+            padding: "1rem",
+          }}
+        >
           로딩 중...
         </p>
       ) : filtered.length === 0 ? (
-        <p style={{ fontSize: "0.8125rem", color: "#9ca3af", textAlign: "center", padding: "1rem" }}>
-          {filter === "unassigned" ? "미배정 블로그 글이 없습니다." : "추가할 블로그 글이 없습니다."}
+        <p
+          style={{
+            fontSize: "0.8125rem",
+            color: "#9ca3af",
+            textAlign: "center",
+            padding: "1rem",
+          }}
+        >
+          {filter === "unassigned"
+            ? "미배정 블로그 글이 없습니다."
+            : "추가할 블로그 글이 없습니다."}
         </p>
       ) : (
         <div
@@ -1165,12 +1317,22 @@ function QuickBlogForm({ sectionId, currentPostIds, onCancel, onSaved }: QuickBl
               }}
               title={post.title}
             >
-              <div style={{ aspectRatio: "1/1", background: "#f3f4f6", overflow: "hidden" }}>
+              <div
+                style={{
+                  aspectRatio: "1/1",
+                  background: "#f3f4f6",
+                  overflow: "hidden",
+                }}
+              >
                 {post.image ? (
                   <img
                     src={post.image}
                     alt={post.title}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
                   />
                 ) : (
                   <div
@@ -1203,16 +1365,34 @@ function QuickBlogForm({ sectionId, currentPostIds, onCancel, onSaved }: QuickBl
                 >
                   {post.title}
                 </p>
-                <p style={{ fontSize: "0.625rem", color: "#6b7280", margin: "2px 0 0" }}>
+                <p
+                  style={{
+                    fontSize: "0.625rem",
+                    color: "#6b7280",
+                    margin: "2px 0 0",
+                  }}
+                >
                   {new Date(post.pub_date).toLocaleDateString("ko-KR")}
                 </p>
                 {!post.is_published && (
-                  <p style={{ fontSize: "0.5625rem", color: "#ef4444", margin: "2px 0 0" }}>
+                  <p
+                    style={{
+                      fontSize: "0.5625rem",
+                      color: "#ef4444",
+                      margin: "2px 0 0",
+                    }}
+                  >
                     비공개
                   </p>
                 )}
                 {post.section_id && (
-                  <p style={{ fontSize: "0.5625rem", color: "#9ca3af", margin: "2px 0 0" }}>
+                  <p
+                    style={{
+                      fontSize: "0.5625rem",
+                      color: "#9ca3af",
+                      margin: "2px 0 0",
+                    }}
+                  >
                     다른 섹션 배정됨
                   </p>
                 )}

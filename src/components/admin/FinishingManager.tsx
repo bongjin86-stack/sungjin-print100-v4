@@ -210,7 +210,8 @@ export default function FinishingPage() {
           ? parseInt(costFormData.setup_cost_double)
           : null,
         min_qty: parseInt(costFormData.min_qty),
-        max_qty: costFormData.max_qty !== "" ? parseInt(costFormData.max_qty) : null,
+        max_qty:
+          costFormData.max_qty !== "" ? parseInt(costFormData.max_qty) : null,
         cost_per_unit: parseInt(costFormData.cost_per_unit),
         unit_type: costFormData.unit_type,
         notes: costFormData.notes || null,
@@ -242,7 +243,14 @@ export default function FinishingPage() {
       notes: cost.notes || "",
       is_active: cost.is_active,
     });
-    setTimeout(() => costFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+    setTimeout(
+      () =>
+        costFormRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        }),
+      50
+    );
   };
 
   const handleUpdateCost = async (e) => {
@@ -257,7 +265,8 @@ export default function FinishingPage() {
             ? parseInt(costFormData.setup_cost_double)
             : null,
           min_qty: parseInt(costFormData.min_qty),
-          max_qty: costFormData.max_qty !== "" ? parseInt(costFormData.max_qty) : null,
+          max_qty:
+            costFormData.max_qty !== "" ? parseInt(costFormData.max_qty) : null,
           cost_per_unit: parseInt(costFormData.cost_per_unit),
           unit_type: costFormData.unit_type,
           notes: costFormData.notes || null,
@@ -498,7 +507,10 @@ export default function FinishingPage() {
 
       {/* Cost 추가/수정 폼 */}
       {(showCostForm || editingCostId) && (
-        <div ref={costFormRef} className="bg-blue-50 border border-blue-200 rounded-xl mb-6 p-6">
+        <div
+          ref={costFormRef}
+          className="bg-blue-50 border border-blue-200 rounded-xl mb-6 p-6"
+        >
           <h3 className="font-semibold text-gray-900 mb-4">
             {editingCostId ? "후가공 비용 수정" : "새 후가공 비용 추가"}
           </h3>

@@ -86,7 +86,10 @@ export default function BlogForm({ initialData, mode }: BlogFormProps) {
       if (response.ok) {
         setMessage({
           type: "success",
-          text: mode === "create" ? "블로그 글이 등록되었습니다." : "블로그 글이 수정되었습니다.",
+          text:
+            mode === "create"
+              ? "블로그 글이 등록되었습니다."
+              : "블로그 글이 수정되었습니다.",
         });
 
         setTimeout(() => {
@@ -99,7 +102,10 @@ export default function BlogForm({ initialData, mode }: BlogFormProps) {
     } catch (error) {
       setMessage({
         type: "error",
-        text: error instanceof Error ? error.message : "저장 중 오류가 발생했습니다.",
+        text:
+          error instanceof Error
+            ? error.message
+            : "저장 중 오류가 발생했습니다.",
       });
     } finally {
       setIsSubmitting(false);
@@ -111,7 +117,9 @@ export default function BlogForm({ initialData, mode }: BlogFormProps) {
       {message && (
         <div
           style={
-            message.type === "success" ? styles.messageSuccess : styles.messageError
+            message.type === "success"
+              ? styles.messageSuccess
+              : styles.messageError
           }
         >
           {message.text}
@@ -180,7 +188,10 @@ export default function BlogForm({ initialData, mode }: BlogFormProps) {
                 type="checkbox"
                 checked={formData.is_published}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, is_published: e.target.checked }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    is_published: e.target.checked,
+                  }))
                 }
                 style={{ width: "16px", height: "16px" }}
               />
@@ -222,12 +233,18 @@ export default function BlogForm({ initialData, mode }: BlogFormProps) {
                   try {
                     const fd = new FormData();
                     fd.append("file", file);
-                    const res = await fetch("/api/upload", { method: "POST", body: fd });
+                    const res = await fetch("/api/upload", {
+                      method: "POST",
+                      body: fd,
+                    });
                     if (!res.ok) throw new Error("업로드 실패");
                     const data = await res.json();
                     setFormData((prev) => ({ ...prev, image: data.url }));
                   } catch {
-                    setMessage({ type: "error", text: "이미지 업로드에 실패했습니다." });
+                    setMessage({
+                      type: "error",
+                      text: "이미지 업로드에 실패했습니다.",
+                    });
                   } finally {
                     setIsUploading(false);
                     e.target.value = "";

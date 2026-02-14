@@ -65,8 +65,8 @@ function BlockItem({
           className="drag-handle cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 text-base select-none px-1 -ml-1 transition-colors"
           draggable
           onDragStart={(e) => {
-            e.dataTransfer.effectAllowed = 'move';
-            const blockEl = e.currentTarget.closest('[data-block-id]');
+            e.dataTransfer.effectAllowed = "move";
+            const blockEl = e.currentTarget.closest("[data-block-id]");
             if (blockEl) e.dataTransfer.setDragImage(blockEl, 20, 20);
             onBlockDragStart?.();
           }}

@@ -161,7 +161,10 @@ function BlockNoteEditorInner({
           uploadFile: async (file: File) => {
             const formData = new FormData();
             formData.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: formData });
+            const res = await fetch("/api/upload", {
+              method: "POST",
+              body: formData,
+            });
             if (!res.ok) throw new Error("업로드 실패");
             const data = await res.json();
             return data.url;
@@ -169,7 +172,11 @@ function BlockNoteEditorInner({
         });
 
         setEditor(newEditor);
-        setModules({ core: coreModule, react: reactModule, mantine: mantineModule });
+        setModules({
+          core: coreModule,
+          react: reactModule,
+          mantine: mantineModule,
+        });
       } catch (error) {
         console.error("Failed to load BlockNote:", error);
       }
@@ -213,9 +220,7 @@ function BlockNoteEditorInner({
     );
   }
 
-  const {
-    BlockNoteView,
-  } = modules.mantine;
+  const { BlockNoteView } = modules.mantine;
 
   const {
     FormattingToolbarController,
@@ -238,7 +243,8 @@ function BlockNoteEditorInner({
 
     useEffect(() => {
       const handler = (e: MouseEvent) => {
-        if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        if (ref.current && !ref.current.contains(e.target as Node))
+          setOpen(false);
       };
       document.addEventListener("mousedown", handler);
       return () => document.removeEventListener("mousedown", handler);
@@ -268,7 +274,12 @@ function BlockNoteEditorInner({
         >
           {currentSize ? currentSize.replace("px", "") : "크기"}
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-            <path d="M3 4L5 6L7 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            <path
+              d="M3 4L5 6L7 4"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+            />
           </svg>
         </button>
         {open && (
@@ -300,7 +311,8 @@ function BlockNoteEditorInner({
                   padding: "4px 10px",
                   fontSize: "12px",
                   border: "none",
-                  background: currentSize === s.value ? "#f3f4f6" : "transparent",
+                  background:
+                    currentSize === s.value ? "#f3f4f6" : "transparent",
                   cursor: "pointer",
                   textAlign: "left",
                   color: "#374151",
@@ -422,7 +434,8 @@ export function renderBlocksToHTML(content: string): string {
             if (c.styles?.italic) text = `<em>${text}</em>`;
             if (c.styles?.underline) text = `<u>${text}</u>`;
             if (c.styles?.strike) text = `<s>${text}</s>`;
-            if (c.styles?.fontSize) text = `<span style="font-size:${c.styles.fontSize}">${text}</span>`;
+            if (c.styles?.fontSize)
+              text = `<span style="font-size:${c.styles.fontSize}">${text}</span>`;
             return text;
           })
           .join("") || "";

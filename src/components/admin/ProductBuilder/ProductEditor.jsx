@@ -44,86 +44,104 @@ function ProductEditor({
     <div className="pv-grid">
       {/* 왼쪽: 이미지 영역 */}
       <div className="pv-left-col">
-       <div className="pv-images" style={{ position: 'static', maxHeight: 'none' }}>
-        {/* 메인 이미지 */}
-        <input
-          ref={mainImageRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={onMainImageUpload}
-        />
-        <div className="relative group/main">
-          <div
-            className={`pv-main-image cursor-pointer border border-dashed border-gray-200 hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
-            onClick={() => mainImageRef.current?.click()}
-          >
-            {content.mainImage ? (
-              <img src={content.mainImage} alt="메인" />
-            ) : (
-              <div className="pv-no-image">
-                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>+</div>
-                <p>{imageUploading ? "업로드 중..." : "메인 이미지"}</p>
-              </div>
-            )}
-          </div>
-          {content.mainImage && (
-            <button
-              type="button"
-              className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-black/40 text-white text-xs hover:bg-red-500 transition-colors opacity-0 group-hover/main:opacity-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                onUpdateContent({ mainImage: null });
-              }}
+        <div
+          className="pv-images"
+          style={{ position: "static", maxHeight: "none" }}
+        >
+          {/* 메인 이미지 */}
+          <input
+            ref={mainImageRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onMainImageUpload}
+          />
+          <div className="relative group/main">
+            <div
+              className={`pv-main-image cursor-pointer border border-dashed border-gray-200 hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
+              onClick={() => mainImageRef.current?.click()}
             >
-              ✕
-            </button>
-          )}
-        </div>
-
-        {/* 썸네일 4개 */}
-        <div className="pv-thumbnails">
-          {[0, 1, 2, 3].map((idx) => (
-            <div key={idx} className="relative group/thumb">
-              <input
-                ref={thumbImageRefs[idx]}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => onThumbnailUpload(e, idx)}
-              />
-              <div
-                className={`pv-thumb cursor-pointer hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
-                style={{ borderStyle: 'dashed' }}
-                onClick={() => thumbImageRefs[idx].current?.click()}
-              >
-                {content.thumbnails?.[idx] ? (
-                  <img
-                    src={content.thumbnails[idx]}
-                    alt={`썸네일${idx + 1}`}
-                  />
-                ) : (
-                  <span style={{ fontSize: '1.25rem', color: '#d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>+</span>
-                )}
-              </div>
-              {content.thumbnails?.[idx] && (
-                <button
-                  type="button"
-                  className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-full bg-black/40 text-white text-[10px] hover:bg-red-500 transition-colors opacity-0 group-hover/thumb:opacity-100"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const newThumbnails = [...(content.thumbnails || [])];
-                    newThumbnails[idx] = null;
-                    onUpdateContent({ thumbnails: newThumbnails });
-                  }}
-                >
-                  ✕
-                </button>
+              {content.mainImage ? (
+                <img src={content.mainImage} alt="메인" />
+              ) : (
+                <div className="pv-no-image">
+                  <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>
+                    +
+                  </div>
+                  <p>{imageUploading ? "업로드 중..." : "메인 이미지"}</p>
+                </div>
               )}
             </div>
-          ))}
+            {content.mainImage && (
+              <button
+                type="button"
+                className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-black/40 text-white text-xs hover:bg-red-500 transition-colors opacity-0 group-hover/main:opacity-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateContent({ mainImage: null });
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* 썸네일 4개 */}
+          <div className="pv-thumbnails">
+            {[0, 1, 2, 3].map((idx) => (
+              <div key={idx} className="relative group/thumb">
+                <input
+                  ref={thumbImageRefs[idx]}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => onThumbnailUpload(e, idx)}
+                />
+                <div
+                  className={`pv-thumb cursor-pointer hover:border-gray-400 transition-colors ${imageUploading ? "opacity-50" : ""}`}
+                  style={{ borderStyle: "dashed" }}
+                  onClick={() => thumbImageRefs[idx].current?.click()}
+                >
+                  {content.thumbnails?.[idx] ? (
+                    <img
+                      src={content.thumbnails[idx]}
+                      alt={`썸네일${idx + 1}`}
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: "1.25rem",
+                        color: "#d1d5db",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    >
+                      +
+                    </span>
+                  )}
+                </div>
+                {content.thumbnails?.[idx] && (
+                  <button
+                    type="button"
+                    className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-full bg-black/40 text-white text-[10px] hover:bg-red-500 transition-colors opacity-0 group-hover/thumb:opacity-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newThumbnails = [...(content.thumbnails || [])];
+                      newThumbnails[idx] = null;
+                      onUpdateContent({ thumbnails: newThumbnails });
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-       </div>{/* /pv-images */}
+        {/* /pv-images */}
       </div>
 
       {/* 오른쪽: 정보 영역 */}
@@ -148,12 +166,20 @@ function ProductEditor({
       </div>
 
       {/* 주요특징 섹션 (2컬럼 전체) — 특징카드 + 에디터 */}
-      {content.featuresHtml !== null || content.features?.length || content.highlights?.length ? (
+      {content.featuresHtml !== null ||
+      content.features?.length ||
+      content.highlights?.length ? (
         <div className="col-span-2 border border-gray-100 rounded-xl p-4 relative">
           <button
             type="button"
             className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:bg-red-50 hover:text-red-400 transition-colors text-sm"
-            onClick={() => onUpdateContent({ featuresHtml: null, features: null, highlights: [] })}
+            onClick={() =>
+              onUpdateContent({
+                featuresHtml: null,
+                features: null,
+                highlights: [],
+              })
+            }
             title="주요특징 섹션 삭제"
           >
             ✕
@@ -163,12 +189,17 @@ function ProductEditor({
             {/* 좌: 특징 카드 */}
             <div className="grid grid-cols-2 gap-3 content-start">
               {content.highlights?.map((h, idx) => (
-                <div key={idx} className="p-3 border border-gray-200 rounded-xl relative group">
+                <div
+                  key={idx}
+                  className="p-3 border border-gray-200 rounded-xl relative group"
+                >
                   <button
                     type="button"
                     className="absolute top-1 right-1 text-gray-300 hover:text-red-400 text-xs hidden group-hover:block"
                     onClick={() => {
-                      const newHighlights = content.highlights.filter((_, i) => i !== idx);
+                      const newHighlights = content.highlights.filter(
+                        (_, i) => i !== idx
+                      );
                       onUpdateContent({ highlights: newHighlights });
                     }}
                   >
@@ -178,14 +209,18 @@ function ProductEditor({
                     <input
                       type="text"
                       value={h.icon}
-                      onChange={(e) => updateHighlight(idx, "icon", e.target.value)}
+                      onChange={(e) =>
+                        updateHighlight(idx, "icon", e.target.value)
+                      }
                       className="text-xl w-8 text-center bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary outline-none"
                       placeholder="🔹"
                     />
                     <input
                       type="text"
                       value={h.title}
-                      onChange={(e) => updateHighlight(idx, "title", e.target.value)}
+                      onChange={(e) =>
+                        updateHighlight(idx, "title", e.target.value)
+                      }
                       className="font-medium text-sm bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary outline-none flex-1"
                       placeholder="제목"
                     />
@@ -193,7 +228,9 @@ function ProductEditor({
                   <input
                     type="text"
                     value={h.desc}
-                    onChange={(e) => updateHighlight(idx, "desc", e.target.value)}
+                    onChange={(e) =>
+                      updateHighlight(idx, "desc", e.target.value)
+                    }
                     className="text-xs text-gray-500 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary outline-none w-full"
                     placeholder="설명"
                   />
@@ -204,7 +241,10 @@ function ProductEditor({
                   type="button"
                   className="p-3 border border-dashed border-gray-200 rounded-xl text-gray-300 hover:text-gray-400 hover:border-gray-300 transition-colors flex items-center justify-center text-sm"
                   onClick={() => {
-                    const newHighlights = [...(content.highlights || []), { icon: "🔹", title: "", desc: "" }];
+                    const newHighlights = [
+                      ...(content.highlights || []),
+                      { icon: "🔹", title: "", desc: "" },
+                    ];
                     onUpdateContent({ highlights: newHighlights });
                   }}
                 >
@@ -230,10 +270,15 @@ function ProductEditor({
         <button
           type="button"
           className="col-span-2 p-3 border border-dashed border-gray-200 rounded-xl text-gray-400 hover:text-gray-500 hover:border-gray-300 transition-colors text-sm text-center"
-          onClick={() => onUpdateContent({
-            featuresHtml: "<ul><li></li></ul>",
-            highlights: [{ icon: "⚡", title: "", desc: "" }, { icon: "🎨", title: "", desc: "" }],
-          })}
+          onClick={() =>
+            onUpdateContent({
+              featuresHtml: "<ul><li></li></ul>",
+              highlights: [
+                { icon: "⚡", title: "", desc: "" },
+                { icon: "🎨", title: "", desc: "" },
+              ],
+            })
+          }
         >
           + 주요 특징 섹션 추가
         </button>

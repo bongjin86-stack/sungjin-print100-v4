@@ -37,11 +37,15 @@ export default function ProductView({ product: initialProduct }) {
   useEffect(() => {
     loadDbPapers();
     // ?designId URL 파라미터 → edu100 커버 이미지 로드
-    const designId = new URLSearchParams(window.location.search).get("designId");
+    const designId = new URLSearchParams(window.location.search).get(
+      "designId"
+    );
     if (designId) {
       fetch(`/api/edu100/${designId}`)
-        .then((res) => res.ok ? res.json() : null)
-        .then((cover) => { if (cover) setDesignCover(cover); })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((cover) => {
+          if (cover) setDesignCover(cover);
+        })
         .catch(() => {});
     }
   }, []);
@@ -96,24 +100,36 @@ export default function ProductView({ product: initialProduct }) {
 
       try {
         // 가이드 블록 가격 합산
-        const guidePriceTotal = Object.entries(customer.guides || {}).reduce((sum, [blockId, state]) => {
-          const guideBlock = product?.blocks?.find((b) => String(b.id) === String(blockId) && b.on && b.type === "guide");
-          const opt = guideBlock?.config?.options?.find((o) => o.id === state.selected);
-          return sum + (opt?.price || 0);
-        }, 0);
+        const guidePriceTotal = Object.entries(customer.guides || {}).reduce(
+          (sum, [blockId, state]) => {
+            const guideBlock = product?.blocks?.find(
+              (b) =>
+                String(b.id) === String(blockId) && b.on && b.type === "guide"
+            );
+            const opt = guideBlock?.config?.options?.find(
+              (o) => o.id === state.selected
+            );
+            return sum + (opt?.price || 0);
+          },
+          0
+        );
 
         // 디자인 타입 가격 합산
-        const designBlock = product?.blocks?.find((b) => b.on && b.type === "design_select");
-        const designTierPrice = designBlock?.config?.tiers?.find(
-          (t) => t.id === customer.designTier
-        )?.price || 0;
+        const designBlock = product?.blocks?.find(
+          (b) => b.on && b.type === "design_select"
+        );
+        const designTierPrice =
+          designBlock?.config?.tiers?.find((t) => t.id === customer.designTier)
+            ?.price || 0;
         const totalGuidePrice = guidePriceTotal + designTierPrice;
 
         // 외주 상품 가격 계산 — 서버 API로 위임 (outsourced_config 클라이언트 노출 방지)
         const isOutsourced = product?.product_type === "outsourced";
         if (isOutsourced) {
           const booksArr = customer.books || [];
-          const pagesBlock = product?.blocks?.find((b) => b.on && b.type === "pages");
+          const pagesBlock = product?.blocks?.find(
+            (b) => b.on && b.type === "pages"
+          );
 
           const res = await fetch("/api/calculate-price", {
             method: "POST",
@@ -121,18 +137,21 @@ export default function ProductView({ product: initialProduct }) {
             body: JSON.stringify({
               productId: product.id,
               productType: "outsourced",
-              qty: booksArr.length > 0
-                ? booksArr.reduce((s, b) => s + (b.qty || 1), 0)
-                : customer.qty,
-              books: booksArr.length > 0
-                ? booksArr.map((b) => ({
-                    pages: b.pages || pagesBlock?.config?.default || 100,
-                    qty: b.qty || 1,
-                  }))
-                : undefined,
-              pages: booksArr.length === 0
-                ? (customer.pages || pagesBlock?.config?.default || 100)
-                : undefined,
+              qty:
+                booksArr.length > 0
+                  ? booksArr.reduce((s, b) => s + (b.qty || 1), 0)
+                  : customer.qty,
+              books:
+                booksArr.length > 0
+                  ? booksArr.map((b) => ({
+                      pages: b.pages || pagesBlock?.config?.default || 100,
+                      qty: b.qty || 1,
+                    }))
+                  : undefined,
+              pages:
+                booksArr.length === 0
+                  ? customer.pages || pagesBlock?.config?.default || 100
+                  : undefined,
               allQtys: booksArr.length === 0 ? allQtys : undefined,
               guidePriceTotal: totalGuidePrice,
               designFee: designCover?.design_fee ?? 0,
@@ -191,7 +210,6 @@ export default function ProductView({ product: initialProduct }) {
   const allBlocks = product.blocks?.filter((b) => b.on && !b.hidden) || [];
   const linkStatus = checkLinkRules(product?.blocks, customer);
 
-
   // 서버에서 계산된 가격 사용
   const defaultPrice = {
     total: 0,
@@ -216,7 +234,9 @@ export default function ProductView({ product: initialProduct }) {
   const designImages = designCover
     ? [designCover.image, ...(designCover.thumbnails || [])].filter(Boolean)
     : [];
-  const baseImages = [content.mainImage, ...(content.thumbnails || [])].filter(Boolean);
+  const baseImages = [content.mainImage, ...(content.thumbnails || [])].filter(
+    Boolean
+  );
   const images = designImages.length > 0 ? designImages : baseImages;
 
   return (
@@ -231,97 +251,98 @@ export default function ProductView({ product: initialProduct }) {
       <div className="pv-grid">
         {/* 왼쪽 컬럼 */}
         <div className="pv-left-col">
-        <div className="pv-images">
-          {/* 메인 이미지 */}
-          <div className="pv-main-image">
-            {images[selectedImage] ? (
-              <img src={images[selectedImage]} alt={product.name} />
-            ) : content.mainImage ? (
-              <img src={content.mainImage} alt={product.name} />
-            ) : (
-              <div className="pv-no-image">
-                <svg
-                  className="w-16 h-16 mx-auto mb-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <p>이미지 없음</p>
+          <div className="pv-images">
+            {/* 메인 이미지 */}
+            <div className="pv-main-image">
+              {images[selectedImage] ? (
+                <img src={images[selectedImage]} alt={product.name} />
+              ) : content.mainImage ? (
+                <img src={content.mainImage} alt={product.name} />
+              ) : (
+                <div className="pv-no-image">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p>이미지 없음</p>
+                </div>
+              )}
+            </div>
+
+            {/* 썸네일 */}
+            {images.length > 1 && (
+              <div className="pv-thumbnails">
+                {images.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className={`pv-thumb ${selectedImage === idx ? "active" : ""}`}
+                    onClick={() => setSelectedImage(idx)}
+                  >
+                    <img
+                      src={img}
+                      alt={`썸네일${idx + 1}`}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                ))}
               </div>
             )}
-          </div>
 
-          {/* 썸네일 */}
-          {images.length > 1 && (
-            <div className="pv-thumbnails">
-              {images.map((img, idx) => (
-                <div
-                  key={idx}
-                  className={`pv-thumb ${selectedImage === idx ? "active" : ""}`}
-                  onClick={() => setSelectedImage(idx)}
-                >
-                  <img
-                    src={img}
-                    alt={`썸네일${idx + 1}`}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
+            {/* 하이라이트 카드 */}
+            {content.highlights && content.highlights.length > 0 && (
+              <div className="pv-highlights">
+                {content.highlights.map((h, idx) => {
+                  const IconComp = getIconComponent(h.icon);
+                  return (
+                    <div key={idx} className="pv-highlight-card">
+                      <div className="pv-highlight-icon">
+                        <IconComp size={32} strokeWidth={1.3} />
+                      </div>
+                      <div className="pv-highlight-text">
+                        <span className="pv-highlight-title">{h.title}</span>
+                        <p className="pv-highlight-desc">{h.desc}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* 상담 블록 (카카오톡) */}
+            {allBlocks
+              .filter((b) => b.type === "consultation")
+              .map((block) => (
+                <PreviewBlock
+                  key={block.id}
+                  block={block}
+                  customer={customer}
+                  setCustomer={setCustomer}
+                  qtyPrices={qtyPrices}
+                  linkStatus={linkStatus}
+                  handleFoldSelect={handleFoldSelect}
+                  productType={product.product_type || product.id}
+                  dbPapers={dbPapers}
+                  dbPapersList={dbPapersList}
+                  allBlocks={product?.blocks || []}
+                  thicknessError={price.thicknessValidation?.error}
+                  dbSizes={dbSizes}
+                  designCover={designCover}
+                />
               ))}
-            </div>
-          )}
-
-          {/* 하이라이트 카드 */}
-          {content.highlights && content.highlights.length > 0 && (
-            <div className="pv-highlights">
-              {content.highlights.map((h, idx) => {
-                const IconComp = getIconComponent(h.icon);
-                return (
-                  <div key={idx} className="pv-highlight-card">
-                    <div className="pv-highlight-icon">
-                      <IconComp size={32} strokeWidth={1.3} />
-                    </div>
-                    <div className="pv-highlight-text">
-                      <span className="pv-highlight-title">{h.title}</span>
-                      <p className="pv-highlight-desc">{h.desc}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* 상담 블록 (카카오톡) */}
-          {allBlocks
-            .filter((b) => b.type === "consultation")
-            .map((block) => (
-              <PreviewBlock
-                key={block.id}
-                block={block}
-                customer={customer}
-                setCustomer={setCustomer}
-                qtyPrices={qtyPrices}
-                linkStatus={linkStatus}
-                handleFoldSelect={handleFoldSelect}
-                productType={product.product_type || product.id}
-                dbPapers={dbPapers}
-                dbPapersList={dbPapersList}
-                allBlocks={product?.blocks || []}
-                thicknessError={price.thicknessValidation?.error}
-                dbSizes={dbSizes}
-                designCover={designCover}
-              />
-            ))}
-
-        </div>{/* end pv-images */}
-        </div>{/* end pv-left-col */}
+          </div>
+          {/* end pv-images */}
+        </div>
+        {/* end pv-left-col */}
 
         {/* 오른쪽: 옵션 영역 */}
         <div className="pv-options">
@@ -335,116 +356,186 @@ export default function ProductView({ product: initialProduct }) {
           {renderFeatures(content)}
 
           {/* 블록 빌더 순서대로 렌더링 (consultation은 왼쪽 컬럼) */}
-          {allBlocks.filter((b) => b.type !== "consultation").map((block) => {
-            if (block.type === "guide") {
-              const gCfg = block.config || {};
-              const gOptions = gCfg.options || [];
-              const guideState = customer.guides?.[block.id] || {
-                selected: gCfg.default || gOptions[0]?.id || "",
-                confirmed: false,
-              };
-              const isOpen = !guideState.confirmed;
-              const selectedOpt = gOptions.find((o) => o.id === guideState.selected);
+          {allBlocks
+            .filter((b) => b.type !== "consultation")
+            .map((block) => {
+              if (block.type === "guide") {
+                const gCfg = block.config || {};
+                const gOptions = gCfg.options || [];
+                const guideState = customer.guides?.[block.id] || {
+                  selected: gCfg.default || gOptions[0]?.id || "",
+                  confirmed: false,
+                };
+                const isOpen = !guideState.confirmed;
+                const selectedOpt = gOptions.find(
+                  (o) => o.id === guideState.selected
+                );
 
-              return (
-                <div key={block.id} className="pv-file-spec-section">
-                  <div className="pv-addons-title">
-                    {gCfg.title || block.label}
-                    {!isOpen && (
-                      <button
-                        className="pv-step-change"
-                        style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer" }}
-                        onClick={() => setCustomer((prev) => ({
-                          ...prev,
-                          guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
-                        }))}
-                      >
-                        변경
-                      </button>
-                    )}
-                  </div>
-                  {isOpen ? (
-                    <div className="pv-fs-cards">
-                      {gOptions.map((opt, idx) => {
-                        const isCurrent = guideState.selected === opt.id;
-                        return (
-                          <div
-                            key={opt.id}
-                            className={`pv-fs-card ${isCurrent ? "selected" : ""}`}
-                            onClick={() => setCustomer((prev) => ({
+                return (
+                  <div key={block.id} className="pv-file-spec-section">
+                    <div className="pv-addons-title">
+                      {gCfg.title || block.label}
+                      {!isOpen && (
+                        <button
+                          className="pv-step-change"
+                          style={{
+                            marginLeft: "auto",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                          }}
+                          onClick={() =>
+                            setCustomer((prev) => ({
                               ...prev,
-                              guides: { ...prev.guides, [block.id]: { selected: opt.id, confirmed: true } },
-                            }))}
+                              guides: {
+                                ...prev.guides,
+                                [block.id]: { ...guideState, confirmed: false },
+                              },
+                            }))
+                          }
+                        >
+                          변경
+                        </button>
+                      )}
+                    </div>
+                    {isOpen ? (
+                      <div className="pv-fs-cards">
+                        {gOptions.map((opt, idx) => {
+                          const isCurrent = guideState.selected === opt.id;
+                          return (
+                            <div
+                              key={opt.id}
+                              className={`pv-fs-card ${isCurrent ? "selected" : ""}`}
+                              onClick={() =>
+                                setCustomer((prev) => ({
+                                  ...prev,
+                                  guides: {
+                                    ...prev.guides,
+                                    [block.id]: {
+                                      selected: opt.id,
+                                      confirmed: true,
+                                    },
+                                  },
+                                }))
+                              }
+                            >
+                              <div className="pv-fs-card-header">
+                                <span
+                                  className={`pv-fs-num ${isCurrent ? "active" : ""}`}
+                                >
+                                  {idx + 1}
+                                </span>
+                                <div className="pv-fs-card-title">
+                                  <div className="pv-fs-card-label-row">
+                                    <span className="pv-fs-card-label">
+                                      {opt.label}
+                                    </span>
+                                    {opt.price > 0 && (
+                                      <span className="pv-fs-card-price">
+                                        +{opt.price.toLocaleString()}원
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                {isCurrent && (
+                                  <span className="pv-fs-card-check">
+                                    <svg
+                                      width="12"
+                                      height="12"
+                                      viewBox="0 0 12 12"
+                                      fill="none"
+                                    >
+                                      <path
+                                        d="M2.5 6L5 8.5L9.5 3.5"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  </span>
+                                )}
+                              </div>
+                              {opt.hint && renderHintContent(opt.hint)}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      selectedOpt && (
+                        <div className="pv-fs-cards">
+                          <div
+                            className="pv-fs-card selected"
+                            onClick={() =>
+                              setCustomer((prev) => ({
+                                ...prev,
+                                guides: {
+                                  ...prev.guides,
+                                  [block.id]: {
+                                    ...guideState,
+                                    confirmed: false,
+                                  },
+                                },
+                              }))
+                            }
                           >
                             <div className="pv-fs-card-header">
-                              <span className={`pv-fs-num ${isCurrent ? "active" : ""}`}>{idx + 1}</span>
+                              <span className="pv-fs-card-check">
+                                <svg
+                                  width="12"
+                                  height="12"
+                                  viewBox="0 0 12 12"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M2.5 6L5 8.5L9.5 3.5"
+                                    stroke="white"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </span>
                               <div className="pv-fs-card-title">
                                 <div className="pv-fs-card-label-row">
-                                  <span className="pv-fs-card-label">{opt.label}</span>
-                                  {opt.price > 0 && (
-                                    <span className="pv-fs-card-price">+{opt.price.toLocaleString()}원</span>
+                                  <span className="pv-fs-card-label">
+                                    {selectedOpt.label}
+                                  </span>
+                                  {selectedOpt.price > 0 && (
+                                    <span className="pv-fs-card-price">
+                                      +{selectedOpt.price.toLocaleString()}원
+                                    </span>
                                   )}
                                 </div>
                               </div>
-                              {isCurrent && (
-                                <span className="pv-fs-card-check">
-                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                </span>
-                              )}
-                            </div>
-                            {opt.hint && renderHintContent(opt.hint)}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : selectedOpt && (
-                    <div className="pv-fs-cards">
-                      <div
-                        className="pv-fs-card selected"
-                        onClick={() => setCustomer((prev) => ({
-                          ...prev,
-                          guides: { ...prev.guides, [block.id]: { ...guideState, confirmed: false } },
-                        }))}
-                      >
-                        <div className="pv-fs-card-header">
-                          <span className="pv-fs-card-check">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          </span>
-                          <div className="pv-fs-card-title">
-                            <div className="pv-fs-card-label-row">
-                              <span className="pv-fs-card-label">{selectedOpt.label}</span>
-                              {selectedOpt.price > 0 && (
-                                <span className="pv-fs-card-price">+{selectedOpt.price.toLocaleString()}원</span>
-                              )}
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            }
+                      )
+                    )}
+                  </div>
+                );
+              }
 
-            return (
-              <PreviewBlock
-                key={block.id}
-                block={block}
-                customer={customer}
-                setCustomer={setCustomer}
-                qtyPrices={qtyPrices}
-                linkStatus={linkStatus}
-                handleFoldSelect={handleFoldSelect}
-                productType={product.product_type || product.id}
-                dbPapers={dbPapers}
-                dbPapersList={dbPapersList}
-                allBlocks={product?.blocks || []}
-                thicknessError={price.thicknessValidation?.error}
-                dbSizes={dbSizes}
-                designCover={designCover}
-              />
-            );
-          })}
+              return (
+                <PreviewBlock
+                  key={block.id}
+                  block={block}
+                  customer={customer}
+                  setCustomer={setCustomer}
+                  qtyPrices={qtyPrices}
+                  linkStatus={linkStatus}
+                  handleFoldSelect={handleFoldSelect}
+                  productType={product.product_type || product.id}
+                  dbPapers={dbPapers}
+                  dbPapersList={dbPapersList}
+                  allBlocks={product?.blocks || []}
+                  thicknessError={price.thicknessValidation?.error}
+                  dbSizes={dbSizes}
+                  designCover={designCover}
+                />
+              );
+            })}
 
           {/* 가격 표시 - 공유 컴포넌트 */}
           <PriceBox
@@ -479,43 +570,65 @@ export default function ProductView({ product: initialProduct }) {
 
               // 텍스트 입력 블록 값 추출 (label → value)
               const textInputEntries = [];
-              allBlocks.filter(b => b.type === "text_input").forEach(block => {
-                const val = customer.textInputs?.[block.id];
-                const source = block.config?.source || "manual";
-                if (source === "cover" && val && typeof val === "object") {
-                  // cover 모드: 객체를 {label, value}[] 로 전개
-                  Object.entries(val).forEach(([label, v]) => {
-                    if (v && String(v).trim()) {
-                      textInputEntries.push({ label, value: String(v) });
-                    }
-                  });
-                } else if (typeof val === "string" && val.trim()) {
-                  textInputEntries.push({ label: block.label || "요청사항", value: val });
-                }
-              });
+              allBlocks
+                .filter((b) => b.type === "text_input")
+                .forEach((block) => {
+                  const val = customer.textInputs?.[block.id];
+                  const source = block.config?.source || "manual";
+                  if (source === "cover" && val && typeof val === "object") {
+                    // cover 모드: 객체를 {label, value}[] 로 전개
+                    Object.entries(val).forEach(([label, v]) => {
+                      if (v && String(v).trim()) {
+                        textInputEntries.push({ label, value: String(v) });
+                      }
+                    });
+                  } else if (typeof val === "string" && val.trim()) {
+                    textInputEntries.push({
+                      label: block.label || "요청사항",
+                      value: val,
+                    });
+                  }
+                });
               // hex 색상은 유지 (표시 컴포넌트에서 컬러 칩으로 렌더링)
 
               // books 블록 → booksSummary만 구성 (textInputEntries에 넣지 않음)
               const booksArr = customer.books || [];
               const booksSummary = [];
               if (booksArr.length > 0) {
-                const bBlock = product?.blocks?.find((b) => b.on && b.type === "books");
+                const bBlock = product?.blocks?.find(
+                  (b) => b.on && b.type === "books"
+                );
                 const bCfg = bBlock?.config || {};
                 const bPagePrice = bCfg.pagePrice ?? 40;
                 const bBindingFee = bCfg.bindingFee ?? 1500;
                 const bFreeDesignMinQty = bCfg.freeDesignMinQty ?? 100;
                 const bDesignFee = designCover?.design_fee ?? 0;
-                const bTotalQty = booksArr.reduce((s, b) => s + (b.qty || 1), 0);
+                const bTotalQty = booksArr.reduce(
+                  (s, b) => s + (b.qty || 1),
+                  0
+                );
 
                 // 가이드 가격 합산 (실제 가격 계산과 동일한 공식)
-                const bGuidePrice = Object.entries(customer.guides || {}).reduce((sum, [blockId, state]) => {
-                  const gb = product?.blocks?.find((b) => String(b.id) === String(blockId) && b.on && b.type === "guide");
-                  const opt = gb?.config?.options?.find((o) => o.id === state.selected);
+                const bGuidePrice = Object.entries(
+                  customer.guides || {}
+                ).reduce((sum, [blockId, state]) => {
+                  const gb = product?.blocks?.find(
+                    (b) =>
+                      String(b.id) === String(blockId) &&
+                      b.on &&
+                      b.type === "guide"
+                  );
+                  const opt = gb?.config?.options?.find(
+                    (o) => o.id === state.selected
+                  );
                   return sum + (opt?.price || 0);
                 }, 0);
 
                 booksArr.forEach((book, idx) => {
-                  const perCopy = (book.pages || 100) * bPagePrice + bBindingFee + bGuidePrice;
+                  const perCopy =
+                    (book.pages || 100) * bPagePrice +
+                    bBindingFee +
+                    bGuidePrice;
                   booksSummary.push({
                     index: idx + 1,
                     pages: book.pages,
@@ -527,7 +640,11 @@ export default function ProductView({ product: initialProduct }) {
                 });
                 // 디자인 비용 정보
                 if (bDesignFee > 0 && bTotalQty < bFreeDesignMinQty) {
-                  booksSummary.push({ designFee: bDesignFee, totalQty: bTotalQty, freeMinQty: bFreeDesignMinQty });
+                  booksSummary.push({
+                    designFee: bDesignFee,
+                    totalQty: bTotalQty,
+                    freeMinQty: bFreeDesignMinQty,
+                  });
                 }
               }
 
@@ -536,20 +653,26 @@ export default function ProductView({ product: initialProduct }) {
                 JSON.stringify({
                   name: product.name,
                   image: images[0] || null,
-                  textInputs: textInputEntries.length > 0 ? textInputEntries : null,
+                  textInputs:
+                    textInputEntries.length > 0 ? textInputEntries : null,
                   booksSummary: booksSummary.length > 0 ? booksSummary : null,
                   type: inferProductType(product),
                   spec: {
                     size: customer.size?.startsWith("custom_")
                       ? `${customer.customWidth || 0}×${customer.customHeight || 0}mm`
-                      : (dbSizes?.[customer.size]?.name || customer.size?.toUpperCase()) || "맞춤",
+                      : dbSizes?.[customer.size]?.name ||
+                        customer.size?.toUpperCase() ||
+                        "맞춤",
                     paper: paperFullName,
                     color: `${customer.color === "color" ? "컬러" : "흑백"} ${customer.side === "single" ? "단면" : "양면"}`,
                     finishing: finishingList,
                     // 시리즈 주문: 총 부수 합산, 페이지는 권별이므로 생략
-                    quantity: booksSummary.length > 0
-                      ? booksSummary.filter(b => b.designFee == null).reduce((s, b) => s + (b.qty || 1), 0)
-                      : customer.qty,
+                    quantity:
+                      booksSummary.length > 0
+                        ? booksSummary
+                            .filter((b) => b.designFee == null)
+                            .reduce((s, b) => s + (b.qty || 1), 0)
+                        : customer.qty,
                     pages: booksSummary.length > 0 ? null : customer.pages,
                   },
                   price: price.total,
@@ -564,7 +687,14 @@ export default function ProductView({ product: initialProduct }) {
                     : null,
                   // Server-side price verification data (transient 필드 제거)
                   customerSelection: (() => {
-                    const { _designs, selectedDesign, textInputs, books, guides, ...clean } = customer;
+                    const {
+                      _designs,
+                      selectedDesign,
+                      textInputs,
+                      books,
+                      guides,
+                      ...clean
+                    } = customer;
                     return clean;
                   })(),
                   // outsourced 서버 검증용
@@ -602,7 +732,12 @@ function renderInlineContent(contentArr) {
       if (s.italic) el = <em key={`i${i}`}>{el}</em>;
       if (s.underline) el = <u key={`u${i}`}>{el}</u>;
       if (s.strike) el = <s key={`s${i}`}>{el}</s>;
-      if (s.fontSize) el = <span key={`fs${i}`} style={{ fontSize: s.fontSize }}>{el}</span>;
+      if (s.fontSize)
+        el = (
+          <span key={`fs${i}`} style={{ fontSize: s.fontSize }}>
+            {el}
+          </span>
+        );
       return <span key={i}>{el}</span>;
     });
 }
@@ -637,14 +772,22 @@ function renderHintContent(hint) {
   if (!hint) return null;
   let parsed = hint;
   if (typeof parsed === "string") {
-    try { parsed = JSON.parse(parsed); } catch { parsed = null; }
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      parsed = null;
+    }
   }
   if (Array.isArray(parsed)) {
     const items = renderBlockContent(parsed);
     if (items?.length > 0) {
       const listTypes = ["bulletListItem", "numberedListItem"];
       const hasList = parsed.some((b) => listTypes.includes(b.type));
-      return <div className="pv-fs-card-hint">{hasList ? <ul>{items}</ul> : <div>{items}</div>}</div>;
+      return (
+        <div className="pv-fs-card-hint">
+          {hasList ? <ul>{items}</ul> : <div>{items}</div>}
+        </div>
+      );
     }
   }
   if (typeof hint === "string" && hint.trim()) {

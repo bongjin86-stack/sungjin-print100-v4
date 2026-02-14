@@ -44,7 +44,9 @@ export default function OrderComplete() {
 
   const spec = orderData?.product?.spec;
   const hasBooks = orderData?.product?.booksSummary?.length > 0;
-  const books = hasBooks ? orderData.product.booksSummary.filter(b => b.designFee == null) : [];
+  const books = hasBooks
+    ? orderData.product.booksSummary.filter((b) => b.designFee == null)
+    : [];
   const isHex = (v) => /^#[0-9a-fA-F]{3,8}$/.test(String(v));
 
   return (
@@ -133,7 +135,10 @@ export default function OrderComplete() {
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-500">수량</span>
-                    <span>{spec?.quantity || 0}부{hasBooks ? ` (${books.length}종)` : ""}</span>
+                    <span>
+                      {spec?.quantity || 0}부
+                      {hasBooks ? ` (${books.length}종)` : ""}
+                    </span>
                   </div>
                   {!hasBooks && spec?.pages && (
                     <div className="flex justify-between">
@@ -153,20 +158,37 @@ export default function OrderComplete() {
                 {hasBooks && (
                   <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
                     {books.map((book) => {
-                      const fields = Object.entries(book.fields || {}).filter(([, v]) => v && String(v).trim());
+                      const fields = Object.entries(book.fields || {}).filter(
+                        ([, v]) => v && String(v).trim()
+                      );
                       return (
-                        <div key={book.index} className="bg-gray-50 rounded-lg p-3">
+                        <div
+                          key={book.index}
+                          className="bg-gray-50 rounded-lg p-3"
+                        >
                           <div className="flex justify-between items-center mb-1">
-                            <span className="text-sm font-semibold">{book.index}권</span>
-                            <span className="text-xs text-gray-500">{book.pages}p · {book.qty}부</span>
+                            <span className="text-sm font-semibold">
+                              {book.index}권
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {book.pages}p · {book.qty}부
+                            </span>
                           </div>
                           {fields.length > 0 && (
                             <div className="space-y-0.5">
                               {fields.map(([label, value]) => (
-                                <div key={label} className="flex items-center gap-1.5 text-xs text-gray-600">
-                                  <span className="text-gray-400">{label}:</span>
+                                <div
+                                  key={label}
+                                  className="flex items-center gap-1.5 text-xs text-gray-600"
+                                >
+                                  <span className="text-gray-400">
+                                    {label}:
+                                  </span>
                                   {isHex(value) ? (
-                                    <span className="inline-block w-3.5 h-3.5 rounded-full border border-gray-300" style={{backgroundColor: String(value)}} />
+                                    <span
+                                      className="inline-block w-3.5 h-3.5 rounded-full border border-gray-300"
+                                      style={{ backgroundColor: String(value) }}
+                                    />
                                   ) : (
                                     <span>{String(value)}</span>
                                   )}
@@ -177,12 +199,17 @@ export default function OrderComplete() {
                         </div>
                       );
                     })}
-                    {orderData.product.booksSummary.filter(b => b.designFee != null).map((df, i) => (
-                      <div key={`df-${i}`} className="flex justify-between text-xs text-amber-700">
-                        <span>디자인 비용</span>
-                        <span>{formatPrice(df.designFee)}</span>
-                      </div>
-                    ))}
+                    {orderData.product.booksSummary
+                      .filter((b) => b.designFee != null)
+                      .map((df, i) => (
+                        <div
+                          key={`df-${i}`}
+                          className="flex justify-between text-xs text-amber-700"
+                        >
+                          <span>디자인 비용</span>
+                          <span>{formatPrice(df.designFee)}</span>
+                        </div>
+                      ))}
                   </div>
                 )}
 
@@ -193,7 +220,10 @@ export default function OrderComplete() {
                       <div key={i}>
                         <p className="text-xs text-gray-500 mb-1">{ti.label}</p>
                         {isHex(ti.value) ? (
-                          <span className="inline-block w-4 h-4 rounded-full border border-gray-300" style={{backgroundColor: ti.value}} />
+                          <span
+                            className="inline-block w-4 h-4 rounded-full border border-gray-300"
+                            style={{ backgroundColor: ti.value }}
+                          />
                         ) : (
                           <p className="text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 rounded-lg p-3">
                             {ti.value}
@@ -325,8 +355,12 @@ export default function OrderComplete() {
 
             {/* 문의 */}
             <div className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-3">문의</h2>
-              <p className="text-sm text-gray-600">문의사항은 아래로 연락주세요.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-3">
+                문의
+              </h2>
+              <p className="text-sm text-gray-600">
+                문의사항은 아래로 연락주세요.
+              </p>
               <div className="mt-3 space-y-1">
                 <p className="text-sm">
                   <span className="text-gray-500">전화:</span>{" "}

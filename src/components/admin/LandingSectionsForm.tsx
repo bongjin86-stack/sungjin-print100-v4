@@ -432,8 +432,8 @@ export default function LandingSectionsForm() {
               ))}
             </select>
             <p style={styles.hint}>
-              랜딩 페이지에 표시할 최대 상품 수입니다. 선택된 상품이 없으면
-              최신 상품이 자동으로 표시됩니다.
+              랜딩 페이지에 표시할 최대 상품 수입니다. 선택된 상품이 없으면 최신
+              상품이 자동으로 표시됩니다.
             </p>
           </div>
 
@@ -544,8 +544,8 @@ export default function LandingSectionsForm() {
           <div style={localStyles.sectionHeader}>
             <h3 style={localStyles.sectionTitle}>Edu+100 섹션</h3>
             <p style={localStyles.sectionDesc}>
-              랜딩 페이지의 Edu+100 소개 섹션을 편집합니다. 왼쪽 이미지
-              캐러셀과 오른쪽 텍스트로 구성됩니다.
+              랜딩 페이지의 Edu+100 소개 섹션을 편집합니다. 왼쪽 이미지 캐러셀과
+              오른쪽 텍스트로 구성됩니다.
             </p>
           </div>
 
