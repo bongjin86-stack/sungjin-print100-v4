@@ -1,9 +1,11 @@
 ---
 import About from "@/components/sections/About.astro";
 import CTA from "@/components/sections/CTA.astro";
+import Edu100Showcase from "@/components/sections/Edu100Showcase.astro";
 import Hero from "@/components/sections/HeroDB.astro";
 import News from "@/components/sections/News.astro";
 import Partners from "@/components/sections/PartnersDB.astro";
+import PrintsShowcase from "@/components/sections/PrintsShowcase.astro";
 import Service from "@/components/sections/Service.astro";
 import Works from "@/components/sections/WorksDB.astro";
 import siteConfig from "@/config/site.config.json";
@@ -25,7 +27,9 @@ const siteDescription = String(siteConfig.site.description);
   <Hero />
   <Partners />
   <Service />
+  <PrintsShowcase />
   <Works />
+  <Edu100Showcase />
   <About />
   <News />
   <CTA />

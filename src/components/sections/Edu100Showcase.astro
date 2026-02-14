@@ -1,0 +1,356 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+
+import { supabase } from "../../lib/supabase";
+
+// 랜딩 페이지 설정에서 EDU+100 설정 가져오기
+const { data: settings } = await supabase
+  .from("site_settings")
+  .select("key, value")
+  .in("key", [
+    "landing_edu100_images",
+    "landing_edu100_speed",
+    "landing_edu100_title",
+    "landing_edu100_subtitle",
+    "landing_edu100_text",
+    "landing_edu100_button_text",
+    "landing_edu100_button_link",
+  ]);
+
+const configMap: Record<string, string> = {};
+(settings || []).forEach((s: { key: string; value: string }) => {
+  configMap[s.key] = s.value;
+});
+
+let images: string[] = [];
+try {
+  images = JSON.parse(configMap.landing_edu100_images || "[]");
+} catch {
+  images = [];
+}
+
+const speed = parseInt(configMap.landing_edu100_speed || "3000", 10);
+const title = configMap.landing_edu100_title || "Edu+100";
+const subtitle = configMap.landing_edu100_subtitle || "교재인쇄 서비스";
+const text =
+  configMap.landing_edu100_text ||
+  "학원, 학교, 기업교육에 최적화된 교재 인쇄 서비스입니다.\n다양한 표지 디자인 갤러리에서 원하는 디자인을 선택하고,\n간편하게 주문할 수 있습니다.";
+const buttonText = configMap.landing_edu100_button_text || "자세히 보기";
+const buttonLink = configMap.landing_edu100_button_link || "/edu100";
+---
+
+<Section background="secondary">
+  <Container>
+    <div class="edu100-showcase">
+      {/* 왼쪽: 이미지 캐러셀 */}
+      <div class="edu100-showcase-images">
+        {
+          images.length > 0 ? (
+            <div class="edu100-carousel" data-speed={speed}>
+              <div class="edu100-carousel-track">
+                {images.map((img: string, i: number) => (
+                  <div
+                    class:list={["edu100-carousel-slide", { active: i === 0 }]}
+                    data-index={i}
+                  >
+                    <img
+                      src={img}
+                      alt={`${title} ${i + 1}`}
+                      width="800"
+                      height="600"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+              {images.length > 1 && (
+                <div class="edu100-carousel-dots">
+                  {images.map((_: string, i: number) => (
+                    <button
+                      type="button"
+                      class:list={["edu100-carousel-dot", { active: i === 0 }]}
+                      data-dot={i}
+                      aria-label={`이미지 ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div class="edu100-showcase-placeholder">
+              <span>이미지를 등록해주세요</span>
+            </div>
+          )
+        }
+      </div>
+
+      {/* 오른쪽: 텍스트 + 버튼 */}
+      <div class="edu100-showcase-content">
+        <div class="edu100-showcase-text-area">
+          <span class="edu100-showcase-label">{subtitle}</span>
+          <h2 class="edu100-showcase-title">{title}</h2>
+          <div class="edu100-showcase-text">
+            {
+              text
+                .split("\n")
+                .map((line: string) => (line ? <p>{line}</p> : <br />))
+            }
+          </div>
+          <a href={buttonLink} class="edu100-showcase-button">
+            {buttonText}
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<script>
+  function initCarousel() {
+    const carousels = document.querySelectorAll(".edu100-carousel");
+
+    carousels.forEach((carousel) => {
+      const el = carousel as HTMLElement;
+      const speed = parseInt(el.dataset.speed || "3000", 10);
+      const slides = el.querySelectorAll(".edu100-carousel-slide");
+      const dots = el.querySelectorAll(".edu100-carousel-dot");
+
+      if (slides.length <= 1) return;
+
+      let current = 0;
+      let timer: ReturnType<typeof setInterval> | null = null;
+
+      function goTo(index: number) {
+        slides[current].classList.remove("active");
+        dots[current]?.classList.remove("active");
+        current = index;
+        slides[current].classList.add("active");
+        dots[current]?.classList.add("active");
+      }
+
+      function next() {
+        goTo((current + 1) % slides.length);
+      }
+
+      function startAuto() {
+        if (timer) clearInterval(timer);
+        timer = setInterval(next, speed);
+      }
+
+      // 도트 클릭
+      dots.forEach((dot, i) => {
+        dot.addEventListener("click", () => {
+          goTo(i);
+          startAuto(); // 클릭 후 타이머 리셋
+        });
+      });
+
+      startAuto();
+    });
+  }
+
+  document.addEventListener("astro:page-load", initCarousel);
+  document.addEventListener("astro:after-swap", initCarousel);
+</script>
+
+<style lang="scss">
+  .edu100-showcase {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3xl);
+
+    @media (min-width: 900px) {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--sp-5xl);
+    }
+  }
+
+  /* 왼쪽: 이미지 영역 */
+  .edu100-showcase-images {
+    flex: 1;
+    min-width: 0;
+
+    @media (min-width: 900px) {
+      flex: 1.2;
+    }
+  }
+
+  .edu100-carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-3xl);
+  }
+
+  .edu100-carousel-track {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+  }
+
+  .edu100-carousel-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+
+    &.active {
+      opacity: 1;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  .edu100-carousel-dots {
+    position: absolute;
+    bottom: var(--sp-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: var(--sp-xs);
+  }
+
+  .edu100-carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 0;
+    transition:
+      background 0.3s,
+      transform 0.3s;
+
+    &.active {
+      background: white;
+      transform: scale(1.3);
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  .edu100-showcase-placeholder {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: var(--c-bg);
+    border-radius: var(--radius-3xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+  }
+
+  /* 오른쪽: 텍스트 영역 */
+  .edu100-showcase-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .edu100-showcase-text-area {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+  }
+
+  .edu100-showcase-label {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .edu100-showcase-title {
+    color: var(--c-text);
+    font-size: var(--fs-2xl);
+    font-weight: 500;
+    line-height: var(--lh-tight);
+    margin: 0;
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-3xl);
+    }
+  }
+
+  .edu100-showcase-text {
+    color: var(--c-text-sub);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-relaxed);
+
+    p {
+      margin: 0 0 var(--sp-xs);
+    }
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-base);
+    }
+  }
+
+  .edu100-showcase-button {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: var(--sp-sm);
+    margin-top: var(--sp-md);
+    padding: var(--sp-sm) var(--sp-xl);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-full);
+    background-image: linear-gradient(
+      to right,
+      var(--c-primary) 50%,
+      transparent 50%
+    );
+    background-size: 200% 100%;
+    background-position: right;
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    font-weight: 400;
+    line-height: 1.6;
+    text-decoration: none;
+    transition:
+      background-position var(--transition-slow),
+      color var(--transition-slow),
+      border-color var(--transition-slow);
+
+    &:hover {
+      background-position: left;
+      color: var(--c-text-inverse);
+      border-color: var(--c-primary);
+
+      svg {
+        stroke: var(--c-text-inverse);
+      }
+    }
+
+    svg {
+      transition: stroke var(--transition-slow);
+    }
+  }
+</style>
