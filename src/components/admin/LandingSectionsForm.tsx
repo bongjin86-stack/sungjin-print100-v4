@@ -738,6 +738,48 @@ export default function LandingSectionsForm() {
                 >
                   {formData.landing_edu100_text}
                 </p>
+                <div style={{ marginTop: "0.75rem" }}>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      padding: "0.375rem 1rem",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "9999px",
+                      fontSize: "0.8125rem",
+                      color: "#374151",
+                      background: "transparent",
+                    }}
+                  >
+                    {formData.landing_edu100_button_text || "자세히 보기"}
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  </span>
+                  {formData.landing_edu100_button_link && (
+                    <span
+                      style={{
+                        display: "block",
+                        marginTop: "0.25rem",
+                        fontSize: "0.6875rem",
+                        color: "#9ca3af",
+                      }}
+                    >
+                      링크: {formData.landing_edu100_button_link}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
