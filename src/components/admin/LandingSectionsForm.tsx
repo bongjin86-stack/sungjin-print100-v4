@@ -119,7 +119,7 @@ const defaultValues: FormData = {
 };
 
 export default function LandingSectionsForm() {
-  const [activeTab, setActiveTab] = useState<TabType>("hero");
+  const [activeTab, setActiveTab] = useState<TabType>("order");
   const [formData, setFormData] = useState<FormData>(defaultValues);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -610,10 +610,21 @@ export default function LandingSectionsForm() {
     <div style={styles.form}>
       {/* 탭 네비게이션 */}
       <div style={localStyles.tabs}>
+        <button
+          type="button"
+          onClick={() => setActiveTab("order")}
+          style={{
+            ...localStyles.tab,
+            ...localStyles.tabOrder,
+            ...(activeTab === "order" ? localStyles.tabActive : {}),
+          }}
+        >
+          순서/노출
+        </button>
+        <span style={localStyles.tabDivider} />
         {(
           [
             ["hero", "Hero"],
-            ["order", "순서"],
             ["products", "Products"],
             ["works", "Works"],
             ["edu100", "Edu+100"],
@@ -630,7 +641,7 @@ export default function LandingSectionsForm() {
               ...(activeTab === key ? localStyles.tabActive : {}),
             }}
           >
-            {label} {key !== "order" ? "섹션" : ""}
+            {label} 섹션
           </button>
         ))}
       </div>
@@ -1459,6 +1470,15 @@ const localStyles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     marginBottom: "-1px",
     whiteSpace: "nowrap",
+  },
+  tabOrder: {
+    fontWeight: 600,
+  },
+  tabDivider: {
+    width: "1px",
+    alignSelf: "stretch",
+    margin: "0.5rem 0.25rem",
+    background: "#d1d5db",
   },
   tabActive: {
     color: "#000",
