@@ -24,6 +24,9 @@ let siteSettingsCache: CacheEntry<Record<string, string>> | null = null;
 // 로고 URL (SiteLogo)
 let logoCache: CacheEntry<string | null> | null = null;
 
+// 헤더 숨김 메뉴 (Header 필터링)
+let headerHiddenCache: CacheEntry<string[]> | null = null;
+
 function isExpired(entry: CacheEntry<unknown> | null): boolean {
   if (!entry) return true;
   return Date.now() - entry.timestamp > CACHE_TTL_MS;
@@ -106,10 +109,36 @@ export async function getLogoUrl(): Promise<string | null> {
 }
 
 /**
+ * Header용 숨김 메뉴 경로 목록 (캐시)
+ */
+export async function getHeaderHiddenItems(): Promise<string[]> {
+  if (!isExpired(headerHiddenCache)) return headerHiddenCache!.data;
+
+  let items: string[] = [];
+  try {
+    const { data } = await supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "header_hidden_items")
+      .single();
+    if (data?.value) {
+      const parsed = JSON.parse(data.value);
+      if (Array.isArray(parsed)) items = parsed;
+    }
+  } catch {
+    // 없으면 빈 배열
+  }
+
+  headerHiddenCache = { data: items, timestamp: Date.now() };
+  return items;
+}
+
+/**
  * 캐시 초기화 (관리자가 설정 변경 시)
  */
 export function clearLayoutCache(): void {
   servicesCache = null;
   siteSettingsCache = null;
   logoCache = null;
+  headerHiddenCache = null;
 }

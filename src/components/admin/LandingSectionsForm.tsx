@@ -39,6 +39,16 @@ const SECTION_LABELS: Record<string, string> = {
   cta: "CTA (문의하기)",
 };
 
+const HEADER_MENU_ITEMS = [
+  { key: "/about/", label: "회사소개" },
+  { key: "/services/", label: "서비스" },
+  { key: "/works/", label: "Works" },
+  { key: "/prints/", label: "Prints" },
+  { key: "/edu100/", label: "Edu+100" },
+  { key: "/news/", label: "공지사항" },
+  { key: "/contact/", label: "문의하기" },
+];
+
 interface FormData {
   // About 섹션
   landing_about_text: string;
@@ -70,6 +80,8 @@ interface FormData {
   landing_section_order: string;
   // 섹션 숨김
   landing_section_hidden: string;
+  // 헤더 메뉴 숨김
+  header_hidden_items: string;
 }
 
 interface PrintItem {
@@ -116,6 +128,7 @@ const defaultValues: FormData = {
   landing_edu100_button_link: "/edu100",
   landing_section_order: JSON.stringify(DEFAULT_SECTION_ORDER),
   landing_section_hidden: "[]",
+  header_hidden_items: "[]",
 };
 
 export default function LandingSectionsForm() {
@@ -143,6 +156,9 @@ export default function LandingSectionsForm() {
 
   // 섹션 숨김 상태
   const [sectionHidden, setSectionHidden] = useState<string[]>([]);
+
+  // 헤더 메뉴 숨김 상태
+  const [headerHidden, setHeaderHidden] = useState<string[]>([]);
 
   // EDU+100 이미지 업로드 상태
   const [edu100Images, setEdu100Images] = useState<string[]>([]);
@@ -223,6 +239,8 @@ export default function LandingSectionsForm() {
           landing_section_hidden:
             configMap.landing_section_hidden ||
             defaultValues.landing_section_hidden,
+          header_hidden_items:
+            configMap.header_hidden_items || defaultValues.header_hidden_items,
           landing_products_title:
             configMap.landing_products_title ||
             defaultValues.landing_products_title,
@@ -272,6 +290,13 @@ export default function LandingSectionsForm() {
           setSectionHidden(Array.isArray(hidden) ? hidden : []);
         } catch {
           setSectionHidden([]);
+        }
+
+        try {
+          const hdrHidden = JSON.parse(newFormData.header_hidden_items || "[]");
+          setHeaderHidden(Array.isArray(hdrHidden) ? hdrHidden : []);
+        } catch {
+          setHeaderHidden([]);
         }
       }
     } catch (error) {
@@ -404,10 +429,12 @@ export default function LandingSectionsForm() {
       } else if (activeTab === "order") {
         const orderJson = JSON.stringify(sectionOrder);
         const hiddenJson = JSON.stringify(sectionHidden);
+        const headerHiddenJson = JSON.stringify(headerHidden);
         setFormData((prev) => ({
           ...prev,
           landing_section_order: orderJson,
           landing_section_hidden: hiddenJson,
+          header_hidden_items: headerHiddenJson,
         }));
         const updates = [
           {
@@ -418,6 +445,11 @@ export default function LandingSectionsForm() {
           {
             key: "landing_section_hidden",
             value: hiddenJson,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            key: "header_hidden_items",
+            value: headerHiddenJson,
             updated_at: new Date().toISOString(),
           },
         ];
@@ -553,6 +585,12 @@ export default function LandingSectionsForm() {
   const toggleSectionHidden = useCallback((key: string) => {
     setSectionHidden((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  }, []);
+
+  const toggleHeaderHidden = useCallback((path: string) => {
+    setHeaderHidden((prev) =>
+      prev.includes(path) ? prev.filter((p) => p !== path) : [...prev, path]
     );
   }, []);
 
@@ -748,6 +786,54 @@ export default function LandingSectionsForm() {
           >
             기본 순서로 초기화
           </button>
+
+          <div style={{ ...localStyles.sectionHeader, marginTop: "2rem" }}>
+            <h3 style={localStyles.sectionTitle}>헤더 메뉴 관리</h3>
+            <p style={localStyles.sectionDesc}>
+              헤더 내비게이션에 표시할 메뉴를 설정합니다. 비노출로 설정하면
+              헤더에서 해당 메뉴가 숨겨집니다.
+            </p>
+          </div>
+
+          <div style={localStyles.orderList}>
+            {HEADER_MENU_ITEMS.map((item) => {
+              const isHidden = headerHidden.includes(item.key);
+              return (
+                <div
+                  key={item.key}
+                  style={{
+                    ...localStyles.orderItem,
+                    ...(isHidden ? { opacity: 0.5 } : {}),
+                  }}
+                >
+                  <span
+                    style={{
+                      ...localStyles.orderLabel,
+                      ...(isHidden
+                        ? { textDecoration: "line-through", color: "#9ca3af" }
+                        : {}),
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                  <span style={localStyles.headerMenuPath}>{item.key}</span>
+                  <button
+                    type="button"
+                    onClick={() => toggleHeaderHidden(item.key)}
+                    style={{
+                      ...localStyles.visibilityBtn,
+                      ...(isHidden
+                        ? localStyles.visibilityBtnHidden
+                        : localStyles.visibilityBtnVisible),
+                    }}
+                    title={isHidden ? "노출하기" : "숨기기"}
+                  >
+                    {isHidden ? "비노출" : "노출"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -1547,6 +1633,11 @@ const localStyles: Record<string, React.CSSProperties> = {
     fontSize: "0.875rem",
     fontWeight: 500,
     color: "#111827",
+  },
+  headerMenuPath: {
+    fontSize: "0.75rem",
+    color: "#9ca3af",
+    fontFamily: "monospace",
   },
   visibilityBtn: {
     marginLeft: "auto",

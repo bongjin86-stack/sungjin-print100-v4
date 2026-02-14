@@ -8,9 +8,11 @@ import type { MenuItem } from "@/types/index.d.ts";
 
 interface Props {
   mainMenu?: MenuItem[];
+  showContact?: boolean;
 }
 
-const { mainMenu = menuData.main as MenuItem[] } = Astro.props;
+const { mainMenu = menuData.main as MenuItem[], showContact = true } =
+  Astro.props;
 const contactMenu = menuData.contact;
 
 const headerHeight = siteConfig.settings.header_height_mobile;
@@ -49,14 +51,18 @@ const headerHeight = siteConfig.settings.header_height_mobile;
         ))
       }
     </ul>
-    <LinkButton
-      href={contactMenu.path}
-      ariaLabel={contactMenu.title}
-      fullWidth
-      class="menu-contact"
-    >
-      {contactMenu.title}
-    </LinkButton>
+    {
+      showContact && (
+        <LinkButton
+          href={contactMenu.path}
+          ariaLabel={contactMenu.title}
+          fullWidth
+          class="menu-contact"
+        >
+          {contactMenu.title}
+        </LinkButton>
+      )
+    }
   </nav>
 </div>
 

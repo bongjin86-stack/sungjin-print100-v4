@@ -6,7 +6,7 @@ import MobileMenu from "@/components/ui/MobileMenu.astro";
 import SiteLogo from "@/components/ui/SiteLogo.astro";
 import menuData from "@/config/menu.json";
 import siteConfig from "@/config/site.config.json";
-import { getServices } from "@/lib/layoutCache";
+import { getHeaderHiddenItems, getServices } from "@/lib/layoutCache";
 import type { MenuData, MenuItem } from "@/types/index.d.ts";
 
 const typedMenuData = menuData as MenuData;
@@ -15,18 +15,25 @@ const contactMenu = typedMenuData.contact;
 // DB에서 활성 서비스 목록 (메모리 캐시, 5분 TTL)
 const services = await getServices();
 
-const mainMenu: MenuItem[] = typedMenuData.main.map((item) => {
-  if (item.path === "/services/" && services && services.length > 0) {
-    return {
-      ...item,
-      children: services.map((s) => ({
-        title: s.title,
-        path: `/services/#${s.slug}`,
-      })),
-    };
-  }
-  return item;
-});
+// 숨김 메뉴 목록 (메모리 캐시, 5분 TTL)
+const headerHiddenItems = await getHeaderHiddenItems();
+
+const mainMenu: MenuItem[] = typedMenuData.main
+  .filter((item) => !headerHiddenItems.includes(item.path))
+  .map((item) => {
+    if (item.path === "/services/" && services && services.length > 0) {
+      return {
+        ...item,
+        children: services.map((s) => ({
+          title: s.title,
+          path: `/services/#${s.slug}`,
+        })),
+      };
+    }
+    return item;
+  });
+
+const showContact = !headerHiddenItems.includes(contactMenu.path);
 
 const headerHeight = siteConfig.settings.header_height;
 const headerHeightMobile = siteConfig.settings.header_height_mobile;
@@ -63,19 +70,23 @@ const isHome = Astro.url.pathname === "/";
               </li>
             ))
           }
-          <li>
-            <LinkButton
-              href={contactMenu.path}
-              ariaLabel={contactMenu.title}
-              size="small"
-              class="menu-contact"
-            >
-              {contactMenu.title}
-            </LinkButton>
-          </li>
+          {
+            showContact && (
+              <li>
+                <LinkButton
+                  href={contactMenu.path}
+                  ariaLabel={contactMenu.title}
+                  size="small"
+                  class="menu-contact"
+                >
+                  {contactMenu.title}
+                </LinkButton>
+              </li>
+            )
+          }
         </ul>
       </nav>
-      <MobileMenu mainMenu={mainMenu} />
+      <MobileMenu mainMenu={mainMenu} showContact={showContact} />
     </div>
   </Container>
 </header>
