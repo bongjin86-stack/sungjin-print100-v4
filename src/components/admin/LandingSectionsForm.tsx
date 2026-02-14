@@ -687,19 +687,6 @@ export default function LandingSectionsForm() {
                   >
                     {SECTION_LABELS[key] || key}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => toggleSectionHidden(key)}
-                    style={{
-                      ...localStyles.visibilityBtn,
-                      ...(isHidden
-                        ? localStyles.visibilityBtnHidden
-                        : localStyles.visibilityBtnVisible),
-                    }}
-                    title={isHidden ? "노출하기" : "숨기기"}
-                  >
-                    {isHidden ? "비노출" : "노출"}
-                  </button>
                   <div style={localStyles.selectedActions}>
                     <button
                       type="button"
@@ -720,6 +707,19 @@ export default function LandingSectionsForm() {
                       ▼
                     </button>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleSectionHidden(key)}
+                    style={{
+                      ...localStyles.visibilityBtn,
+                      ...(isHidden
+                        ? localStyles.visibilityBtnHidden
+                        : localStyles.visibilityBtnVisible),
+                    }}
+                    title={isHidden ? "노출하기" : "숨기기"}
+                  >
+                    {isHidden ? "비노출" : "노출"}
+                  </button>
                 </div>
               );
             })}
@@ -1529,6 +1529,7 @@ const localStyles: Record<string, React.CSSProperties> = {
     color: "#111827",
   },
   visibilityBtn: {
+    marginLeft: "auto",
     padding: "0.25rem 0.625rem",
     border: "1px solid",
     borderRadius: "9999px",
