@@ -37,22 +37,35 @@ const defaultOrder = [
 ];
 
 let sectionOrder = defaultOrder;
+let sectionHidden: string[] = [];
 try {
   const { data } = await supabase
     .from("site_settings")
-    .select("value")
-    .eq("key", "landing_section_order")
-    .single();
+    .select("key, value")
+    .in("key", ["landing_section_order", "landing_section_hidden"]);
 
-  if (data?.value) {
-    const parsed = JSON.parse(data.value);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      sectionOrder = parsed;
+  if (data) {
+    for (const item of data) {
+      if (item.key === "landing_section_order" && item.value) {
+        const parsed = JSON.parse(item.value);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          sectionOrder = parsed;
+        }
+      }
+      if (item.key === "landing_section_hidden" && item.value) {
+        const parsed = JSON.parse(item.value);
+        if (Array.isArray(parsed)) {
+          sectionHidden = parsed;
+        }
+      }
     }
   }
 } catch {
   // 기본 순서 사용
 }
+
+// 숨김 섹션 필터링
+sectionOrder = sectionOrder.filter((s) => !sectionHidden.includes(s));
 ---
 
 <Layout title={siteTitle} description={siteDescription}>

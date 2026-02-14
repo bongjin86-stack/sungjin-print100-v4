@@ -10,7 +10,13 @@ import { supabase } from "../../lib/supabase";
 const { data: settings } = await supabase
   .from("site_settings")
   .select("key, value")
-  .in("key", ["landing_products_ids", "landing_products_count"]);
+  .in("key", [
+    "landing_products_ids",
+    "landing_products_count",
+    "landing_products_title",
+    "landing_products_subtitle",
+    "landing_products_link_text",
+  ]);
 
 const configMap: Record<string, string> = {};
 (settings || []).forEach((s: { key: string; value: string }) => {
@@ -25,6 +31,9 @@ try {
 }
 
 const maxCount = parseInt(configMap.landing_products_count || "6", 10);
+const sectionTitle = configMap.landing_products_title || "Products";
+const sectionSubtitle = configMap.landing_products_subtitle || "인쇄 상품";
+const linkText = configMap.landing_products_link_text || "View all products";
 
 // 선택된 상품 또는 최신 상품 가져오기
 let prints: any[] = [];
@@ -64,9 +73,9 @@ if (productIds.length > 0) {
       <Container>
         <div class="prints-showcase-inner">
           <div class="prints-showcase-header">
-            <SectionTitle title="Products" subtitle="인쇄 상품" />
+            <SectionTitle title={sectionTitle} subtitle={sectionSubtitle} />
             <LinkText href="/prints/" ariaLabel="전체 상품 보기">
-              View all products
+              {linkText}
             </LinkText>
           </div>
 
@@ -86,9 +95,6 @@ if (productIds.length > 0) {
                     ) : (
                       <div class="showcase-card-placeholder">No Image</div>
                     )}
-                    {item.tag && (
-                      <span class="showcase-card-tag">{item.tag}</span>
-                    )}
                   </div>
                   <div class="showcase-card-content">
                     <h3 class="showcase-card-title">{item.title}</h3>
@@ -96,6 +102,9 @@ if (productIds.length > 0) {
                       <p class="showcase-card-subtitle">
                         {item.client || item.subtitle}
                       </p>
+                    )}
+                    {item.tag && (
+                      <span class="showcase-card-tag">{item.tag}</span>
                     )}
                   </div>
                 </a>
@@ -192,14 +201,14 @@ if (productIds.length > 0) {
   }
 
   .showcase-card-tag {
-    position: absolute;
-    top: var(--sp-md);
-    left: var(--sp-md);
+    display: inline-block;
+    align-self: self-start;
+    margin-top: var(--sp-xs);
     padding: var(--sp-xs) var(--sp-md);
-    background-color: rgba(255, 255, 255, 0.7);
-    color: var(--c-text);
+    background-color: var(--c-bg-secondary);
+    color: var(--c-text-sub);
     font-size: var(--fs-xs);
-    font-weight: 500;
+    font-weight: 400;
     line-height: var(--lh-tight);
     text-transform: uppercase;
     letter-spacing: 0.02em;

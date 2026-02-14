@@ -52,6 +52,9 @@ interface FormData {
   // Products 섹션
   landing_products_ids: string;
   landing_products_count: string;
+  landing_products_title: string;
+  landing_products_subtitle: string;
+  landing_products_link_text: string;
   // Works 섹션
   landing_works_ids: string;
   landing_works_count: string;
@@ -65,6 +68,8 @@ interface FormData {
   landing_edu100_button_link: string;
   // 섹션 순서
   landing_section_order: string;
+  // 섹션 숨김
+  landing_section_hidden: string;
 }
 
 interface PrintItem {
@@ -96,6 +101,9 @@ const defaultValues: FormData = {
   landing_cta_button_link: "/contact",
   landing_products_ids: "[]",
   landing_products_count: "6",
+  landing_products_title: "Products",
+  landing_products_subtitle: "인쇄 상품",
+  landing_products_link_text: "View all products",
   landing_works_ids: "[]",
   landing_works_count: "4",
   landing_edu100_images: "[]",
@@ -107,6 +115,7 @@ const defaultValues: FormData = {
   landing_edu100_button_text: "자세히 보기",
   landing_edu100_button_link: "/edu100",
   landing_section_order: JSON.stringify(DEFAULT_SECTION_ORDER),
+  landing_section_hidden: "[]",
 };
 
 export default function LandingSectionsForm() {
@@ -131,6 +140,9 @@ export default function LandingSectionsForm() {
   const [sectionOrder, setSectionOrder] = useState<string[]>(
     DEFAULT_SECTION_ORDER
   );
+
+  // 섹션 숨김 상태
+  const [sectionHidden, setSectionHidden] = useState<string[]>([]);
 
   // EDU+100 이미지 업로드 상태
   const [edu100Images, setEdu100Images] = useState<string[]>([]);
@@ -208,6 +220,18 @@ export default function LandingSectionsForm() {
           landing_section_order:
             configMap.landing_section_order ||
             defaultValues.landing_section_order,
+          landing_section_hidden:
+            configMap.landing_section_hidden ||
+            defaultValues.landing_section_hidden,
+          landing_products_title:
+            configMap.landing_products_title ||
+            defaultValues.landing_products_title,
+          landing_products_subtitle:
+            configMap.landing_products_subtitle ||
+            defaultValues.landing_products_subtitle,
+          landing_products_link_text:
+            configMap.landing_products_link_text ||
+            defaultValues.landing_products_link_text,
         };
 
         setFormData(newFormData);
@@ -241,6 +265,13 @@ export default function LandingSectionsForm() {
           setSectionOrder(Array.isArray(order) ? order : DEFAULT_SECTION_ORDER);
         } catch {
           setSectionOrder(DEFAULT_SECTION_ORDER);
+        }
+
+        try {
+          const hidden = JSON.parse(newFormData.landing_section_hidden || "[]");
+          setSectionHidden(Array.isArray(hidden) ? hidden : []);
+        } catch {
+          setSectionHidden([]);
         }
       }
     } catch (error) {
@@ -321,6 +352,21 @@ export default function LandingSectionsForm() {
             value: formData.landing_products_count,
             updated_at: new Date().toISOString(),
           },
+          {
+            key: "landing_products_title",
+            value: formData.landing_products_title,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            key: "landing_products_subtitle",
+            value: formData.landing_products_subtitle,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            key: "landing_products_link_text",
+            value: formData.landing_products_link_text,
+            updated_at: new Date().toISOString(),
+          },
         ];
         const { error } = await supabase
           .from("site_settings")
@@ -357,11 +403,21 @@ export default function LandingSectionsForm() {
         return;
       } else if (activeTab === "order") {
         const orderJson = JSON.stringify(sectionOrder);
-        setFormData((prev) => ({ ...prev, landing_section_order: orderJson }));
+        const hiddenJson = JSON.stringify(sectionHidden);
+        setFormData((prev) => ({
+          ...prev,
+          landing_section_order: orderJson,
+          landing_section_hidden: hiddenJson,
+        }));
         const updates = [
           {
             key: "landing_section_order",
             value: orderJson,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            key: "landing_section_hidden",
+            value: hiddenJson,
             updated_at: new Date().toISOString(),
           },
         ];
@@ -491,6 +547,13 @@ export default function LandingSectionsForm() {
 
   const resetSectionOrder = useCallback(() => {
     setSectionOrder(DEFAULT_SECTION_ORDER);
+    setSectionHidden([]);
+  }, []);
+
+  const toggleSectionHidden = useCallback((key: string) => {
+    setSectionHidden((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
   }, []);
 
   // ─── EDU+100 이미지 핸들러 ───
@@ -603,34 +666,63 @@ export default function LandingSectionsForm() {
           </div>
 
           <div style={localStyles.orderList}>
-            {sectionOrder.map((key, index) => (
-              <div key={key} style={localStyles.orderItem}>
-                <span style={localStyles.orderIndex}>{index + 1}</span>
-                <span style={localStyles.orderLabel}>
-                  {SECTION_LABELS[key] || key}
-                </span>
-                <div style={localStyles.selectedActions}>
+            {sectionOrder.map((key, index) => {
+              const isHidden = sectionHidden.includes(key);
+              return (
+                <div
+                  key={key}
+                  style={{
+                    ...localStyles.orderItem,
+                    ...(isHidden ? { opacity: 0.5 } : {}),
+                  }}
+                >
+                  <span style={localStyles.orderIndex}>{index + 1}</span>
+                  <span
+                    style={{
+                      ...localStyles.orderLabel,
+                      ...(isHidden
+                        ? { textDecoration: "line-through", color: "#9ca3af" }
+                        : {}),
+                    }}
+                  >
+                    {SECTION_LABELS[key] || key}
+                  </span>
                   <button
                     type="button"
-                    onClick={() => moveSection(index, -1)}
-                    disabled={index === 0}
-                    style={localStyles.moveBtn}
-                    title="위로"
+                    onClick={() => toggleSectionHidden(key)}
+                    style={{
+                      ...localStyles.visibilityBtn,
+                      ...(isHidden
+                        ? localStyles.visibilityBtnHidden
+                        : localStyles.visibilityBtnVisible),
+                    }}
+                    title={isHidden ? "노출하기" : "숨기기"}
                   >
-                    ▲
+                    {isHidden ? "비노출" : "노출"}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => moveSection(index, 1)}
-                    disabled={index === sectionOrder.length - 1}
-                    style={localStyles.moveBtn}
-                    title="아래로"
-                  >
-                    ▼
-                  </button>
+                  <div style={localStyles.selectedActions}>
+                    <button
+                      type="button"
+                      onClick={() => moveSection(index, -1)}
+                      disabled={index === 0}
+                      style={localStyles.moveBtn}
+                      title="위로"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveSection(index, 1)}
+                      disabled={index === sectionOrder.length - 1}
+                      style={localStyles.moveBtn}
+                      title="아래로"
+                    >
+                      ▼
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <button
@@ -655,6 +747,46 @@ export default function LandingSectionsForm() {
             <h3 style={localStyles.sectionTitle}>Products 섹션</h3>
             <p style={localStyles.sectionDesc}>
               랜딩 페이지에 노출할 인쇄 상품을 선택하고 순서를 설정합니다.
+            </p>
+          </div>
+
+          <div style={styles.formRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>섹션 제목</label>
+              <input
+                type="text"
+                name="landing_products_title"
+                value={formData.landing_products_title}
+                onChange={handleChange}
+                style={styles.input}
+                placeholder="Products"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>부제목 (라벨)</label>
+              <input
+                type="text"
+                name="landing_products_subtitle"
+                value={formData.landing_products_subtitle}
+                onChange={handleChange}
+                style={styles.input}
+                placeholder="인쇄 상품"
+              />
+            </div>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>링크 텍스트</label>
+            <input
+              type="text"
+              name="landing_products_link_text"
+              value={formData.landing_products_link_text}
+              onChange={handleChange}
+              style={styles.input}
+              placeholder="View all products"
+            />
+            <p style={styles.hint}>
+              섹션 헤더 옆에 표시되는 전체 상품 보기 링크 텍스트입니다.
             </p>
           </div>
 
@@ -1395,6 +1527,25 @@ const localStyles: Record<string, React.CSSProperties> = {
     fontSize: "0.875rem",
     fontWeight: 500,
     color: "#111827",
+  },
+  visibilityBtn: {
+    padding: "0.25rem 0.625rem",
+    border: "1px solid",
+    borderRadius: "9999px",
+    fontSize: "0.6875rem",
+    fontWeight: 500,
+    cursor: "pointer",
+    flexShrink: 0,
+  },
+  visibilityBtnVisible: {
+    background: "#ecfdf5",
+    borderColor: "#6ee7b7",
+    color: "#059669",
+  },
+  visibilityBtnHidden: {
+    background: "#fef2f2",
+    borderColor: "#fecaca",
+    color: "#dc2626",
   },
   selectedList: {
     display: "flex",
