@@ -3,8 +3,8 @@ import type { APIRoute } from "astro";
 
 export const prerender = false;
 
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_KEY;
+const supabaseUrl = (import.meta.env.PUBLIC_SUPABASE_URL || "").trim();
+const supabaseServiceKey = (import.meta.env.SUPABASE_SERVICE_KEY || "").trim();
 
 if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error(
