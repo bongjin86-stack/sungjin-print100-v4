@@ -92,8 +92,10 @@ if (productIds.length > 0) {
                   </div>
                   <div class="showcase-card-content">
                     <h3 class="showcase-card-title">{item.title}</h3>
-                    {item.subtitle && (
-                      <p class="showcase-card-subtitle">{item.subtitle}</p>
+                    {(item.client || item.subtitle) && (
+                      <p class="showcase-card-subtitle">
+                        {item.client || item.subtitle}
+                      </p>
                     )}
                   </div>
                 </a>
