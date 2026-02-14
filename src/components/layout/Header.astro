@@ -6,7 +6,8 @@ import MobileMenu from "@/components/ui/MobileMenu.astro";
 import SiteLogo from "@/components/ui/SiteLogo.astro";
 import menuData from "@/config/menu.json";
 import siteConfig from "@/config/site.config.json";
-import { getHeaderHiddenItems, getServices } from "@/lib/layoutCache";
+import { getServices } from "@/lib/layoutCache";
+import { supabase } from "@/lib/supabase";
 import type { MenuData, MenuItem } from "@/types/index.d.ts";
 
 const typedMenuData = menuData as MenuData;
@@ -15,8 +16,21 @@ const contactMenu = typedMenuData.contact;
 // DB에서 활성 서비스 목록 (메모리 캐시, 5분 TTL)
 const services = await getServices();
 
-// 숨김 메뉴 목록 (메모리 캐시, 5분 TTL)
-const headerHiddenItems = await getHeaderHiddenItems();
+// 숨김 메뉴 목록 (DB 직접 조회 — 관리자 변경 즉시 반영)
+let headerHiddenItems: string[] = [];
+try {
+  const { data } = await supabase
+    .from("site_settings")
+    .select("value")
+    .eq("key", "header_hidden_items")
+    .single();
+  if (data?.value) {
+    const parsed = JSON.parse(data.value);
+    if (Array.isArray(parsed)) headerHiddenItems = parsed;
+  }
+} catch {
+  // 없으면 빈 배열
+}
 
 const mainMenu: MenuItem[] = typedMenuData.main
   .filter((item) => !headerHiddenItems.includes(item.path))

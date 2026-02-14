@@ -71,6 +71,7 @@ const ALLOWED_FOLDERS = new Set([
   "faq",
   "general",
   "edu100",
+  "landing-edu100",
 ]);
 
 // Auth check: unauthenticated requests can only upload to 'orders' folder
@@ -168,10 +169,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
 
     if (error) {
-      return new Response(JSON.stringify({ error: "Upload failed" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
+      console.error("Supabase upload error:", error.message, {
+        fileName,
+        finalFolder,
       });
+      return new Response(
+        JSON.stringify({ error: `Upload failed: ${error.message}` }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     // Get public URL
@@ -187,8 +192,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
-  } catch {
-    return new Response(JSON.stringify({ error: "Upload failed" }), {
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    console.error("Upload endpoint error:", msg);
+    return new Response(JSON.stringify({ error: `Upload failed: ${msg}` }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
