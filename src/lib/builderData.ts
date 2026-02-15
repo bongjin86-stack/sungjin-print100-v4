@@ -1336,6 +1336,8 @@ export function getDefaultConfig(type: string): BlockConfig {
         step: 4,
         default: 16,
         maxThickness: 2.5,
+        bindingType: "saddle",
+        linkedBlocks: {},
       } as any;
     case "pages_leaf":
       return {
@@ -1344,6 +1346,8 @@ export function getDefaultConfig(type: string): BlockConfig {
         step: 2,
         default: 50,
         maxThickness: 50,
+        bindingType: "leaf",
+        linkedBlocks: {},
       } as any;
     case "pages":
       return {
@@ -1588,9 +1592,27 @@ export function inferProductType(product: {
 }): string {
   if (product.product_type) return product.product_type;
   const blocks = product.blocks || [];
-  const pagesBlock = blocks.find((b: any) => b.on && b.type === "pages");
-  if (pagesBlock?.config?.bindingType === "saddle") return "saddle";
-  if (pagesBlock?.config?.bindingType === "leaf") {
+  const pagesBlock = blocks.find(
+    (b: any) =>
+      b.on &&
+      (b.type === "pages" ||
+        b.type === "pages_saddle" ||
+        b.type === "pages_leaf")
+  );
+  if (!pagesBlock) return "flyer";
+
+  // 블록 타입 자체로 판별 (pages_saddle / pages_leaf)
+  if (pagesBlock.type === "pages_saddle") return "saddle";
+  if (pagesBlock.type === "pages_leaf") {
+    const hasSpring = blocks.some(
+      (b: any) => b.on && b.type === "spring_options"
+    );
+    return hasSpring ? "spring" : "perfect";
+  }
+
+  // 범용 pages 블록: config.bindingType으로 판별
+  if (pagesBlock.config?.bindingType === "saddle") return "saddle";
+  if (pagesBlock.config?.bindingType === "leaf") {
     const hasSpring = blocks.some(
       (b: any) => b.on && b.type === "spring_options"
     );

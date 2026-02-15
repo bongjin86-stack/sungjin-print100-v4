@@ -294,7 +294,10 @@ export function mapPrintOptionsToCustomer(
   blocks: Block[]
 ): CustomerSelection & Record<string, any> {
   if (!blocks) return cust;
-  const pagesBlock = blocks.find((b) => b.type === "pages");
+  const pagesBlock = blocks.find(
+    (b) =>
+      b.type === "pages" || b.type === "pages_saddle" || b.type === "pages_leaf"
+  );
   const linkedBlocks = pagesBlock?.config?.linkedBlocks || {};
   const innerPrintBlockId = linkedBlocks.innerPrint;
   const innerPrintOpt = innerPrintBlockId

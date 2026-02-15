@@ -128,7 +128,11 @@ export default function ProductView({ product: initialProduct }) {
         if (isOutsourced) {
           const booksArr = customer.books || [];
           const pagesBlock = product?.blocks?.find(
-            (b) => b.on && b.type === "pages"
+            (b) =>
+              b.on &&
+              (b.type === "pages" ||
+                b.type === "pages_saddle" ||
+                b.type === "pages_leaf")
           );
 
           const res = await fetch("/api/calculate-price", {
