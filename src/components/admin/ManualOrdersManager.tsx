@@ -197,7 +197,9 @@ export default function ManualOrdersManager() {
           style={{ ...styles.input, flex: 1, maxWidth: "200px" }}
         />
         <span style={{ fontSize: "0.8125rem", color: "#6b7280" }}>
-          {startDate ? `${startDate.replace(/-/g, ".")} — 현재 (라이브)` : "미설정"}
+          {startDate
+            ? `${startDate.replace(/-/g, ".")} — 현재 (라이브)`
+            : "미설정"}
         </span>
         <button
           type="button"
@@ -280,7 +282,11 @@ export default function ManualOrdersManager() {
             </div>
           </div>
           <div style={styles.formActions}>
-            <button type="button" onClick={resetForm} style={styles.cancelButton}>
+            <button
+              type="button"
+              onClick={resetForm}
+              style={styles.cancelButton}
+            >
               취소
             </button>
             <button type="submit" disabled={saving} style={styles.submitButton}>

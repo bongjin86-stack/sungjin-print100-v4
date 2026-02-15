@@ -146,13 +146,13 @@ These are already implemented. Modify the existing files:
 
 ```typescript
 interface Block {
-  id: number;        // 블록 고유 ID (linkedBlocks에서 참조용)
-  type: string;      // 블록 타입 (BLOCK_TYPES 키값)
-  label: string;     // 관리자가 설정한 표시 이름
-  on: boolean;       // 활성화 여부 (off면 추출/렌더링/가격 모두 제외)
+  id: number; // 블록 고유 ID (linkedBlocks에서 참조용)
+  type: string; // 블록 타입 (BLOCK_TYPES 키값)
+  label: string; // 관리자가 설정한 표시 이름
+  on: boolean; // 활성화 여부 (off면 추출/렌더링/가격 모두 제외)
   optional: boolean; // 고객이 선택적으로 토글 가능
-  locked: boolean;   // 관리자 편집 잠금 (UI read-only)
-  hidden: boolean;   // 고객 뷰에서 숨김 (가격에는 영향)
+  locked: boolean; // 관리자 편집 잠금 (UI read-only)
+  hidden: boolean; // 고객 뷰에서 숨김 (가격에는 영향)
   config: BlockConfig; // 블록별 설정 (아래 참조)
 }
 ```
@@ -161,32 +161,32 @@ interface Block {
 
 **활성 블록 (현재 사용):**
 
-| type | 이름 | 역할 | 설정하는 customer 키 |
-|------|------|------|---------------------|
-| `size` | 사이즈 | 출력 규격 선택 | `size` |
-| `paper` | 용지 | 용지+평량 (role에 따라 cover/inner/default) | `paper`+`weight` 또는 `coverPaper`+`coverWeight` 또는 `innerPaper`+`innerWeight` |
-| `print` | 인쇄 | 컬러/흑백, 단면/양면 (linkedBlocks에 따라 분기) | `color`+`side` 또는 `innerColor`+`innerSide` 또는 `coverColor` |
-| `finishing` | 후가공 | 코팅, 오시, 접지, 귀도리, 타공, 미싱 | `finishing.*` (nested object) |
-| `delivery` | 출고일 | 출고 일정 + 할증/할인 | `delivery`, `deliveryPercent`, `deliveryDate` |
-| `quantity` | 수량 | 주문 수량 프리셋 | `qty` |
-| `pages` | 페이지 | 제본 페이지 수 + 두께 제한 | `pages`, `maxThickness` |
-| `spring_options` | 스프링 옵션 | PP/표지인쇄/뒷판/스프링색상 통합 | `pp`, `coverPrint`, `coverPaper`, `coverWeight`, `back`, `springColor` |
-| `guide` | 가이드 | 고객 안내 질문 (가격 포함 가능) | `guides[blockId]` |
-| `consultation` | 상담 | 카카오톡 상담 안내 (가격 무관) | — |
-| `design_select` | 디자인 선택 | edu100 표지 디자인 선택 + 변경 타입 | `designTier`, `selectedDesign` |
-| `text_input` | 텍스트 입력 | 자유 텍스트 입력란 | `textInputs[blockId]` |
-| `books` | 시리즈(다권) | 권별 페이지/수량/필드 입력 | `books[]` |
+| type             | 이름         | 역할                                            | 설정하는 customer 키                                                             |
+| ---------------- | ------------ | ----------------------------------------------- | -------------------------------------------------------------------------------- |
+| `size`           | 사이즈       | 출력 규격 선택                                  | `size`                                                                           |
+| `paper`          | 용지         | 용지+평량 (role에 따라 cover/inner/default)     | `paper`+`weight` 또는 `coverPaper`+`coverWeight` 또는 `innerPaper`+`innerWeight` |
+| `print`          | 인쇄         | 컬러/흑백, 단면/양면 (linkedBlocks에 따라 분기) | `color`+`side` 또는 `innerColor`+`innerSide` 또는 `coverColor`                   |
+| `finishing`      | 후가공       | 코팅, 오시, 접지, 귀도리, 타공, 미싱            | `finishing.*` (nested object)                                                    |
+| `delivery`       | 출고일       | 출고 일정 + 할증/할인                           | `delivery`, `deliveryPercent`, `deliveryDate`                                    |
+| `quantity`       | 수량         | 주문 수량 프리셋                                | `qty`                                                                            |
+| `pages`          | 페이지       | 제본 페이지 수 + 두께 제한                      | `pages`, `maxThickness`                                                          |
+| `spring_options` | 스프링 옵션  | PP/표지인쇄/뒷판/스프링색상 통합                | `pp`, `coverPrint`, `coverPaper`, `coverWeight`, `back`, `springColor`           |
+| `guide`          | 가이드       | 고객 안내 질문 (가격 포함 가능)                 | `guides[blockId]`                                                                |
+| `consultation`   | 상담         | 카카오톡 상담 안내 (가격 무관)                  | —                                                                                |
+| `design_select`  | 디자인 선택  | edu100 표지 디자인 선택 + 변경 타입             | `designTier`, `selectedDesign`                                                   |
+| `text_input`     | 텍스트 입력  | 자유 텍스트 입력란                              | `textInputs[blockId]`                                                            |
+| `books`          | 시리즈(다권) | 권별 페이지/수량/필드 입력                      | `books[]`                                                                        |
 
 **Deprecated 블록 (하위호환용, 신규 상품에 사용 금지):**
 
-| type | 이름 | 대체 | 이유 |
-|------|------|------|------|
-| `pp` | PP | `spring_options.pp` | spring_options로 통합됨 |
-| `cover_print` | 표지인쇄 | `spring_options.coverPrint` | spring_options로 통합됨 |
-| `back` | 뒷판 | `spring_options.back` | spring_options로 통합됨 |
-| `spring_color` | 스프링색상 | `spring_options.springColor` | spring_options로 통합됨 |
-| `inner_layer_saddle` | 내지(중철) | `paper(role:inner)` + `print(linked)` + `pages` | 현대 패턴으로 대체 |
-| `inner_layer_leaf` | 내지(무선/스프링) | `paper(role:inner)` + `print(linked)` + `pages` | 현대 패턴으로 대체 |
+| type                 | 이름              | 대체                                            | 이유                    |
+| -------------------- | ----------------- | ----------------------------------------------- | ----------------------- |
+| `pp`                 | PP                | `spring_options.pp`                             | spring_options로 통합됨 |
+| `cover_print`        | 표지인쇄          | `spring_options.coverPrint`                     | spring_options로 통합됨 |
+| `back`               | 뒷판              | `spring_options.back`                           | spring_options로 통합됨 |
+| `spring_color`       | 스프링색상        | `spring_options.springColor`                    | spring_options로 통합됨 |
+| `inner_layer_saddle` | 내지(중철)        | `paper(role:inner)` + `print(linked)` + `pages` | 현대 패턴으로 대체      |
+| `inner_layer_leaf`   | 내지(무선/스프링) | `paper(role:inner)` + `print(linked)` + `pages` | 현대 패턴으로 대체      |
 
 #### 블록 간 연결 메커니즘 — linkedBlocks (⚠️ 핵심)
 
@@ -203,6 +203,7 @@ linkedBlocks: {
 ```
 
 **연결 흐름:**
+
 1. `extractDefaultsFromBlock(paper블록)` → `getPaperBlockRole()` → cover/inner/default 판별
 2. cover → `customer.coverPaper/coverWeight`, inner → `customer.innerPaper/innerWeight`
 3. `extractDefaultsFromBlock(print블록)` → linkedBlocks 역추적 → innerPrint이면 `customer.innerColor/innerSide`
@@ -215,13 +216,13 @@ linkedBlocks: {
 
 Paper 블록이 표지인지 내지인지 판별하는 로직. 4가지 패턴을 모두 지원합니다.
 
-| 우선순위 | 감지 방법 | 적용 대상 |
-|---------|----------|----------|
-| 1 | `block.config.role === "cover" \| "inner"` (명시적) | 최신 상품 |
-| 2 | 다른 블록의 `linkedBlocks.coverPaper/innerPaper === block.id` (역추적) | 현대 템플릿 |
-| 3 | 활성 paper 블록이 2개 이상: 첫번째=cover, 두번째=inner (순서) | 멀티페이퍼 |
-| 4 | `inner_layer_*` 블록 존재 시: paper 1개 = cover (구형 호환) | 레거시 상품 |
-| fallback | 위 모두 해당 없음 → `"default"` | flyer (단층 상품) |
+| 우선순위 | 감지 방법                                                              | 적용 대상         |
+| -------- | ---------------------------------------------------------------------- | ----------------- |
+| 1        | `block.config.role === "cover" \| "inner"` (명시적)                    | 최신 상품         |
+| 2        | 다른 블록의 `linkedBlocks.coverPaper/innerPaper === block.id` (역추적) | 현대 템플릿       |
+| 3        | 활성 paper 블록이 2개 이상: 첫번째=cover, 두번째=inner (순서)          | 멀티페이퍼        |
+| 4        | `inner_layer_*` 블록 존재 시: paper 1개 = cover (구형 호환)            | 레거시 상품       |
+| fallback | 위 모두 해당 없음 → `"default"`                                        | flyer (단층 상품) |
 
 **⚠️ 이 함수를 건드리면 cover/inner 용지 매핑이 깨져서 가격이 틀어집니다.**
 
@@ -229,12 +230,12 @@ Paper 블록이 표지인지 내지인지 판별하는 로직. 4가지 패턴을
 
 기존 상품 데이터를 깨뜨리지 않기 위해 4가지 블록 구성 패턴이 동시에 지원됩니다:
 
-| 패턴 | 구조 | 사용처 | 상태 |
-|------|------|--------|------|
-| **1. 현대 linkedBlocks** | `pages` + `paper(cover)` + `paper(inner)` + `print` × 2 | 현재 템플릿 (saddle, perfect) | 표준 |
-| **2. spring 통합** | `pages` + `paper(inner)` + `spring_options` | 현재 템플릿 (spring) | 표준 |
-| **3. 구형 inner_layer** | `paper` + `inner_layer_saddle/leaf` | DB의 구형 상품 | deprecated |
-| **4. 단층 (flyer)** | `paper` + `print` + `finishing` (linkedBlocks 없음) | 전단지, 리플렛 | 표준 |
+| 패턴                     | 구조                                                    | 사용처                        | 상태       |
+| ------------------------ | ------------------------------------------------------- | ----------------------------- | ---------- |
+| **1. 현대 linkedBlocks** | `pages` + `paper(cover)` + `paper(inner)` + `print` × 2 | 현재 템플릿 (saddle, perfect) | 표준       |
+| **2. spring 통합**       | `pages` + `paper(inner)` + `spring_options`             | 현재 템플릿 (spring)          | 표준       |
+| **3. 구형 inner_layer**  | `paper` + `inner_layer_saddle/leaf`                     | DB의 구형 상품                | deprecated |
+| **4. 단층 (flyer)**      | `paper` + `print` + `finishing` (linkedBlocks 없음)     | 전단지, 리플렛                | 표준       |
 
 **⚠️ `extractDefaultsFromBlock()`, `getPaperBlockRole()`, `inferProductType()` 모두 4가지를 처리합니다.**
 패턴 하나를 삭제하면 해당 구형 상품의 가격 계산이 깨집니다.
@@ -243,28 +244,28 @@ Paper 블록이 표지인지 내지인지 판별하는 로직. 4가지 패턴을
 
 블록에서 추출된 고객 선택값. **가격 API에 전송되는 핵심 데이터.**
 
-| 속성 | 타입 | 용도 | 설정하는 블록 |
-|------|------|------|-------------|
-| `size` | string | 사이즈 코드 | size |
-| `paper`, `weight` | string, number | 용지/평량 (단층) | paper (role=default) |
-| `coverPaper`, `coverWeight` | string, number | 표지 용지/평량 | paper (role=cover), spring_options.coverPrint |
-| `innerPaper`, `innerWeight` | string, number | 내지 용지/평량 | paper (role=inner) |
-| `color`, `side` | string, string | 인쇄 색상/면 (단층) | print (default) |
-| `innerColor`, `innerSide` | string, string | 내지 인쇄 | print (linkedBlocks.innerPrint) |
-| `coverColor` | string | 표지 인쇄 색상 | print (linkedBlocks.coverPrint) |
-| `finishing` | object | 후가공 nested | finishing |
-| `finishing.corner/punch/mising` | boolean | 귀도리/타공/미싱 | finishing |
-| `finishing.coating/coatingType/coatingSide` | boolean/string | 코팅 | finishing |
-| `finishing.osiEnabled/osi` | boolean/number | 오시 | finishing (getFoldUpdate 연동) |
-| `finishing.foldEnabled/fold` | boolean/number | 접지 | finishing |
-| `delivery`, `deliveryPercent` | string, number | 출고일 + 할증률 | delivery |
-| `qty` | number | 수량 | quantity |
-| `pages` | number | 페이지 수 | pages / pages_saddle / pages_leaf |
-| `pp`, `coverPrint`, `back`, `springColor` | string | 스프링 옵션 | spring_options (또는 개별 deprecated 블록) |
-| `guides[blockId]` | object | 가이드 선택 | guide (가격 영향) |
-| `textInputs[blockId]` | string/object | 텍스트 입력 | text_input |
-| `books[]` | array | 시리즈 권별 정보 | books |
-| `designTier`, `selectedDesign` | string, any | 디자인 선택 | design_select |
+| 속성                                        | 타입           | 용도                | 설정하는 블록                                 |
+| ------------------------------------------- | -------------- | ------------------- | --------------------------------------------- |
+| `size`                                      | string         | 사이즈 코드         | size                                          |
+| `paper`, `weight`                           | string, number | 용지/평량 (단층)    | paper (role=default)                          |
+| `coverPaper`, `coverWeight`                 | string, number | 표지 용지/평량      | paper (role=cover), spring_options.coverPrint |
+| `innerPaper`, `innerWeight`                 | string, number | 내지 용지/평량      | paper (role=inner)                            |
+| `color`, `side`                             | string, string | 인쇄 색상/면 (단층) | print (default)                               |
+| `innerColor`, `innerSide`                   | string, string | 내지 인쇄           | print (linkedBlocks.innerPrint)               |
+| `coverColor`                                | string         | 표지 인쇄 색상      | print (linkedBlocks.coverPrint)               |
+| `finishing`                                 | object         | 후가공 nested       | finishing                                     |
+| `finishing.corner/punch/mising`             | boolean        | 귀도리/타공/미싱    | finishing                                     |
+| `finishing.coating/coatingType/coatingSide` | boolean/string | 코팅                | finishing                                     |
+| `finishing.osiEnabled/osi`                  | boolean/number | 오시                | finishing (getFoldUpdate 연동)                |
+| `finishing.foldEnabled/fold`                | boolean/number | 접지                | finishing                                     |
+| `delivery`, `deliveryPercent`               | string, number | 출고일 + 할증률     | delivery                                      |
+| `qty`                                       | number         | 수량                | quantity                                      |
+| `pages`                                     | number         | 페이지 수           | pages / pages_saddle / pages_leaf             |
+| `pp`, `coverPrint`, `back`, `springColor`   | string         | 스프링 옵션         | spring_options (또는 개별 deprecated 블록)    |
+| `guides[blockId]`                           | object         | 가이드 선택         | guide (가격 영향)                             |
+| `textInputs[blockId]`                       | string/object  | 텍스트 입력         | text_input                                    |
+| `books[]`                                   | array          | 시리즈 권별 정보    | books                                         |
+| `designTier`, `selectedDesign`              | string, any    | 디자인 선택         | design_select                                 |
 
 #### spring_options 통합 블록 구조
 
@@ -339,11 +340,11 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 
 #### 가격에 영향을 주는 숨은 추가금 (놓치기 쉬움)
 
-| 추가금 | 계산 위치 | 조건 | 설명 |
-|--------|----------|------|------|
-| **guidePriceTotal** | usePriceCalculation.js, ProductView.jsx, calculate-price API | guide 블록 on + 옵션 선택 시 | 3곳 모두 동일 로직으로 합산. 하나라도 빠지면 가격 불일치 |
-| **fileSpecPrice** | usePriceCalculation.js → calculate-price API | `sizeBlock.config.trimEnabled` = true | `fileSpecPrices[customer.fileSpec]` 값. 사이즈 블록 config에 설정 |
-| **designFee** | ProductView.jsx → create-order API | `?designId=` URL 파라미터 존재 시 | edu100 표지의 `design_fee`. `freeDesignMinQty` 이상이면 무료 |
+| 추가금              | 계산 위치                                                    | 조건                                  | 설명                                                              |
+| ------------------- | ------------------------------------------------------------ | ------------------------------------- | ----------------------------------------------------------------- |
+| **guidePriceTotal** | usePriceCalculation.js, ProductView.jsx, calculate-price API | guide 블록 on + 옵션 선택 시          | 3곳 모두 동일 로직으로 합산. 하나라도 빠지면 가격 불일치          |
+| **fileSpecPrice**   | usePriceCalculation.js → calculate-price API                 | `sizeBlock.config.trimEnabled` = true | `fileSpecPrices[customer.fileSpec]` 값. 사이즈 블록 config에 설정 |
+| **designFee**       | ProductView.jsx → create-order API                           | `?designId=` URL 파라미터 존재 시     | edu100 표지의 `design_fee`. `freeDesignMinQty` 이상이면 무료      |
 
 **⚠️ 이 추가금들은 priceEngine.ts 밖에서 합산됩니다.** priceEngine만 보면 놓칩니다.
 
@@ -387,13 +388,13 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 
 **모든 상품은 DB `products.product_type`에 명시적 값이 설정되어야 합니다.**
 
-| product_type | 가격 계산 함수 | 해당 상품 |
-|-------------|---------------|----------|
-| `"flyer"` | `calculateSingleLayerPrice()` | 리플렛, 전단지, 엽서 |
-| `"perfect"` | `calculateBindingPrice("perfect")` | 무선제본 |
-| `"saddle"` | `calculateBindingPrice("saddle")` | 중철제본 |
-| `"spring"` | `calculateBindingPrice("spring")` | 스프링제본 |
-| `"outsourced"` | 클라이언트 또는 서버 (아래 참조) | 윤전제본 |
+| product_type   | 가격 계산 함수                     | 해당 상품            |
+| -------------- | ---------------------------------- | -------------------- |
+| `"flyer"`      | `calculateSingleLayerPrice()`      | 리플렛, 전단지, 엽서 |
+| `"perfect"`    | `calculateBindingPrice("perfect")` | 무선제본             |
+| `"saddle"`     | `calculateBindingPrice("saddle")`  | 중철제본             |
+| `"spring"`     | `calculateBindingPrice("spring")`  | 스프링제본           |
+| `"outsourced"` | 클라이언트 또는 서버 (아래 참조)   | 윤전제본             |
 
 **절대 금지 사항:**
 
@@ -424,17 +425,18 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 
 2026-02 사고 재발 방지를 위한 다층 방어 체계:
 
-| Layer | 위치 | 방어 |
-|-------|------|------|
-| S1: 템플릿 기본값 | `builderData.ts` TEMPLATES | 5개 템플릿 모두 `product_type` 명시 |
-| S2: UI 배지 | ProductBuilder 헤더 | 초록=명시, 노랑=추론, 호박=불일치 |
-| S3: 저장 검증 | `saveProductToServer()` | 추론 시 확인, 불일치 시 경고 |
-| S4: API 거부 | products API POST/PUT | null/invalid → 400 에러 |
-| S5: 수동 오버라이드 | ProductBuilder 헤더 드롭다운 | 관리자가 직접 타입 설정 |
+| Layer               | 위치                         | 방어                                |
+| ------------------- | ---------------------------- | ----------------------------------- |
+| S1: 템플릿 기본값   | `builderData.ts` TEMPLATES   | 5개 템플릿 모두 `product_type` 명시 |
+| S2: UI 배지         | ProductBuilder 헤더          | 초록=명시, 노랑=추론, 호박=불일치   |
+| S3: 저장 검증       | `saveProductToServer()`      | 추론 시 확인, 불일치 시 경고        |
+| S4: API 거부        | products API POST/PUT        | null/invalid → 400 에러             |
+| S5: 수동 오버라이드 | ProductBuilder 헤더 드롭다운 | 관리자가 직접 타입 설정             |
 
 **TypeScript 진실 공급원:** `ProductType` union + `VALID_PRODUCT_TYPES` in `builderData.ts`
 
 **리팩토링 체크리스트 (블록/가격 변경 후 필수):**
+
 1. 5개 템플릿 `product_type` 존재 확인
 2. `inferProductType()` 전체 블록 패턴 인식 확인
 3. 가격 API 테스트: flyer + perfect + saddle + spring + outsourced
@@ -517,15 +519,15 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 
 ### Key Documents
 
-| 문서                        | 위치  | 역할                                         |
-| --------------------------- | ----- | -------------------------------------------- |
-| `CHANGELOG.md`              | 루트  | **마스터 변경 이력** (Keep a Changelog 형식) |
-| `CLAUDE.md`                 | 루트  | AI/개발자 작업 지침서 (프로젝트 진입점)      |
-| `docs/README.md`            | docs/ | 문서 인덱스 + 타임라인                       |
-| `docs/rules-constraints.md` | docs/ | 규칙 마스터 문서 (사람이 읽는 상세 설명)     |
-| `docs/pricing-system.md`    | docs/ | 가격 체계 완전 문서                          |
-| `docs/pricing-architecture.md` | docs/ | 가격 시스템 아키텍처 + 이식성 가이드       |
-| `src/data/rules.ts`         | src/  | 규칙 메타데이터 (코드 참조용)                |
+| 문서                           | 위치  | 역할                                         |
+| ------------------------------ | ----- | -------------------------------------------- |
+| `CHANGELOG.md`                 | 루트  | **마스터 변경 이력** (Keep a Changelog 형식) |
+| `CLAUDE.md`                    | 루트  | AI/개발자 작업 지침서 (프로젝트 진입점)      |
+| `docs/README.md`               | docs/ | 문서 인덱스 + 타임라인                       |
+| `docs/rules-constraints.md`    | docs/ | 규칙 마스터 문서 (사람이 읽는 상세 설명)     |
+| `docs/pricing-system.md`       | docs/ | 가격 체계 완전 문서                          |
+| `docs/pricing-architecture.md` | docs/ | 가격 시스템 아키텍처 + 이식성 가이드         |
+| `src/data/rules.ts`            | src/  | 규칙 메타데이터 (코드 참조용)                |
 
 ### When to Update
 

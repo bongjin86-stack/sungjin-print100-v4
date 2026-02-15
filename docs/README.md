@@ -22,13 +22,13 @@
 
 ## 활성 문서
 
-| 문서                                           | 설명                                           | 최종 업데이트 |
-| ---------------------------------------------- | ---------------------------------------------- | ------------- |
-| [CHANGELOG.md](../CHANGELOG.md)                | 전체 버전별 변경 이력                          | 2026-02-07    |
-| [CLAUDE.md](../CLAUDE.md)                      | 프로젝트 구조, 규칙 제어센터, 문서 관리 가이드 | 2026-02-07    |
-| [pricing-system.md](./pricing-system.md)       | 가격 계산 로직, DB 스키마, customer 키 매핑    | 2026-02-05    |
-| [rules-constraints.md](./rules-constraints.md) | 블록 규칙 상세 설명 (blockDefaults.ts 기준)    | 2026-02-07    |
-| [pricing-architecture.md](./pricing-architecture.md) | 가격 시스템 아키텍처 + 이식성 가이드   | 2026-02-15    |
+| 문서                                                 | 설명                                           | 최종 업데이트 |
+| ---------------------------------------------------- | ---------------------------------------------- | ------------- |
+| [CHANGELOG.md](../CHANGELOG.md)                      | 전체 버전별 변경 이력                          | 2026-02-07    |
+| [CLAUDE.md](../CLAUDE.md)                            | 프로젝트 구조, 규칙 제어센터, 문서 관리 가이드 | 2026-02-07    |
+| [pricing-system.md](./pricing-system.md)             | 가격 계산 로직, DB 스키마, customer 키 매핑    | 2026-02-05    |
+| [rules-constraints.md](./rules-constraints.md)       | 블록 규칙 상세 설명 (blockDefaults.ts 기준)    | 2026-02-07    |
+| [pricing-architecture.md](./pricing-architecture.md) | 가격 시스템 아키텍처 + 이식성 가이드           | 2026-02-15    |
 
 ---
 
