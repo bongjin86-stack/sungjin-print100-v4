@@ -64,23 +64,43 @@ ProductView / Builder                API → priceEngine → DB
     ├── mapPrintOptionsToCustomer()      │
     │   (내지/표지 인쇄 매핑)             │
     │                                    │
-    └── fetch("/api/calculate-price")    │
-        { customer, qty, productType } ──┤
+    ├─ outsourced + outsourced_config?   │
+    │   ├─ YES → 클라이언트 직접 계산     │
+    │   │   (usePriceCalculation.js)     │
+    │   │   books 블록 → 시리즈별 계산   │
+    │   │   └─ { selected, byQty }       │
+    │   │                                │
+    │   └─ NO ──────────────────────────┐│
+    │                                    ││
+    └── fetch("/api/calculate-price") ───┤│
+        { customer, qty, productType }   ││
                                          │
                                     loadPricingData()
                                     (8개 테이블 → 캐시)
                                          │
                                     calculatePrice(customer, qty, type)
                                          │
-                                    ┌────┴────┐
+                                    ┌────┴────────┐
                                flyer│    │binding   │outsourced
+                                    │    │          │(DB config 로드)
+                     calculateSingle│  calculate    │calculateOutsourced
+                     LayerPrice()   │  BindingPrice()│Price()
                                     │    │          │
-                     calculateSingle│  calculate    │{total:0}
-                     LayerPrice()   │  BindingPrice()
-                                    │    │
-                                    └────┴──── 결과 반환
+                                    └────┴──────────┘
+                                         │
+                                    + guidePriceTotal (guide 블록 가격 합산)
+                                    + fileSpecPrice (재단 사양 추가금)
+                                    + designFee (edu100 표지 디자인 비용)
                                          │
                                     { selected: {...}, byQty: {...} }
+
+[주문 생성 시]
+Checkout → /api/create-order
+    │
+    ├── 서버에서 priceEngine으로 재계산 (outsourced 포함)
+    ├── guidePriceTotal + designFee 서버 검증
+    ├── 제출 금액 < 서버 금액 * 0.97 → 거부 (3% 단방향 검증)
+    └── 통과 시 orderService.createOrder()
 ```
 
 ---

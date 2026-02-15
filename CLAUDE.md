@@ -131,6 +131,7 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 | --------------------------- | ------------------------------------------------------- |
 | `extractDefaultsFromBlocks` | Block config → customer initial values                  |
 | `extractDefaultsFromBlock`  | Single block config → customer value (used by above)    |
+| `getPaperBlockRole`         | Paper block role detection (cover/inner/default)        |
 | `checkLinkRules`            | Inter-block linking (back disable, PP+cover required)   |
 | `checkThickness`            | Binding thickness limit validation                      |
 | `validateCoatingWeight`     | Coating weight limit (<=150g disabled)                  |
@@ -150,17 +151,78 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 
 ### Pricing System
 
+#### 가격 계산 분기 — 전체 흐름 (리팩토링 전 반드시 이해)
+
+```
+고객 선택 (customer state)
+    │
+    ├─ ProductView.jsx / usePriceCalculation.js
+    │   │
+    │   ├─ outsourced + outsourced_config 있음?
+    │   │   └─ YES → 클라이언트 직접 계산 (API 안 거침)
+    │   │          usePriceCalculation.js lines 61-93
+    │   │          books 블록 있으면 시리즈별 개별 계산
+    │   │
+    │   └─ NO → fetch("/api/calculate-price")
+    │            │
+    │            ├─ outsourced (config DB 로드) → calculateOutsourcedPrice()
+    │            ├─ flyer → calculateSingleLayerPrice()
+    │            └─ binding → calculateBindingPrice()
+    │                         ├─ calculateCoverCosts()
+    │                         ├─ calculateInnerCosts()
+    │                         ├─ calculateBindingSetupCost()
+    │                         └─ calculateSpringExtras() (spring만)
+    │
+    ├─ + guidePriceTotal (3곳에서 합산 — 아래 참고)
+    ├─ + fileSpecPrice (재단 사양 추가금, trimEnabled 시)
+    └─ + designFee (edu100 표지 디자인 비용, designId 있을 때)
+```
+
+#### 가격에 영향을 주는 숨은 추가금 (놓치기 쉬움)
+
+| 추가금 | 계산 위치 | 조건 | 설명 |
+|--------|----------|------|------|
+| **guidePriceTotal** | usePriceCalculation.js, ProductView.jsx, calculate-price API | guide 블록 on + 옵션 선택 시 | 3곳 모두 동일 로직으로 합산. 하나라도 빠지면 가격 불일치 |
+| **fileSpecPrice** | usePriceCalculation.js → calculate-price API | `sizeBlock.config.trimEnabled` = true | `fileSpecPrices[customer.fileSpec]` 값. 사이즈 블록 config에 설정 |
+| **designFee** | ProductView.jsx → create-order API | `?designId=` URL 파라미터 존재 시 | edu100 표지의 `design_fee`. `freeDesignMinQty` 이상이면 무료 |
+
+**⚠️ 이 추가금들은 priceEngine.ts 밖에서 합산됩니다.** priceEngine만 보면 놓칩니다.
+
+#### 주문 생성 가격 검증 (create-order.ts)
+
+- 서버에서 priceEngine으로 재계산 후 제출 금액과 비교
+- **3% 초과 차이 시 거부** (단, 제출 금액 > 서버 금액은 허용 — 단방향 검증)
+- outsourced 상품도 서버 재계산 (DB의 outsourced_config 로드)
+- guidePriceTotal, designFee 모두 서버 검증에 포함
+
+#### 기본 키 매핑
+
 - `innerColor`/`innerSide`: Binding products use these keys (NOT `color`/`side`)
 - Binding finishing block sets `customer.finishing.*` fields
 - Single-layer finishing also uses `customer.finishing.*`
 - Delivery percent: +30% (same day), +15% (1 day), 0% (2 days), -5% (3 days)
-- `priceEngine.ts` is server-only — never import core pricing functions in client components
-- `PRICE_CONSTANTS` at top of priceEngine.ts: `MONO_DISCOUNT_RATE`, `CORNER_BATCH_SIZE`, `DEFAULT_PUNCH_HOLES`
-- Shared helpers: `calculateFinishingCosts()`, `applyDeliveryAdjustment()`
-- Binding sub-functions: `calculateCoverCosts()`, `calculateInnerCosts()`, `calculateBindingSetupCost()`, `calculateSpringExtras()`
-- `FIXED_DELIVERY_OPTIONS` in builderData.ts — shared by BlockSettings + PreviewBlock
-- `getDefaultConfig()` / `getDefaultContent()` in builderData.ts — block default configurations
-- `getSpringOptionsDefaults()` in builderData.ts — spring_options block fallback logic
+
+#### priceEngine.ts 구조 (server-only)
+
+- `PRICE_CONSTANTS`: `MONO_DISCOUNT_RATE`, `CORNER_BATCH_SIZE`, `DEFAULT_PUNCH_HOLES`
+- Dispatch: `calculatePrice()` → product_type별 분기
+- Flyer: `calculateSingleLayerPrice()` → `calculateFinishingCosts()`
+- Binding: `calculateBindingPrice()` → `calculateCoverCosts()` + `calculateInnerCosts()` + `calculateBindingSetupCost()` + (spring: `calculateSpringExtras()`)
+- 공통: `applyDeliveryAdjustment()`, `calculateCumulativeCost()` (후가공 구간별 누적)
+- Thickness: `estimateThickness()`, `calculateBindingThickness()`, `validateBindingThickness()`
+- **절대 클라이언트에서 import 금지** — server-only
+
+#### builderData.ts 유틸
+
+- `FIXED_DELIVERY_OPTIONS` — shared by BlockSettings + PreviewBlock (4개 출고 옵션)
+  - 단, 템플릿별 활성화 옵션 다름: flyer=4종, 제본=2종(next2/3), outsourced=3종(next2/3/5)
+- `getDefaultConfig()` / `getDefaultContent()` — block default configurations
+- `getSpringOptionsDefaults()` — spring_options block fallback logic
+
+#### 연간 유지보수
+
+- `businessDays.ts` HOLIDAYS 배열: **공휴일 하드코딩** — 매년 초 수동 업데이트 필요
+- `dbService.clearCache()`: 관리자가 가격 DB 수정 후 호출 필요 (API 재시작 or 명시 호출)
 
 ### Product Type Routing - CRITICAL (절대 주의)
 
@@ -172,7 +234,7 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 | `"perfect"` | `calculateBindingPrice("perfect")` | 무선제본 |
 | `"saddle"` | `calculateBindingPrice("saddle")` | 중철제본 |
 | `"spring"` | `calculateBindingPrice("spring")` | 스프링제본 |
-| `"outsourced"` | 클라이언트 직접 계산 | 윤전제본 |
+| `"outsourced"` | 클라이언트 또는 서버 (아래 참조) | 윤전제본 |
 
 **절대 금지 사항:**
 
@@ -188,11 +250,16 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
    빌더가 설정한 블록 config(용지 기본값, 옵션 목록 등)는 사업적 판단으로 결정된 값입니다.
    코드 버그와 데이터 오류를 반드시 구분하고, 데이터 변경은 사용자 확인 후에만 합니다.
 
-4. **가격 계산 코드를 리팩토링할 때 4개 경로를 모두 테스트하세요:**
+4. **가격 계산 코드를 리팩토링할 때 5개 경로를 모두 테스트하세요:**
    - flyer: `size` + `paper` + `print` + `finishing`
    - perfect: `coverPaper/coverWeight` + `innerPaper/innerWeight` + `pages`
    - saddle: 위와 동일 (saddle 전용 내지 블록)
    - spring: `innerPaper/innerWeight` + `pages` + `spring_options`
+   - outsourced: `outsourced_config` 클라이언트 계산 + `books` 블록 시리즈 계산
+
+5. **가격 추가금 3종을 빠뜨리지 마세요:** guidePriceTotal, fileSpecPrice, designFee
+   이 추가금들은 priceEngine 밖(hook, ProductView, API 레벨)에서 합산됩니다.
+   리팩토링 시 3곳 모두 동기화해야 합니다.
 
 ### Product Type Safeguard System (5중 방어)
 
@@ -340,9 +407,14 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 
 ### Outsourced 상품 가격
 
-- `product_type === "outsourced"` → 클라이언트에서 직접 계산 (priceEngine 안 거침)
-- `outsourced_config`: pagePrice, bindingFee, qtyDiscounts 설정
-- guide 블록 가격은 totalGuidePrice에 합산
+- `product_type === "outsourced"` → **2가지 경로:**
+  1. `outsourced_config` 있음 → usePriceCalculation.js에서 **클라이언트 직접 계산** (API 안 거침)
+  2. `outsourced_config` 없음 → 일반 상품처럼 `/api/calculate-price` 서버 계산
+- `outsourced_config` 필드: `pagePrice`, `bindingFee`, `qtyDiscounts[]`
+- `books` 블록 있으면: 시리즈별 개별 `pagePrice`/`bindingFee` 오버라이드 가능, `freeDesignMinQty` 지원
+- guide 블록 가격은 guidePriceTotal에 합산
+- 주문 시 create-order.ts에서 DB의 outsourced_config 로드 후 **서버 재검증**
+- `outsourced_config`는 클라이언트에 **절대 노출 금지** (`product/[id].astro`에서 스트리핑)
 
 ## Supabase
 
