@@ -112,8 +112,9 @@ These are already implemented. Modify the existing files:
   - `ProductEditor.jsx` — Product content editor (images, highlights)
   - `TemplateSelector.jsx` — Product template selection
 - `hooks/` — Custom hooks:
-  - `useDbData.js` — DB data loading hook
-  - `usePriceCalculation.js` — Price calculation hook
+  - `useDbData.js` — DB data loading hook (papers, sizes, weights from Supabase)
+  - `usePriceCalculation.js` — Price calculation hook (debounced API call, outsourced 클라이언트 계산)
+  - `useImageUpload.js` — Supabase Storage 이미지 업로드
 - `PreviewBlock.jsx` is in `shared/` (used by both Builder and ProductView)
 
 ### Astro + React Integration
@@ -121,6 +122,164 @@ These are already implemented. Modify the existing files:
 - React components in `.astro` pages need `client:only="react"` directive
 - Use `@/` path aliases (configured in tsconfig.json)
 - SSR mode: `output: "server"` with Vercel adapter
+
+### Block System Architecture - CRITICAL (블록 시스템 전체 구조)
+
+블록은 이 시스템의 핵심 단위입니다. **모든 상품은 블록의 조합으로 구성됩니다.**
+
+#### 블록이란?
+
+블록 = 상품의 하나의 옵션 카테고리 (사이즈, 용지, 인쇄, 후가공 등).
+관리자가 블록을 조합해 상품을 만들고, 고객이 각 블록에서 옵션을 선택합니다.
+
+```
+상품(Product) = 블록[] 배열
+    ↓
+블록(Block) = { id, type, label, on, optional, locked, hidden, config }
+    ↓
+고객 선택(customer state) = extractDefaultsFromBlocks(blocks)
+    ↓
+가격 계산 = fetch("/api/calculate-price", { customer, productType })
+```
+
+#### Block 인터페이스 (`builderData.ts`)
+
+```typescript
+interface Block {
+  id: number;        // 블록 고유 ID (linkedBlocks에서 참조용)
+  type: string;      // 블록 타입 (BLOCK_TYPES 키값)
+  label: string;     // 관리자가 설정한 표시 이름
+  on: boolean;       // 활성화 여부 (off면 추출/렌더링/가격 모두 제외)
+  optional: boolean; // 고객이 선택적으로 토글 가능
+  locked: boolean;   // 관리자 편집 잠금 (UI read-only)
+  hidden: boolean;   // 고객 뷰에서 숨김 (가격에는 영향)
+  config: BlockConfig; // 블록별 설정 (아래 참조)
+}
+```
+
+#### 블록 타입 전체 목록 (18종)
+
+**활성 블록 (현재 사용):**
+
+| type | 이름 | 역할 | 설정하는 customer 키 |
+|------|------|------|---------------------|
+| `size` | 사이즈 | 출력 규격 선택 | `size` |
+| `paper` | 용지 | 용지+평량 (role에 따라 cover/inner/default) | `paper`+`weight` 또는 `coverPaper`+`coverWeight` 또는 `innerPaper`+`innerWeight` |
+| `print` | 인쇄 | 컬러/흑백, 단면/양면 (linkedBlocks에 따라 분기) | `color`+`side` 또는 `innerColor`+`innerSide` 또는 `coverColor` |
+| `finishing` | 후가공 | 코팅, 오시, 접지, 귀도리, 타공, 미싱 | `finishing.*` (nested object) |
+| `delivery` | 출고일 | 출고 일정 + 할증/할인 | `delivery`, `deliveryPercent`, `deliveryDate` |
+| `quantity` | 수량 | 주문 수량 프리셋 | `qty` |
+| `pages` | 페이지 | 제본 페이지 수 + 두께 제한 | `pages`, `maxThickness` |
+| `spring_options` | 스프링 옵션 | PP/표지인쇄/뒷판/스프링색상 통합 | `pp`, `coverPrint`, `coverPaper`, `coverWeight`, `back`, `springColor` |
+| `guide` | 가이드 | 고객 안내 질문 (가격 포함 가능) | `guides[blockId]` |
+| `consultation` | 상담 | 카카오톡 상담 안내 (가격 무관) | — |
+| `design_select` | 디자인 선택 | edu100 표지 디자인 선택 + 변경 타입 | `designTier`, `selectedDesign` |
+| `text_input` | 텍스트 입력 | 자유 텍스트 입력란 | `textInputs[blockId]` |
+| `books` | 시리즈(다권) | 권별 페이지/수량/필드 입력 | `books[]` |
+
+**Deprecated 블록 (하위호환용, 신규 상품에 사용 금지):**
+
+| type | 이름 | 대체 | 이유 |
+|------|------|------|------|
+| `pp` | PP | `spring_options.pp` | spring_options로 통합됨 |
+| `cover_print` | 표지인쇄 | `spring_options.coverPrint` | spring_options로 통합됨 |
+| `back` | 뒷판 | `spring_options.back` | spring_options로 통합됨 |
+| `spring_color` | 스프링색상 | `spring_options.springColor` | spring_options로 통합됨 |
+| `inner_layer_saddle` | 내지(중철) | `paper(role:inner)` + `print(linked)` + `pages` | 현대 패턴으로 대체 |
+| `inner_layer_leaf` | 내지(무선/스프링) | `paper(role:inner)` + `print(linked)` + `pages` | 현대 패턴으로 대체 |
+
+#### 블록 간 연결 메커니즘 — linkedBlocks (⚠️ 핵심)
+
+제본 상품은 표지/내지를 구분해야 합니다. `pages` 블록의 `linkedBlocks`가 이 연결을 담당합니다.
+
+```javascript
+// pages 블록의 config.linkedBlocks 예시 (중철 템플릿)
+linkedBlocks: {
+  coverPaper: 2,    // Block ID 2 = 표지 용지 블록
+  coverPrint: 3,    // Block ID 3 = 표지 인쇄 블록
+  innerPaper: 5,    // Block ID 5 = 내지 용지 블록
+  innerPrint: 6,    // Block ID 6 = 내지 인쇄 블록
+}
+```
+
+**연결 흐름:**
+1. `extractDefaultsFromBlock(paper블록)` → `getPaperBlockRole()` → cover/inner/default 판별
+2. cover → `customer.coverPaper/coverWeight`, inner → `customer.innerPaper/innerWeight`
+3. `extractDefaultsFromBlock(print블록)` → linkedBlocks 역추적 → innerPrint이면 `customer.innerColor/innerSide`
+4. `mapPrintOptionsToCustomer()` → 고객이 변경한 인쇄옵션을 inner/cover에 매핑
+
+**⚠️ linkedBlocks의 ID가 실제 블록 ID와 불일치하면 가격 계산이 깨집니다.**
+블록을 삭제/재생성할 때 linkedBlocks 참조도 업데이트해야 합니다.
+
+#### Paper 블록 Role 감지 — 4단계 폴백 (`getPaperBlockRole()`)
+
+Paper 블록이 표지인지 내지인지 판별하는 로직. 4가지 패턴을 모두 지원합니다.
+
+| 우선순위 | 감지 방법 | 적용 대상 |
+|---------|----------|----------|
+| 1 | `block.config.role === "cover" \| "inner"` (명시적) | 최신 상품 |
+| 2 | 다른 블록의 `linkedBlocks.coverPaper/innerPaper === block.id` (역추적) | 현대 템플릿 |
+| 3 | 활성 paper 블록이 2개 이상: 첫번째=cover, 두번째=inner (순서) | 멀티페이퍼 |
+| 4 | `inner_layer_*` 블록 존재 시: paper 1개 = cover (구형 호환) | 레거시 상품 |
+| fallback | 위 모두 해당 없음 → `"default"` | flyer (단층 상품) |
+
+**⚠️ 이 함수를 건드리면 cover/inner 용지 매핑이 깨져서 가격이 틀어집니다.**
+
+#### 4가지 블록 패턴 공존 (하위호환)
+
+기존 상품 데이터를 깨뜨리지 않기 위해 4가지 블록 구성 패턴이 동시에 지원됩니다:
+
+| 패턴 | 구조 | 사용처 | 상태 |
+|------|------|--------|------|
+| **1. 현대 linkedBlocks** | `pages` + `paper(cover)` + `paper(inner)` + `print` × 2 | 현재 템플릿 (saddle, perfect) | 표준 |
+| **2. spring 통합** | `pages` + `paper(inner)` + `spring_options` | 현재 템플릿 (spring) | 표준 |
+| **3. 구형 inner_layer** | `paper` + `inner_layer_saddle/leaf` | DB의 구형 상품 | deprecated |
+| **4. 단층 (flyer)** | `paper` + `print` + `finishing` (linkedBlocks 없음) | 전단지, 리플렛 | 표준 |
+
+**⚠️ `extractDefaultsFromBlock()`, `getPaperBlockRole()`, `inferProductType()` 모두 4가지를 처리합니다.**
+패턴 하나를 삭제하면 해당 구형 상품의 가격 계산이 깨집니다.
+
+#### CustomerSelection 인터페이스 (customer 객체 구조)
+
+블록에서 추출된 고객 선택값. **가격 API에 전송되는 핵심 데이터.**
+
+| 속성 | 타입 | 용도 | 설정하는 블록 |
+|------|------|------|-------------|
+| `size` | string | 사이즈 코드 | size |
+| `paper`, `weight` | string, number | 용지/평량 (단층) | paper (role=default) |
+| `coverPaper`, `coverWeight` | string, number | 표지 용지/평량 | paper (role=cover), spring_options.coverPrint |
+| `innerPaper`, `innerWeight` | string, number | 내지 용지/평량 | paper (role=inner) |
+| `color`, `side` | string, string | 인쇄 색상/면 (단층) | print (default) |
+| `innerColor`, `innerSide` | string, string | 내지 인쇄 | print (linkedBlocks.innerPrint) |
+| `coverColor` | string | 표지 인쇄 색상 | print (linkedBlocks.coverPrint) |
+| `finishing` | object | 후가공 nested | finishing |
+| `finishing.corner/punch/mising` | boolean | 귀도리/타공/미싱 | finishing |
+| `finishing.coating/coatingType/coatingSide` | boolean/string | 코팅 | finishing |
+| `finishing.osiEnabled/osi` | boolean/number | 오시 | finishing (getFoldUpdate 연동) |
+| `finishing.foldEnabled/fold` | boolean/number | 접지 | finishing |
+| `delivery`, `deliveryPercent` | string, number | 출고일 + 할증률 | delivery |
+| `qty` | number | 수량 | quantity |
+| `pages` | number | 페이지 수 | pages / pages_saddle / pages_leaf |
+| `pp`, `coverPrint`, `back`, `springColor` | string | 스프링 옵션 | spring_options (또는 개별 deprecated 블록) |
+| `guides[blockId]` | object | 가이드 선택 | guide (가격 영향) |
+| `textInputs[blockId]` | string/object | 텍스트 입력 | text_input |
+| `books[]` | array | 시리즈 권별 정보 | books |
+| `designTier`, `selectedDesign` | string, any | 디자인 선택 | design_select |
+
+#### spring_options 통합 블록 구조
+
+4개 deprecated 블록(pp, cover_print, back, spring_color)을 1개로 통합한 복합 블록:
+
+```javascript
+config: {
+  pp:          { enabled: true, options: [{ id: "clear", ... }, { id: "frosted", ... }] },
+  coverPrint:  { enabled: true, options: [...], papers: {...}, defaultPaper: {...} },
+  back:        { enabled: true, options: [{ id: "white", ... }, { id: "black", ... }] },
+  springColor: { enabled: true, options: [{ id: "black", ... }, { id: "white", ... }] },
+}
+```
+
+각 서브옵션은 `enabled` 플래그로 개별 활성화. `checkLinkRules()`가 PP+표지인쇄 상호 제약을 검증.
 
 ### Block Rules Control Center - CRITICAL
 
