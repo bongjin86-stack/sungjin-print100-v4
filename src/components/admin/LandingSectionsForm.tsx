@@ -345,11 +345,13 @@ export default function LandingSectionsForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const purgeLandingCache = async () => {
+  const purgeLandingCache = async (): Promise<boolean> => {
     try {
-      await fetch("/api/purge-cache", { method: "POST" });
+      const res = await fetch("/api/purge-cache", { method: "POST" });
+      const data = await res.json();
+      return data.success === true;
     } catch {
-      // 캐시 퍼지 실패해도 저장은 성공으로 처리
+      return false;
     }
   };
 
@@ -373,32 +375,28 @@ export default function LandingSectionsForm() {
         ];
       } else if (activeTab === "products") {
         const idsJson = JSON.stringify(selectedPrintIds);
-        setFormData((prev) => ({ ...prev, landing_products_ids: idsJson }));
+        const now = new Date().toISOString();
         const updates = [
-          {
-            key: "landing_products_ids",
-            value: idsJson,
-            updated_at: new Date().toISOString(),
-          },
+          { key: "landing_products_ids", value: idsJson, updated_at: now },
           {
             key: "landing_products_count",
             value: formData.landing_products_count,
-            updated_at: new Date().toISOString(),
+            updated_at: now,
           },
           {
             key: "landing_products_title",
             value: formData.landing_products_title,
-            updated_at: new Date().toISOString(),
+            updated_at: now,
           },
           {
             key: "landing_products_subtitle",
             value: formData.landing_products_subtitle,
-            updated_at: new Date().toISOString(),
+            updated_at: now,
           },
           {
             key: "landing_products_link_text",
             value: formData.landing_products_link_text,
-            updated_at: new Date().toISOString(),
+            updated_at: now,
           },
         ];
         const { error } = await supabase
@@ -406,24 +404,26 @@ export default function LandingSectionsForm() {
           .upsert(updates, { onConflict: "key" });
 
         if (error) throw error;
-        await purgeLandingCache();
-        setMessage({ type: "success", text: "저장되었습니다." });
-        setTimeout(() => setMessage(null), 3000);
+        setFormData((prev) => ({ ...prev, landing_products_ids: idsJson }));
+        const purged = await purgeLandingCache();
+        setMessage({
+          type: "success",
+          text: purged
+            ? "저장되었습니다."
+            : "저장되었습니다. (캐시 반영에 최대 1시간 소요될 수 있습니다)",
+        });
+        setTimeout(() => setMessage(null), 5000);
         setSaving(false);
         return;
       } else if (activeTab === "works") {
         const idsJson = JSON.stringify(selectedWorkIds);
-        setFormData((prev) => ({ ...prev, landing_works_ids: idsJson }));
+        const now = new Date().toISOString();
         const updates = [
-          {
-            key: "landing_works_ids",
-            value: idsJson,
-            updated_at: new Date().toISOString(),
-          },
+          { key: "landing_works_ids", value: idsJson, updated_at: now },
           {
             key: "landing_works_count",
             value: formData.landing_works_count,
-            updated_at: new Date().toISOString(),
+            updated_at: now,
           },
         ];
         const { error } = await supabase
@@ -431,36 +431,29 @@ export default function LandingSectionsForm() {
           .upsert(updates, { onConflict: "key" });
 
         if (error) throw error;
-        await purgeLandingCache();
-        setMessage({ type: "success", text: "저장되었습니다." });
-        setTimeout(() => setMessage(null), 3000);
+        setFormData((prev) => ({ ...prev, landing_works_ids: idsJson }));
+        const purged = await purgeLandingCache();
+        setMessage({
+          type: "success",
+          text: purged
+            ? "저장되었습니다."
+            : "저장되었습니다. (캐시 반영에 최대 1시간 소요될 수 있습니다)",
+        });
+        setTimeout(() => setMessage(null), 5000);
         setSaving(false);
         return;
       } else if (activeTab === "order") {
         const orderJson = JSON.stringify(sectionOrder);
         const hiddenJson = JSON.stringify(sectionHidden);
         const headerHiddenJson = JSON.stringify(headerHidden);
-        setFormData((prev) => ({
-          ...prev,
-          landing_section_order: orderJson,
-          landing_section_hidden: hiddenJson,
-          header_hidden_items: headerHiddenJson,
-        }));
+        const now = new Date().toISOString();
         const updates = [
-          {
-            key: "landing_section_order",
-            value: orderJson,
-            updated_at: new Date().toISOString(),
-          },
-          {
-            key: "landing_section_hidden",
-            value: hiddenJson,
-            updated_at: new Date().toISOString(),
-          },
+          { key: "landing_section_order", value: orderJson, updated_at: now },
+          { key: "landing_section_hidden", value: hiddenJson, updated_at: now },
           {
             key: "header_hidden_items",
             value: headerHiddenJson,
-            updated_at: new Date().toISOString(),
+            updated_at: now,
           },
         ];
         const { error } = await supabase
@@ -468,14 +461,25 @@ export default function LandingSectionsForm() {
           .upsert(updates, { onConflict: "key" });
 
         if (error) throw error;
-        await purgeLandingCache();
-        setMessage({ type: "success", text: "저장되었습니다." });
-        setTimeout(() => setMessage(null), 3000);
+        setFormData((prev) => ({
+          ...prev,
+          landing_section_order: orderJson,
+          landing_section_hidden: hiddenJson,
+          header_hidden_items: headerHiddenJson,
+        }));
+        const purged = await purgeLandingCache();
+        setMessage({
+          type: "success",
+          text: purged
+            ? "저장되었습니다."
+            : "저장되었습니다. (캐시 반영에 최대 1시간 소요될 수 있습니다)",
+        });
+        setTimeout(() => setMessage(null), 5000);
         setSaving(false);
         return;
       } else if (activeTab === "edu100") {
         const imgsJson = JSON.stringify(edu100Images);
-        setFormData((prev) => ({ ...prev, landing_edu100_images: imgsJson }));
+        const now = new Date().toISOString();
         const edu100Fields = [
           "landing_edu100_speed",
           "landing_edu100_title",
@@ -488,22 +492,24 @@ export default function LandingSectionsForm() {
           ...edu100Fields.map((key) => ({
             key,
             value: formData[key as keyof FormData],
-            updated_at: new Date().toISOString(),
+            updated_at: now,
           })),
-          {
-            key: "landing_edu100_images",
-            value: imgsJson,
-            updated_at: new Date().toISOString(),
-          },
+          { key: "landing_edu100_images", value: imgsJson, updated_at: now },
         ];
         const { error } = await supabase
           .from("site_settings")
           .upsert(updates, { onConflict: "key" });
 
         if (error) throw error;
-        await purgeLandingCache();
-        setMessage({ type: "success", text: "저장되었습니다." });
-        setTimeout(() => setMessage(null), 3000);
+        setFormData((prev) => ({ ...prev, landing_edu100_images: imgsJson }));
+        const purged = await purgeLandingCache();
+        setMessage({
+          type: "success",
+          text: purged
+            ? "저장되었습니다."
+            : "저장되었습니다. (캐시 반영에 최대 1시간 소요될 수 있습니다)",
+        });
+        setTimeout(() => setMessage(null), 5000);
         setSaving(false);
         return;
       }
@@ -520,9 +526,14 @@ export default function LandingSectionsForm() {
 
       if (error) throw error;
 
-      await purgeLandingCache();
-      setMessage({ type: "success", text: "저장되었습니다." });
-      setTimeout(() => setMessage(null), 3000);
+      const purged = await purgeLandingCache();
+      setMessage({
+        type: "success",
+        text: purged
+          ? "저장되었습니다."
+          : "저장되었습니다. (캐시 반영에 최대 1시간 소요될 수 있습니다)",
+      });
+      setTimeout(() => setMessage(null), 5000);
     } catch (error) {
       console.error("저장 실패:", error);
       setMessage({ type: "error", text: "저장에 실패했습니다." });
