@@ -119,7 +119,7 @@ export function usePriceCalculation(
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [customer, dbLoaded, currentTemplateId]);
+  }, [customer, currentProduct, dbLoaded, currentTemplateId]);
 
   return { serverPrice, qtyPrices };
 }
