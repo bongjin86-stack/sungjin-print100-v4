@@ -1592,6 +1592,7 @@ export function inferProductType(product: {
 }): string {
   if (product.product_type) return product.product_type;
   const blocks = product.blocks || [];
+  // 1. pages / pages_saddle / pages_leaf 블록으로 판별
   const pagesBlock = blocks.find(
     (b: any) =>
       b.on &&
@@ -1599,20 +1600,26 @@ export function inferProductType(product: {
         b.type === "pages_saddle" ||
         b.type === "pages_leaf")
   );
-  if (!pagesBlock) return "flyer";
-
-  // 블록 타입 자체로 판별 (pages_saddle / pages_leaf)
-  if (pagesBlock.type === "pages_saddle") return "saddle";
-  if (pagesBlock.type === "pages_leaf") {
-    const hasSpring = blocks.some(
-      (b: any) => b.on && b.type === "spring_options"
-    );
-    return hasSpring ? "spring" : "perfect";
+  if (pagesBlock) {
+    if (pagesBlock.type === "pages_saddle") return "saddle";
+    if (pagesBlock.type === "pages_leaf") {
+      const hasSpring = blocks.some(
+        (b: any) => b.on && b.type === "spring_options"
+      );
+      return hasSpring ? "spring" : "perfect";
+    }
+    if (pagesBlock.config?.bindingType === "saddle") return "saddle";
+    if (pagesBlock.config?.bindingType === "leaf") {
+      const hasSpring = blocks.some(
+        (b: any) => b.on && b.type === "spring_options"
+      );
+      return hasSpring ? "spring" : "perfect";
+    }
   }
-
-  // 범용 pages 블록: config.bindingType으로 판별
-  if (pagesBlock.config?.bindingType === "saddle") return "saddle";
-  if (pagesBlock.config?.bindingType === "leaf") {
+  // 2. inner_layer 블록으로 판별 (pages 블록 없는 구형 상품 호환)
+  if (blocks.some((b: any) => b.on && b.type === "inner_layer_saddle"))
+    return "saddle";
+  if (blocks.some((b: any) => b.on && b.type === "inner_layer_leaf")) {
     const hasSpring = blocks.some(
       (b: any) => b.on && b.type === "spring_options"
     );

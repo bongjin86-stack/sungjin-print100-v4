@@ -154,6 +154,12 @@ export function getPaperBlockRole(
     if (idx === 0) return "cover";
     if (idx === 1) return "inner";
   }
+  // 4. inner_layer 블록 존재 시: paper 블록 1개 = 표지 역할 (구형 상품 호환)
+  const hasInnerLayer = allBlocks.some(
+    (b) =>
+      b.on && (b.type === "inner_layer_leaf" || b.type === "inner_layer_saddle")
+  );
+  if (hasInnerLayer && enabledPapers.length === 1) return "cover";
   return "default";
 }
 
