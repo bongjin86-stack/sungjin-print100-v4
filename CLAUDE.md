@@ -162,6 +162,60 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 - `getDefaultConfig()` / `getDefaultContent()` in builderData.ts — block default configurations
 - `getSpringOptionsDefaults()` in builderData.ts — spring_options block fallback logic
 
+### Product Type Routing - CRITICAL (절대 주의)
+
+**모든 상품은 DB `products.product_type`에 명시적 값이 설정되어야 합니다.**
+
+| product_type | 가격 계산 함수 | 해당 상품 |
+|-------------|---------------|----------|
+| `"flyer"` | `calculateSingleLayerPrice()` | 리플렛, 전단지, 엽서 |
+| `"perfect"` | `calculateBindingPrice("perfect")` | 무선제본 |
+| `"saddle"` | `calculateBindingPrice("saddle")` | 중철제본 |
+| `"spring"` | `calculateBindingPrice("spring")` | 스프링제본 |
+| `"outsourced"` | 클라이언트 직접 계산 | 윤전제본 |
+
+**절대 금지 사항:**
+
+1. **`product_type`을 null로 두지 마세요.** `inferProductType()` 폴백은 비상용입니다.
+   블록 구성 변경(리팩토링)으로 추론이 깨지면 가격 계산이 완전히 틀어집니다.
+   (2026-02 사고: product_type null → inferProductType이 제본을 flyer로 판별 → 가격 0원)
+
+2. **블록 리팩토링 후 반드시 가격 검증하세요.**
+   블록 타입 변경/통합 시 `getPaperBlockRole()`, `extractDefaultsFromBlock()`, `inferProductType()` 모두 영향받습니다.
+   최소한 제본 3종(무선/중철/스프링) + 리플렛 가격 API 테스트를 해야 합니다.
+
+3. **DB 상품 데이터를 임의로 변경하지 마세요.**
+   빌더가 설정한 블록 config(용지 기본값, 옵션 목록 등)는 사업적 판단으로 결정된 값입니다.
+   코드 버그와 데이터 오류를 반드시 구분하고, 데이터 변경은 사용자 확인 후에만 합니다.
+
+4. **가격 계산 코드를 리팩토링할 때 4개 경로를 모두 테스트하세요:**
+   - flyer: `size` + `paper` + `print` + `finishing`
+   - perfect: `coverPaper/coverWeight` + `innerPaper/innerWeight` + `pages`
+   - saddle: 위와 동일 (saddle 전용 내지 블록)
+   - spring: `innerPaper/innerWeight` + `pages` + `spring_options`
+
+### Product Type Safeguard System (5중 방어)
+
+2026-02 사고 재발 방지를 위한 다층 방어 체계:
+
+| Layer | 위치 | 방어 |
+|-------|------|------|
+| S1: 템플릿 기본값 | `builderData.ts` TEMPLATES | 5개 템플릿 모두 `product_type` 명시 |
+| S2: UI 배지 | ProductBuilder 헤더 | 초록=명시, 노랑=추론, 호박=불일치 |
+| S3: 저장 검증 | `saveProductToServer()` | 추론 시 확인, 불일치 시 경고 |
+| S4: API 거부 | products API POST/PUT | null/invalid → 400 에러 |
+| S5: 수동 오버라이드 | ProductBuilder 헤더 드롭다운 | 관리자가 직접 타입 설정 |
+
+**TypeScript 진실 공급원:** `ProductType` union + `VALID_PRODUCT_TYPES` in `builderData.ts`
+
+**리팩토링 체크리스트 (블록/가격 변경 후 필수):**
+1. 5개 템플릿 `product_type` 존재 확인
+2. `inferProductType()` 전체 블록 패턴 인식 확인
+3. 가격 API 테스트: flyer + perfect + saddle + spring + outsourced
+4. Builder 배지 색상 확인 (각 템플릿 초록)
+
+**이식성 상세:** `docs/pricing-architecture.md` 참조
+
 ## Routing
 
 | Path                      | Component           | Purpose                                                 |
@@ -244,6 +298,7 @@ Do NOT scatter rules across PreviewBlock, ProductView, Builder, or any other fil
 | `docs/README.md`            | docs/ | 문서 인덱스 + 타임라인                       |
 | `docs/rules-constraints.md` | docs/ | 규칙 마스터 문서 (사람이 읽는 상세 설명)     |
 | `docs/pricing-system.md`    | docs/ | 가격 체계 완전 문서                          |
+| `docs/pricing-architecture.md` | docs/ | 가격 시스템 아키텍처 + 이식성 가이드       |
 | `src/data/rules.ts`         | src/  | 규칙 메타데이터 (코드 참조용)                |
 
 ### When to Update

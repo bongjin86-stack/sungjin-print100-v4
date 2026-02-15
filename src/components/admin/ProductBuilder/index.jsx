@@ -27,6 +27,7 @@ import {
   getDefaultCustomer,
   inferProductType,
   TEMPLATES as DEFAULT_TEMPLATES,
+  VALID_PRODUCT_TYPES,
 } from "@/lib/builderData";
 import { getIconComponent, ICON_LIST } from "@/lib/highlightIcons";
 import { supabase } from "@/lib/supabase";
@@ -43,6 +44,15 @@ import TemplateSelector from "./TemplateSelector";
 
 // ProductView와 동일한 스타일 사용
 import "@/components/product/ProductView.css";
+
+// Safeguard S2/S5: product_type 배지 라벨
+const PRODUCT_TYPE_LABELS = {
+  flyer: "전단지",
+  perfect: "무선제본",
+  saddle: "중철제본",
+  spring: "스프링제본",
+  outsourced: "외주",
+};
 
 // BlockNote JSON hint를 렌더링하는 헬퍼 (ProductView.css의 pv-fs-card-hint 사용)
 function renderBuilderHint(hint) {
@@ -557,10 +567,39 @@ export default function AdminBuilder() {
     setCurrentProduct(newTemplate);
   };
 
-  // Supabase 상품 저장 공통 함수
+  // Supabase 상품 저장 공통 함수 (Safeguard S3: 저장 검증 포함)
   const saveProductToServer = (successMessage, productSnapshot) => {
     const prod = productSnapshot || currentProduct;
     const displayName = prod.content?.title || prod.name;
+
+    // Safeguard S3: product_type 검증
+    const explicitT = prod.product_type;
+    const inferredT = inferProductType({ ...prod, product_type: undefined });
+    const finalType = explicitT || inferredT;
+
+    if (!VALID_PRODUCT_TYPES.includes(finalType)) {
+      alert(
+        `유효하지 않은 product_type: "${finalType}"\n유효값: ${VALID_PRODUCT_TYPES.join(", ")}`
+      );
+      return;
+    }
+
+    if (!explicitT) {
+      if (
+        !confirm(
+          `product_type이 명시적으로 설정되지 않았습니다.\n블록 구성에서 "${inferredT}"(으)로 추론되었습니다.\n\n이 값으로 저장하시겠습니까?`
+        )
+      )
+        return;
+    } else if (explicitT !== inferredT) {
+      if (
+        !confirm(
+          `product_type 불일치 감지!\n명시: "${explicitT}" / 추론: "${inferredT}"\n\n명시값("${explicitT}")으로 저장합니다. 계속하시겠습니까?`
+        )
+      )
+        return;
+    }
+
     fetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -578,17 +617,20 @@ export default function AdminBuilder() {
             : {}),
         },
         blocks: prod.blocks || [],
-        product_type: inferProductType(prod),
+        product_type: finalType,
         is_published: true,
       }),
     })
       .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok)
+          return res.json().then((d) => {
+            throw new Error(d.message || `HTTP ${res.status}`);
+          });
         alert(successMessage);
       })
       .catch((err) => {
         console.error("Supabase 저장 실패:", err);
-        alert("저장에 실패했습니다. 다시 시도해주세요.");
+        alert("저장에 실패했습니다: " + err.message);
       });
   };
 
@@ -944,6 +986,16 @@ export default function AdminBuilder() {
   const content =
     currentProduct?.content || getDefaultContent(currentProduct?.name || "");
 
+  // Safeguard S2: product_type 상태 계산 (배지 + 드롭다운 + PreviewBlock용)
+  const explicitType = currentProduct?.product_type;
+  const inferredType = inferProductType({
+    ...currentProduct,
+    product_type: undefined,
+  });
+  const effectiveType = explicitType || inferredType;
+  const isTypeExplicit = !!explicitType;
+  const isTypeMismatch = explicitType && explicitType !== inferredType;
+
   if (!currentProduct || !dbLoaded) {
     return <div className="p-8 text-center">데이터를 불러오는 중...</div>;
   }
@@ -953,7 +1005,45 @@ export default function AdminBuilder() {
       {/* 헤더 */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-gray-900">상품 빌더</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-semibold text-gray-900">상품 빌더</h1>
+            {/* Safeguard S2+S5: product_type 배지 + 수동 오버라이드 */}
+            <select
+              value={effectiveType}
+              onChange={(e) =>
+                setCurrentProduct((prev) => ({
+                  ...prev,
+                  product_type: e.target.value,
+                }))
+              }
+              className={`text-xs font-medium px-2 py-1 rounded-md border transition-colors ${
+                isTypeMismatch
+                  ? "bg-amber-50 border-amber-300 text-amber-700"
+                  : isTypeExplicit
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                    : "bg-yellow-50 border-yellow-300 text-yellow-700"
+              }`}
+              title={
+                isTypeMismatch
+                  ? `명시: ${explicitType} ≠ 추론: ${inferredType}`
+                  : isTypeExplicit
+                    ? "명시적으로 설정됨"
+                    : "블록에서 추론됨"
+              }
+            >
+              {VALID_PRODUCT_TYPES.map((pt) => (
+                <option key={pt} value={pt}>
+                  {PRODUCT_TYPE_LABELS[pt]} ({pt})
+                </option>
+              ))}
+            </select>
+            {!isTypeExplicit && (
+              <span className="text-xs text-yellow-600">⚠ 추론됨</span>
+            )}
+            {isTypeMismatch && (
+              <span className="text-xs text-amber-600">⚠ 불일치</span>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <button
               onClick={exportConfig}
@@ -1351,9 +1441,7 @@ export default function AdminBuilder() {
                       qtyPrices={{}}
                       linkStatus={{}}
                       handleFoldSelect={() => {}}
-                      productType={
-                        currentProduct.product_type || currentProduct.id
-                      }
+                      productType={effectiveType}
                       allBlocks={currentProduct?.blocks || []}
                       designCover={null}
                     />
@@ -1631,7 +1719,7 @@ export default function AdminBuilder() {
                       qtyPrices={qtyPrices}
                       linkStatus={linkStatus}
                       handleFoldSelect={handleFoldSelect}
-                      productType={currentTemplateId}
+                      productType={effectiveType}
                       dbPapers={dbPapers}
                       dbPapersList={dbPapersList}
                       allBlocks={currentProduct.blocks}

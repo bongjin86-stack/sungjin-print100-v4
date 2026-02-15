@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
-import { useImageUpload } from "./ProductBuilder/hooks/useImageUpload";
-
 import { adminFormStyles as styles } from "./adminFormStyles";
 import BlockNoteEditor from "./BlockNoteEditor";
+import { useImageUpload } from "./ProductBuilder/hooks/useImageUpload";
 
 interface CoverField {
   label: string;

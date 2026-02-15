@@ -79,8 +79,29 @@ export interface Block {
 
 export interface Template {
   name: string;
+  product_type?: ProductType;
   blocks: Block[];
 }
+
+/**
+ * 유효한 상품 타입 — Single Source of Truth
+ * 변경 시 반드시 CLAUDE.md "Product Type Routing" 섹션도 업데이트
+ */
+export type ProductType =
+  | "flyer"
+  | "perfect"
+  | "saddle"
+  | "spring"
+  | "outsourced";
+
+/** 런타임 검증용 배열 (API 엔드포인트, Builder에서 사용) */
+export const VALID_PRODUCT_TYPES: ProductType[] = [
+  "flyer",
+  "perfect",
+  "saddle",
+  "spring",
+  "outsourced",
+];
 
 export interface CustomerSelection {
   size: string;
@@ -257,6 +278,7 @@ export const BLOCK_TYPES: Record<string, BlockTypeInfo> = {
 export const TEMPLATES: Record<string, Template> = {
   flyer: {
     name: "전단지",
+    product_type: "flyer",
     blocks: [
       {
         id: 1,
@@ -375,6 +397,7 @@ export const TEMPLATES: Record<string, Template> = {
 
   perfect: {
     name: "무선제본",
+    product_type: "perfect",
     blocks: [
       {
         id: 1,
@@ -530,6 +553,7 @@ export const TEMPLATES: Record<string, Template> = {
 
   saddle: {
     name: "중철제본",
+    product_type: "saddle",
     blocks: [
       {
         id: 1,
@@ -685,6 +709,7 @@ export const TEMPLATES: Record<string, Template> = {
 
   spring: {
     name: "스프링제본",
+    product_type: "spring",
     blocks: [
       {
         id: 1,
@@ -840,6 +865,7 @@ export const TEMPLATES: Record<string, Template> = {
   },
   outsourced: {
     name: "외주 상품",
+    product_type: "outsourced",
     productType: "outsourced",
     outsourced_config: {
       pagePrice: 40,
@@ -1585,12 +1611,24 @@ export function getDefaultContent(name: string) {
   );
 }
 
-/** 블록 구성으로 가격 계산용 product_type 추론 */
+/**
+ * 블록 구성으로 가격 계산용 product_type 추론 (비상 폴백 전용)
+ *
+ * ⚠️ 이 함수는 product_type이 명시되지 않았을 때만 사용됩니다.
+ * 모든 상품은 반드시 product_type을 명시적으로 설정해야 합니다.
+ * 블록 구조 변경 시 이 함수의 추론이 깨질 수 있습니다. (2026-02 사고 참조)
+ *
+ * @see CLAUDE.md "Product Type Routing - CRITICAL" 섹션
+ */
 export function inferProductType(product: {
   product_type?: string;
   blocks?: any[];
 }): string {
   if (product.product_type) return product.product_type;
+  // Safeguard: product_type 미설정 시 경고 (이 경로는 비상 폴백)
+  console.warn(
+    "[inferProductType] product_type 미설정 — 블록에서 추론 중. 명시적으로 설정하세요."
+  );
   const blocks = product.blocks || [];
   // 1. pages / pages_saddle / pages_leaf 블록으로 판별
   const pagesBlock = blocks.find(

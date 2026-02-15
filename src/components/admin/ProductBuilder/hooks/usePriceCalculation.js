@@ -101,7 +101,10 @@ export function usePriceCalculation(
               currentProduct?.blocks
             ),
             qty: customer.qty,
-            productType: currentProduct?.product_type || currentTemplateId,
+            productType:
+              currentProduct?.product_type ||
+              currentProduct?.productType ||
+              currentTemplateId,
             allQtys,
             fileSpecPrice,
             guidePriceTotal,

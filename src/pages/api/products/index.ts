@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 
+import { VALID_PRODUCT_TYPES } from "../../../lib/builderData";
 import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
@@ -83,6 +84,19 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
+  // Safeguard S4: product_type null/invalid 거부
+  if (!product_type || !VALID_PRODUCT_TYPES.includes(product_type)) {
+    return new Response(
+      JSON.stringify({
+        message: `product_type 필수. 유효값: ${VALID_PRODUCT_TYPES.join(", ")}. 받은 값: "${product_type || "null"}"`,
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   const { data, error } = await supabase
     .from("products")
     .upsert([
@@ -96,7 +110,7 @@ export const POST: APIRoute = async ({ request }) => {
         sort_order: sort_order ?? 0,
         content: content || {},
         blocks: blocks || [],
-        product_type: product_type || null,
+        product_type,
         is_published: is_published ?? true,
         updated_at: new Date().toISOString(),
       },
