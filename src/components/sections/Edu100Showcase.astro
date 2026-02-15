@@ -1,5 +1,6 @@
 ---
 import Container from "@/components/layout/Container.astro";
+import Edu100Stats from "@/components/edu100/Edu100Stats";
 import Section from "@/components/layout/Section.astro";
 
 import { supabase } from "../../lib/supabase";
@@ -97,6 +98,10 @@ const buttonLink = configMap.landing_edu100_button_link || "/edu100";
                 .map((line: string) => (line ? <p>{line}</p> : <br />))
             }
           </div>
+
+          {/* 카운터 — 텍스트와 버튼 사이 */}
+          <Edu100Stats client:only="react" />
+
           <a href={buttonLink} class="edu100-showcase-button">
             {buttonText}
             <svg
@@ -168,6 +173,68 @@ const buttonLink = configMap.landing_edu100_button_link || "/edu100";
 </script>
 
 <style lang="scss">
+  /* ─── 실적 카운터 (:global — React) ─── */
+  :global(.edu100-stats) {
+    border-top: 1px solid var(--c-border-light);
+    padding-top: var(--sp-lg);
+  }
+
+  /* 날짜 범위 라벨 (시작일 — 라이브 시각) */
+  :global(.edu100-stats-date-range) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-xs);
+    color: var(--c-text-sub);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :global(.edu100-stats-live-dot) {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--c-success, #27ae60);
+    animation: edu100-pulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes edu100-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  :global(.edu100-stats-counter) {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  :global(.edu100-stats-number) {
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    color: var(--c-text);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-3xl);
+    }
+  }
+
+  :global(.edu100-stats-plus) {
+    font-weight: 500;
+    color: var(--c-text-sub);
+  }
+
+
+  /* ─── Edu100 Showcase ─── */
   .edu100-showcase {
     display: flex;
     flex-direction: column;
@@ -175,7 +242,7 @@ const buttonLink = configMap.landing_edu100_button_link || "/edu100";
 
     @media (min-width: 900px) {
       flex-direction: row;
-      align-items: center;
+      align-items: flex-start;
       gap: var(--sp-5xl);
     }
   }
