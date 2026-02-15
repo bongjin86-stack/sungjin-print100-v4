@@ -345,6 +345,14 @@ export default function LandingSectionsForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const purgeLandingCache = async () => {
+    try {
+      await fetch("/api/purge-cache", { method: "POST" });
+    } catch {
+      // 캐시 퍼지 실패해도 저장은 성공으로 처리
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setMessage(null);
@@ -398,6 +406,7 @@ export default function LandingSectionsForm() {
           .upsert(updates, { onConflict: "key" });
 
         if (error) throw error;
+        await purgeLandingCache();
         setMessage({ type: "success", text: "저장되었습니다." });
         setTimeout(() => setMessage(null), 3000);
         setSaving(false);
@@ -422,6 +431,7 @@ export default function LandingSectionsForm() {
           .upsert(updates, { onConflict: "key" });
 
         if (error) throw error;
+        await purgeLandingCache();
         setMessage({ type: "success", text: "저장되었습니다." });
         setTimeout(() => setMessage(null), 3000);
         setSaving(false);
@@ -458,6 +468,7 @@ export default function LandingSectionsForm() {
           .upsert(updates, { onConflict: "key" });
 
         if (error) throw error;
+        await purgeLandingCache();
         setMessage({ type: "success", text: "저장되었습니다." });
         setTimeout(() => setMessage(null), 3000);
         setSaving(false);
@@ -490,6 +501,7 @@ export default function LandingSectionsForm() {
           .upsert(updates, { onConflict: "key" });
 
         if (error) throw error;
+        await purgeLandingCache();
         setMessage({ type: "success", text: "저장되었습니다." });
         setTimeout(() => setMessage(null), 3000);
         setSaving(false);
@@ -508,6 +520,7 @@ export default function LandingSectionsForm() {
 
       if (error) throw error;
 
+      await purgeLandingCache();
       setMessage({ type: "success", text: "저장되었습니다." });
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {

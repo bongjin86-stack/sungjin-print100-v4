@@ -19,6 +19,8 @@ Astro.response.headers.set(
   "Cache-Control",
   "public, s-maxage=3600, stale-while-revalidate=86400"
 );
+// 캐시 태그: 어드민 저장 시 Vercel API로 무효화 가능
+Astro.response.headers.set("Vercel-Cache-Tag", "landing");
 
 const siteTitle = String(siteConfig.site.title);
 const siteDescription = String(siteConfig.site.description);
