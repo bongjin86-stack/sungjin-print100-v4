@@ -29,12 +29,13 @@ import {
   TEMPLATES as DEFAULT_TEMPLATES,
 } from "@/lib/builderData";
 import { getIconComponent, ICON_LIST } from "@/lib/highlightIcons";
-import { supabase, uploadImage } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 import BlockItem, { getBlockSummary } from "./BlockItem";
 import BlockLibraryModal from "./BlockLibraryModal";
 import BlockSettings from "./BlockSettings";
 import { useDbData } from "./hooks/useDbData";
+import { useImageUpload } from "./hooks/useImageUpload";
 import { usePriceCalculation } from "./hooks/usePriceCalculation";
 import PriceDisplay from "./PriceDisplay";
 import ProductEditor from "./ProductEditor";
@@ -227,7 +228,8 @@ export default function AdminBuilder() {
   const { dbPapers, dbPapersList, dbWeights, dbSizes, dbLoaded } = useDbData();
 
   // 상품 이미지 업로드 상태
-  const [imageUploading, setImageUploading] = useState(false);
+  const { imageUploading, upload: uploadProductImage } =
+    useImageUpload("products");
 
   // 서버 가격 계산
   const { serverPrice, qtyPrices } = usePriceCalculation(
@@ -406,46 +408,38 @@ export default function AdminBuilder() {
     }));
   };
 
-  // 상품 이미지 업로드 핸들러
+  // 상품 이미지 업로드 핸들러 (useImageUpload hook 사용)
   const handleMainImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
     try {
-      setImageUploading(true);
-      const url = await uploadImage(file, "products");
-      setCurrentProduct((prev) => ({
-        ...prev,
-        content: { ...prev.content, mainImage: url },
-      }));
+      const url = await uploadProductImage(e);
+      if (url) {
+        setCurrentProduct((prev) => ({
+          ...prev,
+          content: { ...prev.content, mainImage: url },
+        }));
+      }
     } catch (err) {
       alert("이미지 업로드 실패: " + err.message);
-    } finally {
-      setImageUploading(false);
     }
   };
 
   const handleThumbnailUpload = async (e, index) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
     try {
-      setImageUploading(true);
-      const url = await uploadImage(file, "products");
-      setCurrentProduct((prev) => {
-        const newThumbnails = [
-          ...(prev.content.thumbnails || [null, null, null, null]),
-        ];
-        newThumbnails[index] = url;
-        return {
-          ...prev,
-          content: { ...prev.content, thumbnails: newThumbnails },
-        };
-      });
+      const url = await uploadProductImage(e);
+      if (url) {
+        setCurrentProduct((prev) => {
+          const newThumbnails = [
+            ...(prev.content.thumbnails || [null, null, null, null]),
+          ];
+          newThumbnails[index] = url;
+          return {
+            ...prev,
+            content: { ...prev.content, thumbnails: newThumbnails },
+          };
+        });
+      }
     } catch (err) {
       alert("썸네일 업로드 실패: " + err.message);
-    } finally {
-      setImageUploading(false);
     }
   };
 

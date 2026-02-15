@@ -14,6 +14,15 @@ export default function PapersPage() {
   const [paperCosts, setPaperCosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  const showMessage = (type: "success" | "error", text: string) => {
+    setMessage({ type, text });
+    if (type === "success") setTimeout(() => setMessage(null), 3000);
+  };
 
   // CRUD 상태 - 용지 종류
   const [showAddPaper, setShowAddPaper] = useState(false);
@@ -135,7 +144,7 @@ export default function PapersPage() {
       if (error) throw error;
       loadData();
     } catch (err) {
-      alert("이미지 업로드 실패: " + err.message);
+      showMessage("error", "이미지 업로드 실패: " + err.message);
     } finally {
       setUploading(false);
       setQuickUploadPaperId(null);
@@ -164,11 +173,11 @@ export default function PapersPage() {
         image_url: imageUrl || null,
       });
       if (error) throw error;
-      alert("용지 추가 완료!");
+      showMessage("success", "용지 추가 완료!");
       resetPaperForm();
       loadData();
     } catch (err) {
-      alert("추가 실패: " + err.message);
+      showMessage("error", "추가 실패: " + err.message);
     } finally {
       setUploading(false);
     }
@@ -206,11 +215,11 @@ export default function PapersPage() {
         })
         .eq("id", editingPaperId);
       if (error) throw error;
-      alert("수정 완료!");
+      showMessage("success", "수정 완료!");
       resetPaperForm();
       loadData();
     } catch (err) {
-      alert("수정 실패: " + err.message);
+      showMessage("error", "수정 실패: " + err.message);
     } finally {
       setUploading(false);
     }
@@ -226,10 +235,10 @@ export default function PapersPage() {
     try {
       const { error } = await supabase.from("papers").delete().eq("id", id);
       if (error) throw error;
-      alert("삭제 완료!");
+      showMessage("success", "삭제 완료!");
       loadData();
     } catch (err) {
-      alert("삭제 실패: " + err.message);
+      showMessage("error", "삭제 실패: " + err.message);
     }
   };
 
@@ -248,11 +257,11 @@ export default function PapersPage() {
           .eq("id", paper.id)
       );
       await Promise.all(updates);
-      alert("순서 초기화 완료!");
+      showMessage("success", "순서 초기화 완료!");
       clearCache(); // 가격 데이터 캐시 초기화
       loadData();
     } catch (err) {
-      alert("순서 초기화 실패: " + err.message);
+      showMessage("error", "순서 초기화 실패: " + err.message);
     }
   };
 
@@ -284,7 +293,7 @@ export default function PapersPage() {
       clearCache(); // 가격 데이터 캐시 초기화
       loadData();
     } catch (err) {
-      alert("순서 변경 실패: " + err.message);
+      showMessage("error", "순서 변경 실패: " + err.message);
     }
   };
 
@@ -314,11 +323,11 @@ export default function PapersPage() {
         is_active: costFormData.is_active,
       });
       if (error) throw error;
-      alert("단가 추가 완료!");
+      showMessage("success", "단가 추가 완료!");
       resetCostForm();
       loadData();
     } catch (err) {
-      alert("추가 실패: " + err.message);
+      showMessage("error", "추가 실패: " + err.message);
     }
   };
 
@@ -349,11 +358,11 @@ export default function PapersPage() {
         })
         .eq("id", editingCostId);
       if (error) throw error;
-      alert("수정 완료!");
+      showMessage("success", "수정 완료!");
       resetCostForm();
       loadData();
     } catch (err) {
-      alert("수정 실패: " + err.message);
+      showMessage("error", "수정 실패: " + err.message);
     }
   };
 
@@ -365,10 +374,10 @@ export default function PapersPage() {
         .delete()
         .eq("id", id);
       if (error) throw error;
-      alert("삭제 완료!");
+      showMessage("success", "삭제 완료!");
       loadData();
     } catch (err) {
-      alert("삭제 실패: " + err.message);
+      showMessage("error", "삭제 실패: " + err.message);
     }
   };
 
@@ -413,6 +422,15 @@ export default function PapersPage() {
         <h1 className="text-2xl font-semibold text-gray-900">용지 관리</h1>
         <p className="text-gray-500 mt-1">용지 종류 및 단가를 관리합니다.</p>
       </div>
+
+      {/* 메시지 배너 */}
+      {message && (
+        <div
+          className={`rounded-xl p-4 mb-6 ${message.type === "success" ? "bg-green-50 border border-green-200 text-green-700" : "bg-red-50 border border-red-200 text-red-700"}`}
+        >
+          {message.text}
+        </div>
+      )}
 
       {/* 용지 종류 섹션 */}
       <div className="mb-8">

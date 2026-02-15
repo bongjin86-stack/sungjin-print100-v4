@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { uploadImage } from "@/lib/supabase";
+import { useImageUpload } from "./ProductBuilder/hooks/useImageUpload";
 
 import { adminFormStyles as styles } from "./adminFormStyles";
 import BlockNoteEditor from "./BlockNoteEditor";
@@ -38,7 +38,8 @@ export default function Edu100Form({
   sectionId,
 }: Edu100FormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imageUploading, setImageUploading] = useState(false);
+  const { imageUploading, upload: uploadEdu100Image } =
+    useImageUpload("edu100");
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
@@ -85,44 +86,36 @@ export default function Edu100Form({
     }));
   };
 
-  // 메인 이미지 업로드
+  // 메인 이미지 업로드 (useImageUpload hook 사용)
   const handleMainImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
     try {
-      setImageUploading(true);
-      const url = await uploadImage(file, "edu100");
-      setFormData((prev) => ({ ...prev, image: url }));
+      const url = await uploadEdu100Image(e);
+      if (url) setFormData((prev) => ({ ...prev, image: url }));
     } catch (err: any) {
       alert("이미지 업로드 실패: " + err.message);
-    } finally {
-      setImageUploading(false);
     }
   };
 
-  // 썸네일 업로드
+  // 썸네일 업로드 (useImageUpload hook 사용)
   const handleThumbnailUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     index: number
   ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
     try {
-      setImageUploading(true);
-      const url = await uploadImage(file, "edu100");
-      setFormData((prev) => {
-        const newThumbnails = [
-          ...(prev.thumbnails || [null, null, null, null]),
-        ];
-        newThumbnails[index] = url;
-        return { ...prev, thumbnails: newThumbnails };
-      });
+      const url = await uploadEdu100Image(e);
+      if (url) {
+        setFormData((prev) => {
+          const newThumbnails = [
+            ...(prev.thumbnails || [null, null, null, null]),
+          ];
+          newThumbnails[index] = url;
+          return { ...prev, thumbnails: newThumbnails };
+        });
+      }
     } catch (err: any) {
       alert("이미지 업로드 실패: " + err.message);
-    } finally {
-      setImageUploading(false);
     }
   };
 

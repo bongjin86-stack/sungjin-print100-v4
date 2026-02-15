@@ -14,6 +14,16 @@ export default function FinishingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  const showMessage = (type: "success" | "error", text: string) => {
+    setMessage({ type, text });
+    if (type === "success") setTimeout(() => setMessage(null), 3000);
+  };
+
   // CRUD 상태 - Types
   const [showTypeForm, setShowTypeForm] = useState(false);
   const [editingTypeId, setEditingTypeId] = useState(null);
@@ -117,11 +127,11 @@ export default function FinishingPage() {
 
       if (error) throw error;
 
-      alert("후가공 종류 추가 완료!");
+      showMessage("success", "후가공 종류 추가 완료!");
       resetTypeForm();
       loadData();
     } catch (err) {
-      alert("추가 실패: " + err.message);
+      showMessage("error", "추가 실패: " + err.message);
     }
   };
 
@@ -152,11 +162,11 @@ export default function FinishingPage() {
 
       if (error) throw error;
 
-      alert("수정 완료!");
+      showMessage("success", "수정 완료!");
       resetTypeForm();
       loadData();
     } catch (err) {
-      alert("수정 실패: " + err.message);
+      showMessage("error", "수정 실패: " + err.message);
     }
   };
 
@@ -176,10 +186,10 @@ export default function FinishingPage() {
 
       if (error) throw error;
 
-      alert("삭제 완료!");
+      showMessage("success", "삭제 완료!");
       loadData();
     } catch (err) {
-      alert("삭제 실패: " + err.message);
+      showMessage("error", "삭제 실패: " + err.message);
     }
   };
 
@@ -220,11 +230,11 @@ export default function FinishingPage() {
 
       if (error) throw error;
 
-      alert("비용 추가 완료!");
+      showMessage("success", "비용 추가 완료!");
       resetCostForm();
       loadData();
     } catch (err) {
-      alert("추가 실패: " + err.message);
+      showMessage("error", "추가 실패: " + err.message);
     }
   };
 
@@ -276,11 +286,11 @@ export default function FinishingPage() {
 
       if (error) throw error;
 
-      alert("수정 완료!");
+      showMessage("success", "수정 완료!");
       resetCostForm();
       loadData();
     } catch (err) {
-      alert("수정 실패: " + err.message);
+      showMessage("error", "수정 실패: " + err.message);
     }
   };
 
@@ -295,10 +305,10 @@ export default function FinishingPage() {
 
       if (error) throw error;
 
-      alert("삭제 완료!");
+      showMessage("success", "삭제 완료!");
       loadData();
     } catch (err) {
-      alert("삭제 실패: " + err.message);
+      showMessage("error", "삭제 실패: " + err.message);
     }
   };
 
@@ -373,6 +383,15 @@ export default function FinishingPage() {
           </button>
         </div>
       </div>
+
+      {/* 메시지 배너 */}
+      {message && (
+        <div
+          className={`rounded-xl p-4 mb-6 ${message.type === "success" ? "bg-green-50 border border-green-200 text-green-700" : "bg-red-50 border border-red-200 text-red-700"}`}
+        >
+          {message.text}
+        </div>
+      )}
 
       {/* 단위 타입 설명 */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
