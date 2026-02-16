@@ -16,15 +16,6 @@ if (error) {
 
 <AdminLayout title="팀 관리">
   <div class="admin-page">
-    <nav class="about-subnav">
-      <a href="/admin/about" class="about-subnav-item">섹션 설정</a>
-      <a href="/admin/ceo" class="about-subnav-item">CEO</a>
-      <a href="/admin/team" class="about-subnav-item active">팀원</a>
-      <a href="/admin/values" class="about-subnav-item">핵심가치</a>
-      <a href="/admin/history" class="about-subnav-item">연혁</a>
-      <a href="/admin/partners" class="about-subnav-item">파트너</a>
-    </nav>
-
     <div class="page-header">
       <h1>팀 관리</h1>
       <button id="addBtn" class="btn btn-primary">새 팀원 추가</button>
@@ -125,24 +116,6 @@ if (error) {
     .admin-page {
       padding: 2rem;
     }
-    .about-subnav {
-      display: flex;
-      gap: 0.25rem;
-      margin-bottom: 2rem;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .about-subnav-item {
-      padding: 0.75rem 1.25rem;
-      text-decoration: none;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: #6b7280;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: color 0.15s, border-color 0.15s;
-    }
-    .about-subnav-item:hover { color: #111; }
-    .about-subnav-item.active { color: #000; border-bottom-color: #000; }
     .page-header {
       display: flex;
       justify-content: space-between;

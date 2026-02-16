@@ -8,18 +8,8 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 <AdminLayout title="회사소개 관리">
   <div class="about-admin">
     <p class="about-desc">
-      회사소개 페이지의 각 섹션 표시 여부와 기본 설정을 편집합니다.
-      개별 콘텐츠는 아래 탭에서 관리할 수 있습니다.
+      회사소개 페이지의 각 섹션을 편집하고 표시 여부를 설정할 수 있습니다.
     </p>
-
-    <nav class="about-subnav">
-      <a href="/admin/about" class="about-subnav-item active">섹션 설정</a>
-      <a href="/admin/ceo" class="about-subnav-item">CEO</a>
-      <a href="/admin/team" class="about-subnav-item">팀원</a>
-      <a href="/admin/values" class="about-subnav-item">핵심가치</a>
-      <a href="/admin/history" class="about-subnav-item">연혁</a>
-      <a href="/admin/partners" class="about-subnav-item">파트너</a>
-    </nav>
 
     <AboutPageForm client:only="react" />
   </div>
@@ -34,32 +24,5 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
     color: var(--c-text-sub, #6b7280);
     font-size: 0.875rem;
     margin: 0 0 1rem 0;
-  }
-
-  .about-subnav {
-    display: flex;
-    gap: 0.25rem;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  .about-subnav-item {
-    padding: 0.75rem 1.25rem;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #6b7280;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    transition: color 0.15s, border-color 0.15s;
-  }
-
-  .about-subnav-item:hover {
-    color: #111;
-  }
-
-  .about-subnav-item.active {
-    color: #000;
-    border-bottom-color: #000;
   }
 </style>

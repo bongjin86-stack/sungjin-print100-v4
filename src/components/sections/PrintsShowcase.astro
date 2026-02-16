@@ -11,12 +11,11 @@ const { data: settings } = await supabase
   .from("site_settings")
   .select("key, value")
   .in("key", [
+    "landing_products_ids",
+    "landing_products_count",
     "landing_products_title",
     "landing_products_subtitle",
     "landing_products_link_text",
-    "landing_products_description",
-    "landing_products_image",
-    "landing_products_sub_items",
   ]);
 
 const configMap: Record<string, string> = {};
@@ -24,121 +23,99 @@ const configMap: Record<string, string> = {};
   configMap[s.key] = s.value;
 });
 
+let productIds: string[] = [];
+try {
+  productIds = JSON.parse(configMap.landing_products_ids || "[]");
+} catch {
+  productIds = [];
+}
+
+const maxCount = parseInt(configMap.landing_products_count || "6", 10);
 const sectionTitle = configMap.landing_products_title || "Products";
 const sectionSubtitle = configMap.landing_products_subtitle || "인쇄 상품";
 const linkText = configMap.landing_products_link_text || "View all products";
-const description = configMap.landing_products_description || "";
-const mainImage = configMap.landing_products_image || "";
 
-// 서브 아이템 파싱
-interface SubItem {
-  type: "custom" | "product";
-  image?: string;
-  title?: string;
-  text?: string;
-  productId?: string;
-}
+// 선택된 상품 또는 최신 상품 가져오기
+let prints: any[] = [];
 
-let subItems: SubItem[] = [];
-try {
-  subItems = JSON.parse(configMap.landing_products_sub_items || "[]");
-} catch {
-  subItems = [];
-}
-
-// product 타입 서브 아이템의 상품 데이터 가져오기
-const productIds = subItems
-  .filter((item) => item.type === "product" && item.productId)
-  .map((item) => item.productId!);
-
-let productsMap: Record<string, any> = {};
 if (productIds.length > 0) {
+  // 관리자가 선택한 순서대로 가져오기
   const { data } = await supabase
     .from("prints")
-    .select("id, title, image, tag")
+    .select("*")
     .in("id", productIds)
     .eq("is_published", true);
 
   if (data) {
-    data.forEach((p: any) => {
-      productsMap[p.id] = p;
-    });
+    // 관리자가 설정한 순서 유지
+    const dataMap = new Map(data.map((d: any) => [d.id, d]));
+    prints = productIds
+      .map((id) => dataMap.get(id))
+      .filter(Boolean)
+      .slice(0, maxCount);
   }
-}
+} else {
+  // 기본: 최신 published prints
+  const { data } = await supabase
+    .from("prints")
+    .select("*")
+    .eq("is_published", true)
+    .order("sort_order", { ascending: true })
+    .limit(maxCount);
 
-// 렌더용 서브 아이템 조합
-const resolvedSubs = subItems
-  .map((item) => {
-    if (item.type === "product" && item.productId) {
-      const p = productsMap[item.productId];
-      if (!p) return null;
-      return { image: p.image, title: p.title, text: p.tag || "", href: `/prints/${p.id}` };
-    }
-    return { image: item.image || "", title: item.title || "", text: item.text || "", href: "" };
-  })
-  .filter(Boolean) as { image: string; title: string; text: string; href: string }[];
+  prints = data || [];
+}
 ---
 
-<Section background="primary">
-  <Container>
-    <div class="prints-showcase-inner">
-      <div class="prints-showcase-header">
-        <SectionTitle title={sectionTitle} subtitle={sectionSubtitle} />
-        {description && (
-          <p class="prints-showcase-desc">{description}</p>
-        )}
-        <LinkText href="/prints/" ariaLabel="전체 상품 보기">
-          {linkText}
-        </LinkText>
-      </div>
+{
+  prints.length > 0 && (
+    <Section background="primary">
+      <Container>
+        <div class="prints-showcase-inner">
+          <div class="prints-showcase-header">
+            <SectionTitle title={sectionTitle} subtitle={sectionSubtitle} />
+            <LinkText href="/prints/" ariaLabel="전체 상품 보기">
+              {linkText}
+            </LinkText>
+          </div>
 
-      <div class="prints-library-content">
-        <div class="prints-library-main">
-          {mainImage ? (
-            <img
-              src={mainImage}
-              alt={sectionTitle}
-              width="960"
-              height="720"
-              loading="lazy"
-            />
-          ) : (
-            <div class="prints-library-placeholder">No Image</div>
-          )}
-        </div>
-
-        {resolvedSubs.length > 0 && (
-          <div class="prints-library-subs">
-            {resolvedSubs.map((sub) => {
-              const inner = (
-                <div class="prints-library-sub">
-                  {sub.image && (
-                    <div class="prints-library-sub-image">
+          <div class="prints-showcase-grid">
+            {prints.map((item: any) => (
+              <article class="showcase-card" data-animate>
+                <a href={`/prints/${item.id}`} class="showcase-card-link">
+                  <div class="showcase-card-image">
+                    {item.image ? (
                       <img
-                        src={sub.image}
-                        alt={sub.title || ""}
-                        width="320"
-                        height="240"
+                        src={item.image}
+                        alt={item.title}
+                        width="600"
+                        height="400"
                         loading="lazy"
                       />
-                    </div>
-                  )}
-                  {(sub.title || sub.text) && (
-                    <div class="prints-library-sub-text">
-                      {sub.title && <h3 class="prints-library-sub-title">{sub.title}</h3>}
-                      {sub.text && <p class="prints-library-sub-desc">{sub.text}</p>}
-                    </div>
-                  )}
-                </div>
-              );
-              return sub.href ? <a href={sub.href} class="prints-library-sub-link">{inner}</a> : inner;
-            })}
+                    ) : (
+                      <div class="showcase-card-placeholder">No Image</div>
+                    )}
+                  </div>
+                  <div class="showcase-card-content">
+                    <h3 class="showcase-card-title">{item.title}</h3>
+                    {(item.client || item.subtitle) && (
+                      <p class="showcase-card-subtitle">
+                        {item.client || item.subtitle}
+                      </p>
+                    )}
+                    {item.tag && (
+                      <span class="showcase-card-tag">{item.tag}</span>
+                    )}
+                  </div>
+                </a>
+              </article>
+            ))}
           </div>
-        )}
-      </div>
-    </div>
-  </Container>
-</Section>
+        </div>
+      </Container>
+    </Section>
+  )
+}
 
 <style lang="scss">
   .prints-showcase-inner {
@@ -168,25 +145,33 @@ const resolvedSubs = subItems
     }
   }
 
-  .prints-showcase-desc {
-    display: none;
+  .prints-showcase-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-2xl);
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sp-xl);
+    }
 
     @media (min-width: 900px) {
-      display: block;
-      color: var(--c-text-sub);
-      font-size: var(--fs-sm);
-      line-height: var(--lh-relaxed);
-      margin: 0;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-2xl);
     }
   }
 
-  .prints-library-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-xl);
+  .showcase-card-link {
+    display: block;
+    transition: transform var(--transition-slow);
+
+    &:hover {
+      transform: translateY(-4px);
+    }
   }
 
-  .prints-library-main {
+  .showcase-card-image {
+    position: relative;
     width: 100%;
     overflow: hidden;
     border-radius: var(--radius-3xl);
@@ -195,104 +180,62 @@ const resolvedSubs = subItems
       width: 100%;
       height: auto;
       object-fit: cover;
-      aspect-ratio: 5 / 6;
-      display: block;
+      aspect-ratio: 3 / 2;
+      transition: transform var(--transition-slower);
+    }
 
-      @media (min-width: 900px) {
-        aspect-ratio: 2.3 / 1;
-      }
+    .showcase-card:hover & img {
+      transform: scale(1.05);
     }
   }
 
-  .prints-library-placeholder {
+  .showcase-card-placeholder {
     width: 100%;
-    aspect-ratio: 5 / 6;
-
-    @media (min-width: 900px) {
-      aspect-ratio: 2.3 / 1;
-    }
+    aspect-ratio: 3 / 2;
     background-color: var(--c-bg-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--c-text-sub);
+    border-radius: var(--radius-3xl);
   }
 
-  .prints-library-subs {
+  .showcase-card-tag {
+    display: inline-block;
+    align-self: self-start;
+    margin-top: var(--sp-xs);
+    padding: var(--sp-xs) var(--sp-md);
+    background-color: var(--c-bg-secondary);
+    color: var(--c-text-sub);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    line-height: var(--lh-tight);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius-full);
+  }
+
+  .showcase-card-content {
     display: flex;
     flex-direction: column;
-    gap: var(--sp-lg);
+    gap: var(--sp-xs);
+    margin: var(--sp-md) 0 0;
   }
 
-  .prints-library-sub-link {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    transition: opacity var(--transition-base);
-
-    &:hover {
-      opacity: 0.8;
-    }
-  }
-
-  .prints-library-sub {
-    display: flex;
-    gap: var(--sp-lg);
-    align-items: start;
-
-    @media (min-width: 600px) {
-      gap: var(--sp-xl);
-    }
-  }
-
-  .prints-library-sub-image {
-    flex: 0 0 36%;
-    overflow: hidden;
-    border-radius: var(--radius-2xl);
-
-    @media (min-width: 600px) {
-      flex: 0 0 30%;
-    }
-
-    @media (min-width: 900px) {
-      flex: 0 0 28%;
-    }
-
-    img {
-      width: 100%;
-      height: auto;
-      object-fit: cover;
-      aspect-ratio: 4 / 3;
-      display: block;
-    }
-  }
-
-  .prints-library-sub-text {
-    flex: 1;
-    min-width: 0;
-    padding-top: var(--sp-xs);
-  }
-
-  .prints-library-sub-title {
+  .showcase-card-title {
     color: var(--c-text);
-    font-size: var(--fs-base);
-    font-weight: 600;
+    font-size: var(--fs-md);
+    font-weight: 500;
     line-height: var(--lh-snug);
-    margin: 0 0 var(--sp-xs);
 
     @media (min-width: 600px) {
       font-size: var(--fs-lg);
     }
   }
 
-  .prints-library-sub-desc {
+  .showcase-card-subtitle {
     color: var(--c-text-sub);
     font-size: var(--fs-sm);
-    line-height: var(--lh-relaxed);
-    margin: 0;
-
-    @media (min-width: 600px) {
-      font-size: var(--fs-base);
-    }
+    line-height: var(--lh-snug);
   }
 </style>
