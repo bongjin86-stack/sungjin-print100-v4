@@ -1,0 +1,349 @@
+---
+import Container from "@/components/layout/Container.astro";
+import Section from "@/components/layout/Section.astro";
+import CTA from "@/components/sections/CTA.astro";
+import Layout from "@/layouts/Layout.astro";
+import { renderBlocksToHTML } from "@/lib/blockRenderer";
+import { supabase } from "@/lib/supabase";
+
+export const prerender = false;
+
+// CDN 캐시: 1시간 유지, 24시간 stale-while-revalidate
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, s-maxage=3600, stale-while-revalidate=86400"
+);
+
+const { slug } = Astro.params;
+
+// slug 또는 id로 조회 (한글 slug 안전 처리)
+const decodedSlug = decodeURIComponent(slug || "");
+
+// UUID 형식이면 id로, 아니면 slug로 조회
+const isUuid =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    decodedSlug
+  );
+
+let post: any = null;
+let error: any = null;
+
+if (isUuid) {
+  const result = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("id", decodedSlug)
+    .eq("is_published", true)
+    .single();
+  post = result.data;
+  error = result.error;
+} else {
+  // slug로 먼저 시도
+  const result = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("slug", decodedSlug)
+    .eq("is_published", true)
+    .single();
+  post = result.data;
+  error = result.error;
+}
+
+if (error || !post) {
+  return Astro.redirect("/edu100");
+}
+
+const contentHtml = post.content ? renderBlocksToHTML(post.content) : "";
+const pubDate = new Date(post.pub_date);
+
+// Schema.org BlogPosting (네이버 SEO)
+const blogSchema = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: post.title,
+  description: post.excerpt || "",
+  image: post.image || "",
+  datePublished: pubDate.toISOString(),
+  dateModified: new Date(post.updated_at || post.created_at).toISOString(),
+  author: {
+    "@type": "Organization",
+    name: "성진인쇄",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "성진인쇄",
+  },
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": Astro.url.href,
+  },
+};
+---
+
+<Layout
+  title={`${post.title} - 블로그`}
+  description={post.excerpt || post.title}
+  ogImage={post.image || ""}
+  articleDate={pubDate}
+>
+  {/* Schema.org JSON-LD for SEO */}
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify(blogSchema)}
+    slot="head"
+  />
+
+  <Section>
+    <Container size="medium">
+      <article class="blog-article">
+        {/* 뒤로가기 */}
+        <nav class="blog-breadcrumb">
+          <a href="/edu100">Edu+100</a>
+          <span class="sep">/</span>
+          <span>블로그</span>
+        </nav>
+
+        {/* 헤더 */}
+        <header class="blog-header">
+          <div class="blog-meta">
+            <time datetime={pubDate.toISOString()}>
+              {
+                pubDate.toLocaleDateString("ko-KR", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })
+              }
+            </time>
+          </div>
+          <h1 class="blog-title">{post.title}</h1>
+          {post.excerpt && <p class="blog-excerpt">{post.excerpt}</p>}
+        </header>
+
+        {/* 대표 이미지 */}
+        {
+          post.image && (
+            <div class="blog-hero-image">
+              <img
+                src={post.image}
+                alt={post.title}
+                width="1200"
+                height="675"
+                loading="eager"
+              />
+            </div>
+          )
+        }
+
+        {/* 본문 */}
+        <div class="blog-content" set:html={contentHtml} />
+
+        {/* 태그 */}
+        {
+          post.tags && post.tags.length > 0 && (
+            <div class="blog-tags">
+              {post.tags.map((tag: string) => (
+                <span class="blog-tag">#{tag}</span>
+              ))}
+            </div>
+          )
+        }
+
+        {/* 하단 */}
+        <div class="blog-footer">
+          <a href="/edu100" class="blog-back-link">
+            &larr; 목록으로 돌아가기
+          </a>
+        </div>
+      </article>
+    </Container>
+  </Section>
+
+  <CTA />
+</Layout>
+
+<style lang="scss">
+  .blog-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    font-size: var(--fs-xs);
+    color: var(--c-text-sub);
+    margin-bottom: var(--sp-xl);
+
+    a {
+      color: var(--c-text-sub);
+      text-decoration: none;
+
+      &:hover {
+        color: var(--c-text);
+      }
+    }
+
+    .sep {
+      opacity: 0.4;
+    }
+  }
+
+  .blog-header {
+    margin-bottom: var(--sp-2xl);
+  }
+
+  .blog-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-md);
+    margin-bottom: var(--sp-md);
+    font-size: var(--fs-sm);
+    color: var(--c-text-sub);
+  }
+
+  .blog-title {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 700;
+    line-height: var(--lh-tight);
+    color: var(--c-text);
+    margin: 0 0 var(--sp-md);
+  }
+
+  .blog-excerpt {
+    font-size: var(--fs-md);
+    color: var(--c-text-sub);
+    line-height: var(--lh-relaxed);
+    margin: 0;
+  }
+
+  .blog-hero-image {
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-4xl);
+    margin-bottom: var(--sp-2xl);
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      aspect-ratio: 16 / 9;
+      display: block;
+    }
+  }
+
+  .blog-content {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+    line-height: var(--lh-loose);
+
+    @media (min-width: 900px) {
+      font-size: var(--fs-md);
+    }
+
+    :global(h1),
+    :global(h2),
+    :global(h3) {
+      font-weight: 600;
+      line-height: var(--lh-snug);
+      margin: var(--sp-2xl) 0 var(--sp-md);
+      color: var(--c-text);
+    }
+
+    :global(h1) {
+      font-size: var(--fs-2xl);
+    }
+    :global(h2) {
+      font-size: var(--fs-xl);
+    }
+    :global(h3) {
+      font-size: var(--fs-lg);
+    }
+
+    :global(p) {
+      margin-bottom: var(--sp-lg);
+    }
+
+    :global(strong) {
+      font-weight: 600;
+    }
+    :global(em) {
+      font-style: italic;
+    }
+    :global(u) {
+      text-decoration: underline;
+    }
+
+    :global(ul),
+    :global(ol) {
+      padding-left: 1.5rem;
+      margin-bottom: var(--sp-lg);
+    }
+
+    :global(li) {
+      margin-bottom: var(--sp-xs);
+      line-height: var(--lh-relaxed);
+    }
+
+    :global(blockquote) {
+      border-left: 3px solid var(--c-primary);
+      padding: var(--sp-md) var(--sp-lg);
+      margin: var(--sp-xl) 0;
+      background: var(--c-bg-secondary);
+      border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+      font-style: italic;
+      color: var(--c-text-sub);
+    }
+
+    :global(img) {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--radius-lg);
+      margin: var(--sp-lg) 0;
+    }
+
+    :global(a) {
+      color: var(--c-primary);
+      text-decoration: underline;
+    }
+  }
+
+  .blog-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-sm);
+    margin-top: var(--sp-2xl);
+    padding-top: var(--sp-xl);
+    border-top: 1px solid var(--c-border);
+  }
+
+  .blog-tag {
+    padding: 4px 12px;
+    background: var(--c-bg-secondary);
+    color: var(--c-text-sub);
+    border-radius: var(--radius-full);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+  }
+
+  .blog-footer {
+    margin-top: var(--sp-2xl);
+    padding-top: var(--sp-xl);
+    border-top: 1px solid var(--c-border);
+    display: flex;
+    justify-content: center;
+  }
+
+  .blog-back-link {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--sp-sm) var(--sp-xl);
+    background: var(--c-bg-secondary);
+    color: var(--c-text-sub);
+    border-radius: var(--radius-full);
+    text-decoration: none;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    transition: background 0.2s;
+
+    &:hover {
+      background: var(--c-bg-tertiary, #e5e7eb);
+    }
+  }
+</style>

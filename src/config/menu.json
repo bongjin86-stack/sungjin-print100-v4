@@ -27,12 +27,12 @@
       ]
     },
     {
-      "title": "Blog",
-      "path": "/blog/"
-    },
-    {
       "title": "Works",
       "path": "/works/"
+    },
+    {
+      "title": "Prints",
+      "path": "/prints/"
     },
     {
       "title": "Edu+100",
@@ -58,8 +58,8 @@
           "path": "/services/"
         },
         {
-          "title": "Blog",
-          "path": "/blog/"
+          "title": "Works",
+          "path": "/works/"
         }
       ]
     },

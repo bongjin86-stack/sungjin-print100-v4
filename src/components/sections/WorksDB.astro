@@ -6,17 +6,17 @@ import SectionTitle from "@/components/ui/SectionTitle.astro";
 
 import { supabase } from "../../lib/supabase";
 
-// 랜딩 페이지 설정에서 상품 설정 가져오기
+// 랜딩 페이지 설정에서 Works 설정 가져오기
 const { data: settings } = await supabase
   .from("site_settings")
   .select("key, value")
   .in("key", [
-    "landing_products_title",
-    "landing_products_subtitle",
-    "landing_products_link_text",
-    "landing_products_description",
-    "landing_products_image",
-    "landing_products_sub_items",
+    "landing_works_title",
+    "landing_works_subtitle",
+    "landing_works_link_text",
+    "landing_works_description",
+    "landing_works_image",
+    "landing_works_sub_items",
   ]);
 
 const configMap: Record<string, string> = {};
@@ -24,11 +24,11 @@ const configMap: Record<string, string> = {};
   configMap[s.key] = s.value;
 });
 
-const sectionTitle = configMap.landing_products_title || "Works";
-const sectionSubtitle = configMap.landing_products_subtitle || "인쇄 상품";
-const linkText = configMap.landing_products_link_text || "View all works";
-const description = configMap.landing_products_description || "";
-const mainImage = configMap.landing_products_image || "";
+const sectionTitle = configMap.landing_works_title || "Works";
+const sectionSubtitle = configMap.landing_works_subtitle || "제작실적";
+const linkText = configMap.landing_works_link_text || "전체보기";
+const description = configMap.landing_works_description || "";
+const mainImage = configMap.landing_works_image || "";
 
 // 서브 아이템 파싱
 interface SubItem {
@@ -41,27 +41,27 @@ interface SubItem {
 
 let subItems: SubItem[] = [];
 try {
-  subItems = JSON.parse(configMap.landing_products_sub_items || "[]");
+  subItems = JSON.parse(configMap.landing_works_sub_items || "[]");
 } catch {
   subItems = [];
 }
 
-// product 타입 서브 아이템의 상품 데이터 가져오기
-const productIds = subItems
+// product 타입 서브 아이템의 작품 데이터 가져오기
+const workIds = subItems
   .filter((item) => item.type === "product" && item.productId)
   .map((item) => item.productId!);
 
-let productsMap: Record<string, any> = {};
-if (productIds.length > 0) {
+let worksMap: Record<string, any> = {};
+if (workIds.length > 0) {
   const { data } = await supabase
-    .from("prints")
+    .from("works")
     .select("id, title, image, tag")
-    .in("id", productIds)
+    .in("id", workIds)
     .eq("is_published", true);
 
   if (data) {
-    data.forEach((p: any) => {
-      productsMap[p.id] = p;
+    data.forEach((w: any) => {
+      worksMap[w.id] = w;
     });
   }
 }
@@ -70,9 +70,9 @@ if (productIds.length > 0) {
 const resolvedSubs = subItems
   .map((item) => {
     if (item.type === "product" && item.productId) {
-      const p = productsMap[item.productId];
-      if (!p) return null;
-      return { image: p.image, title: p.title, text: p.tag || "", href: `/works/${p.id}` };
+      const w = worksMap[item.productId];
+      if (!w) return null;
+      return { image: w.image, title: w.title, text: w.tag || "", href: `/works/${w.id}` };
     }
     return { image: item.image || "", title: item.title || "", text: item.text || "", href: "" };
   })
@@ -81,19 +81,9 @@ const resolvedSubs = subItems
 
 <Section background="primary">
   <Container>
-    <div class="prints-showcase-inner">
-      <div class="prints-showcase-header">
-        <SectionTitle title={sectionTitle} subtitle={sectionSubtitle} />
-        {description && (
-          <p class="prints-showcase-desc">{description}</p>
-        )}
-        <LinkText href="/works/" ariaLabel="전체 상품 보기">
-          {linkText}
-        </LinkText>
-      </div>
-
-      <div class="prints-library-content">
-        <div class="prints-library-main">
+    <div class="works-inner">
+      <div class="works-library-content">
+        <div class="works-library-main">
           {mainImage ? (
             <img
               src={mainImage}
@@ -103,17 +93,17 @@ const resolvedSubs = subItems
               loading="lazy"
             />
           ) : (
-            <div class="prints-library-placeholder">No Image</div>
+            <div class="works-library-placeholder">No Image</div>
           )}
         </div>
 
         {resolvedSubs.length > 0 && (
-          <div class="prints-library-subs">
+          <div class="works-library-subs">
             {resolvedSubs.map((sub) => {
               const inner = (
-                <div class="prints-library-sub">
+                <div class="works-library-sub">
                   {sub.image && (
-                    <div class="prints-library-sub-image">
+                    <div class="works-library-sub-image">
                       <img
                         src={sub.image}
                         alt={sub.title || ""}
@@ -124,39 +114,53 @@ const resolvedSubs = subItems
                     </div>
                   )}
                   {(sub.title || sub.text) && (
-                    <div class="prints-library-sub-text">
-                      {sub.title && <h3 class="prints-library-sub-title">{sub.title}</h3>}
-                      {sub.text && <p class="prints-library-sub-desc">{sub.text}</p>}
+                    <div class="works-library-sub-text">
+                      {sub.title && <h3 class="works-library-sub-title">{sub.title}</h3>}
+                      {sub.text && <p class="works-library-sub-desc">{sub.text}</p>}
                     </div>
                   )}
                 </div>
               );
-              return sub.href ? <a href={sub.href} class="prints-library-sub-link">{inner}</a> : inner;
+              return sub.href ? <a href={sub.href} class="works-library-sub-link">{inner}</a> : inner;
             })}
           </div>
         )}
+      </div>
+
+      <div class="works-header">
+        <SectionTitle title={sectionTitle} subtitle={sectionSubtitle} />
+        {description && (
+          <p class="works-showcase-desc">{description}</p>
+        )}
+        <LinkText href="/works/" ariaLabel="Works 전체보기">
+          {linkText}
+        </LinkText>
       </div>
     </div>
   </Container>
 </Section>
 
 <style lang="scss">
-  .prints-showcase-inner {
+  .works-inner {
     @media (min-width: 900px) {
       display: grid;
-      grid-template-columns: 20% 1fr;
+      grid-template-columns: 1fr 20%;
       gap: 0 var(--sp-4xl);
     }
   }
 
-  .prints-showcase-header {
+  .works-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--sp-lg);
     margin-bottom: var(--sp-3xl);
 
+    /* 모바일에서는 콘텐츠보다 위에 표시 */
+    order: -1;
+
     @media (min-width: 900px) {
+      order: 0;
       position: sticky;
       top: var(--sp-4xl);
       flex-direction: column;
@@ -168,7 +172,7 @@ const resolvedSubs = subItems
     }
   }
 
-  .prints-showcase-desc {
+  .works-showcase-desc {
     display: none;
 
     @media (min-width: 900px) {
@@ -180,13 +184,13 @@ const resolvedSubs = subItems
     }
   }
 
-  .prints-library-content {
+  .works-library-content {
     display: flex;
     flex-direction: column;
     gap: var(--sp-xl);
   }
 
-  .prints-library-main {
+  .works-library-main {
     width: 100%;
     overflow: hidden;
     border-radius: var(--radius-3xl);
@@ -199,17 +203,17 @@ const resolvedSubs = subItems
       display: block;
 
       @media (min-width: 900px) {
-        aspect-ratio: 3 / 2;
+        aspect-ratio: 2.3 / 1;
       }
     }
   }
 
-  .prints-library-placeholder {
+  .works-library-placeholder {
     width: 100%;
     aspect-ratio: 5 / 6;
 
     @media (min-width: 900px) {
-      aspect-ratio: 3 / 2;
+      aspect-ratio: 2.3 / 1;
     }
     background-color: var(--c-bg-secondary);
     display: flex;
@@ -218,13 +222,13 @@ const resolvedSubs = subItems
     color: var(--c-text-sub);
   }
 
-  .prints-library-subs {
+  .works-library-subs {
     display: flex;
     flex-direction: column;
     gap: var(--sp-lg);
   }
 
-  .prints-library-sub-link {
+  .works-library-sub-link {
     display: block;
     text-decoration: none;
     color: inherit;
@@ -235,7 +239,7 @@ const resolvedSubs = subItems
     }
   }
 
-  .prints-library-sub {
+  .works-library-sub {
     display: flex;
     gap: var(--sp-lg);
     align-items: start;
@@ -245,7 +249,7 @@ const resolvedSubs = subItems
     }
   }
 
-  .prints-library-sub-image {
+  .works-library-sub-image {
     flex: 0 0 36%;
     overflow: hidden;
     border-radius: var(--radius-2xl);
@@ -267,13 +271,13 @@ const resolvedSubs = subItems
     }
   }
 
-  .prints-library-sub-text {
+  .works-library-sub-text {
     flex: 1;
     min-width: 0;
     padding-top: var(--sp-xs);
   }
 
-  .prints-library-sub-title {
+  .works-library-sub-title {
     color: var(--c-text);
     font-size: var(--fs-base);
     font-weight: 600;
@@ -285,7 +289,7 @@ const resolvedSubs = subItems
     }
   }
 
-  .prints-library-sub-desc {
+  .works-library-sub-desc {
     color: var(--c-text-sub);
     font-size: var(--fs-sm);
     line-height: var(--lh-relaxed);
