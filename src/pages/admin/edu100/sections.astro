@@ -5,16 +5,81 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 export const prerender = false;
 ---
 
-<AdminLayout title="Edu+100 섹션 관리">
+<AdminLayout title="Edu+100">
+  <div class="context-bar">
+    <span class="context-bar-desc">교재 인쇄 서비스의 표지 갤러리, 제작 실적, 페이지 설정을 관리합니다.</span>
+    <a href="/admin/landing" class="context-bar-link">메인 페이지 Edu+100 섹션 편집 &rarr;</a>
+  </div>
+
+  <nav class="edu-subnav">
+    <a href="/admin/edu100" class="edu-subnav-item">표지 관리</a>
+    <a href="/admin/edu100/manual-orders" class="edu-subnav-item">수동 실적</a>
+    <a href="/admin/edu100/sections" class="edu-subnav-item active">페이지 섹션</a>
+  </nav>
+
   <div class="admin-header">
-    <h1>Edu+100 섹션 관리</h1>
-    <a href="/admin/edu100" class="btn-back">커버 목록</a>
+    <h1>페이지 섹션 관리</h1>
   </div>
 
   <Edu100SectionManager client:only="react" />
 </AdminLayout>
 
 <style>
+  .context-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.8125rem;
+  }
+
+  .context-bar-desc {
+    color: #0c4a6e;
+  }
+
+  .context-bar-link {
+    color: #0369a1;
+    text-decoration: none;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .context-bar-link:hover {
+    text-decoration: underline;
+  }
+
+  .edu-subnav {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .edu-subnav-item {
+    padding: 0.75rem 1.25rem;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .edu-subnav-item:hover {
+    color: #111;
+  }
+
+  .edu-subnav-item.active {
+    color: #000;
+    border-bottom-color: #000;
+  }
+
   .admin-header {
     display: flex;
     justify-content: space-between;
@@ -26,19 +91,5 @@ export const prerender = false;
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--c-text);
-  }
-
-  .btn-back {
-    background: #e5e7eb;
-    color: #374151;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background 0.2s;
-  }
-
-  .btn-back:hover {
-    background: #d1d5db;
   }
 </style>
