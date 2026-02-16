@@ -33,8 +33,8 @@ function useCountUp(target, duration = 2000) {
   return { value, start };
 }
 
-// 라이브 날짜 범위 라벨 (시작일 — 현재 시각)
-function LiveDateRange({ startDate }) {
+// 라이브 시계 (오늘 날짜 + 실시간 시각)
+function LiveClock() {
   const [now, setNow] = useState("");
 
   useEffect(() => {
@@ -53,12 +53,11 @@ function LiveDateRange({ startDate }) {
     return () => clearInterval(id);
   }, []);
 
-  if (!startDate) return null;
-
   return (
     <span className="edu100-stats-date-range">
       <span className="edu100-stats-live-dot" />
-      {startDate} — {now}
+      <span className="edu100-stats-live-label">LIVE</span>
+      {now}
     </span>
   );
 }
@@ -104,16 +103,15 @@ export default function Edu100Stats() {
 
   if (error) return null;
 
-  const startDate = stats?.stats_start_date || "";
-
   return (
     <div className="edu100-stats" ref={containerRef}>
       <div className="edu100-stats-counter">
+        <LiveClock />
         <span className="edu100-stats-number">
           {stats ? bookCount.value.toLocaleString("ko-KR") : "-"}
-          <span className="edu100-stats-plus">부+</span>
+          <span className="edu100-stats-plus"> 부+</span>
         </span>
-        <LiveDateRange startDate={startDate} />
+        <span className="edu100-stats-label">올해 제작된 교재</span>
       </div>
     </div>
   );

@@ -179,15 +179,20 @@ const buttonLink = configMap.landing_edu100_button_link || "/edu100";
     padding-top: var(--sp-lg);
   }
 
-  /* 날짜 범위 라벨 (시작일 — 라이브 시각) */
+  /* 라이브 시각 라벨 */
   :global(.edu100-stats-date-range) {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: var(--fs-xs);
+    font-size: var(--fs-sm);
     color: var(--c-text-sub);
-    font-weight: 400;
+    font-weight: 500;
     font-variant-numeric: tabular-nums;
+  }
+
+  :global(.edu100-stats-live-label) {
+    font-weight: 600;
+    letter-spacing: 0.04em;
   }
 
   :global(.edu100-stats-live-dot) {
@@ -217,20 +222,26 @@ const buttonLink = configMap.landing_edu100_button_link || "/edu100";
   }
 
   :global(.edu100-stats-number) {
-    font-size: var(--fs-2xl);
-    font-weight: 700;
+    font-size: var(--fs-3xl);
+    font-weight: 600;
     color: var(--c-text);
     line-height: 1.1;
     font-variant-numeric: tabular-nums;
 
     @media (min-width: 900px) {
-      font-size: var(--fs-3xl);
+      font-size: var(--fs-4xl);
     }
   }
 
   :global(.edu100-stats-plus) {
     font-weight: 500;
     color: var(--c-text-sub);
+  }
+
+  :global(.edu100-stats-label) {
+    font-size: var(--fs-sm);
+    color: var(--c-text-sub);
+    font-weight: 400;
   }
 
 
@@ -360,6 +371,7 @@ const buttonLink = configMap.landing_edu100_button_link || "/edu100";
     font-weight: 500;
     line-height: var(--lh-tight);
     margin: 0;
+    margin-top: calc(var(--sp-lg) * -0.5);
 
     @media (min-width: 900px) {
       font-size: var(--fs-3xl);
