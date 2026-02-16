@@ -10,102 +10,145 @@ import { supabase } from "../../lib/supabase";
 const { data: settings } = await supabase
   .from("site_settings")
   .select("key, value")
-  .in("key", ["landing_works_ids", "landing_works_count"]);
+  .in("key", [
+    "landing_works_title",
+    "landing_works_subtitle",
+    "landing_works_link_text",
+    "landing_works_description",
+    "landing_works_image",
+    "landing_works_sub_items",
+  ]);
 
 const configMap: Record<string, string> = {};
 (settings || []).forEach((s: { key: string; value: string }) => {
   configMap[s.key] = s.value;
 });
 
-let workIds: string[] = [];
-try {
-  workIds = JSON.parse(configMap.landing_works_ids || "[]");
-} catch {
-  workIds = [];
+const sectionTitle = configMap.landing_works_title || "Works";
+const sectionSubtitle = configMap.landing_works_subtitle || "제작실적";
+const linkText = configMap.landing_works_link_text || "전체보기";
+const description = configMap.landing_works_description || "";
+const mainImage = configMap.landing_works_image || "";
+
+// 서브 아이템 파싱
+interface SubItem {
+  type: "custom" | "product";
+  image?: string;
+  title?: string;
+  text?: string;
+  productId?: string;
 }
 
-const maxCount = parseInt(configMap.landing_works_count || "4", 10);
+let subItems: SubItem[] = [];
+try {
+  subItems = JSON.parse(configMap.landing_works_sub_items || "[]");
+} catch {
+  subItems = [];
+}
 
-// 선택된 작품 또는 최신 작품 가져오기
-let works: any[] = [];
+// product 타입 서브 아이템의 작품 데이터 가져오기
+const workIds = subItems
+  .filter((item) => item.type === "product" && item.productId)
+  .map((item) => item.productId!);
 
+let worksMap: Record<string, any> = {};
 if (workIds.length > 0) {
-  // 관리자가 선택한 순서대로 가져오기
   const { data } = await supabase
     .from("works")
-    .select("*")
+    .select("id, title, image, tag")
     .in("id", workIds)
     .eq("is_published", true);
 
   if (data) {
-    // 관리자가 설정한 순서 유지
-    const dataMap = new Map(data.map((d: any) => [d.id, d]));
-    works = workIds
-      .map((id) => dataMap.get(id))
-      .filter(Boolean)
-      .slice(0, maxCount);
+    data.forEach((w: any) => {
+      worksMap[w.id] = w;
+    });
   }
-} else {
-  // 기본: 최신 published works
-  const { data, error } = await supabase
-    .from("works")
-    .select("*")
-    .eq("is_published", true)
-    .order("created_at", { ascending: false })
-    .limit(maxCount);
-
-  if (error) {
-    console.error("Error fetching works:", error);
-  }
-
-  works = data || [];
 }
+
+// 렌더용 서브 아이템 조합
+const resolvedSubs = subItems
+  .map((item) => {
+    if (item.type === "product" && item.productId) {
+      const w = worksMap[item.productId];
+      if (!w) return null;
+      return { image: w.image, title: w.title, text: w.tag || "", href: `/works/${w.id}` };
+    }
+    return { image: item.image || "", title: item.title || "", text: item.text || "", href: "" };
+  })
+  .filter(Boolean) as { image: string; title: string; text: string; href: string }[];
 ---
 
 <Section background="primary">
   <Container>
     <div class="works-inner">
-      <div class="works-header">
-        <SectionTitle title="Works" subtitle="제작실적" />
-        <LinkText href="/works/" ariaLabel="Works 전체보기">
-          전체보기
-        </LinkText>
+      <div class="works-library-content">
+        <div class="works-library-main">
+          {mainImage ? (
+            <img
+              src={mainImage}
+              alt={sectionTitle}
+              width="960"
+              height="720"
+              loading="lazy"
+            />
+          ) : (
+            <div class="works-library-placeholder">No Image</div>
+          )}
+        </div>
+
+        {resolvedSubs.length > 0 && (
+          <div class="works-library-subs">
+            {resolvedSubs.map((sub) => {
+              const inner = (
+                <div class="works-library-sub">
+                  {sub.image && (
+                    <div class="works-library-sub-image">
+                      <img
+                        src={sub.image}
+                        alt={sub.title || ""}
+                        width="320"
+                        height="240"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+                  {(sub.title || sub.text) && (
+                    <div class="works-library-sub-text">
+                      {sub.title && <h3 class="works-library-sub-title">{sub.title}</h3>}
+                      {sub.text && <p class="works-library-sub-desc">{sub.text}</p>}
+                    </div>
+                  )}
+                </div>
+              );
+              return sub.href ? <a href={sub.href} class="works-library-sub-link">{inner}</a> : inner;
+            })}
+          </div>
+        )}
       </div>
 
-      <div class="works-grid">
-        {
-          works &&
-            works.map((work) => (
-              <article class="work-item fade" data-animate>
-                <a class="item-link" href={`/works/${work.id}`}>
-                  <div class="item-image">
-                    <img
-                      src={
-                        work.image ||
-                        "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=800&h=600&fit=crop"
-                      }
-                      alt={work.title}
-                      width="800"
-                      height="500"
-                      loading="lazy"
-                    />
-                    <span class="item-category">{work.tag || "가이드"}</span>
-                  </div>
-                  <div class="item-content">
-                    <h3 class="item-title">{work.title}</h3>
-                    <p class="item-description">{work.description}</p>
-                    <span class="item-view">자세히 보기</span>
-                  </div>
-                </a>
-              </article>
-            ))
-        }
+      <div class="works-header">
+        <SectionTitle title={sectionTitle} subtitle={sectionSubtitle} />
+        {description && (
+          <p class="works-showcase-desc">{description}</p>
+        )}
+        <LinkText href="/works/" ariaLabel="Works 전체보기">
+          {linkText}
+        </LinkText>
       </div>
     </div>
   </Container>
 </Section>
 
 <style lang="scss">
+  .works-inner {
+    @media (min-width: 900px) {
+      display: grid;
+      grid-template-columns: 1fr 20%;
+      gap: 0 var(--sp-4xl);
+    }
+  }
+
   .works-header {
     display: flex;
     align-items: center;
@@ -113,7 +156,11 @@ if (workIds.length > 0) {
     gap: var(--sp-lg);
     margin-bottom: var(--sp-3xl);
 
+    /* 모바일에서는 콘텐츠보다 위에 표시 */
+    order: -1;
+
     @media (min-width: 900px) {
+      order: 0;
       position: sticky;
       top: var(--sp-4xl);
       flex-direction: column;
@@ -125,36 +172,25 @@ if (workIds.length > 0) {
     }
   }
 
-  .works-inner {
+  .works-showcase-desc {
+    display: none;
+
     @media (min-width: 900px) {
-      display: grid;
-      grid-template-columns: 20% 1fr;
-      gap: 0 var(--sp-4xl);
+      display: block;
+      color: var(--c-text-sub);
+      font-size: var(--fs-sm);
+      line-height: var(--lh-relaxed);
+      margin: 0;
     }
   }
 
-  .works-grid {
-    display: grid;
-    gap: var(--sp-3xl);
-
-    @media (min-width: 600px) {
-      gap: var(--sp-5xl);
-    }
+  .works-library-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xl);
   }
 
-  .work-item {
-  }
-
-  .item-link {
-    transition: transform var(--transition-slow);
-
-    &:hover {
-      transform: translateY(-4px);
-    }
-  }
-
-  .item-image {
-    position: relative;
+  .works-library-main {
     width: 100%;
     overflow: hidden;
     border-radius: var(--radius-3xl);
@@ -163,91 +199,104 @@ if (workIds.length > 0) {
       width: 100%;
       height: auto;
       object-fit: cover;
-      aspect-ratio: 16 / 10;
-      transition: transform var(--transition-slower);
-    }
+      aspect-ratio: 5 / 6;
+      display: block;
 
-    .work-item:hover & img {
-      transform: scale(1.05);
+      @media (min-width: 900px) {
+        aspect-ratio: 2.3 / 1;
+      }
     }
   }
 
-  .item-category {
-    position: absolute;
-    top: var(--sp-md);
-    left: var(--sp-md);
-    padding: var(--sp-xs) var(--sp-md);
-    background-color: rgba(255, 255, 255, 0.7);
-    color: var(--c-text);
-    font-size: var(--fs-xs);
-    font-weight: 500;
-    line-height: var(--lh-tight);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    border-radius: var(--radius-full);
+  .works-library-placeholder {
+    width: 100%;
+    aspect-ratio: 5 / 6;
+
+    @media (min-width: 900px) {
+      aspect-ratio: 2.3 / 1;
+    }
+    background-color: var(--c-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--c-text-sub);
   }
 
-  .item-content {
+  .works-library-subs {
     display: flex;
     flex-direction: column;
-    gap: var(--sp-sm);
-    margin: var(--sp-lg) 0 0;
+    gap: var(--sp-lg);
+  }
 
-    @media (min-width: 900px) {
-      margin: var(--sp-lg) 0 0;
+  .works-library-sub-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity var(--transition-base);
+
+    &:hover {
+      opacity: 0.8;
     }
   }
 
-  .item-title {
+  .works-library-sub {
+    display: flex;
+    gap: var(--sp-lg);
+    align-items: start;
+
+    @media (min-width: 600px) {
+      gap: var(--sp-xl);
+    }
+  }
+
+  .works-library-sub-image {
+    flex: 0 0 36%;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+
+    @media (min-width: 600px) {
+      flex: 0 0 30%;
+    }
+
+    @media (min-width: 900px) {
+      flex: 0 0 28%;
+    }
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      aspect-ratio: 4 / 3;
+      display: block;
+    }
+  }
+
+  .works-library-sub-text {
+    flex: 1;
+    min-width: 0;
+    padding-top: var(--sp-xs);
+  }
+
+  .works-library-sub-title {
     color: var(--c-text);
-    font-size: var(--fs-lg);
-    font-weight: 500;
+    font-size: var(--fs-base);
+    font-weight: 600;
     line-height: var(--lh-snug);
+    margin: 0 0 var(--sp-xs);
 
-    @media (min-width: 900px) {
-      font-size: var(--fs-xl);
+    @media (min-width: 600px) {
+      font-size: var(--fs-lg);
     }
   }
 
-  .item-description {
+  .works-library-sub-desc {
     color: var(--c-text-sub);
-    font-size: var(--fs-md);
-    line-height: var(--lh-loose);
-
-    @media (min-width: 900px) {
-      font-size: var(--fs-base);
-    }
-  }
-
-  .item-view {
-    align-self: flex-start;
-    display: inline-block;
-    width: var(--buttonWidth);
-    margin: var(--sp-md) 0 0;
-    padding: var(--sp-sm) var(--sp-lg);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-full);
-    background-image: linear-gradient(
-      to right,
-      var(--c-primary) 50%,
-      transparent 50%
-    );
-    background-size: 200% 100%;
-    background-position: right;
-    color: var(--c-text);
     font-size: var(--fs-sm);
-    font-weight: 400;
-    line-height: 1.6;
-    text-align: center;
-    transition:
-      background-position var(--transition-slow),
-      color var(--transition-slow),
-      border-color var(--transition-slow);
+    line-height: var(--lh-relaxed);
+    margin: 0;
 
-    .work-item:hover & {
-      background-position: left;
-      color: var(--c-text-inverse);
-      border-color: var(--c-primary);
+    @media (min-width: 600px) {
+      font-size: var(--fs-base);
     }
   }
 </style>

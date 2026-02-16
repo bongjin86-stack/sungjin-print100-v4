@@ -31,7 +31,7 @@ const SECTION_LABELS: Record<string, string> = {
   hero: "Hero (히어로)",
   partners: "Partners (파트너)",
   service: "Service (서비스 소개)",
-  products: "Products (인쇄 상품)",
+  products: "Prints (인쇄 상품)",
   works: "Works (제작실적)",
   edu100: "Edu+100 (교재인쇄)",
   about: "About (회사 소개)",
@@ -60,14 +60,19 @@ interface FormData {
   landing_cta_button_text: string;
   landing_cta_button_link: string;
   // Products 섹션
-  landing_products_ids: string;
-  landing_products_count: string;
   landing_products_title: string;
   landing_products_subtitle: string;
   landing_products_link_text: string;
+  landing_products_description: string;
+  landing_products_image: string;
+  landing_products_sub_items: string;
   // Works 섹션
-  landing_works_ids: string;
-  landing_works_count: string;
+  landing_works_title: string;
+  landing_works_subtitle: string;
+  landing_works_link_text: string;
+  landing_works_description: string;
+  landing_works_image: string;
+  landing_works_sub_items: string;
   // EDU+100 섹션
   landing_edu100_images: string;
   landing_edu100_speed: string;
@@ -84,7 +89,7 @@ interface FormData {
   header_hidden_items: string;
 }
 
-interface PrintItem {
+interface ListItem {
   id: string;
   title: string;
   image: string | null;
@@ -92,12 +97,12 @@ interface PrintItem {
   is_published: boolean;
 }
 
-interface WorkItem {
-  id: string;
-  title: string;
-  image: string | null;
-  tag: string | null;
-  is_published: boolean;
+interface SubItem {
+  type: "custom" | "product";
+  image?: string;
+  title?: string;
+  text?: string;
+  productId?: string;
 }
 
 const defaultValues: FormData = {
@@ -111,13 +116,18 @@ const defaultValues: FormData = {
     "책자, 카탈로그, 브로슈어 인쇄를 의뢰하고 싶다\n대량 인쇄 견적을 받고 싶다\n용지 선택이나 후가공에 대해 상담하고 싶다\n납기 일정을 확인하고 싶다\n용지 샘플을 받아보고 싶다 등",
   landing_cta_button_text: "문의하기",
   landing_cta_button_link: "/contact",
-  landing_products_ids: "[]",
-  landing_products_count: "6",
   landing_products_title: "Products",
   landing_products_subtitle: "인쇄 상품",
   landing_products_link_text: "View all products",
-  landing_works_ids: "[]",
-  landing_works_count: "4",
+  landing_products_description: "",
+  landing_products_image: "",
+  landing_products_sub_items: "[]",
+  landing_works_title: "Works",
+  landing_works_subtitle: "제작실적",
+  landing_works_link_text: "전체보기",
+  landing_works_description: "",
+  landing_works_image: "",
+  landing_works_sub_items: "[]",
   landing_edu100_images: "[]",
   landing_edu100_speed: "3000",
   landing_edu100_title: "Edu+100",
@@ -141,13 +151,19 @@ export default function LandingSectionsForm() {
     text: string;
   } | null>(null);
 
-  // Products 탭 상태
-  const [allPrints, setAllPrints] = useState<PrintItem[]>([]);
-  const [selectedPrintIds, setSelectedPrintIds] = useState<string[]>([]);
+  // Products/Works 이미지 업로드 상태
+  const [sectionUploading, setSectionUploading] = useState(false);
+  const productsMainFileRef = useRef<HTMLInputElement>(null);
+  const worksMainFileRef = useRef<HTMLInputElement>(null);
+  const subItemFileRef = useRef<HTMLInputElement>(null);
 
-  // Works 탭 상태
-  const [allWorks, setAllWorks] = useState<WorkItem[]>([]);
-  const [selectedWorkIds, setSelectedWorkIds] = useState<string[]>([]);
+  // 서브 아이템 상태
+  const [productsSubItems, setProductsSubItems] = useState<SubItem[]>([]);
+  const [worksSubItems, setWorksSubItems] = useState<SubItem[]>([]);
+
+  // DB 목록 (상품/작품 선택용)
+  const [allPrints, setAllPrints] = useState<ListItem[]>([]);
+  const [allWorks, setAllWorks] = useState<ListItem[]>([]);
 
   // 섹션 순서 상태
   const [sectionOrder, setSectionOrder] = useState<string[]>(
@@ -203,16 +219,32 @@ export default function LandingSectionsForm() {
           landing_cta_button_link:
             configMap.landing_cta_button_link ||
             defaultValues.landing_cta_button_link,
-          landing_products_ids:
-            configMap.landing_products_ids ||
-            defaultValues.landing_products_ids,
-          landing_products_count:
-            configMap.landing_products_count ||
-            defaultValues.landing_products_count,
-          landing_works_ids:
-            configMap.landing_works_ids || defaultValues.landing_works_ids,
-          landing_works_count:
-            configMap.landing_works_count || defaultValues.landing_works_count,
+          landing_products_description:
+            configMap.landing_products_description ||
+            defaultValues.landing_products_description,
+          landing_products_image:
+            configMap.landing_products_image ||
+            defaultValues.landing_products_image,
+          landing_products_sub_items:
+            configMap.landing_products_sub_items ||
+            defaultValues.landing_products_sub_items,
+          landing_works_title:
+            configMap.landing_works_title || defaultValues.landing_works_title,
+          landing_works_subtitle:
+            configMap.landing_works_subtitle ||
+            defaultValues.landing_works_subtitle,
+          landing_works_link_text:
+            configMap.landing_works_link_text ||
+            defaultValues.landing_works_link_text,
+          landing_works_description:
+            configMap.landing_works_description ||
+            defaultValues.landing_works_description,
+          landing_works_image:
+            configMap.landing_works_image ||
+            defaultValues.landing_works_image,
+          landing_works_sub_items:
+            configMap.landing_works_sub_items ||
+            defaultValues.landing_works_sub_items,
           landing_edu100_images:
             configMap.landing_edu100_images ||
             defaultValues.landing_edu100_images,
@@ -255,17 +287,21 @@ export default function LandingSectionsForm() {
         setFormData(newFormData);
 
         try {
-          const ids = JSON.parse(newFormData.landing_products_ids || "[]");
-          setSelectedPrintIds(Array.isArray(ids) ? ids : []);
+          const items = JSON.parse(
+            newFormData.landing_products_sub_items || "[]"
+          );
+          setProductsSubItems(Array.isArray(items) ? items : []);
         } catch {
-          setSelectedPrintIds([]);
+          setProductsSubItems([]);
         }
 
         try {
-          const ids = JSON.parse(newFormData.landing_works_ids || "[]");
-          setSelectedWorkIds(Array.isArray(ids) ? ids : []);
+          const items = JSON.parse(
+            newFormData.landing_works_sub_items || "[]"
+          );
+          setWorksSubItems(Array.isArray(items) ? items : []);
         } catch {
-          setSelectedWorkIds([]);
+          setWorksSubItems([]);
         }
 
         try {
@@ -374,37 +410,33 @@ export default function LandingSectionsForm() {
           "landing_cta_button_link",
         ];
       } else if (activeTab === "products") {
-        const idsJson = JSON.stringify(selectedPrintIds);
+        const subItemsJson = JSON.stringify(productsSubItems);
         const now = new Date().toISOString();
         const updates = [
-          { key: "landing_products_ids", value: idsJson, updated_at: now },
-          {
-            key: "landing_products_count",
-            value: formData.landing_products_count,
-            updated_at: now,
-          },
-          {
-            key: "landing_products_title",
-            value: formData.landing_products_title,
-            updated_at: now,
-          },
-          {
-            key: "landing_products_subtitle",
-            value: formData.landing_products_subtitle,
-            updated_at: now,
-          },
-          {
-            key: "landing_products_link_text",
-            value: formData.landing_products_link_text,
-            updated_at: now,
-          },
-        ];
+          "landing_products_title",
+          "landing_products_subtitle",
+          "landing_products_link_text",
+          "landing_products_description",
+          "landing_products_image",
+        ].map((key) => ({
+          key,
+          value: formData[key as keyof FormData],
+          updated_at: now,
+        }));
+        updates.push({
+          key: "landing_products_sub_items",
+          value: subItemsJson,
+          updated_at: now,
+        });
         const { error } = await supabase
           .from("site_settings")
           .upsert(updates, { onConflict: "key" });
 
         if (error) throw error;
-        setFormData((prev) => ({ ...prev, landing_products_ids: idsJson }));
+        setFormData((prev) => ({
+          ...prev,
+          landing_products_sub_items: subItemsJson,
+        }));
         const purged = await purgeLandingCache();
         setMessage({
           type: "success",
@@ -416,22 +448,33 @@ export default function LandingSectionsForm() {
         setSaving(false);
         return;
       } else if (activeTab === "works") {
-        const idsJson = JSON.stringify(selectedWorkIds);
+        const subItemsJson = JSON.stringify(worksSubItems);
         const now = new Date().toISOString();
         const updates = [
-          { key: "landing_works_ids", value: idsJson, updated_at: now },
-          {
-            key: "landing_works_count",
-            value: formData.landing_works_count,
-            updated_at: now,
-          },
-        ];
+          "landing_works_title",
+          "landing_works_subtitle",
+          "landing_works_link_text",
+          "landing_works_description",
+          "landing_works_image",
+        ].map((key) => ({
+          key,
+          value: formData[key as keyof FormData],
+          updated_at: now,
+        }));
+        updates.push({
+          key: "landing_works_sub_items",
+          value: subItemsJson,
+          updated_at: now,
+        });
         const { error } = await supabase
           .from("site_settings")
           .upsert(updates, { onConflict: "key" });
 
         if (error) throw error;
-        setFormData((prev) => ({ ...prev, landing_works_ids: idsJson }));
+        setFormData((prev) => ({
+          ...prev,
+          landing_works_sub_items: subItemsJson,
+        }));
         const purged = await purgeLandingCache();
         setMessage({
           type: "success",
@@ -542,53 +585,107 @@ export default function LandingSectionsForm() {
     }
   };
 
-  // ─── Products 탭 핸들러 ───
-  const togglePrint = useCallback((printId: string) => {
-    setSelectedPrintIds((prev) => {
-      if (prev.includes(printId)) {
-        return prev.filter((id) => id !== printId);
-      }
-      return [...prev, printId];
-    });
-  }, []);
+  // ─── 메인 이미지 업로드 핸들러 ───
+  const handleMainImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "landing_products_image" | "landing_works_image",
+    bucket: string
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 10 * 1024 * 1024) return;
 
-  const movePrint = useCallback((index: number, direction: -1 | 1) => {
-    setSelectedPrintIds((prev) => {
-      const newArr = [...prev];
-      const newIndex = index + direction;
-      if (newIndex < 0 || newIndex >= newArr.length) return prev;
-      [newArr[index], newArr[newIndex]] = [newArr[newIndex], newArr[index]];
-      return newArr;
-    });
-  }, []);
+    setSectionUploading(true);
+    try {
+      const publicUrl = await uploadImage(file, bucket);
+      setFormData((prev) => ({ ...prev, [field]: publicUrl }));
+    } catch (err) {
+      console.error("Upload error:", err);
+    } finally {
+      setSectionUploading(false);
+      if (e.target) e.target.value = "";
+    }
+  };
 
-  const removePrint = useCallback((printId: string) => {
-    setSelectedPrintIds((prev) => prev.filter((id) => id !== printId));
-  }, []);
+  // ─── 서브 아이템 핸들러 (공용) ───
+  const addSubItem = useCallback(
+    (
+      setter: React.Dispatch<React.SetStateAction<SubItem[]>>,
+      type: "custom" | "product"
+    ) => {
+      setter((prev) => [
+        ...prev,
+        type === "custom"
+          ? { type: "custom", image: "", title: "", text: "" }
+          : { type: "product", productId: "" },
+      ]);
+    },
+    []
+  );
 
-  // ─── Works 탭 핸들러 ───
-  const toggleWork = useCallback((workId: string) => {
-    setSelectedWorkIds((prev) => {
-      if (prev.includes(workId)) {
-        return prev.filter((id) => id !== workId);
-      }
-      return [...prev, workId];
-    });
-  }, []);
+  const removeSubItem = useCallback(
+    (setter: React.Dispatch<React.SetStateAction<SubItem[]>>, index: number) => {
+      setter((prev) => prev.filter((_, i) => i !== index));
+    },
+    []
+  );
 
-  const moveWork = useCallback((index: number, direction: -1 | 1) => {
-    setSelectedWorkIds((prev) => {
-      const newArr = [...prev];
-      const newIndex = index + direction;
-      if (newIndex < 0 || newIndex >= newArr.length) return prev;
-      [newArr[index], newArr[newIndex]] = [newArr[newIndex], newArr[index]];
-      return newArr;
-    });
-  }, []);
+  const moveSubItem = useCallback(
+    (
+      setter: React.Dispatch<React.SetStateAction<SubItem[]>>,
+      index: number,
+      direction: -1 | 1
+    ) => {
+      setter((prev) => {
+        const newArr = [...prev];
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= newArr.length) return prev;
+        [newArr[index], newArr[newIndex]] = [newArr[newIndex], newArr[index]];
+        return newArr;
+      });
+    },
+    []
+  );
 
-  const removeWork = useCallback((workId: string) => {
-    setSelectedWorkIds((prev) => prev.filter((id) => id !== workId));
-  }, []);
+  const updateSubItem = useCallback(
+    (
+      setter: React.Dispatch<React.SetStateAction<SubItem[]>>,
+      index: number,
+      field: string,
+      value: string
+    ) => {
+      setter((prev) =>
+        prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+      );
+    },
+    []
+  );
+
+  const handleSubItemImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: React.Dispatch<React.SetStateAction<SubItem[]>>,
+    index: number,
+    bucket: string
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 10 * 1024 * 1024) return;
+
+    setSectionUploading(true);
+    try {
+      const publicUrl = await uploadImage(file, bucket);
+      setter((prev) =>
+        prev.map((item, i) => (i === index ? { ...item, image: publicUrl } : item))
+      );
+    } catch (err) {
+      console.error("Upload error:", err);
+    } finally {
+      setSectionUploading(false);
+      if (e.target) e.target.value = "";
+    }
+  };
 
   // ─── 섹션 순서 핸들러 ───
   const moveSection = useCallback((index: number, direction: -1 | 1) => {
@@ -660,13 +757,155 @@ export default function LandingSectionsForm() {
     );
   }
 
-  const selectedPrintsInfo = selectedPrintIds
-    .map((id) => allPrints.find((p) => p.id === id))
-    .filter(Boolean) as PrintItem[];
+  // ─── 서브 아이템 에디터 렌더 (공용) ───
+  const renderSubItemsEditor = (
+    items: SubItem[],
+    setter: React.Dispatch<React.SetStateAction<SubItem[]>>,
+    catalog: ListItem[],
+    catalogLabel: string,
+    bucket: string
+  ) => (
+    <div style={styles.formGroup}>
+      <label style={styles.label}>
+        서브 아이템 ({items.length}개)
+      </label>
+      <p style={styles.hint}>
+        이미지+텍스트 또는 {catalogLabel}을(를) 연결할 수 있습니다.
+      </p>
 
-  const selectedWorksInfo = selectedWorkIds
-    .map((id) => allWorks.find((w) => w.id === id))
-    .filter(Boolean) as WorkItem[];
+      {items.map((item, index) => (
+        <div key={index} style={localStyles.subItemCard}>
+          <div style={localStyles.subItemHeader}>
+            <span style={localStyles.subItemIndex}>#{index + 1}</span>
+            <select
+              value={item.type}
+              onChange={(e) =>
+                updateSubItem(setter, index, "type", e.target.value)
+              }
+              style={{ ...styles.select, flex: 1 }}
+            >
+              <option value="custom">이미지 + 텍스트</option>
+              <option value="product">{catalogLabel} 연결</option>
+            </select>
+            <div style={localStyles.selectedActions}>
+              <button
+                type="button"
+                onClick={() => moveSubItem(setter, index, -1)}
+                disabled={index === 0}
+                style={localStyles.moveBtn}
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                onClick={() => moveSubItem(setter, index, 1)}
+                disabled={index === items.length - 1}
+                style={localStyles.moveBtn}
+              >
+                ▼
+              </button>
+              <button
+                type="button"
+                onClick={() => removeSubItem(setter, index)}
+                style={localStyles.removeBtn}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {item.type === "custom" ? (
+            <div style={localStyles.subItemBody}>
+              {item.image && (
+                <img
+                  src={item.image}
+                  alt=""
+                  style={localStyles.productsSubImageThumb}
+                />
+              )}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+                <input
+                  type="text"
+                  value={item.title || ""}
+                  onChange={(e) =>
+                    updateSubItem(setter, index, "title", e.target.value)
+                  }
+                  style={styles.input}
+                  placeholder="제목"
+                />
+                <input
+                  type="text"
+                  value={item.text || ""}
+                  onChange={(e) =>
+                    updateSubItem(setter, index, "text", e.target.value)
+                  }
+                  style={styles.input}
+                  placeholder="설명"
+                />
+                <label style={localStyles.subItemUploadBtn}>
+                  {item.image ? "이미지 변경" : "+ 이미지"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      handleSubItemImageUpload(e, setter, index, bucket)
+                    }
+                    style={{ display: "none" }}
+                  />
+                </label>
+              </div>
+            </div>
+          ) : (
+            <div style={localStyles.subItemBody}>
+              <select
+                value={item.productId || ""}
+                onChange={(e) =>
+                  updateSubItem(setter, index, "productId", e.target.value)
+                }
+                style={styles.select}
+              >
+                <option value="">-- {catalogLabel} 선택 --</option>
+                {catalog.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title} {p.tag ? `(${p.tag})` : ""}
+                  </option>
+                ))}
+              </select>
+              {item.productId && (
+                (() => {
+                  const found = catalog.find((p) => p.id === item.productId);
+                  return found?.image ? (
+                    <img
+                      src={found.image}
+                      alt={found.title}
+                      style={localStyles.productsSubImageThumb}
+                    />
+                  ) : null;
+                })()
+              )}
+            </div>
+          )}
+        </div>
+      ))}
+
+      <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+        <button
+          type="button"
+          onClick={() => addSubItem(setter, "custom")}
+          style={styles.addButton}
+        >
+          + 이미지/텍스트 추가
+        </button>
+        <button
+          type="button"
+          onClick={() => addSubItem(setter, "product")}
+          style={styles.addButton}
+        >
+          + {catalogLabel} 연결
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div style={styles.form}>
@@ -687,7 +926,7 @@ export default function LandingSectionsForm() {
         {(
           [
             ["hero", "Hero"],
-            ["products", "Products"],
+            ["products", "Prints"],
             ["works", "Works"],
             ["edu100", "Edu+100"],
             ["about", "About"],
@@ -733,7 +972,7 @@ export default function LandingSectionsForm() {
           <div style={localStyles.sectionHeader}>
             <h3 style={localStyles.sectionTitle}>섹션 순서 관리</h3>
             <p style={localStyles.sectionDesc}>
-              랜딩 페이지에 표시되는 섹션의 순서를 변경합니다. 위/아래 버튼으로
+              메인 페이지에 표시되는 섹션의 순서를 변경합니다. 위/아래 버튼으로
               순서를 조정하세요.
             </p>
           </div>
@@ -865,10 +1104,13 @@ export default function LandingSectionsForm() {
       {activeTab === "products" && (
         <div style={styles.formGrid}>
           <div style={localStyles.sectionHeader}>
-            <h3 style={localStyles.sectionTitle}>Products 섹션</h3>
+            <h3 style={localStyles.sectionTitle}>Prints 섹션</h3>
             <p style={localStyles.sectionDesc}>
-              랜딩 페이지에 노출할 인쇄 상품을 선택하고 순서를 설정합니다.
+              메인 페이지의 인쇄 상품 섹션을 편집합니다. Library 스타일 레이아웃.
             </p>
+            <a href="/admin/prints" style={localStyles.crossLink}>
+              Prints 상품 목록 관리 &rarr;
+            </a>
           </div>
 
           <div style={styles.formRow}>
@@ -906,129 +1148,80 @@ export default function LandingSectionsForm() {
               style={styles.input}
               placeholder="View all products"
             />
-            <p style={styles.hint}>
-              섹션 헤더 옆에 표시되는 전체 상품 보기 링크 텍스트입니다.
-            </p>
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>노출 개수</label>
-            <select
-              name="landing_products_count"
-              value={formData.landing_products_count}
+            <label style={styles.label}>설명 텍스트</label>
+            <textarea
+              name="landing_products_description"
+              value={formData.landing_products_description}
               onChange={handleChange}
-              style={styles.select}
-            >
-              {[3, 4, 6, 8, 9, 12].map((n) => (
-                <option key={n} value={n}>
-                  {n}개
-                </option>
-              ))}
-            </select>
+              rows={3}
+              style={styles.textarea}
+              placeholder="사이드바에 표시될 설명 텍스트"
+            />
             <p style={styles.hint}>
-              랜딩 페이지에 표시할 최대 상품 수입니다. 선택된 상품이 없으면 최신
-              상품이 자동으로 표시됩니다.
+              데스크탑에서 왼쪽 사이드바에 표시됩니다. 모바일에서는 숨겨집니다.
             </p>
           </div>
-
-          {selectedPrintsInfo.length > 0 && (
-            <div style={styles.formGroup}>
-              <label style={styles.label}>
-                선택된 상품 ({selectedPrintsInfo.length}개)
-              </label>
-              <div style={localStyles.selectedList}>
-                {selectedPrintsInfo.map((item, index) => (
-                  <div key={item.id} style={localStyles.selectedItem}>
-                    <span style={localStyles.selectedIndex}>{index + 1}</span>
-                    {item.image && (
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        style={localStyles.selectedThumb}
-                      />
-                    )}
-                    <span style={localStyles.selectedName}>{item.title}</span>
-                    {item.tag && (
-                      <span style={localStyles.selectedTag}>{item.tag}</span>
-                    )}
-                    <div style={localStyles.selectedActions}>
-                      <button
-                        type="button"
-                        onClick={() => movePrint(index, -1)}
-                        disabled={index === 0}
-                        style={localStyles.moveBtn}
-                        title="위로"
-                      >
-                        ▲
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => movePrint(index, 1)}
-                        disabled={index === selectedPrintsInfo.length - 1}
-                        style={localStyles.moveBtn}
-                        title="아래로"
-                      >
-                        ▼
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removePrint(item.id)}
-                        style={localStyles.removeBtn}
-                        title="제거"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>상품 선택</label>
+            <label style={styles.label}>메인 이미지</label>
+            {formData.landing_products_image && (
+              <div style={localStyles.productsImagePreview}>
+                <img
+                  src={formData.landing_products_image}
+                  alt="메인 이미지 미리보기"
+                  style={localStyles.productsImageThumb}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      landing_products_image: "",
+                    }))
+                  }
+                  style={localStyles.removeBtn}
+                  title="삭제"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => productsMainFileRef.current?.click()}
+              disabled={sectionUploading}
+              style={styles.addButton}
+            >
+              {sectionUploading
+                ? "업로드 중..."
+                : formData.landing_products_image
+                  ? "이미지 변경"
+                  : "+ 이미지 업로드"}
+            </button>
+            <input
+              ref={productsMainFileRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                handleMainImageUpload(e, "landing_products_image", "landing-products")
+              }
+              style={{ display: "none" }}
+            />
             <p style={styles.hint}>
-              클릭하여 랜딩 페이지에 노출할 상품을 선택/해제합니다.
+              히어로와 비슷한 와이드 비율(2.3:1)로 표시됩니다.
             </p>
-            <div style={localStyles.printGrid}>
-              {allPrints.map((item) => {
-                const isSelected = selectedPrintIds.includes(item.id);
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => togglePrint(item.id)}
-                    style={{
-                      ...localStyles.printCard,
-                      ...(isSelected ? localStyles.printCardSelected : {}),
-                    }}
-                  >
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        style={localStyles.printCardImage}
-                      />
-                    ) : (
-                      <div style={localStyles.printCardPlaceholder}>
-                        No Image
-                      </div>
-                    )}
-                    <div style={localStyles.printCardInfo}>
-                      <span style={localStyles.printCardTitle}>
-                        {item.title}
-                      </span>
-                      {item.tag && (
-                        <span style={localStyles.printCardTag}>{item.tag}</span>
-                      )}
-                    </div>
-                    {isSelected && (
-                      <div style={localStyles.printCardCheck}>✓</div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
           </div>
+
+          {renderSubItemsEditor(
+            productsSubItems,
+            setProductsSubItems,
+            allPrints,
+            "상품",
+            "landing-products"
+          )}
         </div>
       )}
 
@@ -1038,128 +1231,122 @@ export default function LandingSectionsForm() {
           <div style={localStyles.sectionHeader}>
             <h3 style={localStyles.sectionTitle}>Works 섹션</h3>
             <p style={localStyles.sectionDesc}>
-              랜딩 페이지에 노출할 제작실적을 선택하고 순서를 설정합니다.
+              메인 페이지의 제작실적 섹션을 편집합니다. 오른쪽 사이드바 + 왼쪽 콘텐츠 구조입니다.
             </p>
+            <a href="/admin/works" style={localStyles.crossLink}>
+              Works 작품 목록 관리 &rarr;
+            </a>
           </div>
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>노출 개수</label>
-            <select
-              name="landing_works_count"
-              value={formData.landing_works_count}
-              onChange={handleChange}
-              style={styles.select}
-            >
-              {[2, 3, 4, 6, 8].map((n) => (
-                <option key={n} value={n}>
-                  {n}개
-                </option>
-              ))}
-            </select>
-            <p style={styles.hint}>
-              랜딩 페이지에 표시할 최대 작품 수입니다. 선택된 작품이 없으면 최신
-              작품이 자동으로 표시됩니다.
-            </p>
-          </div>
-
-          {selectedWorksInfo.length > 0 && (
+          <div style={styles.formRow}>
             <div style={styles.formGroup}>
-              <label style={styles.label}>
-                선택된 작품 ({selectedWorksInfo.length}개)
-              </label>
-              <div style={localStyles.selectedList}>
-                {selectedWorksInfo.map((item, index) => (
-                  <div key={item.id} style={localStyles.selectedItem}>
-                    <span style={localStyles.selectedIndex}>{index + 1}</span>
-                    {item.image && (
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        style={localStyles.selectedThumb}
-                      />
-                    )}
-                    <span style={localStyles.selectedName}>{item.title}</span>
-                    {item.tag && (
-                      <span style={localStyles.selectedTag}>{item.tag}</span>
-                    )}
-                    <div style={localStyles.selectedActions}>
-                      <button
-                        type="button"
-                        onClick={() => moveWork(index, -1)}
-                        disabled={index === 0}
-                        style={localStyles.moveBtn}
-                        title="위로"
-                      >
-                        ▲
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveWork(index, 1)}
-                        disabled={index === selectedWorksInfo.length - 1}
-                        style={localStyles.moveBtn}
-                        title="아래로"
-                      >
-                        ▼
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeWork(item.id)}
-                        style={localStyles.removeBtn}
-                        title="제거"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <label style={styles.label}>제목</label>
+              <input
+                type="text"
+                name="landing_works_title"
+                value={formData.landing_works_title}
+                onChange={handleChange}
+                style={styles.input}
+                placeholder="Works"
+              />
             </div>
-          )}
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>작품 선택</label>
-            <p style={styles.hint}>
-              클릭하여 랜딩 페이지에 노출할 작품을 선택/해제합니다.
-            </p>
-            <div style={localStyles.printGrid}>
-              {allWorks.map((item) => {
-                const isSelected = selectedWorkIds.includes(item.id);
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => toggleWork(item.id)}
-                    style={{
-                      ...localStyles.printCard,
-                      ...(isSelected ? localStyles.printCardSelected : {}),
-                    }}
-                  >
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        style={localStyles.printCardImage}
-                      />
-                    ) : (
-                      <div style={localStyles.printCardPlaceholder}>
-                        No Image
-                      </div>
-                    )}
-                    <div style={localStyles.printCardInfo}>
-                      <span style={localStyles.printCardTitle}>
-                        {item.title}
-                      </span>
-                      {item.tag && (
-                        <span style={localStyles.printCardTag}>{item.tag}</span>
-                      )}
-                    </div>
-                    {isSelected && (
-                      <div style={localStyles.printCardCheck}>✓</div>
-                    )}
-                  </div>
-                );
-              })}
+            <div style={styles.formGroup}>
+              <label style={styles.label}>부제목</label>
+              <input
+                type="text"
+                name="landing_works_subtitle"
+                value={formData.landing_works_subtitle}
+                onChange={handleChange}
+                style={styles.input}
+                placeholder="제작실적"
+              />
             </div>
           </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>링크 텍스트</label>
+            <input
+              type="text"
+              name="landing_works_link_text"
+              value={formData.landing_works_link_text}
+              onChange={handleChange}
+              style={styles.input}
+              placeholder="전체보기"
+            />
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>설명 텍스트</label>
+            <textarea
+              name="landing_works_description"
+              value={formData.landing_works_description}
+              onChange={handleChange}
+              rows={3}
+              style={styles.textarea}
+              placeholder="사이드바에 표시될 설명 텍스트"
+            />
+            <p style={styles.hint}>
+              데스크탑에서 오른쪽 사이드바에 표시됩니다. 모바일에서는 숨겨집니다.
+            </p>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>메인 이미지</label>
+            {formData.landing_works_image && (
+              <div style={localStyles.productsImagePreview}>
+                <img
+                  src={formData.landing_works_image}
+                  alt="메인 이미지 미리보기"
+                  style={localStyles.productsImageThumb}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      landing_works_image: "",
+                    }))
+                  }
+                  style={localStyles.removeBtn}
+                  title="삭제"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => worksMainFileRef.current?.click()}
+              disabled={sectionUploading}
+              style={styles.addButton}
+            >
+              {sectionUploading
+                ? "업로드 중..."
+                : formData.landing_works_image
+                  ? "이미지 변경"
+                  : "+ 이미지 업로드"}
+            </button>
+            <input
+              ref={worksMainFileRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                handleMainImageUpload(e, "landing_works_image", "landing-works")
+              }
+              style={{ display: "none" }}
+            />
+            <p style={styles.hint}>
+              히어로와 비슷한 와이드 비율(2.3:1)로 표시됩니다.
+            </p>
+          </div>
+
+          {renderSubItemsEditor(
+            worksSubItems,
+            setWorksSubItems,
+            allWorks,
+            "작품",
+            "landing-works"
+          )}
         </div>
       )}
 
@@ -1169,9 +1356,12 @@ export default function LandingSectionsForm() {
           <div style={localStyles.sectionHeader}>
             <h3 style={localStyles.sectionTitle}>Edu+100 섹션</h3>
             <p style={localStyles.sectionDesc}>
-              랜딩 페이지의 Edu+100 소개 섹션을 편집합니다. 왼쪽 이미지 캐러셀과
+              메인 페이지의 Edu+100 소개 섹션을 편집합니다. 왼쪽 이미지 캐러셀과
               오른쪽 텍스트로 구성됩니다.
             </p>
+            <a href="/admin/edu100" style={localStyles.crossLink}>
+              Edu+100 표지/실적 관리 &rarr;
+            </a>
           </div>
 
           <div style={styles.formGroup}>
@@ -1417,7 +1607,7 @@ export default function LandingSectionsForm() {
           <div style={localStyles.sectionHeader}>
             <h3 style={localStyles.sectionTitle}>About 섹션</h3>
             <p style={localStyles.sectionDesc}>
-              랜딩 페이지의 회사 소개 섹션 텍스트를 편집합니다.
+              메인 페이지의 회사 소개 섹션 텍스트를 편집합니다.
             </p>
           </div>
 
@@ -1460,7 +1650,7 @@ export default function LandingSectionsForm() {
           <div style={localStyles.sectionHeader}>
             <h3 style={localStyles.sectionTitle}>CTA 섹션</h3>
             <p style={localStyles.sectionDesc}>
-              랜딩 페이지 하단의 문의하기 섹션을 편집합니다.
+              메인 페이지 하단의 문의하기 섹션을 편집합니다.
             </p>
           </div>
 
@@ -1607,6 +1797,14 @@ const localStyles: Record<string, React.CSSProperties> = {
     fontSize: "0.875rem",
     color: "#6b7280",
     marginTop: "0.25rem",
+  },
+  crossLink: {
+    display: "inline-block",
+    marginTop: "0.5rem",
+    fontSize: "0.8125rem",
+    fontWeight: 500,
+    color: "#0369a1",
+    textDecoration: "none",
   },
   preview: {
     padding: "1rem",
@@ -1821,6 +2019,69 @@ const localStyles: Record<string, React.CSSProperties> = {
     justifyContent: "center",
     fontSize: "0.75rem",
     fontWeight: 700,
+  },
+  subItemCard: {
+    padding: "0.75rem",
+    background: "#f9fafb",
+    borderRadius: "0.5rem",
+    border: "1px solid #e5e7eb",
+    marginBottom: "0.5rem",
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.5rem",
+  },
+  subItemHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+  },
+  subItemIndex: {
+    fontSize: "0.75rem",
+    fontWeight: 600,
+    color: "#9ca3af",
+    minWidth: "2rem",
+  },
+  subItemBody: {
+    display: "flex",
+    alignItems: "start",
+    gap: "0.75rem",
+  },
+  subItemUploadBtn: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "0.25rem 0.75rem",
+    background: "white",
+    border: "1px solid #d1d5db",
+    borderRadius: "0.375rem",
+    fontSize: "0.75rem",
+    color: "#374151",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  productsImagePreview: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.75rem",
+    padding: "0.5rem",
+    background: "#f9fafb",
+    borderRadius: "0.5rem",
+    border: "1px solid #e5e7eb",
+    marginBottom: "0.5rem",
+  },
+  productsImageThumb: {
+    width: "100%",
+    maxWidth: "320px",
+    aspectRatio: "2.3 / 1",
+    objectFit: "cover",
+    borderRadius: "0.375rem",
+    display: "block",
+  },
+  productsSubImageThumb: {
+    width: "120px",
+    aspectRatio: "4 / 3",
+    objectFit: "cover",
+    borderRadius: "0.375rem",
+    display: "block",
   },
   imageList: {
     display: "grid",

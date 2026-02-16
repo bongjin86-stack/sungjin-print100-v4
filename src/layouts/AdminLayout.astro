@@ -30,40 +30,40 @@ try {
   // 없으면 기본 텍스트 사용
 }
 
-// 상시 노출 메뉴 (매일 사용)
+// 상시 노출 메뉴 (핵심 운영 — 매일 사용)
 const mainItems = [
   { href: "/admin/orders", label: "주문 관리" },
-  { href: "/admin/products", label: "상품 관리" },
-  { href: "/admin/news", label: "공지사항" },
+  { href: "/admin/prints", label: "Prints" },
+  { href: "/admin/works", label: "Works" },
+  { href: "/admin/edu100", label: "Edu+100" },
 ];
 
-// 접히는 그룹: 페이지 관리
-const pageGroup = {
-  key: "pages",
-  title: "페이지 관리",
+// 접히는 그룹: 콘텐츠 (글쓰기 계열)
+const contentGroup = {
+  key: "content",
+  title: "콘텐츠",
   items: [
-    { href: "/admin/landing", label: "랜딩 페이지" },
-    { href: "/admin/about", label: "회사소개" },
-    { href: "/admin/services", label: "서비스" },
-    { href: "/admin/works", label: "Works" },
-    { href: "/admin/prints", label: "Prints" },
-    { href: "/admin/edu100", label: "Edu+100" },
+    { href: "/admin/news", label: "공지사항" },
     { href: "/admin/blog", label: "블로그" },
     { href: "/admin/faq", label: "FAQ" },
+    { href: "/admin/services", label: "서비스" },
   ],
 };
 
-// 접히는 그룹: 시스템
-const systemGroup = {
-  key: "system",
-  title: "시스템",
+// 접히는 그룹: 관리 (사이트 구조/설정)
+const manageGroup = {
+  key: "manage",
+  title: "관리",
   items: [
-    { href: "/admin/db", label: "DB 관리" },
-    { href: "/admin/settings", label: "설정" },
+    { href: "/admin/landing", label: "메인 페이지" },
+    { href: "/admin/about", label: "회사소개" },
+    { href: "/admin/products", label: "상품 빌더" },
+    { href: "/admin/db", label: "가격 DB" },
+    { href: "/admin/settings", label: "사이트 설정" },
   ],
 };
 
-const collapsibleGroups = [pageGroup, systemGroup];
+const collapsibleGroups = [contentGroup, manageGroup];
 
 function isActive(href: string) {
   if (href === "/admin") {
