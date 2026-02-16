@@ -4,7 +4,7 @@ import { supabase } from "../../../lib/supabase";
 
 export const prerender = false;
 
-// Prints 데이터 가져오기
+// Works 데이터 가져오기
 const { data: prints, error } = await supabase
   .from("prints")
   .select("*")
@@ -26,20 +26,20 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) =>
 );
 ---
 
-<AdminLayout title="Prints 관리">
+<AdminLayout title="Works 관리">
   <div class="context-bar">
     <span class="context-bar-desc">고객이 보는 화면과 동일한 레이아웃입니다. 카드를 클릭하면 수정할 수 있습니다.</span>
     <div class="context-bar-links">
-      <a href="/prints" class="context-bar-link" target="_blank">사이트에서 보기 &nearr;</a>
+      <a href="/works" class="context-bar-link" target="_blank">사이트에서 보기 &nearr;</a>
       <a href="/admin/landing" class="context-bar-link">메인 페이지 편집 &rarr;</a>
     </div>
   </div>
 
   <div class="admin-header">
-    <h1>Prints</h1>
+    <h1>Works</h1>
     <div class="header-actions">
       <button id="toggleTags" class="btn-ghost">태그 관리</button>
-      <a href="/admin/prints/new" class="btn-primary">새 Prints 작성</a>
+      <a href="/admin/works/new" class="btn-primary">새 Works 작성</a>
     </div>
   </div>
 
@@ -66,7 +66,7 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) =>
       }
     </div>
     <p class="tag-hint">
-      Prints 작성/수정 시 새 태그를 직접 입력하면 자동으로 등록됩니다.
+      Works 작성/수정 시 새 태그를 직접 입력하면 자동으로 등록됩니다.
     </p>
   </div>
 
@@ -76,7 +76,7 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) =>
       prints && prints.length > 0 ? (
         prints.map((item) => (
           <article class={`print-card ${!item.is_published ? "unpublished" : ""}`}>
-            <a href={`/admin/prints/${item.id}`} class="print-card-link">
+            <a href={`/admin/works/${item.id}`} class="print-card-link">
               <div class="print-card-image">
                 {item.image ? (
                   <img
@@ -118,9 +118,9 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) =>
         ))
       ) : (
         <div class="empty-state">
-          <p>등록된 Prints가 없습니다.</p>
-          <a href="/admin/prints/new" class="btn-primary">
-            첫 Prints 작성하기
+          <p>등록된 Works가 없습니다.</p>
+          <a href="/admin/works/new" class="btn-primary">
+            첫 Works 작성하기
           </a>
         </div>
       )
@@ -477,12 +477,12 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) =>
     btn.classList.toggle("active");
   });
 
-  // Prints 삭제
+  // Works 삭제
   document.querySelectorAll(".overlay-delete").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       const id = (e.target as HTMLElement).dataset.id;
       if (confirm("정말 삭제하시겠습니까?")) {
-        const res = await fetch(`/api/prints/${id}`, { method: "DELETE" });
+        const res = await fetch(`/api/works/${id}`, { method: "DELETE" });
         if (res.ok) {
           window.location.reload();
         } else {
@@ -498,10 +498,10 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) =>
       const tag = (e.target as HTMLElement).dataset.tag;
       if (
         confirm(
-          `"${tag}" 태그를 삭제하시겠습니까?\n이 태그를 사용 중인 Prints에서도 제거됩니다.`
+          `"${tag}" 태그를 삭제하시겠습니까?\n이 태그를 사용 중인 Works에서도 제거됩니다.`
         )
       ) {
-        const res = await fetch("/api/prints/tags", {
+        const res = await fetch("/api/works/tags", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ tag }),
@@ -521,7 +521,7 @@ const tagList = Object.entries(tagCounts).sort(([a], [b]) =>
       const oldTag = (e.target as HTMLElement).dataset.tag;
       const newTag = prompt(`"${oldTag}" 태그의 새 이름:`, oldTag);
       if (newTag && newTag !== oldTag) {
-        const res = await fetch("/api/prints/tags", {
+        const res = await fetch("/api/works/tags", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ oldTag, newTag }),

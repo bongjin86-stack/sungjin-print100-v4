@@ -9,120 +9,114 @@ import siteConfig from "@/config/site.config.json";
 import Layout from "@/layouts/Layout.astro";
 import { supabase } from "@/lib/supabase";
 
-// SSR 모드로 전환
 export const prerender = false;
 
-// URL에서 카테고리와 페이지 번호 추출
-const { category: categoryId, page: pageParam } = Astro.params;
+const { category: categoryParam, page: pageParam } = Astro.params;
+const currentTag = decodeURIComponent(categoryParam || "");
 const currentPage = pageParam ? parseInt(pageParam) : 1;
 const pageSize = siteConfig.settings.pagination || 9;
 
-// DB에서 모든 카테고리 데이터 가져오기
-const { data: categories, error: catError } = await supabase
-  .from("work_categories")
-  .select("*")
-  .order("sort_order", { ascending: true });
-
-if (catError) {
-  console.error("Error fetching categories:", catError);
+if (!currentTag) {
+  return Astro.redirect("/prints");
 }
 
-// 카테고리 데이터를 CategoryNavigation 형식으로 변환
-const categoryList =
-  categories?.map((cat) => ({
-    id: cat.id,
-    title: cat.title,
-  })) || [];
+// 공개 prints에서 고유 태그 목록 추출
+const { data: allPublished } = await supabase
+  .from("prints")
+  .select("tag")
+  .eq("is_published", true)
+  .neq("tag", "");
 
-// 현재 카테고리 정보 찾기
-const currentCategory = categoryList.find((cat) => cat.id === categoryId);
+const uniqueTags = [
+  ...new Set((allPublished || []).map((p) => p.tag).filter(Boolean)),
+].sort();
 
-if (!currentCategory) {
-  return Astro.redirect("/works");
+const categoryList = uniqueTags.map((tag) => ({
+  id: tag,
+  title: tag,
+}));
+
+// 해당 태그가 실제 존재하는지 확인
+if (!uniqueTags.includes(currentTag)) {
+  return Astro.redirect("/prints");
 }
 
-// DB에서 해당 카테고리의 Works 전체 개수 가져오기
+// 해당 태그의 Prints 개수
 const { count: totalCount } = await supabase
-  .from("works")
+  .from("prints")
   .select("*", { count: "exact", head: true })
   .eq("is_published", true)
-  .eq("category_id", categoryId);
+  .eq("tag", currentTag);
 
-// DB에서 해당 카테고리의 Works 데이터 가져오기 (페이지네이션)
-const { data: works, error: worksError } = await supabase
-  .from("works")
+// 해당 태그의 Prints 데이터 (페이지네이션)
+const { data: prints, error: printsError } = await supabase
+  .from("prints")
   .select("*")
   .eq("is_published", true)
-  .eq("category_id", categoryId)
+  .eq("tag", currentTag)
   .order("sort_order", { ascending: true })
   .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
-if (worksError) {
-  console.error("Error fetching works:", worksError);
+if (printsError) {
+  console.error("Error fetching prints by tag:", printsError);
 }
 
-const worksList = works || [];
+const printsList = prints || [];
 const totalPages = Math.ceil((totalCount || 0) / pageSize);
 
 const pageTitle =
   currentPage === 1
-    ? `Works - ${currentCategory.title}`
-    : `Works - ${currentCategory.title} (${currentPage}페이지)`;
-
-// 카테고리 ID로 카테고리 제목 찾기
-function getCategoryTitle(catId: string): string {
-  const cat = categoryList.find((c) => c.id === catId);
-  return cat?.title || catId;
-}
+    ? `Prints - ${currentTag}`
+    : `Prints - ${currentTag} (${currentPage}페이지)`;
 ---
 
 <Layout
   title={pageTitle}
-  description={`${currentCategory.title} 카테고리의 Works를 소개합니다.`}
+  description={`'${currentTag}' 태그의 인쇄물을 소개합니다.`}
 >
-  <PageHero title="Works" subtitle={currentCategory.title} />
+  <PageHero title="Prints" subtitle={currentTag} />
 
-  <Section class="works-section">
+  <Section class="prints-section">
     <Container>
       <CategoryNavigation
         categories={categoryList}
-        currentCategory={categoryId}
-        basePath="/works"
+        currentCategory={currentTag}
+        basePath="/prints"
       />
 
-      <div class="works-grid">
+      <div class="prints-grid">
         {
-          worksList.length > 0 ? (
-            worksList.map((work) => (
-              <article class="work-card">
-                <a href={`/works/${work.id}`} class="work-card-link">
-                  <div class="work-card-image">
-                    {work.image ? (
+          printsList.length > 0 ? (
+            printsList.map((item) => (
+              <article class="print-card">
+                <a href={`/works/${item.id}`} class="print-card-link">
+                  <div class="print-card-image">
+                    {item.image ? (
                       <img
-                        src={work.image}
-                        alt={work.title}
+                        src={item.image}
+                        alt={item.title}
                         width="600"
                         height="400"
                         loading="lazy"
                       />
                     ) : (
-                      <div class="work-card-placeholder">No Image</div>
+                      <div class="print-card-placeholder">No Image</div>
                     )}
                   </div>
-                  <div class="work-card-content">
-                    <h3 class="work-card-title">{work.title}</h3>
-                    <p class="work-card-client">
-                      {work.client || work.subtitle}
+                  <div class="print-card-content">
+                    <h3 class="print-card-title">{item.title}</h3>
+                    <p class="print-card-client">
+                      {item.client || item.subtitle}
                     </p>
-                    <span class="work-card-category">
-                      {getCategoryTitle(work.category_id)}
-                    </span>
+                    {item.tag && (
+                      <span class="print-card-category">{item.tag}</span>
+                    )}
                   </div>
                 </a>
               </article>
             ))
           ) : (
-            <p class="no-works">이 카테고리에 등록된 콘텐츠가 없습니다.</p>
+            <p class="no-prints">이 태그에 등록된 콘텐츠가 없습니다.</p>
           )
         }
       </div>
@@ -132,7 +126,7 @@ function getCategoryTitle(catId: string): string {
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            basePath={`/works/category/${categoryId}`}
+            basePath={`/works/category/${encodeURIComponent(currentTag)}`}
           />
         )
       }
@@ -143,11 +137,11 @@ function getCategoryTitle(catId: string): string {
 </Layout>
 
 <style lang="scss">
-  .works-section {
+  .prints-section {
     padding-top: var(--sp-md);
   }
 
-  .works-grid {
+  .prints-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--sp-2xl);
@@ -164,11 +158,11 @@ function getCategoryTitle(catId: string): string {
     }
   }
 
-  .work-card-link {
+  .print-card-link {
     display: block;
   }
 
-  .work-card-image {
+  .print-card-image {
     position: relative;
     width: 100%;
     overflow: hidden;
@@ -182,12 +176,12 @@ function getCategoryTitle(catId: string): string {
       transition: transform var(--transition-slow);
     }
 
-    .work-card:hover & img {
+    .print-card:hover & img {
       transform: scale(1.05);
     }
   }
 
-  .work-card-placeholder {
+  .print-card-placeholder {
     width: 100%;
     aspect-ratio: 3 / 2;
     background-color: var(--c-bg-secondary);
@@ -197,14 +191,14 @@ function getCategoryTitle(catId: string): string {
     color: var(--c-text-sub);
   }
 
-  .work-card-content {
+  .print-card-content {
     display: flex;
     flex-direction: column;
     gap: var(--sp-xs);
     margin: var(--sp-md) 0 0;
   }
 
-  .work-card-title {
+  .print-card-title {
     color: var(--c-text);
     font-size: var(--fs-md);
     font-weight: 500;
@@ -215,13 +209,13 @@ function getCategoryTitle(catId: string): string {
     }
   }
 
-  .work-card-client {
+  .print-card-client {
     color: var(--c-text-sub);
     font-size: var(--fs-sm);
     line-height: var(--lh-snug);
   }
 
-  .work-card-category {
+  .print-card-category {
     display: inline-block;
     align-self: self-start;
     margin-top: var(--sp-xs);
@@ -236,7 +230,7 @@ function getCategoryTitle(catId: string): string {
     border-radius: var(--radius-full);
   }
 
-  .no-works {
+  .no-prints {
     grid-column: 1 / -1;
     text-align: center;
     color: var(--c-text-sub);

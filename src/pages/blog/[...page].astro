@@ -23,82 +23,90 @@ const { page: pageParam } = Astro.params;
 const currentPage = pageParam ? parseInt(pageParam) : 1;
 const pageSize = siteConfig.settings.pagination || 9;
 
-// 공개 prints에서 고유 태그 목록 추출 (카테고리 네비게이션용)
-const { data: allPublished } = await supabase
-  .from("prints")
-  .select("tag")
-  .eq("is_published", true)
-  .neq("tag", "");
+// DB에서 카테고리 데이터 가져오기
+const { data: categories, error: catError } = await supabase
+  .from("work_categories")
+  .select("*")
+  .order("sort_order", { ascending: true });
 
-const uniqueTags = [
-  ...new Set((allPublished || []).map((p) => p.tag).filter(Boolean)),
-].sort();
+if (catError) {
+  console.error("Error fetching categories:", catError);
+}
 
-const categoryList = uniqueTags.map((tag) => ({
-  id: tag,
-  title: tag,
-}));
+// 카테고리 데이터를 CategoryNavigation 형식으로 변환
+const categoryList =
+  categories?.map((cat) => ({
+    id: cat.id,
+    title: cat.title,
+  })) || [];
 
-// DB에서 Prints 전체 개수 가져오기
+// DB에서 Works 전체 개수 가져오기
 const { count: totalCount } = await supabase
-  .from("prints")
+  .from("works")
   .select("*", { count: "exact", head: true })
   .eq("is_published", true);
 
-// DB에서 Prints 데이터 가져오기 (페이지네이션)
-const { data: prints, error: printsError } = await supabase
-  .from("prints")
+// DB에서 Works 데이터 가져오기 (페이지네이션)
+const { data: works, error: worksError } = await supabase
+  .from("works")
   .select("*")
   .eq("is_published", true)
   .order("sort_order", { ascending: true })
   .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
-if (printsError) {
-  console.error("Error fetching prints:", printsError);
+if (worksError) {
+  console.error("Error fetching works:", worksError);
 }
 
-const printsList = prints || [];
+const worksList = works || [];
 const totalPages = Math.ceil((totalCount || 0) / pageSize);
 
 const pageTitle =
   currentPage === 1
-    ? "Prints - 인쇄물"
-    : `Prints - 인쇄물 (${currentPage}페이지)`;
+    ? "Works - 제작실적"
+    : `Works - 제작실적 (${currentPage}페이지)`;
+
+// 카테고리 ID로 카테고리 제목 찾기
+function getCategoryTitle(categoryId: string): string {
+  const cat = categoryList.find((c) => c.id === categoryId);
+  return cat?.title || categoryId;
+}
 ---
 
-<Layout title={pageTitle} description="다양한 인쇄물을 소개합니다.">
-  <PageHero title="Prints" subtitle="인쇄물" />
+<Layout
+  title={pageTitle}
+  description="인쇄에 필요한 다양한 가이드와 작업 사례를 소개합니다."
+>
+  <PageHero title="Works" subtitle="제작실적" />
 
-  <Section class="prints-section">
+  <Section class="works-section">
     <Container>
-      <CategoryNavigation categories={categoryList} basePath="/prints" />
+      <CategoryNavigation categories={categoryList} basePath="/works" />
 
-      <div class="prints-grid">
+      <div class="works-grid">
         {
-          printsList.map((item) => (
-            <article class="print-card">
-              <a href={`/prints/${item.id}`} class="print-card-link">
-                <div class="print-card-image">
-                  {item.image ? (
+          worksList.map((work) => (
+            <article class="work-card">
+              <a href={`/blog/${work.id}`} class="work-card-link">
+                <div class="work-card-image">
+                  {work.image ? (
                     <img
-                      src={item.image}
-                      alt={item.title}
+                      src={work.image}
+                      alt={work.title}
                       width="600"
                       height="400"
                       loading="lazy"
                     />
                   ) : (
-                    <div class="print-card-placeholder">No Image</div>
+                    <div class="work-card-placeholder">No Image</div>
                   )}
                 </div>
-                <div class="print-card-content">
-                  <h3 class="print-card-title">{item.title}</h3>
-                  <p class="print-card-client">
-                    {item.client || item.subtitle}
-                  </p>
-                  {item.tag && (
-                    <span class="print-card-category">{item.tag}</span>
-                  )}
+                <div class="work-card-content">
+                  <h3 class="work-card-title">{work.title}</h3>
+                  <p class="work-card-client">{work.client || work.subtitle}</p>
+                  <span class="work-card-category">
+                    {getCategoryTitle(work.category_id)}
+                  </span>
                 </div>
               </a>
             </article>
@@ -111,7 +119,7 @@ const pageTitle =
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            basePath="/prints"
+            basePath="/works"
           />
         )
       }
@@ -122,11 +130,11 @@ const pageTitle =
 </Layout>
 
 <style lang="scss">
-  .prints-section {
+  .works-section {
     padding-top: var(--sp-md);
   }
 
-  .prints-grid {
+  .works-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--sp-2xl);
@@ -143,11 +151,11 @@ const pageTitle =
     }
   }
 
-  .print-card-link {
+  .work-card-link {
     display: block;
   }
 
-  .print-card-image {
+  .work-card-image {
     position: relative;
     width: 100%;
     overflow: hidden;
@@ -161,12 +169,12 @@ const pageTitle =
       transition: transform var(--transition-slow);
     }
 
-    .print-card:hover & img {
+    .work-card:hover & img {
       transform: scale(1.05);
     }
   }
 
-  .print-card-placeholder {
+  .work-card-placeholder {
     width: 100%;
     aspect-ratio: 3 / 2;
     background-color: var(--c-bg-secondary);
@@ -176,14 +184,14 @@ const pageTitle =
     color: var(--c-text-sub);
   }
 
-  .print-card-content {
+  .work-card-content {
     display: flex;
     flex-direction: column;
     gap: var(--sp-xs);
     margin: var(--sp-md) 0 0;
   }
 
-  .print-card-title {
+  .work-card-title {
     color: var(--c-text);
     font-size: var(--fs-md);
     font-weight: 500;
@@ -194,13 +202,13 @@ const pageTitle =
     }
   }
 
-  .print-card-client {
+  .work-card-client {
     color: var(--c-text-sub);
     font-size: var(--fs-sm);
     line-height: var(--lh-snug);
   }
 
-  .print-card-category {
+  .work-card-category {
     display: inline-block;
     align-self: self-start;
     margin-top: var(--sp-xs);

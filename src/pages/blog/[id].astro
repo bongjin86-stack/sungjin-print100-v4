@@ -20,46 +20,25 @@ Astro.response.headers.set(
 // URL에서 ID 추출
 const { id } = Astro.params;
 
-// DB에서 Print 데이터 가져오기
-const { data: print, error: printError } = await supabase
-  .from("prints")
+// DB에서 Work 데이터 가져오기
+const { data: work, error: workError } = await supabase
+  .from("works")
   .select("*")
   .eq("id", id)
   .single();
 
-if (printError || !print) {
+if (workError || !work) {
   return Astro.redirect("/404");
 }
 
-// 바로 이동 설정: 상세 페이지 없이 상품 페이지로 리다이렉트
-if (print.redirect_to_product && print.linked_product_id) {
-  return Astro.redirect(`/product/${print.linked_product_id}`);
-}
+// DB에서 카테고리 데이터 가져오기
+const { data: category } = await supabase
+  .from("work_categories")
+  .select("title")
+  .eq("id", work.category_id)
+  .single();
 
-const categoryTitle = print.tag || "";
-
-// field_labels 파싱 (커스텀 라벨)
-let labels = {
-  meta1_label: "분류",
-  meta2_label: "카테고리",
-  meta3_label: "연도",
-  overview_label: "개요",
-  support_label: "주요 내용",
-  achievements_label: "상세 정보",
-  content_label: "상세 내용",
-};
-
-try {
-  if (print.field_labels) {
-    const parsed =
-      typeof print.field_labels === "string"
-        ? JSON.parse(print.field_labels)
-        : print.field_labels;
-    labels = { ...labels, ...parsed };
-  }
-} catch (e) {
-  // 기본 라벨 사용
-}
+const categoryTitle = category?.title || work.category_id || "";
 
 // support와 achievements JSON 파싱
 let supportList: string[] = [];
@@ -68,106 +47,99 @@ let testimonial: { text: string; author: string; position: string } | null =
   null;
 
 try {
-  if (print.support) {
+  if (work.support) {
     supportList =
-      typeof print.support === "string"
-        ? JSON.parse(print.support)
-        : print.support;
+      typeof work.support === "string"
+        ? JSON.parse(work.support)
+        : work.support;
   }
 } catch (e) {
   supportList = [];
 }
 
 try {
-  if (print.achievements) {
+  if (work.achievements) {
     achievementsList =
-      typeof print.achievements === "string"
-        ? JSON.parse(print.achievements)
-        : print.achievements;
+      typeof work.achievements === "string"
+        ? JSON.parse(work.achievements)
+        : work.achievements;
   }
 } catch (e) {
   achievementsList = [];
 }
 
 try {
-  if (print.testimonial) {
+  if (work.testimonial) {
     testimonial =
-      typeof print.testimonial === "string"
-        ? JSON.parse(print.testimonial)
-        : print.testimonial;
+      typeof work.testimonial === "string"
+        ? JSON.parse(work.testimonial)
+        : work.testimonial;
   }
 } catch (e) {
   testimonial = null;
 }
 
-const ogImageUrl = print.image || "";
+const ogImageUrl = work.image || "";
 
 // BlockNote JSON 또는 마크다운을 HTML로 변환
-const contentHtml = print.content ? renderBlocksToHTML(print.content) : "";
-
-// 주문하기 버튼 관련
-const hasLinkedProduct = !!print.linked_product_id;
-const orderButtonText = print.order_button_text || "주문하기";
-const orderHref = hasLinkedProduct
-  ? `/product/${print.linked_product_id}`
-  : null;
+const contentHtml = work.content ? renderBlocksToHTML(work.content) : "";
 ---
 
 <Layout
-  title={`${print.title} - Prints`}
-  description={print.description || print.overview || ""}
+  title={`${work.title} - Works`}
+  description={work.description || work.overview || ""}
   ogImage={ogImageUrl}
 >
-  <PageHero title={print.title} subtitle={print.subtitle || ""} />
+  <PageHero title={work.title} subtitle={work.subtitle || ""} />
 
   <Section>
     <Container size="medium">
-      <div class="print-detail-image">
+      <div class="work-detail-image">
         {
-          print.image ? (
+          work.image ? (
             <img
-              src={print.image}
-              alt={print.title}
+              src={work.image}
+              alt={work.title}
               width="1200"
               height="675"
               loading="eager"
             />
           ) : (
-            <div class="print-image-placeholder">No Image</div>
+            <div class="work-image-placeholder">No Image</div>
           )
         }
       </div>
 
-      <div class="print-detail-meta">
+      <div class="work-detail-meta">
         <div class="meta-item">
-          <dt class="meta-label">{labels.meta1_label}</dt>
-          <dd class="meta-value">{print.client || ""}</dd>
+          <dt class="meta-label">분류</dt>
+          <dd class="meta-value">{work.client || ""}</dd>
         </div>
         <div class="meta-item">
-          <dt class="meta-label">{labels.meta2_label}</dt>
+          <dt class="meta-label">카테고리</dt>
           <dd class="meta-value">{categoryTitle}</dd>
         </div>
         <div class="meta-item">
-          <dt class="meta-label">{labels.meta3_label}</dt>
-          <dd class="meta-value">{print.year || new Date().getFullYear()}</dd>
+          <dt class="meta-label">연도</dt>
+          <dd class="meta-value">{work.year || new Date().getFullYear()}</dd>
         </div>
       </div>
 
-      <div class="print-content">
+      <div class="work-content">
         {
-          print.overview && (
-            <div class="print-section">
-              <h2 class="print-section-title">{labels.overview_label}</h2>
-              <p class="print-section-text">{print.overview}</p>
+          work.overview && (
+            <div class="work-section">
+              <h2 class="work-section-title">개요</h2>
+              <p class="work-section-text">{work.overview}</p>
             </div>
           )
         }
 
         {
           supportList.length > 0 && (
-            <div class="print-section">
-              <h2 class="print-section-title">{labels.support_label}</h2>
-              <ul class="print-support-list">
+            <div class="work-section">
+              <h2 class="work-section-title">주요 내용</h2>
+              <ul class="work-support-list">
                 {supportList.map((item) => (
                   <li class="support-item">{item}</li>
                 ))}
@@ -178,9 +150,9 @@ const orderHref = hasLinkedProduct
 
         {
           achievementsList.length > 0 && (
-            <div class="print-section">
-              <h2 class="print-section-title">{labels.achievements_label}</h2>
-              <div class="print-achievements">
+            <div class="work-section">
+              <h2 class="work-section-title">상세 정보</h2>
+              <div class="work-achievements">
                 {achievementsList.map((achievement) => (
                   <div class="achievement-item">
                     <h3 class="achievement-title">{achievement.title}</h3>
@@ -196,8 +168,8 @@ const orderHref = hasLinkedProduct
 
         {
           testimonial && (
-            <div class="print-section print-testimonial">
-              <h2 class="print-section-title">고객 후기</h2>
+            <div class="work-section work-testimonial">
+              <h2 class="work-section-title">고객 후기</h2>
               <blockquote class="testimonial-quote">
                 <p class="testimonial-text">{testimonial.text}</p>
                 <footer class="testimonial-author">
@@ -210,49 +182,24 @@ const orderHref = hasLinkedProduct
         }
 
         {
-          print.content && (
-            <div class="print-section">
-              <h2 class="print-section-title">{labels.content_label}</h2>
-              <div class="print-section-text" set:html={contentHtml} />
+          work.content && (
+            <div class="work-section">
+              <h2 class="work-section-title">상세 내용</h2>
+              <div class="work-section-text" set:html={contentHtml} />
             </div>
           )
         }
       </div>
 
-      <div class="print-action">
-        {
-          orderHref ? (
-            <LinkButton
-              href={orderHref}
-              variant="solid"
-              size="large"
-              class="print-action-button"
-            >
-              {orderButtonText}
-            </LinkButton>
-          ) : (
-            <LinkButton
-              href="/prints"
-              variant="solid"
-              size="large"
-              class="print-action-button"
-            >
-              목록으로 돌아가기
-            </LinkButton>
-          )
-        }
-        {
-          orderHref && (
-            <LinkButton
-              href="/prints"
-              variant="outline"
-              size="large"
-              class="print-action-button-sub"
-            >
-              목록으로 돌아가기
-            </LinkButton>
-          )
-        }
+      <div class="work-action">
+        <LinkButton
+          href="/works"
+          variant="solid"
+          size="large"
+          class="work-action-button"
+        >
+          목록으로 돌아가기
+        </LinkButton>
       </div>
     </Container>
   </Section>
@@ -261,7 +208,7 @@ const orderHref = hasLinkedProduct
 </Layout>
 
 <style lang="scss">
-  .print-detail-image {
+  .work-detail-image {
     width: 100%;
     overflow: hidden;
     border-radius: var(--radius-6xl);
@@ -275,7 +222,7 @@ const orderHref = hasLinkedProduct
     }
   }
 
-  .print-image-placeholder {
+  .work-image-placeholder {
     width: 100%;
     aspect-ratio: 16 / 9;
     background-color: var(--c-bg-secondary);
@@ -286,7 +233,7 @@ const orderHref = hasLinkedProduct
     font-size: var(--fs-lg);
   }
 
-  .print-detail-meta {
+  .work-detail-meta {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--sp-lg);
@@ -328,7 +275,7 @@ const orderHref = hasLinkedProduct
     }
   }
 
-  .print-content {
+  .work-content {
     display: flex;
     flex-direction: column;
     gap: var(--sp-3xl);
@@ -338,7 +285,7 @@ const orderHref = hasLinkedProduct
     }
   }
 
-  .print-section {
+  .work-section {
     display: flex;
     flex-direction: column;
     gap: var(--sp-lg);
@@ -348,7 +295,7 @@ const orderHref = hasLinkedProduct
     }
   }
 
-  .print-section-title {
+  .work-section-title {
     color: var(--c-text);
     font-size: var(--fs-xl);
     font-weight: 500;
@@ -359,7 +306,7 @@ const orderHref = hasLinkedProduct
     }
   }
 
-  .print-section-text {
+  .work-section-text {
     color: var(--c-text);
     font-size: var(--fs-base);
     line-height: var(--lh-loose);
@@ -369,7 +316,7 @@ const orderHref = hasLinkedProduct
     }
   }
 
-  .print-support-list {
+  .work-support-list {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--sp-sm);
@@ -399,7 +346,7 @@ const orderHref = hasLinkedProduct
     }
   }
 
-  .print-achievements {
+  .work-achievements {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--sp-xl);
@@ -440,7 +387,7 @@ const orderHref = hasLinkedProduct
     }
   }
 
-  .print-testimonial {
+  .work-testimonial {
     padding: var(--sp-xl);
     border: 1px solid var(--c-border);
     border-radius: var(--radius-4xl);
@@ -486,10 +433,9 @@ const orderHref = hasLinkedProduct
     line-height: var(--lh-normal);
   }
 
-  .print-action {
+  .work-action {
     display: flex;
     justify-content: center;
-    gap: var(--sp-md);
     margin: var(--sp-2xl) 0 0;
   }
 </style>

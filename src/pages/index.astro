@@ -5,9 +5,9 @@ import Edu100Showcase from "@/components/sections/Edu100Showcase.astro";
 import Hero from "@/components/sections/HeroDB.astro";
 import News from "@/components/sections/News.astro";
 import Partners from "@/components/sections/PartnersDB.astro";
-import PrintsShowcase from "@/components/sections/PrintsShowcase.astro";
+import WorksShowcase from "@/components/sections/WorksShowcase.astro";
 import Service from "@/components/sections/Service.astro";
-import Works from "@/components/sections/WorksDB.astro";
+import BlogShowcase from "@/components/sections/BlogShowcase.astro";
 import siteConfig from "@/config/site.config.json";
 import Layout from "@/layouts/Layout.astro";
 import { supabase } from "@/lib/supabase";
@@ -81,9 +81,9 @@ sectionOrder = sectionOrder.filter((s) => !sectionHidden.includes(s));
         case "service":
           return <Service />;
         case "products":
-          return <PrintsShowcase />;
+          return <WorksShowcase />;
         case "works":
-          return <Works />;
+          return <BlogShowcase />;
         case "edu100":
           return <Edu100Showcase />;
         case "about":
